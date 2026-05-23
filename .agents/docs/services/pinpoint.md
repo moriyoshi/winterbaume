@@ -41,63 +41,63 @@ Doc Engage API - Amazon Pinpoint API
 
 ### Get
 
-- Operations: `GetAdmChannel`, `GetApnsChannel`, `GetApnsSandboxChannel`, `GetApnsVoipChannel`, `GetApnsVoipSandboxChannel`, `GetApp`, `GetApplicationDateRangeKpi`, `GetApplicationSettings`, `GetApps`, `GetBaiduChannel`, `GetCampaign`, `GetCampaignActivities`, `GetCampaignDateRangeKpi`, `GetCampaignVersion`, `GetCampaignVersions`, `GetCampaigns`, `GetChannels`, `GetEmailChannel`, `GetEmailTemplate`, `GetEndpoint`, `GetEventStream`, `GetExportJob`, `GetExportJobs`, `GetGcmChannel`, `GetImportJob`, `GetImportJobs`, `GetInAppMessages`, `GetInAppTemplate`, `GetJourney`, `GetJourneyDateRangeKpi`, `GetJourneyExecutionActivityMetrics`, `GetJourneyExecutionMetrics`, `GetJourneyRunExecutionActivityMetrics`, `GetJourneyRunExecutionMetrics`, `GetJourneyRuns`, `GetPushTemplate`, `GetRecommenderConfiguration`, `GetRecommenderConfigurations`, `GetSegment`, `GetSegmentExportJobs`, ... (+9)
-- Common required input members in this group: `ApplicationId`, `CampaignId`, `EndpointId`, `JobId`, `JourneyActivityId`, `JourneyId`, `KpiName`, `RecommenderId`, `RunId`, `SegmentId`, `TemplateName`, `UserId`, `Version`
+- Operations: `GetAdmChannel`, `GetApnsChannel`, `GetApnsSandboxChannel`, `GetApnsVoipChannel`, `GetApnsVoipSandboxChannel`, `GetApp`, `GetApplicationDateRangeKpi`, `GetApplicationSettings`, `GetApps`, `GetBaiduChannel`, `GetCampaign`, `GetCampaignActivities`, `GetCampaignDateRangeKpi`, `GetCampaigns`, `GetCampaignVersion`, `GetCampaignVersions`, `GetChannels`, `GetEmailChannel`, `GetEmailTemplate`, `GetEndpoint`, `GetEventStream`, `GetExportJob`, `GetExportJobs`, `GetGcmChannel`, `GetImportJob`, `GetImportJobs`, `GetInAppMessages`, `GetInAppTemplate`, `GetJourney`, `GetJourneyDateRangeKpi`, `GetJourneyExecutionActivityMetrics`, `GetJourneyExecutionMetrics`, `GetJourneyRunExecutionActivityMetrics`, `GetJourneyRunExecutionMetrics`, `GetJourneyRuns`, `GetPushTemplate`, `GetRecommenderConfiguration`, `GetRecommenderConfigurations`, `GetSegment`, `GetSegmentExportJobs`, `GetSegmentImportJobs`, `GetSegments`, `GetSegmentVersion`, `GetSegmentVersions`, `GetSmsChannel`, `GetSmsTemplate`, `GetUserEndpoints`, `GetVoiceChannel`, `GetVoiceTemplate`
+- Common required input members in this group: `ApplicationId`, `KpiName`, `CampaignId`, `Version`, `TemplateName`, `EndpointId`, `JobId`, `JourneyId`, `JourneyActivityId`, `RunId`, `SegmentId`
 
 ### Update
 
 - Operations: `UpdateAdmChannel`, `UpdateApnsChannel`, `UpdateApnsSandboxChannel`, `UpdateApnsVoipChannel`, `UpdateApnsVoipSandboxChannel`, `UpdateApplicationSettings`, `UpdateBaiduChannel`, `UpdateCampaign`, `UpdateEmailChannel`, `UpdateEmailTemplate`, `UpdateEndpoint`, `UpdateEndpointsBatch`, `UpdateGcmChannel`, `UpdateInAppTemplate`, `UpdateJourney`, `UpdateJourneyState`, `UpdatePushTemplate`, `UpdateRecommenderConfiguration`, `UpdateSegment`, `UpdateSmsChannel`, `UpdateSmsTemplate`, `UpdateTemplateActiveVersion`, `UpdateVoiceChannel`, `UpdateVoiceTemplate`
-- Common required input members in this group: `ADMChannelRequest`, `APNSChannelRequest`, `APNSSandboxChannelRequest`, `APNSVoipChannelRequest`, `APNSVoipSandboxChannelRequest`, `ApplicationId`, `BaiduChannelRequest`, `CampaignId`, `EmailChannelRequest`, `EmailTemplateRequest`, `EndpointBatchRequest`, `EndpointId`, `EndpointRequest`, `GCMChannelRequest`, `InAppTemplateRequest`, `JourneyId`, `JourneyStateRequest`, `PushNotificationTemplateRequest`, `RecommenderId`, `SMSChannelRequest`, `SMSTemplateRequest`, `SegmentId`, `TemplateActiveVersionRequest`, `TemplateName`, ... (+8)
+- Common required input members in this group: `ApplicationId`, `TemplateName`, `JourneyId`
 
 ### Delete
 
 - Operations: `DeleteAdmChannel`, `DeleteApnsChannel`, `DeleteApnsSandboxChannel`, `DeleteApnsVoipChannel`, `DeleteApnsVoipSandboxChannel`, `DeleteApp`, `DeleteBaiduChannel`, `DeleteCampaign`, `DeleteEmailChannel`, `DeleteEmailTemplate`, `DeleteEndpoint`, `DeleteEventStream`, `DeleteGcmChannel`, `DeleteInAppTemplate`, `DeleteJourney`, `DeletePushTemplate`, `DeleteRecommenderConfiguration`, `DeleteSegment`, `DeleteSmsChannel`, `DeleteSmsTemplate`, `DeleteUserEndpoints`, `DeleteVoiceChannel`, `DeleteVoiceTemplate`
-- Common required input members in this group: `ApplicationId`, `CampaignId`, `EndpointId`, `JourneyId`, `RecommenderId`, `SegmentId`, `TemplateName`, `UserId`
+- Common required input members in this group: `ApplicationId`, `TemplateName`
 
 ### Create
 
 - Operations: `CreateApp`, `CreateCampaign`, `CreateEmailTemplate`, `CreateExportJob`, `CreateImportJob`, `CreateInAppTemplate`, `CreateJourney`, `CreatePushTemplate`, `CreateRecommenderConfiguration`, `CreateSegment`, `CreateSmsTemplate`, `CreateVoiceTemplate`
-- Common required input members in this group: `ApplicationId`, `CreateApplicationRequest`, `CreateRecommenderConfiguration`, `EmailTemplateRequest`, `ExportJobRequest`, `ImportJobRequest`, `InAppTemplateRequest`, `PushNotificationTemplateRequest`, `SMSTemplateRequest`, `TemplateName`, `VoiceTemplateRequest`, `WriteCampaignRequest`, `WriteJourneyRequest`, `WriteSegmentRequest`
+- Common required input members in this group: `ApplicationId`, `TemplateName`
 
 ### List
 
-- Operations: `ListJourneys`, `ListTagsForResource`, `ListTemplateVersions`, `ListTemplates`
-- Common required input members in this group: `ApplicationId`, `ResourceArn`, `TemplateName`, `TemplateType`
+- Operations: `ListJourneys`, `ListTagsForResource`, `ListTemplates`, `ListTemplateVersions`
+- Common required input members in this group: -
 
 ### Send
 
 - Operations: `SendMessages`, `SendOTPMessage`, `SendUsersMessages`
-- Common required input members in this group: `ApplicationId`, `MessageRequest`, `SendOTPMessageRequestParameters`, `SendUsersMessageRequest`
+- Common required input members in this group: `ApplicationId`
 
 ### Put
 
-- Operations: `PutEventStream`, `PutEvents`
-- Common required input members in this group: `ApplicationId`, `EventsRequest`, `WriteEventStream`
+- Operations: `PutEvents`, `PutEventStream`
+- Common required input members in this group: `ApplicationId`
 
 ### Phone
 
 - Operations: `PhoneNumberValidate`
-- Common required input members in this group: `NumberValidateRequest`
+- Common required input members in this group: -
 
 ### Remove
 
 - Operations: `RemoveAttributes`
-- Common required input members in this group: `ApplicationId`, `AttributeType`, `UpdateAttributesRequest`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `TagsModel`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
 
 ### Verify
 
 - Operations: `VerifyOTPMessage`
-- Common required input members in this group: `ApplicationId`, `VerifyOTPMessageRequestParameters`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
@@ -151,9 +151,9 @@ Doc Engage API - Amazon Pinpoint API
 | `GetCampaign` | `GET /v1/apps/{ApplicationId}/campaigns/{CampaignId}` | - | `ApplicationId`, `CampaignId` | - | `GetCampaignResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Retrieves information about the status, configuration, and other settings for a campaign. |
 | `GetCampaignActivities` | `GET /v1/apps/{ApplicationId}/campaigns/{CampaignId}/activities` | - | `ApplicationId`, `CampaignId` | - | `GetCampaignActivitiesResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Retrieves information about all the activities for a campaign. |
 | `GetCampaignDateRangeKpi` | `GET /v1/apps/{ApplicationId}/campaigns/{CampaignId}/kpis/daterange/{KpiName}` | - | `ApplicationId`, `CampaignId`, `KpiName` | - | `GetCampaignDateRangeKpiResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Retrieves (queries) pre-aggregated data for a standard metric that applies to a campaign. |
+| `GetCampaigns` | `GET /v1/apps/{ApplicationId}/campaigns` | - | `ApplicationId` | - | `GetCampaignsResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Retrieves information about the status, configuration, and other settings for all the campaigns that are associated with an application. |
 | `GetCampaignVersion` | `GET /v1/apps/{ApplicationId}/campaigns/{CampaignId}/versions/{Version}` | - | `ApplicationId`, `CampaignId`, `Version` | - | `GetCampaignVersionResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Retrieves information about the status, configuration, and other settings for a specific version of a campaign. |
 | `GetCampaignVersions` | `GET /v1/apps/{ApplicationId}/campaigns/{CampaignId}/versions` | - | `ApplicationId`, `CampaignId` | - | `GetCampaignVersionsResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Retrieves information about the status, configuration, and other settings for all versions of a campaign. |
-| `GetCampaigns` | `GET /v1/apps/{ApplicationId}/campaigns` | - | `ApplicationId` | - | `GetCampaignsResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Retrieves information about the status, configuration, and other settings for all the campaigns that are associated with an application. |
 | `GetChannels` | `GET /v1/apps/{ApplicationId}/channels` | - | `ApplicationId` | - | `GetChannelsResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Retrieves information about the history and status of each channel for an application. |
 | `GetEmailChannel` | `GET /v1/apps/{ApplicationId}/channels/email` | - | `ApplicationId` | - | `GetEmailChannelResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Retrieves information about the status and settings of the email channel for an application. |
 | `GetEmailTemplate` | `GET /v1/templates/{TemplateName}/email` | - | `TemplateName` | - | `GetEmailTemplateResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Retrieves the content and settings of a message template for messages that are sent through the email channel. |
@@ -179,9 +179,9 @@ Doc Engage API - Amazon Pinpoint API
 | `GetSegment` | `GET /v1/apps/{ApplicationId}/segments/{SegmentId}` | - | `ApplicationId`, `SegmentId` | - | `GetSegmentResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Retrieves information about the configuration, dimension, and other settings for a specific segment that's associated with an application. |
 | `GetSegmentExportJobs` | `GET /v1/apps/{ApplicationId}/segments/{SegmentId}/jobs/export` | - | `ApplicationId`, `SegmentId` | - | `GetSegmentExportJobsResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Retrieves information about the status and settings of the export jobs for a segment. |
 | `GetSegmentImportJobs` | `GET /v1/apps/{ApplicationId}/segments/{SegmentId}/jobs/import` | - | `ApplicationId`, `SegmentId` | - | `GetSegmentImportJobsResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Retrieves information about the status and settings of the import jobs for a segment. |
+| `GetSegments` | `GET /v1/apps/{ApplicationId}/segments` | - | `ApplicationId` | - | `GetSegmentsResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Retrieves information about the configuration, dimension, and other settings for all the segments that are associated with an application. |
 | `GetSegmentVersion` | `GET /v1/apps/{ApplicationId}/segments/{SegmentId}/versions/{Version}` | - | `ApplicationId`, `SegmentId`, `Version` | - | `GetSegmentVersionResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Retrieves information about the configuration, dimension, and other settings for a specific version of a segment that's associated with an application. |
 | `GetSegmentVersions` | `GET /v1/apps/{ApplicationId}/segments/{SegmentId}/versions` | - | `ApplicationId`, `SegmentId` | - | `GetSegmentVersionsResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Retrieves information about the configuration, dimension, and other settings for all the versions of a specific segment that's associated with an application. |
-| `GetSegments` | `GET /v1/apps/{ApplicationId}/segments` | - | `ApplicationId` | - | `GetSegmentsResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Retrieves information about the configuration, dimension, and other settings for all the segments that are associated with an application. |
 | `GetSmsChannel` | `GET /v1/apps/{ApplicationId}/channels/sms` | - | `ApplicationId` | - | `GetSmsChannelResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Retrieves information about the status and settings of the SMS channel for an application. |
 | `GetSmsTemplate` | `GET /v1/templates/{TemplateName}/sms` | - | `TemplateName` | - | `GetSmsTemplateResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Retrieves the content and settings of a message template for messages that are sent through the SMS channel. |
 | `GetUserEndpoints` | `GET /v1/apps/{ApplicationId}/users/{UserId}` | - | `ApplicationId`, `UserId` | - | `GetUserEndpointsResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Retrieves information about all the endpoints that are associated with a specific user ID. |
@@ -189,11 +189,11 @@ Doc Engage API - Amazon Pinpoint API
 | `GetVoiceTemplate` | `GET /v1/templates/{TemplateName}/voice` | - | `TemplateName` | - | `GetVoiceTemplateResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Retrieves the content and settings of a message template for messages that are sent through the voice channel. |
 | `ListJourneys` | `GET /v1/apps/{ApplicationId}/journeys` | - | `ApplicationId` | - | `ListJourneysResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Retrieves information about the status, configuration, and other settings for all the journeys that are associated with an application. |
 | `ListTagsForResource` | `GET /v1/tags/{ResourceArn}` | - | `ResourceArn` | - | `ListTagsForResourceResponse` | - | Retrieves all the tags (keys and values) that are associated with an application, campaign, message template, or segment. |
-| `ListTemplateVersions` | `GET /v1/templates/{TemplateName}/{TemplateType}/versions` | - | `TemplateName`, `TemplateType` | - | `ListTemplateVersionsResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Retrieves information about all the versions of a specific message template. |
 | `ListTemplates` | `GET /v1/templates` | - | - | - | `ListTemplatesResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `TooManyRequestsException` | Retrieves information about all the message templates that are associated with your Amazon Pinpoint account. |
+| `ListTemplateVersions` | `GET /v1/templates/{TemplateName}/{TemplateType}/versions` | - | `TemplateName`, `TemplateType` | - | `ListTemplateVersionsResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Retrieves information about all the versions of a specific message template. |
 | `PhoneNumberValidate` | `POST /v1/phone/number/validate` | - | `NumberValidateRequest` | - | `PhoneNumberValidateResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Retrieves information about a phone number. |
-| `PutEventStream` | `POST /v1/apps/{ApplicationId}/eventstream` | - | `ApplicationId`, `WriteEventStream` | - | `PutEventStreamResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Creates a new event stream for an application or updates the settings of an existing event stream for an application. |
 | `PutEvents` | `POST /v1/apps/{ApplicationId}/events` | - | `ApplicationId`, `EventsRequest` | - | `PutEventsResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Creates a new event to record for endpoints, or creates or updates endpoint data that existing events are associated with. |
+| `PutEventStream` | `POST /v1/apps/{ApplicationId}/eventstream` | - | `ApplicationId`, `WriteEventStream` | - | `PutEventStreamResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Creates a new event stream for an application or updates the settings of an existing event stream for an application. |
 | `RemoveAttributes` | `PUT /v1/apps/{ApplicationId}/attributes/{AttributeType}` | - | `ApplicationId`, `AttributeType`, `UpdateAttributesRequest` | - | `RemoveAttributesResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Removes one or more custom attributes, of the same attribute type, from the application. Existing endpoints still have the attributes but Amazon Pinpoint will stop capturing new or changed values for these attributes. |
 | `SendMessages` | `POST /v1/apps/{ApplicationId}/messages` | - | `ApplicationId`, `MessageRequest` | - | `SendMessagesResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Creates and sends a direct message. |
 | `SendOTPMessage` | `POST /v1/apps/{ApplicationId}/otp` | - | `ApplicationId`, `SendOTPMessageRequestParameters` | - | `SendOTPMessageResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Send an OTP message |
@@ -210,8 +210,8 @@ Doc Engage API - Amazon Pinpoint API
 | `UpdateCampaign` | `PUT /v1/apps/{ApplicationId}/campaigns/{CampaignId}` | - | `ApplicationId`, `CampaignId`, `WriteCampaignRequest` | - | `UpdateCampaignResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Updates the configuration and other settings for a campaign. |
 | `UpdateEmailChannel` | `PUT /v1/apps/{ApplicationId}/channels/email` | - | `ApplicationId`, `EmailChannelRequest` | - | `UpdateEmailChannelResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Enables the email channel for an application or updates the status and settings of the email channel for an application. |
 | `UpdateEmailTemplate` | `PUT /v1/templates/{TemplateName}/email` | - | `EmailTemplateRequest`, `TemplateName` | - | `UpdateEmailTemplateResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Updates an existing message template for messages that are sent through the email channel. |
-| `UpdateEndpoint` | `PUT /v1/apps/{ApplicationId}/endpoints/{EndpointId}` | - | `ApplicationId`, `EndpointId`, `EndpointRequest` | - | `UpdateEndpointResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Creates a new endpoint for an application or updates the settings and attributes of an existing endpoint for an application. You can also use this operation to define custom attributes for an endpoint. |
-| `UpdateEndpointsBatch` | `PUT /v1/apps/{ApplicationId}/endpoints` | - | `ApplicationId`, `EndpointBatchRequest` | - | `UpdateEndpointsBatchResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Creates a new batch of endpoints for an application or updates the settings and attributes of a batch of existing endpoints for an application. You can also use this operation to define custom attributes for a batch of endpoints. |
+| `UpdateEndpoint` | `PUT /v1/apps/{ApplicationId}/endpoints/{EndpointId}` | - | `ApplicationId`, `EndpointId`, `EndpointRequest` | - | `UpdateEndpointResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Creates a new endpoint for an application or updates the settings and attributes of an existing endpoint for an application. You can also use this operation to define custom attributes for an endpoint. If an update i ... |
+| `UpdateEndpointsBatch` | `PUT /v1/apps/{ApplicationId}/endpoints` | - | `ApplicationId`, `EndpointBatchRequest` | - | `UpdateEndpointsBatchResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Creates a new batch of endpoints for an application or updates the settings and attributes of a batch of existing endpoints for an application. You can also use this operation to define custom attributes for a batch ... |
 | `UpdateGcmChannel` | `PUT /v1/apps/{ApplicationId}/channels/gcm` | - | `ApplicationId`, `GCMChannelRequest` | - | `UpdateGcmChannelResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Enables the GCM channel for an application or updates the status and settings of the GCM channel for an application. |
 | `UpdateInAppTemplate` | `PUT /v1/templates/{TemplateName}/inapp` | - | `InAppTemplateRequest`, `TemplateName` | - | `UpdateInAppTemplateResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Updates an existing message template for messages sent through the in-app message channel. |
 | `UpdateJourney` | `PUT /v1/apps/{ApplicationId}/journeys/{JourneyId}` | - | `ApplicationId`, `JourneyId`, `WriteJourneyRequest` | - | `UpdateJourneyResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Updates the configuration and other settings for a journey. |
@@ -315,30 +315,56 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `BadRequestException` | `structure` | `Message`, `RequestID` | Provides information about an API request or response. |
-| `ForbiddenException` | `structure` | `Message`, `RequestID` | Provides information about an API request or response. |
-| `InternalServerErrorException` | `structure` | `Message`, `RequestID` | Provides information about an API request or response. |
-| `MethodNotAllowedException` | `structure` | `Message`, `RequestID` | Provides information about an API request or response. |
-| `TooManyRequestsException` | `structure` | `Message`, `RequestID` | Provides information about an API request or response. |
-| `NotFoundException` | `structure` | `Message`, `RequestID` | Provides information about an API request or response. |
-| `PayloadTooLargeException` | `structure` | `Message`, `RequestID` | Provides information about an API request or response. |
-| `CreateAppRequest` | `structure` | `CreateApplicationRequest` | - |
-| `CreateAppResponse` | `structure` | `ApplicationResponse` | - |
-| `CreateCampaignRequest` | `structure` | `ApplicationId`, `WriteCampaignRequest` | - |
-| `CreateCampaignResponse` | `structure` | `CampaignResponse` | - |
-| `CreateEmailTemplateRequest` | `structure` | `EmailTemplateRequest`, `TemplateName` | - |
-| `CreateEmailTemplateResponse` | `structure` | `CreateTemplateMessageBody` | - |
-| `CreateExportJobRequest` | `structure` | `ApplicationId`, `ExportJobRequest` | - |
-| `CreateExportJobResponse` | `structure` | `ExportJobResponse` | - |
-| `CreateImportJobRequest` | `structure` | `ApplicationId`, `ImportJobRequest` | - |
-| `CreateImportJobResponse` | `structure` | `ImportJobResponse` | - |
-| `CreateInAppTemplateRequest` | `structure` | `InAppTemplateRequest`, `TemplateName` | - |
-| `CreateInAppTemplateResponse` | `structure` | `TemplateCreateMessageBody` | - |
-| `CreateJourneyRequest` | `structure` | `ApplicationId`, `WriteJourneyRequest` | - |
-| `CreateJourneyResponse` | `structure` | `JourneyResponse` | - |
-| `CreatePushTemplateRequest` | `structure` | `PushNotificationTemplateRequest`, `TemplateName` | - |
-| `CreatePushTemplateResponse` | `structure` | `CreateTemplateMessageBody` | - |
-
+| `BadRequestException` | `structure` | Message, RequestID | Provides information about an API request or response. |
+| `ConflictException` | `structure` | Message, RequestID | Provides information about an API request or response. |
+| `ForbiddenException` | `structure` | Message, RequestID | Provides information about an API request or response. |
+| `InternalServerErrorException` | `structure` | Message, RequestID | Provides information about an API request or response. |
+| `MethodNotAllowedException` | `structure` | Message, RequestID | Provides information about an API request or response. |
+| `NotFoundException` | `structure` | Message, RequestID | Provides information about an API request or response. |
+| `PayloadTooLargeException` | `structure` | Message, RequestID | Provides information about an API request or response. |
+| `TooManyRequestsException` | `structure` | Message, RequestID | Provides information about an API request or response. |
+| `CreateAppRequest` | `structure` | CreateApplicationRequest | - |
+| `CreateAppResponse` | `structure` | ApplicationResponse | - |
+| `CreateCampaignRequest` | `structure` | ApplicationId, WriteCampaignRequest | - |
+| `CreateCampaignResponse` | `structure` | CampaignResponse | - |
+| `CreateEmailTemplateRequest` | `structure` | EmailTemplateRequest, TemplateName | - |
+| `CreateEmailTemplateResponse` | `structure` | CreateTemplateMessageBody | - |
+| `CreateExportJobRequest` | `structure` | ApplicationId, ExportJobRequest | - |
+| `CreateExportJobResponse` | `structure` | ExportJobResponse | - |
+| `CreateImportJobRequest` | `structure` | ApplicationId, ImportJobRequest | - |
+| `CreateImportJobResponse` | `structure` | ImportJobResponse | - |
+| `CreateInAppTemplateRequest` | `structure` | InAppTemplateRequest, TemplateName | - |
+| `CreateInAppTemplateResponse` | `structure` | TemplateCreateMessageBody | - |
+| `CreateJourneyRequest` | `structure` | ApplicationId, WriteJourneyRequest | - |
+| `CreateJourneyResponse` | `structure` | JourneyResponse | - |
+| `CreatePushTemplateRequest` | `structure` | PushNotificationTemplateRequest, TemplateName | - |
+| `CreatePushTemplateResponse` | `structure` | CreateTemplateMessageBody | - |
+| `CreateRecommenderConfigurationRequest` | `structure` | CreateRecommenderConfiguration | - |
+| `CreateRecommenderConfigurationResponse` | `structure` | RecommenderConfigurationResponse | - |
+| `CreateSegmentRequest` | `structure` | ApplicationId, WriteSegmentRequest | - |
+| `CreateSegmentResponse` | `structure` | SegmentResponse | - |
+| `CreateSmsTemplateRequest` | `structure` | SMSTemplateRequest, TemplateName | - |
+| `CreateSmsTemplateResponse` | `structure` | CreateTemplateMessageBody | - |
+| `CreateVoiceTemplateRequest` | `structure` | TemplateName, VoiceTemplateRequest | - |
+| `CreateVoiceTemplateResponse` | `structure` | CreateTemplateMessageBody | - |
+| `DeleteAdmChannelRequest` | `structure` | ApplicationId | - |
+| `DeleteAdmChannelResponse` | `structure` | ADMChannelResponse | - |
+| `DeleteApnsChannelRequest` | `structure` | ApplicationId | - |
+| `DeleteApnsChannelResponse` | `structure` | APNSChannelResponse | - |
+| `DeleteApnsSandboxChannelRequest` | `structure` | ApplicationId | - |
+| `DeleteApnsSandboxChannelResponse` | `structure` | APNSSandboxChannelResponse | - |
+| `DeleteApnsVoipChannelRequest` | `structure` | ApplicationId | - |
+| `DeleteApnsVoipChannelResponse` | `structure` | APNSVoipChannelResponse | - |
+| `Action` | `enum` | OPEN_APP, DEEP_LINK, URL | - |
+| `Alignment` | `enum` | LEFT, CENTER, RIGHT | - |
+| `AttributeType` | `enum` | INCLUSIVE, EXCLUSIVE, CONTAINS, BEFORE, AFTER, ON, BETWEEN | - |
+| `ButtonAction` | `enum` | LINK, DEEP_LINK, CLOSE | - |
+| `CampaignStatus` | `enum` | SCHEDULED, EXECUTING, PENDING_NEXT_RUN, COMPLETED, PAUSED, DELETED, INVALID | - |
+| `ChannelType` | `enum` | PUSH, GCM, APNS, APNS_SANDBOX, APNS_VOIP, APNS_VOIP_SANDBOX, ADM, SMS, VOICE, EMAIL, BAIDU, CUSTOM, ... (+1) | - |
+| `DayOfWeek` | `enum` | MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY | - |
+| `DeliveryStatus` | `enum` | SUCCESSFUL, THROTTLED, TEMPORARY_FAILURE, PERMANENT_FAILURE, UNKNOWN_FAILURE, OPT_OUT, DUPLICATE | - |
+| `DimensionType` | `enum` | INCLUSIVE, EXCLUSIVE | - |
+| `Duration` | `enum` | HR_24, DAY_7, DAY_14, DAY_30 | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

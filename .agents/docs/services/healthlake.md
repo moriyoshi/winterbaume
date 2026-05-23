@@ -45,7 +45,7 @@ This is the AWS HealthLake API Reference . For an introduction to the service, s
 
 - Operations: `ListFHIRDatastores`, `ListFHIRExportJobs`, `ListFHIRImportJobs`, `ListTagsForResource`
 - Traits: `paginated` (3)
-- Common required input members in this group: `DatastoreId`, `ResourceARN`
+- Common required input members in this group: `DatastoreId`
 
 ### Describe
 
@@ -56,46 +56,46 @@ This is the AWS HealthLake API Reference . For an introduction to the service, s
 
 - Operations: `StartFHIRExportJob`, `StartFHIRImportJob`
 - Traits: `idempotency-token` (2)
-- Common required input members in this group: `DataAccessRoleArn`, `DatastoreId`, `InputDataConfig`, `JobOutputDataConfig`, `OutputDataConfig`
+- Common required input members in this group: `DatastoreId`, `DataAccessRoleArn`
 
 ### Create
 
 - Operations: `CreateFHIRDatastore`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `DatastoreTypeVersion`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteFHIRDatastore`
-- Common required input members in this group: `DatastoreId`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceARN`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceARN`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateFHIRDatastore` | - | `idempotency-token` | `DatastoreTypeVersion` | `ClientToken` | `CreateFHIRDatastoreResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Create a FHIR-enabled data store. |
-| `DeleteFHIRDatastore` | - | - | `DatastoreId` | - | `DeleteFHIRDatastoreResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Delete a FHIR-enabled data store. |
-| `DescribeFHIRDatastore` | - | - | `DatastoreId` | - | `DescribeFHIRDatastoreResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get properties for a FHIR-enabled data store. |
-| `DescribeFHIRExportJob` | - | - | `DatastoreId`, `JobId` | - | `DescribeFHIRExportJobResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get FHIR export job properties. |
-| `DescribeFHIRImportJob` | - | - | `DatastoreId`, `JobId` | - | `DescribeFHIRImportJobResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get the import job properties to learn more about the job or job progress. |
-| `ListFHIRDatastores` | - | `paginated` | - | - | `ListFHIRDatastoresResponse` | `InternalServerException`, `ThrottlingException`, `ValidationException` | List all FHIR-enabled data stores in a user’s account, regardless of data store status. |
-| `ListFHIRExportJobs` | - | `paginated` | `DatastoreId` | - | `ListFHIRExportJobsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all FHIR export jobs associated with an account and their statuses. |
-| `ListFHIRImportJobs` | - | `paginated` | `DatastoreId` | - | `ListFHIRImportJobsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | List all FHIR import jobs associated with an account and their statuses. |
-| `ListTagsForResource` | - | - | `ResourceARN` | - | `ListTagsForResourceResponse` | `ResourceNotFoundException`, `ValidationException` | Returns a list of all existing tags associated with a data store. |
-| `StartFHIRExportJob` | - | `idempotency-token` | `DataAccessRoleArn`, `DatastoreId`, `OutputDataConfig` | `ClientToken` | `StartFHIRExportJobResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Start a FHIR export job. |
-| `StartFHIRImportJob` | - | `idempotency-token` | `DataAccessRoleArn`, `DatastoreId`, `InputDataConfig`, `JobOutputDataConfig` | `ClientToken` | `StartFHIRImportJobResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Start importing bulk FHIR data into an ACTIVE data store. The import job imports FHIR data found in the `InputDataConfig` object and stores processing results in the `JobOutputDataConfig` object. |
-| `TagResource` | - | - | `ResourceARN`, `Tags` | - | `TagResourceResponse` | `ResourceNotFoundException`, `ValidationException` | Add a user-specifed key and value tag to a data store. |
-| `UntagResource` | - | - | `ResourceARN`, `TagKeys` | - | `UntagResourceResponse` | `ResourceNotFoundException`, `ValidationException` | Remove a user-specifed key and value tag from a data store. |
+| `CreateFHIRDatastore` | `-` | `idempotency-token` | `DatastoreTypeVersion` | `ClientToken` | `CreateFHIRDatastoreResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Create a FHIR-enabled data store. |
+| `DeleteFHIRDatastore` | `-` | - | `DatastoreId` | - | `DeleteFHIRDatastoreResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Delete a FHIR-enabled data store. |
+| `DescribeFHIRDatastore` | `-` | - | `DatastoreId` | - | `DescribeFHIRDatastoreResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get properties for a FHIR-enabled data store. |
+| `DescribeFHIRExportJob` | `-` | - | `DatastoreId`, `JobId` | - | `DescribeFHIRExportJobResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get FHIR export job properties. |
+| `DescribeFHIRImportJob` | `-` | - | `DatastoreId`, `JobId` | - | `DescribeFHIRImportJobResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get the import job properties to learn more about the job or job progress. |
+| `ListFHIRDatastores` | `-` | `paginated` | - | - | `ListFHIRDatastoresResponse` | `InternalServerException`, `ThrottlingException`, `ValidationException` | List all FHIR-enabled data stores in a user’s account, regardless of data store status. |
+| `ListFHIRExportJobs` | `-` | `paginated` | `DatastoreId` | - | `ListFHIRExportJobsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all FHIR export jobs associated with an account and their statuses. |
+| `ListFHIRImportJobs` | `-` | `paginated` | `DatastoreId` | - | `ListFHIRImportJobsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | List all FHIR import jobs associated with an account and their statuses. |
+| `ListTagsForResource` | `-` | - | `ResourceARN` | - | `ListTagsForResourceResponse` | `ResourceNotFoundException`, `ValidationException` | Returns a list of all existing tags associated with a data store. |
+| `StartFHIRExportJob` | `-` | `idempotency-token` | `OutputDataConfig`, `DatastoreId`, `DataAccessRoleArn` | `ClientToken` | `StartFHIRExportJobResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Start a FHIR export job. |
+| `StartFHIRImportJob` | `-` | `idempotency-token` | `InputDataConfig`, `JobOutputDataConfig`, `DatastoreId`, `DataAccessRoleArn` | `ClientToken` | `StartFHIRImportJobResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Start importing bulk FHIR data into an ACTIVE data store. The import job imports FHIR data found in the InputDataConfig object and stores processing results in the JobOutputDataConfig object. |
+| `TagResource` | `-` | - | `ResourceARN`, `Tags` | - | `TagResourceResponse` | `ResourceNotFoundException`, `ValidationException` | Add a user-specifed key and value tag to a data store. |
+| `UntagResource` | `-` | - | `ResourceARN`, `TagKeys` | - | `UntagResourceResponse` | `ResourceNotFoundException`, `ValidationException` | Remove a user-specifed key and value tag from a data store. |
 
 ## HTTP Bindings
 
@@ -107,31 +107,46 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ValidationException` | `structure` | `Message` | The user input parameter was invalid. |
-| `ResourceNotFoundException` | `structure` | `Message` | The requested data store was not found. |
-| `InternalServerException` | `structure` | `Message` | An unknown internal error occurred in the service. |
-| `ThrottlingException` | `structure` | `Message` | The user has exceeded their maximum number of allowed calls to the given API. |
-| `AccessDeniedException` | `structure` | `Message` | Access is denied. |
-| `CreateFHIRDatastoreRequest` | `structure` | `ClientToken`, `DatastoreName`, `DatastoreTypeVersion`, `IdentityProviderConfiguration`, `PreloadDataConfig`, `SseConfiguration`, `Tags` | - |
-| `CreateFHIRDatastoreResponse` | `structure` | `DatastoreArn`, `DatastoreEndpoint`, `DatastoreId`, `DatastoreStatus` | - |
-| `DeleteFHIRDatastoreRequest` | `structure` | `DatastoreId` | - |
-| `DeleteFHIRDatastoreResponse` | `structure` | `DatastoreArn`, `DatastoreEndpoint`, `DatastoreId`, `DatastoreStatus` | - |
-| `ConflictException` | `structure` | `Message` | The data store is in a transition state and the user requested action cannot be performed. |
-| `DescribeFHIRDatastoreRequest` | `structure` | `DatastoreId` | - |
-| `DescribeFHIRDatastoreResponse` | `structure` | `DatastoreProperties` | - |
-| `DescribeFHIRExportJobRequest` | `structure` | `DatastoreId`, `JobId` | - |
-| `DescribeFHIRExportJobResponse` | `structure` | `ExportJobProperties` | - |
-| `DescribeFHIRImportJobRequest` | `structure` | `DatastoreId`, `JobId` | - |
-| `DescribeFHIRImportJobResponse` | `structure` | `ImportJobProperties` | - |
-| `ListFHIRDatastoresRequest` | `structure` | `Filter`, `MaxResults`, `NextToken` | - |
-| `ListFHIRDatastoresResponse` | `structure` | `DatastorePropertiesList`, `NextToken` | - |
-| `ListFHIRExportJobsRequest` | `structure` | `DatastoreId`, `JobName`, `JobStatus`, `MaxResults`, `NextToken`, `SubmittedAfter`, `SubmittedBefore` | - |
-| `ListFHIRExportJobsResponse` | `structure` | `ExportJobPropertiesList`, `NextToken` | - |
-| `ListFHIRImportJobsRequest` | `structure` | `DatastoreId`, `JobName`, `JobStatus`, `MaxResults`, `NextToken`, `SubmittedAfter`, `SubmittedBefore` | - |
-| `ListFHIRImportJobsResponse` | `structure` | `ImportJobPropertiesList`, `NextToken` | - |
-| `ListTagsForResourceRequest` | `structure` | `ResourceARN` | - |
-| `ListTagsForResourceResponse` | `structure` | `Tags` | - |
-
+| `AccessDeniedException` | `structure` | Message | Access is denied. Your account is not authorized to perform this operation. |
+| `ConflictException` | `structure` | Message | The data store is in a transition state and the user requested action cannot be performed. |
+| `InternalServerException` | `structure` | Message | An unknown internal error occurred in the service. |
+| `ResourceNotFoundException` | `structure` | Message | The requested data store was not found. |
+| `ThrottlingException` | `structure` | Message | The user has exceeded their maximum number of allowed calls to the given API. |
+| `ValidationException` | `structure` | Message | The user input parameter was invalid. |
+| `CreateFHIRDatastoreRequest` | `structure` | DatastoreName, DatastoreTypeVersion, SseConfiguration, PreloadDataConfig, ClientToken, Tags, IdentityProviderConfiguration | - |
+| `CreateFHIRDatastoreResponse` | `structure` | DatastoreId, DatastoreArn, DatastoreStatus, DatastoreEndpoint | - |
+| `DeleteFHIRDatastoreRequest` | `structure` | DatastoreId | - |
+| `DeleteFHIRDatastoreResponse` | `structure` | DatastoreId, DatastoreArn, DatastoreStatus, DatastoreEndpoint | - |
+| `DescribeFHIRDatastoreRequest` | `structure` | DatastoreId | - |
+| `DescribeFHIRDatastoreResponse` | `structure` | DatastoreProperties | - |
+| `DescribeFHIRExportJobRequest` | `structure` | DatastoreId, JobId | - |
+| `DescribeFHIRExportJobResponse` | `structure` | ExportJobProperties | - |
+| `DescribeFHIRImportJobRequest` | `structure` | DatastoreId, JobId | - |
+| `DescribeFHIRImportJobResponse` | `structure` | ImportJobProperties | - |
+| `ListFHIRDatastoresRequest` | `structure` | Filter, NextToken, MaxResults | - |
+| `ListFHIRDatastoresResponse` | `structure` | DatastorePropertiesList, NextToken | - |
+| `ListFHIRExportJobsRequest` | `structure` | DatastoreId, NextToken, MaxResults, JobName, JobStatus, SubmittedBefore, SubmittedAfter | - |
+| `ListFHIRExportJobsResponse` | `structure` | ExportJobPropertiesList, NextToken | - |
+| `ListFHIRImportJobsRequest` | `structure` | DatastoreId, NextToken, MaxResults, JobName, JobStatus, SubmittedBefore, SubmittedAfter | - |
+| `ListFHIRImportJobsResponse` | `structure` | ImportJobPropertiesList, NextToken | - |
+| `ListTagsForResourceRequest` | `structure` | ResourceARN | - |
+| `ListTagsForResourceResponse` | `structure` | Tags | - |
+| `StartFHIRExportJobRequest` | `structure` | JobName, OutputDataConfig, DatastoreId, DataAccessRoleArn, ClientToken | - |
+| `StartFHIRExportJobResponse` | `structure` | JobId, JobStatus, DatastoreId | - |
+| `StartFHIRImportJobRequest` | `structure` | JobName, InputDataConfig, JobOutputDataConfig, DatastoreId, DataAccessRoleArn, ClientToken, ValidationLevel | - |
+| `StartFHIRImportJobResponse` | `structure` | JobId, JobStatus, DatastoreId | - |
+| `TagResourceRequest` | `structure` | ResourceARN, Tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | ResourceARN, TagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `AuthorizationStrategy` | `enum` | SMARTV1, SMART_ON_FHIR, AWS_AUTH | - |
+| `CmkType` | `enum` | CM_CMK, AO_CMK | - |
+| `DatastoreStatus` | `enum` | CREATING, ACTIVE, DELETING, DELETED, CREATE_FAILED | - |
+| `ErrorCategory` | `enum` | RETRYABLE_ERROR, NON_RETRYABLE_ERROR | - |
+| `FHIRVersion` | `enum` | R4 | - |
+| `JobStatus` | `enum` | SUBMITTED, QUEUED, IN_PROGRESS, COMPLETED_WITH_ERRORS, COMPLETED, FAILED, CANCEL_SUBMITTED, CANCEL_IN_PROGRESS, CANCEL_COMPLETED, CANCEL_FAILED | - |
+| `PreloadDataType` | `enum` | SYNTHEA | - |
+| `ValidationLevel` | `enum` | STRICT, STRUCTURE_ONLY, MINIMAL | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

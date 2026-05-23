@@ -39,19 +39,19 @@ Provides AWS Marketplace business intelligence data on-demand.
 ### Generate
 
 - Operations: `GenerateDataSet`
-- Common required input members in this group: `dataSetPublicationDate`, `dataSetType`, `destinationS3BucketName`, `roleNameArn`, `snsTopicArn`
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartSupportDataExport`
-- Common required input members in this group: `dataSetType`, `destinationS3BucketName`, `fromDate`, `roleNameArn`, `snsTopicArn`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `GenerateDataSet` | - | - | `dataSetPublicationDate`, `dataSetType`, `destinationS3BucketName`, `roleNameArn`, `snsTopicArn` | - | `GenerateDataSetResult` | `MarketplaceCommerceAnalyticsException` | Given a data set type and data set publication date, asynchronously publishes the requested data set to the specified S3 bucket and notifies the specified SNS topic once the data is available. Returns a unique request identifier that can be used to correlate... |
-| `StartSupportDataExport` | - | - | `dataSetType`, `destinationS3BucketName`, `fromDate`, `roleNameArn`, `snsTopicArn` | - | `StartSupportDataExportResult` | `MarketplaceCommerceAnalyticsException` | This target has been deprecated. Given a data set type and a from date, asynchronously publishes the requested customer support data to the specified S3 bucket and notifies the specified SNS topic once the data is available. |
+| `GenerateDataSet` | `-` | - | `dataSetType`, `dataSetPublicationDate`, `roleNameArn`, `destinationS3BucketName`, `snsTopicArn` | - | `GenerateDataSetResult` | `MarketplaceCommerceAnalyticsException` | Given a data set type and data set publication date, asynchronously publishes the requested data set to the specified S3 bucket and notifies the specified SNS topic once the data is available. Returns a unique reques ... |
+| `StartSupportDataExport` | `-` | - | `dataSetType`, `fromDate`, `roleNameArn`, `destinationS3BucketName`, `snsTopicArn` | - | `StartSupportDataExportResult` | `MarketplaceCommerceAnalyticsException` | This target has been deprecated. Given a data set type and a from date, asynchronously publishes the requested customer support data to the specified S3 bucket and notifies the specified SNS topic once the data is av ... |
 
 ## HTTP Bindings
 
@@ -63,12 +63,13 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `MarketplaceCommerceAnalyticsException` | `structure` | `message` | This exception is thrown when an internal service error occurs. |
-| `GenerateDataSetRequest` | `structure` | `customerDefinedValues`, `dataSetPublicationDate`, `dataSetType`, `destinationS3BucketName`, `destinationS3Prefix`, `roleNameArn`, `snsTopicArn` | Container for the parameters to the GenerateDataSet operation. |
-| `GenerateDataSetResult` | `structure` | `dataSetRequestId` | Container for the result of the GenerateDataSet operation. |
-| `StartSupportDataExportRequest` | `structure` | `customerDefinedValues`, `dataSetType`, `destinationS3BucketName`, `destinationS3Prefix`, `fromDate`, `roleNameArn`, `snsTopicArn` | This target has been deprecated. |
-| `StartSupportDataExportResult` | `structure` | `dataSetRequestId` | This target has been deprecated. |
-
+| `MarketplaceCommerceAnalyticsException` | `structure` | message | This exception is thrown when an internal service error occurs. |
+| `GenerateDataSetRequest` | `structure` | dataSetType, dataSetPublicationDate, roleNameArn, destinationS3BucketName, destinationS3Prefix, snsTopicArn, customerDefinedValues | Container for the parameters to the GenerateDataSet operation. |
+| `GenerateDataSetResult` | `structure` | dataSetRequestId | Container for the result of the GenerateDataSet operation. |
+| `StartSupportDataExportRequest` | `structure` | dataSetType, fromDate, roleNameArn, destinationS3BucketName, destinationS3Prefix, snsTopicArn, customerDefinedValues | This target has been deprecated. Container for the parameters to the StartSupportDataExport operation. |
+| `StartSupportDataExportResult` | `structure` | dataSetRequestId | This target has been deprecated. Container for the result of the StartSupportDataExport operation. |
+| `DataSetType` | `enum` | CUSTOMER_SUBSCRIBER_HOURLY_MONTHLY_SUBSCRIPTIONS, CUSTOMER_SUBSCRIBER_ANNUAL_SUBSCRIPTIONS, DAILY_BUSINESS_USAGE_BY_INSTANCE_TYPE, DAILY_BUSINESS_FEES, DAILY_BUSINESS_FREE_TRIAL_CONVERSIONS, DAILY_BUSINESS_NEW_INSTANCES, DAILY_BUSINESS_NEW_PRODUCT_SUBSCRIBERS, DAILY_BUSINESS_CANCELED_PRODUCT_SUBSCRIBERS, MONTHLY_REVENUE_BILLING_AND_REVENUE_DATA, MONTHLY_REVENUE_ANNUAL_SUBSCRIPTIONS, MONTHLY_REVENUE_FIELD_DEMONSTRATION_USAGE, MONTHLY_REVENUE_FLEXIBLE_PAYMENT_SCHEDULE, ... (+13) | - |
+| `SupportDataSetType` | `enum` | customer_support_contacts_data, test_customer_support_contacts_data | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

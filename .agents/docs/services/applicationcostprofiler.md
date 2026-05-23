@@ -41,32 +41,33 @@ This reference provides descriptions of the AWS Application Cost Profiler API. T
 ### Delete
 
 - Operations: `DeleteReportDefinition`
-- Common required input members in this group: `reportId`
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetReportDefinition`
-- Common required input members in this group: `reportId`
+- Common required input members in this group: -
 
 ### Import
 
 - Operations: `ImportApplicationUsage`
-- Common required input members in this group: `sourceS3Location`
+- Common required input members in this group: -
 
 ### List
 
 - Operations: `ListReportDefinitions`
 - Traits: `paginated` (1)
+- Common required input members in this group: -
 
 ### Put
 
 - Operations: `PutReportDefinition`
-- Common required input members in this group: `destinationS3Location`, `format`, `reportDescription`, `reportFrequency`, `reportId`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateReportDefinition`
-- Common required input members in this group: `destinationS3Location`, `format`, `reportDescription`, `reportFrequency`, `reportId`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
@@ -74,10 +75,10 @@ This reference provides descriptions of the AWS Application Cost Profiler API. T
 |---|---|---|---|---|---|---|---|
 | `DeleteReportDefinition` | `DELETE /reportDefinition/{reportId}` | - | `reportId` | - | `DeleteReportDefinitionResult` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Deletes the specified report definition in AWS Application Cost Profiler. This stops the report from being generated. |
 | `GetReportDefinition` | `GET /reportDefinition/{reportId}` | - | `reportId` | - | `GetReportDefinitionResult` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Retrieves the definition of a report already configured in AWS Application Cost Profiler. |
-| `ImportApplicationUsage` | `POST /importApplicationUsage` | - | `sourceS3Location` | - | `ImportApplicationUsageResult` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Ingests application usage data from Amazon Simple Storage Service (Amazon S3). The data must already exist in the S3 location. |
+| `ImportApplicationUsage` | `POST /importApplicationUsage` | - | `sourceS3Location` | - | `ImportApplicationUsageResult` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Ingests application usage data from Amazon Simple Storage Service (Amazon S3). The data must already exist in the S3 location. As part of the action, AWS Application Cost Profiler copies the object from your S3 bucke ... |
 | `ListReportDefinitions` | `GET /reportDefinition` | `paginated` | - | - | `ListReportDefinitionsResult` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Retrieves a list of all reports and their configurations for your AWS account. The maximum number of reports is one. |
-| `PutReportDefinition` | `POST /reportDefinition` | - | `destinationS3Location`, `format`, `reportDescription`, `reportFrequency`, `reportId` | - | `PutReportDefinitionResult` | `AccessDeniedException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates the report definition for a report in Application Cost Profiler. |
-| `UpdateReportDefinition` | `PUT /reportDefinition/{reportId}` | - | `destinationS3Location`, `format`, `reportDescription`, `reportFrequency`, `reportId` | - | `UpdateReportDefinitionResult` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Updates existing report in AWS Application Cost Profiler. |
+| `PutReportDefinition` | `POST /reportDefinition` | - | `reportId`, `reportDescription`, `reportFrequency`, `format`, `destinationS3Location` | - | `PutReportDefinitionResult` | `AccessDeniedException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates the report definition for a report in Application Cost Profiler. |
+| `UpdateReportDefinition` | `PUT /reportDefinition/{reportId}` | - | `reportId`, `reportDescription`, `reportFrequency`, `format`, `destinationS3Location` | - | `UpdateReportDefinitionResult` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Updates existing report in AWS Application Cost Profiler. |
 
 ## HTTP Bindings
 
@@ -91,24 +92,26 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | You do not have permission to perform this action. |
-| `InternalServerException` | `structure` | `message` | An internal server error occurred. |
-| `ThrottlingException` | `structure` | `message` | The calls to AWS Application Cost Profiler API are throttled. |
-| `ValidationException` | `structure` | `message` | The input fails to satisfy the constraints for the API. |
-| `DeleteReportDefinitionRequest` | `structure` | `reportId` | - |
-| `DeleteReportDefinitionResult` | `structure` | `reportId` | - |
-| `GetReportDefinitionRequest` | `structure` | `reportId` | - |
-| `GetReportDefinitionResult` | `structure` | `createdAt`, `destinationS3Location`, `format`, `lastUpdated`, `reportDescription`, `reportFrequency`, `reportId` | - |
-| `ImportApplicationUsageRequest` | `structure` | `sourceS3Location` | - |
-| `ImportApplicationUsageResult` | `structure` | `importId` | - |
-| `ListReportDefinitionsRequest` | `structure` | `maxResults`, `nextToken` | - |
-| `ListReportDefinitionsResult` | `structure` | `nextToken`, `reportDefinitions` | - |
-| `PutReportDefinitionRequest` | `structure` | `destinationS3Location`, `format`, `reportDescription`, `reportFrequency`, `reportId` | - |
-| `PutReportDefinitionResult` | `structure` | `reportId` | - |
-| `ServiceQuotaExceededException` | `structure` | `message` | Your request exceeds one or more of the service quotas. |
-| `UpdateReportDefinitionRequest` | `structure` | `destinationS3Location`, `format`, `reportDescription`, `reportFrequency`, `reportId` | - |
-| `UpdateReportDefinitionResult` | `structure` | `reportId` | - |
-
+| `AccessDeniedException` | `structure` | message | You do not have permission to perform this action. |
+| `InternalServerException` | `structure` | message | An internal server error occurred. Retry your request. |
+| `ServiceQuotaExceededException` | `structure` | message | Your request exceeds one or more of the service quotas. |
+| `ThrottlingException` | `structure` | message | The calls to AWS Application Cost Profiler API are throttled. The request was denied. |
+| `ValidationException` | `structure` | message | The input fails to satisfy the constraints for the API. |
+| `DeleteReportDefinitionRequest` | `structure` | reportId | - |
+| `DeleteReportDefinitionResult` | `structure` | reportId | - |
+| `GetReportDefinitionRequest` | `structure` | reportId | - |
+| `GetReportDefinitionResult` | `structure` | reportId, reportDescription, reportFrequency, format, destinationS3Location, createdAt, lastUpdated | - |
+| `ImportApplicationUsageRequest` | `structure` | sourceS3Location | - |
+| `ImportApplicationUsageResult` | `structure` | importId | - |
+| `ListReportDefinitionsRequest` | `structure` | nextToken, maxResults | - |
+| `ListReportDefinitionsResult` | `structure` | reportDefinitions, nextToken | - |
+| `PutReportDefinitionRequest` | `structure` | reportId, reportDescription, reportFrequency, format, destinationS3Location | - |
+| `PutReportDefinitionResult` | `structure` | reportId | - |
+| `UpdateReportDefinitionRequest` | `structure` | reportId, reportDescription, reportFrequency, format, destinationS3Location | - |
+| `UpdateReportDefinitionResult` | `structure` | reportId | - |
+| `Format` | `enum` | CSV, PARQUET | - |
+| `ReportFrequency` | `enum` | MONTHLY, DAILY, ALL | - |
+| `S3BucketRegion` | `enum` | AP_EAST_1, ME_SOUTH_1, EU_SOUTH_1, AF_SOUTH_1 | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

@@ -47,95 +47,29 @@ Amazon Web Services End User Messaging Social , also referred to as Social messa
 | `LinkedWhatsAppPhoneNumberResource` | `OriginationPhoneNumberId` | read: `GetLinkedWhatsAppBusinessAccountPhoneNumber` | `DeleteWhatsAppMessageMedia`, `GetWhatsAppMessageMedia`, `PostWhatsAppMessageMedia`, `SendWhatsAppMessage` | - |
 ## Operation Groups
 
-### Get
-
-- Operations: `GetLinkedWhatsAppBusinessAccount`, `GetLinkedWhatsAppBusinessAccountPhoneNumber`, `GetWhatsAppMessageMedia`, `GetWhatsAppMessageTemplate`
-- Traits: `readonly` (3)
-- Common required input members in this group: `id`, `mediaId`, `metaTemplateId`, `originationPhoneNumberId`
-
 ### List
 
-- Operations: `ListLinkedWhatsAppBusinessAccounts`, `ListTagsForResource`, `ListWhatsAppMessageTemplates`, `ListWhatsAppTemplateLibrary`
-- Traits: `paginated` (3), `readonly` (4)
-- Common required input members in this group: `id`, `resourceArn`
-
-### Create
-
-- Operations: `CreateWhatsAppMessageTemplate`, `CreateWhatsAppMessageTemplateFromLibrary`, `CreateWhatsAppMessageTemplateMedia`
-- Common required input members in this group: `id`, `metaLibraryTemplate`, `templateDefinition`
-
-### Delete
-
-- Operations: `DeleteWhatsAppMessageMedia`, `DeleteWhatsAppMessageTemplate`
-- Traits: `idempotent` (2)
-- Common required input members in this group: `id`, `mediaId`, `originationPhoneNumberId`, `templateName`
-
-### Associate
-
-- Operations: `AssociateWhatsAppBusinessAccount`
-
-### Disassociate
-
-- Operations: `DisassociateWhatsAppBusinessAccount`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `id`
-
-### Post
-
-- Operations: `PostWhatsAppMessageMedia`
-- Common required input members in this group: `originationPhoneNumberId`
-
-### Put
-
-- Operations: `PutWhatsAppBusinessAccountEventDestinations`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `eventDestinations`, `id`
-
-### Send
-
-- Operations: `SendWhatsAppMessage`
-- Common required input members in this group: `message`, `metaApiVersion`, `originationPhoneNumberId`
+- Operations: `ListTagsForResource`
+- Traits: `readonly` (1)
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `resourceArn`, `tagKeys`
-
-### Update
-
-- Operations: `UpdateWhatsAppMessageTemplate`
-- Common required input members in this group: `id`, `metaTemplateId`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AssociateWhatsAppBusinessAccount` | `POST /v1/whatsapp/signup` | - | - | - | `AssociateWhatsAppBusinessAccountOutput` | `DependencyException`, `InvalidParametersException`, `LimitExceededException`, `ThrottledRequestException` | This is only used through the Amazon Web Services console during sign-up to associate your WhatsApp Business Account to your Amazon Web Services account. |
-| `CreateWhatsAppMessageTemplate` | `POST /v1/whatsapp/template/put` | - | `id`, `templateDefinition` | - | `CreateWhatsAppMessageTemplateOutput` | `DependencyException`, `InternalServiceException`, `InvalidParametersException`, `ResourceNotFoundException`, `ThrottledRequestException` | Creates a new WhatsApp message template from a custom definition. Amazon Web Services End User Messaging Social does not store any WhatsApp message template content. |
-| `CreateWhatsAppMessageTemplateFromLibrary` | `POST /v1/whatsapp/template/create` | - | `id`, `metaLibraryTemplate` | - | `CreateWhatsAppMessageTemplateFromLibraryOutput` | `DependencyException`, `InternalServiceException`, `InvalidParametersException`, `ResourceNotFoundException`, `ThrottledRequestException` | Creates a new WhatsApp message template using a template from Meta's template library. |
-| `CreateWhatsAppMessageTemplateMedia` | `POST /v1/whatsapp/template/media` | - | `id` | - | `CreateWhatsAppMessageTemplateMediaOutput` | `DependencyException`, `InternalServiceException`, `InvalidParametersException`, `ResourceNotFoundException`, `ThrottledRequestException` | Uploads media for use in a WhatsApp message template. |
-| `DeleteWhatsAppMessageMedia` | `DELETE /v1/whatsapp/media` | `idempotent` | `mediaId`, `originationPhoneNumberId` | - | `DeleteWhatsAppMessageMediaOutput` | `AccessDeniedByMetaException`, `DependencyException`, `InternalServiceException`, `InvalidParametersException`, `ResourceNotFoundException`, `ThrottledRequestException` | Delete a media object from the WhatsApp service. If the object is still in an Amazon S3 bucket you should delete it from there too. |
-| `DeleteWhatsAppMessageTemplate` | `DELETE /v1/whatsapp/template` | `idempotent` | `id`, `templateName` | - | `DeleteWhatsAppMessageTemplateOutput` | `DependencyException`, `InternalServiceException`, `InvalidParametersException`, `ResourceNotFoundException`, `ThrottledRequestException` | Deletes a WhatsApp message template. |
-| `DisassociateWhatsAppBusinessAccount` | `DELETE /v1/whatsapp/waba/disassociate` | `idempotent` | `id` | - | `DisassociateWhatsAppBusinessAccountOutput` | `DependencyException`, `InvalidParametersException`, `ResourceNotFoundException`, `ThrottledRequestException` | Disassociate a WhatsApp Business Account (WABA) from your Amazon Web Services account. |
-| `GetLinkedWhatsAppBusinessAccount` | `GET /v1/whatsapp/waba/details` | `readonly` | `id` | - | `GetLinkedWhatsAppBusinessAccountOutput` | `DependencyException`, `InternalServiceException`, `InvalidParametersException`, `ResourceNotFoundException`, `ThrottledRequestException` | Get the details of your linked WhatsApp Business Account. |
-| `GetLinkedWhatsAppBusinessAccountPhoneNumber` | `GET /v1/whatsapp/waba/phone/details` | `readonly` | `id` | - | `GetLinkedWhatsAppBusinessAccountPhoneNumberOutput` | `DependencyException`, `InternalServiceException`, `InvalidParametersException`, `ResourceNotFoundException`, `ThrottledRequestException` | Retrieve the WABA account id and phone number details of a WhatsApp business account phone number. |
-| `GetWhatsAppMessageMedia` | `POST /v1/whatsapp/media/get` | - | `mediaId`, `originationPhoneNumberId` | - | `GetWhatsAppMessageMediaOutput` | `AccessDeniedByMetaException`, `DependencyException`, `InternalServiceException`, `InvalidParametersException`, `ResourceNotFoundException`, `ThrottledRequestException` | Get a media file from the WhatsApp service. On successful completion the media file is retrieved from Meta and stored in the specified Amazon S3 bucket. |
-| `GetWhatsAppMessageTemplate` | `GET /v1/whatsapp/template` | `readonly` | `id`, `metaTemplateId` | - | `GetWhatsAppMessageTemplateOutput` | `DependencyException`, `InternalServiceException`, `InvalidParametersException`, `ResourceNotFoundException`, `ThrottledRequestException` | Retrieves a specific WhatsApp message template. |
-| `ListLinkedWhatsAppBusinessAccounts` | `GET /v1/whatsapp/waba/list` | `readonly`, `paginated` | - | - | `ListLinkedWhatsAppBusinessAccountsOutput` | `InternalServiceException`, `InvalidParametersException`, `ResourceNotFoundException`, `ThrottledRequestException` | List all WhatsApp Business Accounts linked to your Amazon Web Services account. |
 | `ListTagsForResource` | `GET /v1/tags/list` | `readonly` | `resourceArn` | - | `ListTagsForResourceOutput` | `InternalServiceException`, `InvalidParametersException`, `ThrottledRequestException` | List all tags associated with a resource, such as a phone number or WABA. |
-| `ListWhatsAppMessageTemplates` | `GET /v1/whatsapp/template/list` | `readonly`, `paginated` | `id` | - | `ListWhatsAppMessageTemplatesOutput` | `DependencyException`, `InternalServiceException`, `InvalidParametersException`, `ResourceNotFoundException`, `ThrottledRequestException` | Lists WhatsApp message templates for a specific WhatsApp Business Account. |
-| `ListWhatsAppTemplateLibrary` | `POST /v1/whatsapp/template/library` | `readonly`, `paginated` | `id` | - | `ListWhatsAppTemplateLibraryOutput` | `DependencyException`, `InternalServiceException`, `InvalidParametersException`, `ResourceNotFoundException`, `ThrottledRequestException` | Lists templates available in Meta's template library for WhatsApp messaging. |
-| `PostWhatsAppMessageMedia` | `POST /v1/whatsapp/media` | - | `originationPhoneNumberId` | - | `PostWhatsAppMessageMediaOutput` | `AccessDeniedByMetaException`, `DependencyException`, `InternalServiceException`, `InvalidParametersException`, `ResourceNotFoundException`, `ThrottledRequestException` | Upload a media file to the WhatsApp service. Only the specified `originationPhoneNumberId` has the permissions to send the media file when using SendWhatsAppMessage. |
-| `PutWhatsAppBusinessAccountEventDestinations` | `PUT /v1/whatsapp/waba/eventdestinations` | `idempotent` | `eventDestinations`, `id` | - | `PutWhatsAppBusinessAccountEventDestinationsOutput` | `InternalServiceException`, `InvalidParametersException`, `ThrottledRequestException` | Add an event destination to log event data from WhatsApp for a WhatsApp Business Account (WABA). A WABA can only have one event destination at a time. |
-| `SendWhatsAppMessage` | `POST /v1/whatsapp/send` | - | `message`, `metaApiVersion`, `originationPhoneNumberId` | - | `SendWhatsAppMessageOutput` | `DependencyException`, `InternalServiceException`, `InvalidParametersException`, `ResourceNotFoundException`, `ThrottledRequestException` | Send a WhatsApp message. For examples of sending a message using the Amazon Web Services CLI, see Sending messages in the Amazon Web Services End User Messaging Social User Guide . |
 | `TagResource` | `POST /v1/tags/tag-resource` | - | `resourceArn`, `tags` | - | `TagResourceOutput` | `InternalServiceException`, `InvalidParametersException`, `ThrottledRequestException` | Adds or overwrites only the specified tags for the specified resource. When you specify an existing tag key, the value is overwritten with the new value. |
 | `UntagResource` | `POST /v1/tags/untag-resource` | - | `resourceArn`, `tagKeys` | - | `UntagResourceOutput` | `InternalServiceException`, `InvalidParametersException`, `ThrottledRequestException` | Removes the specified tags from a resource. |
-| `UpdateWhatsAppMessageTemplate` | `POST /v1/whatsapp/template` | - | `id`, `metaTemplateId` | - | `UpdateWhatsAppMessageTemplateOutput` | `DependencyException`, `InternalServiceException`, `InvalidParametersException`, `ResourceNotFoundException`, `ThrottledRequestException` | Updates an existing WhatsApp message template. |
 
 ## HTTP Bindings
 
@@ -149,31 +83,22 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InvalidParametersException` | `structure` | `message` | One or more parameters provided to the action are not valid. |
-| `ThrottledRequestException` | `structure` | `message` | The request was denied due to request throttling. |
-| `InternalServiceException` | `structure` | `message` | The request processing has failed because of an unknown error, exception, or failure. |
-| `DependencyException` | `structure` | `message` | Thrown when performing an action because a dependency would be broken. |
-| `ResourceNotFoundException` | `structure` | `message` | The resource was not found. |
-| `AccessDeniedByMetaException` | `structure` | `message` | You do not have sufficient access to perform this action. |
-| `AssociateWhatsAppBusinessAccountInput` | `structure` | `setupFinalization`, `signupCallback` | - |
-| `AssociateWhatsAppBusinessAccountOutput` | `structure` | `signupCallbackResult`, `statusCode` | - |
-| `LimitExceededException` | `structure` | `message` | The request was denied because it would exceed one or more service quotas or limits. |
-| `CreateWhatsAppMessageTemplateInput` | `structure` | `id`, `templateDefinition` | - |
-| `CreateWhatsAppMessageTemplateOutput` | `structure` | `category`, `metaTemplateId`, `templateStatus` | - |
-| `CreateWhatsAppMessageTemplateFromLibraryInput` | `structure` | `id`, `metaLibraryTemplate` | - |
-| `CreateWhatsAppMessageTemplateFromLibraryOutput` | `structure` | `category`, `metaTemplateId`, `templateStatus` | - |
-| `CreateWhatsAppMessageTemplateMediaInput` | `structure` | `id`, `sourceS3File` | - |
-| `CreateWhatsAppMessageTemplateMediaOutput` | `structure` | `metaHeaderHandle` | - |
-| `DeleteWhatsAppMessageMediaInput` | `structure` | `mediaId`, `originationPhoneNumberId` | - |
-| `DeleteWhatsAppMessageMediaOutput` | `structure` | `success` | - |
-| `DeleteWhatsAppMessageTemplateInput` | `structure` | `deleteAllLanguages`, `id`, `metaTemplateId`, `templateName` | - |
-| `DeleteWhatsAppMessageTemplateOutput` | `structure` | - | - |
-| `DisassociateWhatsAppBusinessAccountInput` | `structure` | `id` | - |
-| `DisassociateWhatsAppBusinessAccountOutput` | `structure` | - | - |
-| `GetLinkedWhatsAppBusinessAccountInput` | `structure` | `id` | - |
-| `GetLinkedWhatsAppBusinessAccountOutput` | `structure` | `account` | - |
-| `GetLinkedWhatsAppBusinessAccountPhoneNumberInput` | `structure` | `id` | - |
-
+| `AccessDeniedByMetaException` | `structure` | message | You do not have sufficient access to perform this action. |
+| `AccessDeniedException` | `structure` | message | You do not have sufficient access to perform this action. |
+| `DependencyException` | `structure` | message | Thrown when performing an action because a dependency would be broken. |
+| `InternalServiceException` | `structure` | message | The request processing has failed because of an unknown error, exception, or failure. |
+| `InvalidParametersException` | `structure` | message | One or more parameters provided to the action are not valid. |
+| `LimitExceededException` | `structure` | message | The request was denied because it would exceed one or more service quotas or limits. |
+| `ResourceNotFoundException` | `structure` | message | The resource was not found. |
+| `ThrottledRequestException` | `structure` | message | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | message | The request contains an invalid parameter value. |
+| `ListTagsForResourceInput` | `structure` | resourceArn | - |
+| `ListTagsForResourceOutput` | `structure` | statusCode, tags | - |
+| `TagResourceInput` | `structure` | resourceArn, tags | - |
+| `TagResourceOutput` | `structure` | statusCode | - |
+| `UntagResourceInput` | `structure` | resourceArn, tagKeys | - |
+| `UntagResourceOutput` | `structure` | statusCode | - |
+| `RegistrationStatus` | `enum` | COMPLETE, INCOMPLETE | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

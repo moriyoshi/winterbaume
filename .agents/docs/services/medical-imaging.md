@@ -50,86 +50,74 @@ This is the AWS HealthImaging API Reference . For an introduction to the service
 
 ### Get
 
-- Operations: `GetDICOMImportJob`, `GetDatastore`, `GetImageFrame`, `GetImageSet`, `GetImageSetMetadata`
-- Traits: `endpoint-bound` (3), `readonly` (5)
-- Common required input members in this group: `datastoreId`, `imageFrameInformation`, `imageSetId`, `jobId`
+- Operations: `GetDICOMImportJob`, `GetImageFrame`, `GetImageSet`, `GetImageSetMetadata`
+- Traits: `readonly` (4)
+- Common required input members in this group: `datastoreId`, `imageSetId`
 
 ### List
 
-- Operations: `ListDICOMImportJobs`, `ListDatastores`, `ListImageSetVersions`, `ListTagsForResource`
-- Traits: `endpoint-bound` (1), `paginated` (3), `readonly` (4)
-- Common required input members in this group: `datastoreId`, `imageSetId`, `resourceArn`
-
-### Delete
-
-- Operations: `DeleteDatastore`, `DeleteImageSet`
-- Traits: `endpoint-bound` (1), `idempotent` (2)
-- Common required input members in this group: `datastoreId`, `imageSetId`
+- Operations: `ListDICOMImportJobs`, `ListImageSetVersions`, `ListTagsForResource`
+- Traits: `readonly` (3), `paginated` (2)
+- Common required input members in this group: `datastoreId`
 
 ### Copy
 
 - Operations: `CopyImageSet`
-- Traits: `endpoint-bound` (1)
-- Common required input members in this group: `copyImageSetInformation`, `datastoreId`, `sourceImageSetId`
+- Common required input members in this group: -
 
-### Create
+### Delete
 
-- Operations: `CreateDatastore`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `clientToken`
+- Operations: `DeleteImageSet`
+- Traits: `idempotent` (1)
+- Common required input members in this group: -
 
 ### Search
 
 - Operations: `SearchImageSets`
-- Traits: `endpoint-bound` (1), `paginated` (1)
-- Common required input members in this group: `datastoreId`
+- Traits: `paginated` (1)
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartDICOMImportJob`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `clientToken`, `dataAccessRoleArn`, `datastoreId`, `inputS3Uri`, `outputS3Uri`
+- Traits: `idempotent` (1), `idempotency-token` (1)
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateImageSetMetadata`
-- Traits: `endpoint-bound` (1)
-- Common required input members in this group: `datastoreId`, `imageSetId`, `latestVersionId`, `updateImageSetMetadataUpdates`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CopyImageSet` | `POST /datastore/{datastoreId}/imageSet/{sourceImageSetId}/copyImageSet` | `endpoint-bound` | `copyImageSetInformation`, `datastoreId`, `sourceImageSetId` | - | `CopyImageSetResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Copy an image set. |
-| `CreateDatastore` | `POST /datastore` | `idempotent`, `idempotency-token` | `clientToken` | `clientToken` | `CreateDatastoreResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Create a data store. |
-| `DeleteDatastore` | `DELETE /datastore/{datastoreId}` | `idempotent` | `datastoreId` | - | `DeleteDatastoreResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Delete a data store. Before a data store can be deleted, you must first delete all image sets within it. |
-| `DeleteImageSet` | `POST /datastore/{datastoreId}/imageSet/{imageSetId}/deleteImageSet` | `idempotent`, `endpoint-bound` | `datastoreId`, `imageSetId` | - | `DeleteImageSetResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Delete an image set. |
-| `GetDICOMImportJob` | `GET /getDICOMImportJob/datastore/{datastoreId}/job/{jobId}` | `readonly` | `datastoreId`, `jobId` | - | `GetDICOMImportJobResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get the import job properties to learn more about the job or job progress. The `jobStatus` refers to the execution of the import job. |
-| `GetDatastore` | `GET /datastore/{datastoreId}` | `readonly` | `datastoreId` | - | `GetDatastoreResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get data store properties. |
-| `GetImageFrame` | `POST /datastore/{datastoreId}/imageSet/{imageSetId}/getImageFrame` | `readonly`, `endpoint-bound` | `datastoreId`, `imageFrameInformation`, `imageSetId` | - | `GetImageFrameResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get an image frame (pixel data) for an image set. |
-| `GetImageSet` | `POST /datastore/{datastoreId}/imageSet/{imageSetId}/getImageSet` | `readonly`, `endpoint-bound` | `datastoreId`, `imageSetId` | - | `GetImageSetResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get image set properties. |
-| `GetImageSetMetadata` | `POST /datastore/{datastoreId}/imageSet/{imageSetId}/getImageSetMetadata` | `readonly`, `endpoint-bound` | `datastoreId`, `imageSetId` | - | `GetImageSetMetadataResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get metadata attributes for an image set. |
+| `CopyImageSet` | `POST /datastore/{datastoreId}/imageSet/{sourceImageSetId}/copyImageSet` | - | `datastoreId`, `sourceImageSetId`, `copyImageSetInformation` | - | `CopyImageSetResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Copy an image set. |
+| `DeleteImageSet` | `POST /datastore/{datastoreId}/imageSet/{imageSetId}/deleteImageSet` | `idempotent` | `datastoreId`, `imageSetId` | - | `DeleteImageSetResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Delete an image set. |
+| `GetDICOMImportJob` | `GET /getDICOMImportJob/datastore/{datastoreId}/job/{jobId}` | `readonly` | `datastoreId`, `jobId` | - | `GetDICOMImportJobResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get the import job properties to learn more about the job or job progress. The jobStatus refers to the execution of the import job. Therefore, an import job can return a jobStatus as COMPLETED even if validation issu ... |
+| `GetImageFrame` | `POST /datastore/{datastoreId}/imageSet/{imageSetId}/getImageFrame` | `readonly` | `datastoreId`, `imageSetId`, `imageFrameInformation` | - | `GetImageFrameResponse` | `AccessDeniedException`, `BadRequestException`, `ConflictException`, `InternalServerException`, `NotAcceptableException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get an image frame (pixel data) for an image set. |
+| `GetImageSet` | `POST /datastore/{datastoreId}/imageSet/{imageSetId}/getImageSet` | `readonly` | `datastoreId`, `imageSetId` | - | `GetImageSetResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get image set properties. |
+| `GetImageSetMetadata` | `POST /datastore/{datastoreId}/imageSet/{imageSetId}/getImageSetMetadata` | `readonly` | `datastoreId`, `imageSetId` | - | `GetImageSetMetadataResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get metadata attributes for an image set. |
 | `ListDICOMImportJobs` | `GET /listDICOMImportJobs/datastore/{datastoreId}` | `readonly`, `paginated` | `datastoreId` | - | `ListDICOMImportJobsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | List import jobs created for a specific data store. |
-| `ListDatastores` | `GET /datastore` | `readonly`, `paginated` | - | - | `ListDatastoresResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | List data stores. |
-| `ListImageSetVersions` | `POST /datastore/{datastoreId}/imageSet/{imageSetId}/listImageSetVersions` | `readonly`, `paginated`, `endpoint-bound` | `datastoreId`, `imageSetId` | - | `ListImageSetVersionsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | List image set versions. |
+| `ListImageSetVersions` | `POST /datastore/{datastoreId}/imageSet/{imageSetId}/listImageSetVersions` | `readonly`, `paginated` | `datastoreId`, `imageSetId` | - | `ListImageSetVersionsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | List image set versions. |
 | `ListTagsForResource` | `GET /tags/{resourceArn}` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all tags associated with a medical imaging resource. |
-| `SearchImageSets` | `POST /datastore/{datastoreId}/searchImageSets` | `paginated`, `endpoint-bound` | `datastoreId` | - | `SearchImageSetsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Search image sets based on defined input attributes. `SearchImageSets` accepts a single search query parameter and returns a paginated response of all image sets that have the matching criteria. |
-| `StartDICOMImportJob` | `POST /startDICOMImportJob/datastore/{datastoreId}` | `idempotent`, `idempotency-token` | `clientToken`, `dataAccessRoleArn`, `datastoreId`, `inputS3Uri`, `outputS3Uri` | `clientToken` | `StartDICOMImportJobResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Start importing bulk data into an `ACTIVE` data store. The import job imports DICOM P10 files found in the S3 prefix specified by the `inputS3Uri` parameter. |
+| `SearchImageSets` | `POST /datastore/{datastoreId}/searchImageSets` | `paginated` | `datastoreId` | - | `SearchImageSetsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Search image sets based on defined input attributes. SearchImageSets accepts a single search query parameter and returns a paginated response of all image sets that have the matching criteria. All date range queries ... |
+| `StartDICOMImportJob` | `POST /startDICOMImportJob/datastore/{datastoreId}` | `idempotent`, `idempotency-token` | `dataAccessRoleArn`, `clientToken`, `datastoreId`, `inputS3Uri`, `outputS3Uri` | `clientToken` | `StartDICOMImportJobResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Start importing bulk data into an ACTIVE data store. The import job imports DICOM P10 files found in the S3 prefix specified by the inputS3Uri parameter. The import job stores processing results in the file specified ... |
 | `TagResource` | `POST /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tags` | - | `TagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Adds a user-specifed key and value tag to a medical imaging resource. |
 | `UntagResource` | `DELETE /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes tags from a medical imaging resource. |
-| `UpdateImageSetMetadata` | `POST /datastore/{datastoreId}/imageSet/{imageSetId}/updateImageSetMetadata` | `endpoint-bound` | `datastoreId`, `imageSetId`, `latestVersionId`, `updateImageSetMetadataUpdates` | - | `UpdateImageSetMetadataResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Update image set metadata attributes. |
+| `UpdateImageSetMetadata` | `POST /datastore/{datastoreId}/imageSet/{imageSetId}/updateImageSetMetadata` | - | `datastoreId`, `imageSetId`, `latestVersionId`, `updateImageSetMetadataUpdates` | - | `UpdateImageSetMetadataResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Update image set metadata attributes. |
 
 ## HTTP Bindings
 
@@ -151,31 +139,52 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | The user does not have sufficient access to perform this action. |
-| `InternalServerException` | `structure` | `message` | An unexpected error occurred during processing of the request. |
-| `ThrottlingException` | `structure` | `message` | The request was denied due to throttling. |
-| `ValidationException` | `structure` | `message` | The input fails to satisfy the constraints set by the service. |
-| `ResourceNotFoundException` | `structure` | `message` | The request references a resource which does not exist. |
-| `ConflictException` | `structure` | `message` | Updating or deleting a resource can cause an inconsistent state. |
-| `ServiceQuotaExceededException` | `structure` | `message` | The request caused a service quota to be exceeded. |
-| `CopyImageSetRequest` | `structure` | `copyImageSetInformation`, `datastoreId`, `force`, `promoteToPrimary`, `sourceImageSetId` | - |
-| `CopyImageSetResponse` | `structure` | `datastoreId`, `destinationImageSetProperties`, `sourceImageSetProperties` | - |
-| `CreateDatastoreRequest` | `structure` | `clientToken`, `datastoreName`, `kmsKeyArn`, `lambdaAuthorizerArn`, `losslessStorageFormat`, `tags` | - |
-| `CreateDatastoreResponse` | `structure` | `datastoreId`, `datastoreStatus` | - |
-| `DeleteDatastoreRequest` | `structure` | `datastoreId` | - |
-| `DeleteDatastoreResponse` | `structure` | `datastoreId`, `datastoreStatus` | - |
-| `DeleteImageSetRequest` | `structure` | `datastoreId`, `imageSetId` | - |
-| `DeleteImageSetResponse` | `structure` | `datastoreId`, `imageSetId`, `imageSetState`, `imageSetWorkflowStatus` | - |
-| `GetDICOMImportJobRequest` | `structure` | `datastoreId`, `jobId` | - |
-| `GetDICOMImportJobResponse` | `structure` | `jobProperties` | - |
-| `GetDatastoreRequest` | `structure` | `datastoreId` | - |
-| `GetDatastoreResponse` | `structure` | `datastoreProperties` | - |
-| `GetImageFrameRequest` | `structure` | `datastoreId`, `imageFrameInformation`, `imageSetId` | - |
-| `GetImageFrameResponse` | `structure` | `contentType`, `imageFrameBlob` | - |
-| `GetImageSetRequest` | `structure` | `datastoreId`, `imageSetId`, `versionId` | - |
-| `GetImageSetResponse` | `structure` | `createdAt`, `datastoreId`, `deletedAt`, `imageSetArn`, `imageSetId`, `imageSetState`, `imageSetWorkflowStatus`, `isPrimary`, `lastAccessedAt`, `message`, `overrides`, `storageTier`, ... (+2) | - |
-| `GetImageSetMetadataRequest` | `structure` | `datastoreId`, `imageSetId`, `versionId` | - |
-
+| `AccessDeniedException` | `structure` | message | The user does not have sufficient access to perform this action. |
+| `BadRequestException` | `structure` | message | The request is invalid or malformed. |
+| `ConflictException` | `structure` | message | Updating or deleting a resource can cause an inconsistent state. |
+| `InternalServerException` | `structure` | message | An unexpected error occurred during processing of the request. |
+| `NotAcceptableException` | `structure` | message | The request content type or accept header is not supported. |
+| `ResourceNotFoundException` | `structure` | message | The request references a resource which does not exist. |
+| `ServiceQuotaExceededException` | `structure` | message | The request caused a service quota to be exceeded. |
+| `ThrottlingException` | `structure` | message | The request was denied due to throttling. |
+| `ValidationException` | `structure` | message | The input fails to satisfy the constraints set by the service. |
+| `CopyImageSetRequest` | `structure` | datastoreId, sourceImageSetId, copyImageSetInformation, force, promoteToPrimary | - |
+| `CopyImageSetResponse` | `structure` | datastoreId, sourceImageSetProperties, destinationImageSetProperties | - |
+| `DeleteImageSetRequest` | `structure` | datastoreId, imageSetId | - |
+| `DeleteImageSetResponse` | `structure` | datastoreId, imageSetId, imageSetState, imageSetWorkflowStatus | - |
+| `GetDICOMImportJobRequest` | `structure` | datastoreId, jobId | - |
+| `GetDICOMImportJobResponse` | `structure` | jobProperties | - |
+| `GetImageFrameRequest` | `structure` | datastoreId, imageSetId, imageFrameInformation | - |
+| `GetImageFrameResponse` | `structure` | imageFrameBlob, contentType | - |
+| `GetImageSetRequest` | `structure` | datastoreId, imageSetId, versionId | - |
+| `GetImageSetResponse` | `structure` | datastoreId, imageSetId, versionId, imageSetState, imageSetWorkflowStatus, createdAt, updatedAt, deletedAt, message, imageSetArn, overrides, isPrimary, ... (+2) | - |
+| `GetImageSetMetadataRequest` | `structure` | datastoreId, imageSetId, versionId | - |
+| `GetImageSetMetadataResponse` | `structure` | imageSetMetadataBlob, contentType, contentEncoding | - |
+| `ListDICOMImportJobsRequest` | `structure` | datastoreId, jobStatus, nextToken, maxResults | - |
+| `ListDICOMImportJobsResponse` | `structure` | jobSummaries, nextToken | - |
+| `ListImageSetVersionsRequest` | `structure` | datastoreId, imageSetId, nextToken, maxResults | - |
+| `ListImageSetVersionsResponse` | `structure` | imageSetPropertiesList, nextToken | - |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `SearchImageSetsRequest` | `structure` | datastoreId, searchCriteria, maxResults, nextToken | - |
+| `SearchImageSetsResponse` | `structure` | imageSetsMetadataSummaries, sort, nextToken | - |
+| `StartDICOMImportJobRequest` | `structure` | jobName, dataAccessRoleArn, clientToken, datastoreId, inputS3Uri, outputS3Uri, inputOwnerAccountId | - |
+| `StartDICOMImportJobResponse` | `structure` | datastoreId, jobId, jobStatus, submittedAt | - |
+| `TagResourceRequest` | `structure` | resourceArn, tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | resourceArn, tagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UpdateImageSetMetadataRequest` | `structure` | datastoreId, imageSetId, latestVersionId, force, includeStudyImageSets, updateImageSetMetadataUpdates | - |
+| `UpdateImageSetMetadataResponse` | `structure` | datastoreId, imageSetId, latestVersionId, imageSetState, imageSetWorkflowStatus, createdAt, updatedAt, message | - |
+| `DatastoreStatus` | `enum` | CREATING, CREATE_FAILED, ACTIVE, DELETING, DELETED | - |
+| `ImageSetState` | `enum` | ACTIVE, LOCKED, DELETED | - |
+| `ImageSetWorkflowStatus` | `enum` | CREATED, COPIED, COPYING, COPYING_WITH_READ_ONLY_ACCESS, COPY_FAILED, UPDATING, UPDATING_FOR_STUDY_CONSISTENCY, UPDATED, UPDATE_FAILED, DELETING, DELETED, IMPORTING, ... (+2) | - |
+| `JobStatus` | `enum` | SUBMITTED, IN_PROGRESS, COMPLETED, FAILED | - |
+| `LosslessStorageFormat` | `enum` | HTJ2K, JPEG_2000_LOSSLESS | - |
+| `Operator` | `enum` | EQUAL, BETWEEN | - |
+| `SortField` | `enum` | updatedAt, createdAt, DICOMStudyDateAndTime | - |
+| `SortOrder` | `enum` | ASC, DESC | - |
+| `StorageTier` | `enum` | FREQUENT_ACCESS, ARCHIVE_INSTANT_ACCESS | Storage tier for image sets |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

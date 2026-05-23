@@ -39,30 +39,32 @@ Pinpoint SMS and Voice Messaging public facing APIs
 ### Create
 
 - Operations: `CreateConfigurationSet`, `CreateConfigurationSetEventDestination`
-- Common required input members in this group: `ConfigurationSetName`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteConfigurationSet`, `DeleteConfigurationSetEventDestination`
-- Common required input members in this group: `ConfigurationSetName`, `EventDestinationName`
+- Common required input members in this group: `ConfigurationSetName`
 
 ### Get
 
 - Operations: `GetConfigurationSetEventDestinations`
-- Common required input members in this group: `ConfigurationSetName`
+- Common required input members in this group: -
 
 ### List
 
 - Operations: `ListConfigurationSets`
+- Common required input members in this group: -
 
 ### Send
 
 - Operations: `SendVoiceMessage`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateConfigurationSetEventDestination`
-- Common required input members in this group: `ConfigurationSetName`, `EventDestinationName`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
@@ -75,7 +77,7 @@ Pinpoint SMS and Voice Messaging public facing APIs
 | `GetConfigurationSetEventDestinations` | `GET /v1/sms-voice/configuration-sets/{ConfigurationSetName}/event-destinations` | - | `ConfigurationSetName` | - | `GetConfigurationSetEventDestinationsResponse` | `BadRequestException`, `InternalServiceErrorException`, `NotFoundException`, `TooManyRequestsException` | Obtain information about an event destination, including the types of events it reports, the Amazon Resource Name (ARN) of the destination, and the name of the event destination. |
 | `ListConfigurationSets` | `GET /v1/sms-voice/configuration-sets` | - | - | - | `ListConfigurationSetsResponse` | `BadRequestException`, `InternalServiceErrorException`, `TooManyRequestsException` | List all of the configuration sets associated with your Amazon Pinpoint account in the current region. |
 | `SendVoiceMessage` | `POST /v1/sms-voice/voice/message` | - | - | - | `SendVoiceMessageResponse` | `BadRequestException`, `InternalServiceErrorException`, `TooManyRequestsException` | Create a new voice message and send it to a recipient's phone number. |
-| `UpdateConfigurationSetEventDestination` | `PUT /v1/sms-voice/configuration-sets/{ConfigurationSetName}/event-destinations/{EventDestinationName}` | - | `ConfigurationSetName`, `EventDestinationName` | - | `UpdateConfigurationSetEventDestinationResponse` | `BadRequestException`, `InternalServiceErrorException`, `NotFoundException`, `TooManyRequestsException` | Update an event destination in a configuration set. An event destination is a location that you publish information about your voice calls to. |
+| `UpdateConfigurationSetEventDestination` | `PUT /v1/sms-voice/configuration-sets/{ConfigurationSetName}/event-destinations/{EventDestinationName}` | - | `ConfigurationSetName`, `EventDestinationName` | - | `UpdateConfigurationSetEventDestinationResponse` | `BadRequestException`, `InternalServiceErrorException`, `NotFoundException`, `TooManyRequestsException` | Update an event destination in a configuration set. An event destination is a location that you publish information about your voice calls to. For example, you can log an event to an Amazon CloudWatch destination whe ... |
 
 ## HTTP Bindings
 
@@ -89,29 +91,29 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `BadRequestException` | `structure` | `Message` | The input you provided is invalid. |
-| `InternalServiceErrorException` | `structure` | `Message` | The API encountered an unexpected error and couldn't complete the request. |
-| `TooManyRequestsException` | `structure` | `Message` | You've issued too many requests to the resource. |
-| `NotFoundException` | `structure` | `Message` | The resource you attempted to access doesn't exist. |
-| `AlreadyExistsException` | `structure` | `Message` | The resource specified in your request already exists. |
-| `LimitExceededException` | `structure` | `Message` | There are too many instances of the specified resource type. |
-| `CreateConfigurationSetRequest` | `structure` | `ConfigurationSetName` | A request to create a new configuration set. |
-| `CreateConfigurationSetResponse` | `structure` | - | An empty object that indicates that the configuration set was successfully created. |
-| `CreateConfigurationSetEventDestinationRequest` | `structure` | `ConfigurationSetName`, `EventDestination`, `EventDestinationName` | Create a new event destination in a configuration set. |
-| `CreateConfigurationSetEventDestinationResponse` | `structure` | - | An empty object that indicates that the event destination was created successfully. |
-| `DeleteConfigurationSetRequest` | `structure` | `ConfigurationSetName` | - |
-| `DeleteConfigurationSetResponse` | `structure` | - | An empty object that indicates that the configuration set was deleted successfully. |
-| `DeleteConfigurationSetEventDestinationRequest` | `structure` | `ConfigurationSetName`, `EventDestinationName` | - |
-| `DeleteConfigurationSetEventDestinationResponse` | `structure` | - | An empty object that indicates that the event destination was deleted successfully. |
-| `GetConfigurationSetEventDestinationsRequest` | `structure` | `ConfigurationSetName` | - |
-| `GetConfigurationSetEventDestinationsResponse` | `structure` | `EventDestinations` | An object that contains information about an event destination. |
-| `ListConfigurationSetsRequest` | `structure` | `NextToken`, `PageSize` | - |
-| `ListConfigurationSetsResponse` | `structure` | `ConfigurationSets`, `NextToken` | An object that contains information about the configuration sets for your account in the current region. |
-| `SendVoiceMessageRequest` | `structure` | `CallerId`, `ConfigurationSetName`, `Content`, `DestinationPhoneNumber`, `OriginationPhoneNumber` | SendVoiceMessageRequest |
-| `SendVoiceMessageResponse` | `structure` | `MessageId` | An object that that contains the Message ID of a Voice message that was sent successfully. |
-| `UpdateConfigurationSetEventDestinationRequest` | `structure` | `ConfigurationSetName`, `EventDestination`, `EventDestinationName` | UpdateConfigurationSetEventDestinationRequest |
-| `UpdateConfigurationSetEventDestinationResponse` | `structure` | - | An empty object that indicates that the event destination was updated successfully. |
-
+| `AlreadyExistsException` | `structure` | Message | The resource specified in your request already exists. |
+| `BadRequestException` | `structure` | Message | The input you provided is invalid. |
+| `InternalServiceErrorException` | `structure` | Message | The API encountered an unexpected error and couldn't complete the request. You might be able to successfully issue the request again in the future. |
+| `LimitExceededException` | `structure` | Message | There are too many instances of the specified resource type. |
+| `NotFoundException` | `structure` | Message | The resource you attempted to access doesn't exist. |
+| `TooManyRequestsException` | `structure` | Message | You've issued too many requests to the resource. Wait a few minutes, and then try again. |
+| `CreateConfigurationSetRequest` | `structure` | ConfigurationSetName | A request to create a new configuration set. |
+| `CreateConfigurationSetResponse` | `structure` | **empty (no members)** | An empty object that indicates that the configuration set was successfully created. |
+| `CreateConfigurationSetEventDestinationRequest` | `structure` | ConfigurationSetName, EventDestination, EventDestinationName | Create a new event destination in a configuration set. |
+| `CreateConfigurationSetEventDestinationResponse` | `structure` | **empty (no members)** | An empty object that indicates that the event destination was created successfully. |
+| `DeleteConfigurationSetRequest` | `structure` | ConfigurationSetName | - |
+| `DeleteConfigurationSetResponse` | `structure` | **empty (no members)** | An empty object that indicates that the configuration set was deleted successfully. |
+| `DeleteConfigurationSetEventDestinationRequest` | `structure` | ConfigurationSetName, EventDestinationName | - |
+| `DeleteConfigurationSetEventDestinationResponse` | `structure` | **empty (no members)** | An empty object that indicates that the event destination was deleted successfully. |
+| `GetConfigurationSetEventDestinationsRequest` | `structure` | ConfigurationSetName | - |
+| `GetConfigurationSetEventDestinationsResponse` | `structure` | EventDestinations | An object that contains information about an event destination. |
+| `ListConfigurationSetsRequest` | `structure` | NextToken, PageSize | - |
+| `ListConfigurationSetsResponse` | `structure` | ConfigurationSets, NextToken | An object that contains information about the configuration sets for your account in the current region. |
+| `SendVoiceMessageRequest` | `structure` | CallerId, ConfigurationSetName, Content, DestinationPhoneNumber, OriginationPhoneNumber | SendVoiceMessageRequest |
+| `SendVoiceMessageResponse` | `structure` | MessageId | An object that that contains the Message ID of a Voice message that was sent successfully. |
+| `UpdateConfigurationSetEventDestinationRequest` | `structure` | ConfigurationSetName, EventDestination, EventDestinationName | UpdateConfigurationSetEventDestinationRequest |
+| `UpdateConfigurationSetEventDestinationResponse` | `structure` | **empty (no members)** | An empty object that indicates that the event destination was updated successfully. |
+| `EventType` | `enum` | INITIATED_CALL, RINGING, ANSWERED, COMPLETED_CALL, BUSY, FAILED, NO_ANSWER | The types of events that are sent to the event destination. |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

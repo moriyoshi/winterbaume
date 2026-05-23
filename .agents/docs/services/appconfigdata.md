@@ -74,19 +74,13 @@ Parity implications:
 
 - Operations: `GetLatestConfiguration`
 - Traits: `readonly` (1)
-- Common required input members in this group: `ConfigurationToken`
-
-### Start
-
-- Operations: `StartConfigurationSession`
-- Common required input members in this group: `ApplicationIdentifier`, `ConfigurationProfileIdentifier`, `EnvironmentIdentifier`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `GetLatestConfiguration` | `GET /configuration` | `readonly` | `ConfigurationToken` | - | `GetLatestConfigurationResponse` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException` | Retrieves the latest deployed configuration. This API may return empty configuration data if the client already has the latest version. |
-| `StartConfigurationSession` | `POST /configurationsessions` | - | `ApplicationIdentifier`, `ConfigurationProfileIdentifier`, `EnvironmentIdentifier` | - | `StartConfigurationSessionResponse` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException` | Starts a configuration session used to retrieve a deployed configuration. For more information about this API action and to view example CLI commands that show how to use it with the GetLatestConfiguration API action, see Retrieving the configuration in the... |
+| `GetLatestConfiguration` | `GET /configuration` | `readonly` | `ConfigurationToken` | - | `GetLatestConfigurationResponse` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException` | Retrieves the latest deployed configuration. This API may return empty configuration data if the client already has the latest version. For more information about this API action and to view example CLI commands that ... |
 
 ## HTTP Bindings
 
@@ -100,15 +94,12 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `BadRequestException` | `structure` | `Details`, `Message`, `Reason` | The input fails to satisfy the constraints specified by the service. |
-| `InternalServerException` | `structure` | `Message` | There was an internal failure in the service. |
-| `ResourceNotFoundException` | `structure` | `Message`, `ReferencedBy`, `ResourceType` | The requested resource could not be found. |
-| `ThrottlingException` | `structure` | `Message` | The request was denied due to request throttling. |
-| `GetLatestConfigurationRequest` | `structure` | `ConfigurationToken` | - |
-| `GetLatestConfigurationResponse` | `structure` | `Configuration`, `ContentType`, `NextPollConfigurationToken`, `NextPollIntervalInSeconds`, `VersionLabel` | - |
-| `StartConfigurationSessionRequest` | `structure` | `ApplicationIdentifier`, `ConfigurationProfileIdentifier`, `EnvironmentIdentifier`, `RequiredMinimumPollIntervalInSeconds` | - |
-| `StartConfigurationSessionResponse` | `structure` | `InitialConfigurationToken` | - |
-
+| `BadRequestException` | `structure` | Message, Reason, Details | The input fails to satisfy the constraints specified by the service. |
+| `InternalServerException` | `structure` | Message | There was an internal failure in the service. |
+| `ResourceNotFoundException` | `structure` | Message, ResourceType, ReferencedBy | The requested resource could not be found. |
+| `ThrottlingException` | `structure` | Message | The request was denied due to request throttling. |
+| `GetLatestConfigurationRequest` | `structure` | ConfigurationToken | - |
+| `GetLatestConfigurationResponse` | `structure` | NextPollConfigurationToken, NextPollIntervalInSeconds, ContentType, Configuration, VersionLabel | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

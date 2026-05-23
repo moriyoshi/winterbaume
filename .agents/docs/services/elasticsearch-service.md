@@ -63,34 +63,34 @@ Parity implications:
 
 - Operations: `DescribeDomainAutoTunes`, `DescribeDomainChangeProgress`, `DescribeElasticsearchDomain`, `DescribeElasticsearchDomainConfig`, `DescribeElasticsearchDomains`, `DescribeElasticsearchInstanceTypeLimits`, `DescribeInboundCrossClusterSearchConnections`, `DescribeOutboundCrossClusterSearchConnections`, `DescribePackages`, `DescribeReservedElasticsearchInstanceOfferings`, `DescribeReservedElasticsearchInstances`, `DescribeVpcEndpoints`
 - Traits: `paginated` (6)
-- Common required input members in this group: `DomainName`, `DomainNames`, `ElasticsearchVersion`, `InstanceType`, `VpcEndpointIds`
+- Common required input members in this group: `DomainName`
 
 ### List
 
 - Operations: `ListDomainNames`, `ListDomainsForPackage`, `ListElasticsearchInstanceTypes`, `ListElasticsearchVersions`, `ListPackagesForDomain`, `ListTags`, `ListVpcEndpointAccess`, `ListVpcEndpoints`, `ListVpcEndpointsForDomain`
 - Traits: `paginated` (4)
-- Common required input members in this group: `ARN`, `DomainName`, `ElasticsearchVersion`, `PackageID`
+- Common required input members in this group: `DomainName`
 
 ### Delete
 
 - Operations: `DeleteElasticsearchDomain`, `DeleteElasticsearchServiceRole`, `DeleteInboundCrossClusterSearchConnection`, `DeleteOutboundCrossClusterSearchConnection`, `DeletePackage`, `DeleteVpcEndpoint`
-- Common required input members in this group: `CrossClusterSearchConnectionId`, `DomainName`, `PackageID`, `VpcEndpointId`
+- Common required input members in this group: `CrossClusterSearchConnectionId`
 
 ### Create
 
 - Operations: `CreateElasticsearchDomain`, `CreateOutboundCrossClusterSearchConnection`, `CreatePackage`, `CreateVpcEndpoint`
-- Common required input members in this group: `ConnectionAlias`, `DestinationDomainInfo`, `DomainArn`, `DomainName`, `PackageName`, `PackageSource`, `PackageType`, `SourceDomainInfo`, `VpcOptions`
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetCompatibleElasticsearchVersions`, `GetPackageVersionHistory`, `GetUpgradeHistory`, `GetUpgradeStatus`
 - Traits: `paginated` (2)
-- Common required input members in this group: `DomainName`, `PackageID`
+- Common required input members in this group: `DomainName`
 
 ### Update
 
 - Operations: `UpdateElasticsearchDomainConfig`, `UpdatePackage`, `UpdateVpcEndpoint`
-- Common required input members in this group: `DomainName`, `PackageID`, `PackageSource`, `VpcEndpointId`, `VpcOptions`
+- Common required input members in this group: -
 
 ### Cancel
 
@@ -100,74 +100,74 @@ Parity implications:
 ### Accept
 
 - Operations: `AcceptInboundCrossClusterSearchConnection`
-- Common required input members in this group: `CrossClusterSearchConnectionId`
+- Common required input members in this group: -
 
 ### Add
 
 - Operations: `AddTags`
-- Common required input members in this group: `ARN`, `TagList`
+- Common required input members in this group: -
 
 ### Associate
 
 - Operations: `AssociatePackage`
-- Common required input members in this group: `DomainName`, `PackageID`
+- Common required input members in this group: -
 
 ### Authorize
 
 - Operations: `AuthorizeVpcEndpointAccess`
-- Common required input members in this group: `Account`, `DomainName`
+- Common required input members in this group: -
 
 ### Dissociate
 
 - Operations: `DissociatePackage`
-- Common required input members in this group: `DomainName`, `PackageID`
+- Common required input members in this group: -
 
 ### Purchase
 
 - Operations: `PurchaseReservedElasticsearchInstanceOffering`
-- Common required input members in this group: `ReservationName`, `ReservedElasticsearchInstanceOfferingId`
+- Common required input members in this group: -
 
 ### Reject
 
 - Operations: `RejectInboundCrossClusterSearchConnection`
-- Common required input members in this group: `CrossClusterSearchConnectionId`
+- Common required input members in this group: -
 
 ### Remove
 
 - Operations: `RemoveTags`
-- Common required input members in this group: `ARN`, `TagKeys`
+- Common required input members in this group: -
 
 ### Revoke
 
 - Operations: `RevokeVpcEndpointAccess`
-- Common required input members in this group: `Account`, `DomainName`
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartElasticsearchServiceSoftwareUpdate`
-- Common required input members in this group: `DomainName`
+- Common required input members in this group: -
 
 ### Upgrade
 
 - Operations: `UpgradeElasticsearchDomain`
-- Common required input members in this group: `DomainName`, `TargetVersion`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
 | `AcceptInboundCrossClusterSearchConnection` | `PUT /2015-01-01/es/ccs/inboundConnection/{CrossClusterSearchConnectionId}/accept` | - | `CrossClusterSearchConnectionId` | - | `AcceptInboundCrossClusterSearchConnectionResponse` | `DisabledOperationException`, `LimitExceededException`, `ResourceNotFoundException` | Allows the destination domain owner to accept an inbound cross-cluster search connection request. |
-| `AddTags` | `POST /2015-01-01/tags` | - | `ARN`, `TagList` | - | `Unit` | `BaseException`, `InternalException`, `LimitExceededException`, `ValidationException` | Attaches tags to an existing Elasticsearch domain. Tags are a set of case-sensitive key value pairs. |
-| `AssociatePackage` | `POST /2015-01-01/packages/associate/{PackageID}/{DomainName}` | - | `DomainName`, `PackageID` | - | `AssociatePackageResponse` | `AccessDeniedException`, `BaseException`, `ConflictException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Associates a package with an Amazon ES domain. |
-| `AuthorizeVpcEndpointAccess` | `POST /2015-01-01/es/domain/{DomainName}/authorizeVpcEndpointAccess` | - | `Account`, `DomainName` | - | `AuthorizeVpcEndpointAccessResponse` | `BaseException`, `DisabledOperationException`, `InternalException`, `LimitExceededException`, `ResourceNotFoundException`, `ValidationException` | Provides access to an Amazon OpenSearch Service domain through the use of an interface VPC endpoint. |
+| `AddTags` | `POST /2015-01-01/tags` | - | `ARN`, `TagList` | - | `Unit` | `BaseException`, `InternalException`, `LimitExceededException`, `ValidationException` | Attaches tags to an existing Elasticsearch domain. Tags are a set of case-sensitive key value pairs. An Elasticsearch domain may have up to 10 tags. See Tagging Amazon Elasticsearch Service Domains for more information. |
+| `AssociatePackage` | `POST /2015-01-01/packages/associate/{PackageID}/{DomainName}` | - | `PackageID`, `DomainName` | - | `AssociatePackageResponse` | `AccessDeniedException`, `BaseException`, `ConflictException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Associates a package with an Amazon ES domain. |
+| `AuthorizeVpcEndpointAccess` | `POST /2015-01-01/es/domain/{DomainName}/authorizeVpcEndpointAccess` | - | `DomainName`, `Account` | - | `AuthorizeVpcEndpointAccessResponse` | `BaseException`, `DisabledOperationException`, `InternalException`, `LimitExceededException`, `ResourceNotFoundException`, `ValidationException` | Provides access to an Amazon OpenSearch Service domain through the use of an interface VPC endpoint. |
 | `CancelDomainConfigChange` | `POST /2015-01-01/es/domain/{DomainName}/config/cancel` | - | `DomainName` | - | `CancelDomainConfigChangeResponse` | `BaseException`, `DisabledOperationException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Cancels a pending configuration change on an Amazon OpenSearch Service domain. |
-| `CancelElasticsearchServiceSoftwareUpdate` | `POST /2015-01-01/es/serviceSoftwareUpdate/cancel` | - | `DomainName` | - | `CancelElasticsearchServiceSoftwareUpdateResponse` | `BaseException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Cancels a scheduled service software update for an Amazon ES domain. You can only perform this operation before the `AutomatedUpdateDate` and when the `UpdateStatus` is in the `PENDING_UPDATE` state. |
+| `CancelElasticsearchServiceSoftwareUpdate` | `POST /2015-01-01/es/serviceSoftwareUpdate/cancel` | - | `DomainName` | - | `CancelElasticsearchServiceSoftwareUpdateResponse` | `BaseException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Cancels a scheduled service software update for an Amazon ES domain. You can only perform this operation before the AutomatedUpdateDate and when the UpdateStatus is in the PENDING_UPDATE state. |
 | `CreateElasticsearchDomain` | `POST /2015-01-01/es/domain` | - | `DomainName` | - | `CreateElasticsearchDomainResponse` | `BaseException`, `DisabledOperationException`, `InternalException`, `InvalidTypeException`, `LimitExceededException`, `ResourceAlreadyExistsException`, `ValidationException` | Creates a new Elasticsearch domain. For more information, see Creating Elasticsearch Domains in the Amazon Elasticsearch Service Developer Guide . |
-| `CreateOutboundCrossClusterSearchConnection` | `POST /2015-01-01/es/ccs/outboundConnection` | - | `ConnectionAlias`, `DestinationDomainInfo`, `SourceDomainInfo` | - | `CreateOutboundCrossClusterSearchConnectionResponse` | `DisabledOperationException`, `InternalException`, `LimitExceededException`, `ResourceAlreadyExistsException` | Creates a new cross-cluster search connection from a source domain to a destination domain. |
-| `CreatePackage` | `POST /2015-01-01/packages` | - | `PackageName`, `PackageSource`, `PackageType` | - | `CreatePackageResponse` | `AccessDeniedException`, `BaseException`, `InternalException`, `InvalidTypeException`, `LimitExceededException`, `ResourceAlreadyExistsException`, `ValidationException` | Create a package for use with Amazon ES domains. |
+| `CreateOutboundCrossClusterSearchConnection` | `POST /2015-01-01/es/ccs/outboundConnection` | - | `SourceDomainInfo`, `DestinationDomainInfo`, `ConnectionAlias` | - | `CreateOutboundCrossClusterSearchConnectionResponse` | `DisabledOperationException`, `InternalException`, `LimitExceededException`, `ResourceAlreadyExistsException` | Creates a new cross-cluster search connection from a source domain to a destination domain. |
+| `CreatePackage` | `POST /2015-01-01/packages` | - | `PackageName`, `PackageType`, `PackageSource` | - | `CreatePackageResponse` | `AccessDeniedException`, `BaseException`, `InternalException`, `InvalidTypeException`, `LimitExceededException`, `ResourceAlreadyExistsException`, `ValidationException` | Create a package for use with Amazon ES domains. |
 | `CreateVpcEndpoint` | `POST /2015-01-01/es/vpcEndpoints` | - | `DomainArn`, `VpcOptions` | - | `CreateVpcEndpointResponse` | `BaseException`, `ConflictException`, `DisabledOperationException`, `InternalException`, `LimitExceededException`, `ValidationException` | Creates an Amazon OpenSearch Service-managed VPC endpoint. |
 | `DeleteElasticsearchDomain` | `DELETE /2015-01-01/es/domain/{DomainName}` | - | `DomainName` | - | `DeleteElasticsearchDomainResponse` | `BaseException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Permanently deletes the specified Elasticsearch domain and all of its data. Once a domain is deleted, it cannot be recovered. |
-| `DeleteElasticsearchServiceRole` | `DELETE /2015-01-01/es/role` | - | - | - | `Unit` | `BaseException`, `InternalException`, `ValidationException` | Deletes the service-linked role that Elasticsearch Service uses to manage and maintain VPC domains. Role deletion will fail if any existing VPC domains use the role. |
+| `DeleteElasticsearchServiceRole` | `DELETE /2015-01-01/es/role` | - | - | - | `Unit` | `BaseException`, `InternalException`, `ValidationException` | Deletes the service-linked role that Elasticsearch Service uses to manage and maintain VPC domains. Role deletion will fail if any existing VPC domains use the role. You must delete any such Elasticsearch domains bef ... |
 | `DeleteInboundCrossClusterSearchConnection` | `DELETE /2015-01-01/es/ccs/inboundConnection/{CrossClusterSearchConnectionId}` | - | `CrossClusterSearchConnectionId` | - | `DeleteInboundCrossClusterSearchConnectionResponse` | `DisabledOperationException`, `ResourceNotFoundException` | Allows the destination domain owner to delete an existing inbound cross-cluster search connection. |
 | `DeleteOutboundCrossClusterSearchConnection` | `DELETE /2015-01-01/es/ccs/outboundConnection/{CrossClusterSearchConnectionId}` | - | `CrossClusterSearchConnectionId` | - | `DeleteOutboundCrossClusterSearchConnectionResponse` | `DisabledOperationException`, `ResourceNotFoundException` | Allows the source domain owner to delete an existing outbound cross-cluster search connection. |
 | `DeletePackage` | `DELETE /2015-01-01/packages/{PackageID}` | - | `PackageID` | - | `DeletePackageResponse` | `AccessDeniedException`, `BaseException`, `ConflictException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Delete the package. |
@@ -177,15 +177,15 @@ Parity implications:
 | `DescribeElasticsearchDomain` | `GET /2015-01-01/es/domain/{DomainName}` | - | `DomainName` | - | `DescribeElasticsearchDomainResponse` | `BaseException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Returns domain configuration information about the specified Elasticsearch domain, including the domain ID, domain endpoint, and domain ARN. |
 | `DescribeElasticsearchDomainConfig` | `GET /2015-01-01/es/domain/{DomainName}/config` | - | `DomainName` | - | `DescribeElasticsearchDomainConfigResponse` | `BaseException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Provides cluster configuration information about the specified Elasticsearch domain, such as the state, creation date, update version, and update date for cluster options. |
 | `DescribeElasticsearchDomains` | `POST /2015-01-01/es/domain-info` | - | `DomainNames` | - | `DescribeElasticsearchDomainsResponse` | `BaseException`, `InternalException`, `ValidationException` | Returns domain configuration information about the specified Elasticsearch domains, including the domain ID, domain endpoint, and domain ARN. |
-| `DescribeElasticsearchInstanceTypeLimits` | `GET /2015-01-01/es/instanceTypeLimits/{ElasticsearchVersion}/{InstanceType}` | - | `ElasticsearchVersion`, `InstanceType` | - | `DescribeElasticsearchInstanceTypeLimitsResponse` | `BaseException`, `InternalException`, `InvalidTypeException`, `LimitExceededException`, `ResourceNotFoundException`, `ValidationException` | Describe Elasticsearch Limits for a given InstanceType and ElasticsearchVersion. When modifying existing Domain, specify the ` DomainName ` to know what Limits are supported for modifying. |
+| `DescribeElasticsearchInstanceTypeLimits` | `GET /2015-01-01/es/instanceTypeLimits/{ElasticsearchVersion}/{InstanceType}` | - | `InstanceType`, `ElasticsearchVersion` | - | `DescribeElasticsearchInstanceTypeLimitsResponse` | `BaseException`, `InternalException`, `InvalidTypeException`, `LimitExceededException`, `ResourceNotFoundException`, `ValidationException` | Describe Elasticsearch Limits for a given InstanceType and ElasticsearchVersion. When modifying existing Domain, specify the DomainName to know what Limits are supported for modifying. |
 | `DescribeInboundCrossClusterSearchConnections` | `POST /2015-01-01/es/ccs/inboundConnection/search` | `paginated` | - | - | `DescribeInboundCrossClusterSearchConnectionsResponse` | `DisabledOperationException`, `InvalidPaginationTokenException` | Lists all the inbound cross-cluster search connections for a destination domain. |
 | `DescribeOutboundCrossClusterSearchConnections` | `POST /2015-01-01/es/ccs/outboundConnection/search` | `paginated` | - | - | `DescribeOutboundCrossClusterSearchConnectionsResponse` | `DisabledOperationException`, `InvalidPaginationTokenException` | Lists all the outbound cross-cluster search connections for a source domain. |
 | `DescribePackages` | `POST /2015-01-01/packages/describe` | `paginated` | - | - | `DescribePackagesResponse` | `AccessDeniedException`, `BaseException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Describes all packages available to Amazon ES. Includes options for filtering, limiting the number of results, and pagination. |
 | `DescribeReservedElasticsearchInstanceOfferings` | `GET /2015-01-01/es/reservedInstanceOfferings` | `paginated` | - | - | `DescribeReservedElasticsearchInstanceOfferingsResponse` | `DisabledOperationException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Lists available reserved Elasticsearch instance offerings. |
 | `DescribeReservedElasticsearchInstances` | `GET /2015-01-01/es/reservedInstances` | `paginated` | - | - | `DescribeReservedElasticsearchInstancesResponse` | `DisabledOperationException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Returns information about reserved Elasticsearch instances for this account. |
 | `DescribeVpcEndpoints` | `POST /2015-01-01/es/vpcEndpoints/describe` | - | `VpcEndpointIds` | - | `DescribeVpcEndpointsResponse` | `BaseException`, `DisabledOperationException`, `InternalException`, `ValidationException` | Describes one or more Amazon OpenSearch Service-managed VPC endpoints. |
-| `DissociatePackage` | `POST /2015-01-01/packages/dissociate/{PackageID}/{DomainName}` | - | `DomainName`, `PackageID` | - | `DissociatePackageResponse` | `AccessDeniedException`, `BaseException`, `ConflictException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Dissociates a package from the Amazon ES domain. |
-| `GetCompatibleElasticsearchVersions` | `GET /2015-01-01/es/compatibleVersions` | - | - | - | `GetCompatibleElasticsearchVersionsResponse` | `BaseException`, `DisabledOperationException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Returns a list of upgrade compatible Elastisearch versions. You can optionally pass a ` DomainName ` to get all upgrade compatible Elasticsearch versions for that specific domain. |
+| `DissociatePackage` | `POST /2015-01-01/packages/dissociate/{PackageID}/{DomainName}` | - | `PackageID`, `DomainName` | - | `DissociatePackageResponse` | `AccessDeniedException`, `BaseException`, `ConflictException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Dissociates a package from the Amazon ES domain. |
+| `GetCompatibleElasticsearchVersions` | `GET /2015-01-01/es/compatibleVersions` | - | - | - | `GetCompatibleElasticsearchVersionsResponse` | `BaseException`, `DisabledOperationException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Returns a list of upgrade compatible Elastisearch versions. You can optionally pass a DomainName to get all upgrade compatible Elasticsearch versions for that specific domain. |
 | `GetPackageVersionHistory` | `GET /2015-01-01/packages/{PackageID}/history` | `paginated` | `PackageID` | - | `GetPackageVersionHistoryResponse` | `AccessDeniedException`, `BaseException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Returns a list of versions of the package, along with their creation time and commit message. |
 | `GetUpgradeHistory` | `GET /2015-01-01/es/upgradeDomain/{DomainName}/history` | `paginated` | `DomainName` | - | `GetUpgradeHistoryResponse` | `BaseException`, `DisabledOperationException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Retrieves the complete history of the last 10 upgrades that were performed on the domain. |
 | `GetUpgradeStatus` | `GET /2015-01-01/es/upgradeDomain/{DomainName}/status` | - | `DomainName` | - | `GetUpgradeStatusResponse` | `BaseException`, `DisabledOperationException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Retrieves the latest status of the last upgrade or upgrade eligibility check that was performed on the domain. |
@@ -198,10 +198,10 @@ Parity implications:
 | `ListVpcEndpointAccess` | `GET /2015-01-01/es/domain/{DomainName}/listVpcEndpointAccess` | - | `DomainName` | - | `ListVpcEndpointAccessResponse` | `BaseException`, `DisabledOperationException`, `InternalException`, `ResourceNotFoundException` | Retrieves information about each principal that is allowed to access a given Amazon OpenSearch Service domain through the use of an interface VPC endpoint. |
 | `ListVpcEndpoints` | `GET /2015-01-01/es/vpcEndpoints` | - | - | - | `ListVpcEndpointsResponse` | `BaseException`, `DisabledOperationException`, `InternalException` | Retrieves all Amazon OpenSearch Service-managed VPC endpoints in the current account and Region. |
 | `ListVpcEndpointsForDomain` | `GET /2015-01-01/es/domain/{DomainName}/vpcEndpoints` | - | `DomainName` | - | `ListVpcEndpointsForDomainResponse` | `BaseException`, `DisabledOperationException`, `InternalException`, `ResourceNotFoundException` | Retrieves all Amazon OpenSearch Service-managed VPC endpoints associated with a particular domain. |
-| `PurchaseReservedElasticsearchInstanceOffering` | `POST /2015-01-01/es/purchaseReservedInstanceOffering` | - | `ReservationName`, `ReservedElasticsearchInstanceOfferingId` | - | `PurchaseReservedElasticsearchInstanceOfferingResponse` | `DisabledOperationException`, `InternalException`, `LimitExceededException`, `ResourceAlreadyExistsException`, `ResourceNotFoundException`, `ValidationException` | Allows you to purchase reserved Elasticsearch instances. |
+| `PurchaseReservedElasticsearchInstanceOffering` | `POST /2015-01-01/es/purchaseReservedInstanceOffering` | - | `ReservedElasticsearchInstanceOfferingId`, `ReservationName` | - | `PurchaseReservedElasticsearchInstanceOfferingResponse` | `DisabledOperationException`, `InternalException`, `LimitExceededException`, `ResourceAlreadyExistsException`, `ResourceNotFoundException`, `ValidationException` | Allows you to purchase reserved Elasticsearch instances. |
 | `RejectInboundCrossClusterSearchConnection` | `PUT /2015-01-01/es/ccs/inboundConnection/{CrossClusterSearchConnectionId}/reject` | - | `CrossClusterSearchConnectionId` | - | `RejectInboundCrossClusterSearchConnectionResponse` | `DisabledOperationException`, `ResourceNotFoundException` | Allows the destination domain owner to reject an inbound cross-cluster search connection request. |
 | `RemoveTags` | `POST /2015-01-01/tags-removal` | - | `ARN`, `TagKeys` | - | `Unit` | `BaseException`, `InternalException`, `ValidationException` | Removes the specified set of tags from the specified Elasticsearch domain. |
-| `RevokeVpcEndpointAccess` | `POST /2015-01-01/es/domain/{DomainName}/revokeVpcEndpointAccess` | - | `Account`, `DomainName` | - | `RevokeVpcEndpointAccessResponse` | `BaseException`, `DisabledOperationException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Revokes access to an Amazon OpenSearch Service domain that was provided through an interface VPC endpoint. |
+| `RevokeVpcEndpointAccess` | `POST /2015-01-01/es/domain/{DomainName}/revokeVpcEndpointAccess` | - | `DomainName`, `Account` | - | `RevokeVpcEndpointAccessResponse` | `BaseException`, `DisabledOperationException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Revokes access to an Amazon OpenSearch Service domain that was provided through an interface VPC endpoint. |
 | `StartElasticsearchServiceSoftwareUpdate` | `POST /2015-01-01/es/serviceSoftwareUpdate/start` | - | `DomainName` | - | `StartElasticsearchServiceSoftwareUpdateResponse` | `BaseException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Schedules a service software update for an Amazon ES domain. |
 | `UpdateElasticsearchDomainConfig` | `POST /2015-01-01/es/domain/{DomainName}/config` | - | `DomainName` | - | `UpdateElasticsearchDomainConfigResponse` | `BaseException`, `InternalException`, `InvalidTypeException`, `LimitExceededException`, `ResourceNotFoundException`, `ValidationException` | Modifies the cluster configuration of the specified Elasticsearch domain, setting as setting the instance type and the number of instances. |
 | `UpdatePackage` | `POST /2015-01-01/packages/update` | - | `PackageID`, `PackageSource` | - | `UpdatePackageResponse` | `AccessDeniedException`, `BaseException`, `InternalException`, `LimitExceededException`, `ResourceNotFoundException`, `ValidationException` | Updates a package for use with Amazon ES domains. |
@@ -236,30 +236,56 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalException` | `structure` | `message` | The request processing has failed because of an unknown error, exception or failure (the failure is internal to the service) . |
-| `BaseException` | `structure` | `message` | An error occurred while processing the request. |
-| `ValidationException` | `structure` | `message` | An exception for missing / invalid input fields. |
-| `ResourceNotFoundException` | `structure` | `message` | An exception for accessing or deleting a resource that does not exist. |
-| `DisabledOperationException` | `structure` | `message` | An error occured because the client wanted to access a not supported operation. |
-| `LimitExceededException` | `structure` | `message` | An exception for trying to create more than allowed resources or sub-resources. |
-| `AccessDeniedException` | `structure` | `message` | An error occurred because user does not have permissions to access the resource. |
-| `ConflictException` | `structure` | `message` | An error occurred because the client attempts to remove a resource that is currently in use. |
-| `ResourceAlreadyExistsException` | `structure` | `message` | An exception for creating a resource that already exists. |
-| `InvalidTypeException` | `structure` | `message` | An exception for trying to create or access sub-resource that is either invalid or not supported. |
-| `InvalidPaginationTokenException` | `structure` | `message` | The request processing has failed because of invalid pagination token provided by customer. |
-| `AcceptInboundCrossClusterSearchConnectionRequest` | `structure` | `CrossClusterSearchConnectionId` | Container for the parameters to the `AcceptInboundCrossClusterSearchConnection` operation. |
-| `AcceptInboundCrossClusterSearchConnectionResponse` | `structure` | `CrossClusterSearchConnection` | The result of a `AcceptInboundCrossClusterSearchConnection` operation. |
-| `AddTagsRequest` | `structure` | `ARN`, `TagList` | Container for the parameters to the `AddTags` operation. |
-| `AssociatePackageRequest` | `structure` | `DomainName`, `PackageID` | Container for request parameters to ` AssociatePackage ` operation. |
-| `AssociatePackageResponse` | `structure` | `DomainPackageDetails` | Container for response returned by ` AssociatePackage ` operation. |
-| `AuthorizeVpcEndpointAccessRequest` | `structure` | `Account`, `DomainName` | Container for request parameters to the `AuthorizeVpcEndpointAccess` operation. |
-| `AuthorizeVpcEndpointAccessResponse` | `structure` | `AuthorizedPrincipal` | Container for response parameters to the `AuthorizeVpcEndpointAccess` operation. |
-| `CancelDomainConfigChangeRequest` | `structure` | `DomainName`, `DryRun` | Container for parameters of the `CancelDomainConfigChange` operation. |
-| `CancelDomainConfigChangeResponse` | `structure` | `CancelledChangeIds`, `CancelledChangeProperties`, `DryRun` | Contains the details of the cancelled domain config change. |
-| `CancelElasticsearchServiceSoftwareUpdateRequest` | `structure` | `DomainName` | Container for the parameters to the `CancelElasticsearchServiceSoftwareUpdate` operation. |
-| `CancelElasticsearchServiceSoftwareUpdateResponse` | `structure` | `ServiceSoftwareOptions` | The result of a `CancelElasticsearchServiceSoftwareUpdate` operation. |
-| `CreateElasticsearchDomainRequest` | `structure` | `AccessPolicies`, `AdvancedOptions`, `AdvancedSecurityOptions`, `AutoTuneOptions`, `CognitoOptions`, `DeploymentStrategyOptions`, `DomainEndpointOptions`, `DomainName`, `EBSOptions`, `ElasticsearchClusterConfig`, `ElasticsearchVersion`, `EncryptionAtRestOptions`, ... (+5) | - |
-
+| `AccessDeniedException` | `structure` | message | An error occurred because user does not have permissions to access the resource. Returns HTTP status code 403. |
+| `BaseException` | `structure` | message | An error occurred while processing the request. |
+| `ConflictException` | `structure` | message | An error occurred because the client attempts to remove a resource that is currently in use. Returns HTTP status code 409. |
+| `DisabledOperationException` | `structure` | message | An error occured because the client wanted to access a not supported operation. Gives http status code of 409. |
+| `InternalException` | `structure` | message | The request processing has failed because of an unknown error, exception or failure (the failure is internal to the service) . Gives http status code of 500. |
+| `InvalidPaginationTokenException` | `structure` | message | The request processing has failed because of invalid pagination token provided by customer. Returns an HTTP status code of 400. |
+| `InvalidTypeException` | `structure` | message | An exception for trying to create or access sub-resource that is either invalid or not supported. Gives http status code of 409. |
+| `LimitExceededException` | `structure` | message | An exception for trying to create more than allowed resources or sub-resources. Gives http status code of 409. |
+| `ResourceAlreadyExistsException` | `structure` | message | An exception for creating a resource that already exists. Gives http status code of 400. |
+| `ResourceNotFoundException` | `structure` | message | An exception for accessing or deleting a resource that does not exist. Gives http status code of 400. |
+| `ValidationException` | `structure` | message | An exception for missing / invalid input fields. Gives http status code of 400. |
+| `AcceptInboundCrossClusterSearchConnectionRequest` | `structure` | CrossClusterSearchConnectionId | Container for the parameters to the AcceptInboundCrossClusterSearchConnection operation. |
+| `AcceptInboundCrossClusterSearchConnectionResponse` | `structure` | CrossClusterSearchConnection | The result of a AcceptInboundCrossClusterSearchConnection operation. Contains details of accepted inbound connection. |
+| `AddTagsRequest` | `structure` | ARN, TagList | Container for the parameters to the AddTags operation. Specify the tags that you want to attach to the Elasticsearch domain. |
+| `AssociatePackageRequest` | `structure` | PackageID, DomainName | Container for request parameters to AssociatePackage operation. |
+| `AssociatePackageResponse` | `structure` | DomainPackageDetails | Container for response returned by AssociatePackage operation. |
+| `AuthorizeVpcEndpointAccessRequest` | `structure` | DomainName, Account | Container for request parameters to the AuthorizeVpcEndpointAccess operation. Specifies the account to be permitted to manage VPC endpoints against the domain. |
+| `AuthorizeVpcEndpointAccessResponse` | `structure` | AuthorizedPrincipal | Container for response parameters to the AuthorizeVpcEndpointAccess operation. Contains the account ID and the type of the account being authorized to acces ... |
+| `CancelDomainConfigChangeRequest` | `structure` | DomainName, DryRun | Container for parameters of the CancelDomainConfigChange operation. |
+| `CancelDomainConfigChangeResponse` | `structure` | DryRun, CancelledChangeIds, CancelledChangeProperties | Contains the details of the cancelled domain config change. |
+| `CancelElasticsearchServiceSoftwareUpdateRequest` | `structure` | DomainName | Container for the parameters to the CancelElasticsearchServiceSoftwareUpdate operation. Specifies the name of the Elasticsearch domain that you wish to canc ... |
+| `CancelElasticsearchServiceSoftwareUpdateResponse` | `structure` | ServiceSoftwareOptions | The result of a CancelElasticsearchServiceSoftwareUpdate operation. Contains the status of the update. |
+| `CreateElasticsearchDomainRequest` | `structure` | DomainName, ElasticsearchVersion, ElasticsearchClusterConfig, EBSOptions, AccessPolicies, SnapshotOptions, VPCOptions, CognitoOptions, EncryptionAtRestOptions, NodeToNodeEncryptionOptions, AdvancedOptions, LogPublishingOptions, ... (+5) | - |
+| `CreateElasticsearchDomainResponse` | `structure` | DomainStatus | The result of a CreateElasticsearchDomain operation. Contains the status of the newly created Elasticsearch domain. |
+| `CreateOutboundCrossClusterSearchConnectionRequest` | `structure` | SourceDomainInfo, DestinationDomainInfo, ConnectionAlias | Container for the parameters to the CreateOutboundCrossClusterSearchConnection operation. |
+| `CreateOutboundCrossClusterSearchConnectionResponse` | `structure` | SourceDomainInfo, DestinationDomainInfo, ConnectionAlias, ConnectionStatus, CrossClusterSearchConnectionId | The result of a CreateOutboundCrossClusterSearchConnection request. Contains the details of the newly created cross-cluster search connection. |
+| `CreatePackageRequest` | `structure` | PackageName, PackageType, PackageDescription, PackageSource | Container for request parameters to CreatePackage operation. |
+| `CreatePackageResponse` | `structure` | PackageDetails | Container for response returned by CreatePackage operation. |
+| `CreateVpcEndpointRequest` | `structure` | DomainArn, VpcOptions, ClientToken | Container for the parameters to the CreateVpcEndpointRequest operation. |
+| `CreateVpcEndpointResponse` | `structure` | VpcEndpoint | Container for response parameters to the CreateVpcEndpoint operation. Contains the configuration and status of the VPC Endpoint being created. |
+| `DeleteElasticsearchDomainRequest` | `structure` | DomainName | Container for the parameters to the DeleteElasticsearchDomain operation. Specifies the name of the Elasticsearch domain that you want to delete. |
+| `DeleteElasticsearchDomainResponse` | `structure` | DomainStatus | The result of a DeleteElasticsearchDomain request. Contains the status of the pending deletion, or no status if the domain and all of its resources have bee ... |
+| `DeleteInboundCrossClusterSearchConnectionRequest` | `structure` | CrossClusterSearchConnectionId | Container for the parameters to the DeleteInboundCrossClusterSearchConnection operation. |
+| `DeleteInboundCrossClusterSearchConnectionResponse` | `structure` | CrossClusterSearchConnection | The result of a DeleteInboundCrossClusterSearchConnection operation. Contains details of deleted inbound connection. |
+| `DeleteOutboundCrossClusterSearchConnectionRequest` | `structure` | CrossClusterSearchConnectionId | Container for the parameters to the DeleteOutboundCrossClusterSearchConnection operation. |
+| `DeleteOutboundCrossClusterSearchConnectionResponse` | `structure` | CrossClusterSearchConnection | The result of a DeleteOutboundCrossClusterSearchConnection operation. Contains details of deleted outbound connection. |
+| `DeletePackageRequest` | `structure` | PackageID | Container for request parameters to DeletePackage operation. |
+| `DeletePackageResponse` | `structure` | PackageDetails | Container for response parameters to DeletePackage operation. |
+| `DeleteVpcEndpointRequest` | `structure` | VpcEndpointId | Deletes an Amazon OpenSearch Service-managed interface VPC endpoint. |
+| `DeleteVpcEndpointResponse` | `structure` | VpcEndpointSummary | Container for response parameters to the DeleteVpcEndpoint operation. Contains the summarized detail of the VPC Endpoint being deleted. |
+| `AutoTuneDesiredState` | `enum` | ENABLED, DISABLED | Specifies the Auto-Tune desired state. Valid values are ENABLED, DISABLED. |
+| `AutoTuneState` | `enum` | ENABLED, DISABLED, ENABLE_IN_PROGRESS, DISABLE_IN_PROGRESS, DISABLED_AND_ROLLBACK_SCHEDULED, DISABLED_AND_ROLLBACK_IN_PROGRESS, DISABLED_AND_ROLLBACK_COMPLETE, DISABLED_AND_ROLLBACK_ERROR, ERROR | Specifies the Auto-Tune state for the Elasticsearch domain. For valid states see the Developer Guide . |
+| `AutoTuneType` | `enum` | SCHEDULED_ACTION | Specifies Auto-Tune type. Valid value is SCHEDULED_ACTION. |
+| `ConfigChangeStatus` | `enum` | PENDING, INITIALIZING, VALIDATING, VALIDATION_FAILED, APPLYING_CHANGES, COMPLETED, PENDING_USER_INPUT, CANCELLED | - |
+| `DeploymentStatus` | `enum` | PENDING_UPDATE, IN_PROGRESS, COMPLETED, NOT_ELIGIBLE, ELIGIBLE | - |
+| `DeploymentStrategy` | `enum` | DEFAULT, CAPACITY_OPTIMIZED | Specifies the deployment strategy for the domain. Valid values are Default and CapacityOptimized . |
+| `DescribePackagesFilterName` | `enum` | PackageID, PackageName, PackageStatus | - |
+| `DomainPackageStatus` | `enum` | ASSOCIATING, ASSOCIATION_FAILED, ACTIVE, DISSOCIATING, DISSOCIATION_FAILED | - |
+| `DomainProcessingStatusType` | `enum` | CREATING, ACTIVE, MODIFYING, UPGRADING, UPDATING, ISOLATED, DELETING | - |
+| `ESPartitionInstanceType` | `enum` | m3_medium_elasticsearch, m3_large_elasticsearch, m3_xlarge_elasticsearch, m3_2xlarge_elasticsearch, m4_large_elasticsearch, m4_xlarge_elasticsearch, m4_2xlarge_elasticsearch, m4_4xlarge_elasticsearch, m4_10xlarge_elasticsearch, m5_large_elasticsearch, m5_xlarge_elasticsearch, m5_2xlarge_elasticsearch, ... (+46) | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

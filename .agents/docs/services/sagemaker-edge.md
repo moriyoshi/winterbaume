@@ -37,20 +37,20 @@ SageMaker Edge Manager dataplane service for communicating with active agents.
 ### Get
 
 - Operations: `GetDeployments`, `GetDeviceRegistration`
-- Common required input members in this group: `DeviceFleetName`, `DeviceName`
+- Common required input members in this group: `DeviceName`, `DeviceFleetName`
 
 ### Send
 
 - Operations: `SendHeartbeat`
-- Common required input members in this group: `AgentVersion`, `DeviceFleetName`, `DeviceName`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `GetDeployments` | `POST /GetDeployments` | - | `DeviceFleetName`, `DeviceName` | - | `GetDeploymentsResult` | `InternalServiceException` | Use to get the active deployments from a device. |
-| `GetDeviceRegistration` | `POST /GetDeviceRegistration` | - | `DeviceFleetName`, `DeviceName` | - | `GetDeviceRegistrationResult` | `InternalServiceException` | Use to check if a device is registered with SageMaker Edge Manager. |
-| `SendHeartbeat` | `POST /SendHeartbeat` | - | `AgentVersion`, `DeviceFleetName`, `DeviceName` | - | `Unit` | `InternalServiceException` | Use to get the current status of devices registered on SageMaker Edge Manager. |
+| `GetDeployments` | `POST /GetDeployments` | - | `DeviceName`, `DeviceFleetName` | - | `GetDeploymentsResult` | `InternalServiceException` | Use to get the active deployments from a device. |
+| `GetDeviceRegistration` | `POST /GetDeviceRegistration` | - | `DeviceName`, `DeviceFleetName` | - | `GetDeviceRegistrationResult` | `InternalServiceException` | Use to check if a device is registered with SageMaker Edge Manager. |
+| `SendHeartbeat` | `POST /SendHeartbeat` | - | `AgentVersion`, `DeviceName`, `DeviceFleetName` | - | `Unit` | `InternalServiceException` | Use to get the current status of devices registered on SageMaker Edge Manager. |
 
 ## HTTP Bindings
 
@@ -62,13 +62,17 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServiceException` | `structure` | `Message` | An internal failure occurred. |
-| `GetDeploymentsRequest` | `structure` | `DeviceFleetName`, `DeviceName` | - |
-| `GetDeploymentsResult` | `structure` | `Deployments` | - |
-| `GetDeviceRegistrationRequest` | `structure` | `DeviceFleetName`, `DeviceName` | - |
-| `GetDeviceRegistrationResult` | `structure` | `CacheTTL`, `DeviceRegistration` | - |
-| `SendHeartbeatRequest` | `structure` | `AgentMetrics`, `AgentVersion`, `DeploymentResult`, `DeviceFleetName`, `DeviceName`, `Models` | - |
-
+| `InternalServiceException` | `structure` | Message | An internal failure occurred. Try your request again. If the problem persists, contact Amazon Web Services customer support. |
+| `GetDeploymentsRequest` | `structure` | DeviceName, DeviceFleetName | - |
+| `GetDeploymentsResult` | `structure` | Deployments | - |
+| `GetDeviceRegistrationRequest` | `structure` | DeviceName, DeviceFleetName | - |
+| `GetDeviceRegistrationResult` | `structure` | DeviceRegistration, CacheTTL | - |
+| `SendHeartbeatRequest` | `structure` | AgentMetrics, Models, AgentVersion, DeviceName, DeviceFleetName, DeploymentResult | - |
+| `ChecksumType` | `enum` | Sha1 | - |
+| `DeploymentStatus` | `enum` | Success, Fail | - |
+| `DeploymentType` | `enum` | Model | - |
+| `FailureHandlingPolicy` | `enum` | RollbackOnFailure, DoNothing | - |
+| `ModelState` | `enum` | Deploy, Undeploy | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

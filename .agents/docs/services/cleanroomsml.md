@@ -63,126 +63,33 @@ Welcome to the Amazon Web Services Clean Rooms ML API Reference . Amazon Web Ser
 
 ### List
 
-- Operations: `ListAudienceExportJobs`, `ListAudienceGenerationJobs`, `ListAudienceModels`, `ListCollaborationConfiguredModelAlgorithmAssociations`, `ListCollaborationMLInputChannels`, `ListCollaborationTrainedModelExportJobs`, `ListCollaborationTrainedModelInferenceJobs`, `ListCollaborationTrainedModels`, `ListConfiguredAudienceModels`, `ListConfiguredModelAlgorithmAssociations`, `ListConfiguredModelAlgorithms`, `ListMLInputChannels`, `ListTagsForResource`, `ListTrainedModelInferenceJobs`, `ListTrainedModelVersions`, `ListTrainedModels`, `ListTrainingDatasets`
-- Traits: `paginated` (16), `readonly` (17)
-- Common required input members in this group: `collaborationIdentifier`, `membershipIdentifier`, `resourceArn`, `trainedModelArn`
-
-### Get
-
-- Operations: `GetAudienceGenerationJob`, `GetAudienceModel`, `GetCollaborationConfiguredModelAlgorithmAssociation`, `GetCollaborationMLInputChannel`, `GetCollaborationTrainedModel`, `GetConfiguredAudienceModel`, `GetConfiguredAudienceModelPolicy`, `GetConfiguredModelAlgorithm`, `GetConfiguredModelAlgorithmAssociation`, `GetMLConfiguration`, `GetMLInputChannel`, `GetTrainedModel`, `GetTrainedModelInferenceJob`, `GetTrainingDataset`
-- Traits: `readonly` (14)
-- Common required input members in this group: `audienceGenerationJobArn`, `audienceModelArn`, `collaborationIdentifier`, `configuredAudienceModelArn`, `configuredModelAlgorithmArn`, `configuredModelAlgorithmAssociationArn`, `membershipIdentifier`, `mlInputChannelArn`, `trainedModelArn`, `trainedModelInferenceJobArn`, `trainingDatasetArn`
-
-### Delete
-
-- Operations: `DeleteAudienceGenerationJob`, `DeleteAudienceModel`, `DeleteConfiguredAudienceModel`, `DeleteConfiguredAudienceModelPolicy`, `DeleteConfiguredModelAlgorithm`, `DeleteConfiguredModelAlgorithmAssociation`, `DeleteMLConfiguration`, `DeleteMLInputChannelData`, `DeleteTrainedModelOutput`, `DeleteTrainingDataset`
-- Traits: `idempotent` (10)
-- Common required input members in this group: `audienceGenerationJobArn`, `audienceModelArn`, `configuredAudienceModelArn`, `configuredModelAlgorithmArn`, `configuredModelAlgorithmAssociationArn`, `membershipIdentifier`, `mlInputChannelArn`, `trainedModelArn`, `trainingDatasetArn`
-
-### Create
-
-- Operations: `CreateAudienceModel`, `CreateConfiguredAudienceModel`, `CreateConfiguredModelAlgorithm`, `CreateConfiguredModelAlgorithmAssociation`, `CreateMLInputChannel`, `CreateTrainedModel`, `CreateTrainingDataset`
-- Traits: `idempotent` (7)
-- Common required input members in this group: `audienceModelArn`, `configuredModelAlgorithmArn`, `configuredModelAlgorithmAssociationArn`, `configuredModelAlgorithmAssociations`, `dataChannels`, `inputChannel`, `membershipIdentifier`, `name`, `outputConfig`, `resourceConfig`, `retentionInDays`, `roleArn`, `sharedAudienceMetrics`, `trainingData`, `trainingDatasetArn`
-
-### Start
-
-- Operations: `StartAudienceExportJob`, `StartAudienceGenerationJob`, `StartTrainedModelExportJob`, `StartTrainedModelInferenceJob`
-- Traits: `idempotent` (4)
-- Common required input members in this group: `audienceGenerationJobArn`, `audienceSize`, `configuredAudienceModelArn`, `dataSource`, `membershipIdentifier`, `name`, `outputConfiguration`, `resourceConfig`, `seedAudience`, `trainedModelArn`
-
-### Cancel
-
-- Operations: `CancelTrainedModel`, `CancelTrainedModelInferenceJob`
-- Traits: `idempotent` (2)
-- Common required input members in this group: `membershipIdentifier`, `trainedModelArn`, `trainedModelInferenceJobArn`
-
-### Put
-
-- Operations: `PutConfiguredAudienceModelPolicy`, `PutMLConfiguration`
-- Traits: `idempotent` (2)
-- Common required input members in this group: `configuredAudienceModelArn`, `configuredAudienceModelPolicy`, `defaultOutputLocation`, `membershipIdentifier`
+- Operations: `ListCollaborationConfiguredModelAlgorithmAssociations`, `ListCollaborationMLInputChannels`, `ListCollaborationTrainedModelExportJobs`, `ListCollaborationTrainedModelInferenceJobs`, `ListCollaborationTrainedModels`, `ListTagsForResource`
+- Traits: `readonly` (6), `paginated` (5)
+- Common required input members in this group: `collaborationIdentifier`
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
-
-### Update
-
-- Operations: `UpdateConfiguredAudienceModel`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `configuredAudienceModelArn`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CancelTrainedModel` | `PATCH /memberships/{membershipIdentifier}/trained-models/{trainedModelArn}` | `idempotent` | `membershipIdentifier`, `trainedModelArn` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Submits a request to cancel the trained model job. |
-| `CancelTrainedModelInferenceJob` | `PATCH /memberships/{membershipIdentifier}/trained-model-inference-jobs/{trainedModelInferenceJobArn}` | `idempotent` | `membershipIdentifier`, `trainedModelInferenceJobArn` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Submits a request to cancel a trained model inference job. |
-| `CreateAudienceModel` | `POST /audience-model` | `idempotent` | `name`, `trainingDatasetArn` | - | `CreateAudienceModelResponse` | `AccessDeniedException`, `ConflictException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Defines the information necessary to create an audience model. An audience model is a machine learning model that Clean Rooms ML trains to measure similarity between users. |
-| `CreateConfiguredAudienceModel` | `POST /configured-audience-model` | `idempotent` | `audienceModelArn`, `name`, `outputConfig`, `sharedAudienceMetrics` | - | `CreateConfiguredAudienceModelResponse` | `AccessDeniedException`, `ConflictException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Defines the information necessary to create a configured audience model. |
-| `CreateConfiguredModelAlgorithm` | `POST /configured-model-algorithms` | `idempotent` | `name`, `roleArn` | - | `CreateConfiguredModelAlgorithmResponse` | `AccessDeniedException`, `ConflictException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a configured model algorithm using a container image stored in an ECR repository. |
-| `CreateConfiguredModelAlgorithmAssociation` | `POST /memberships/{membershipIdentifier}/configured-model-algorithm-associations` | `idempotent` | `configuredModelAlgorithmArn`, `membershipIdentifier`, `name` | - | `CreateConfiguredModelAlgorithmAssociationResponse` | `AccessDeniedException`, `ConflictException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Associates a configured model algorithm to a collaboration for use by any member of the collaboration. |
-| `CreateMLInputChannel` | `POST /memberships/{membershipIdentifier}/ml-input-channels` | `idempotent` | `configuredModelAlgorithmAssociations`, `inputChannel`, `membershipIdentifier`, `name`, `retentionInDays` | - | `CreateMLInputChannelResponse` | `AccessDeniedException`, `ConflictException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Provides the information to create an ML input channel. An ML input channel is the result of a query that can be used for ML modeling. |
-| `CreateTrainedModel` | `POST /memberships/{membershipIdentifier}/trained-models` | `idempotent` | `configuredModelAlgorithmAssociationArn`, `dataChannels`, `membershipIdentifier`, `name`, `resourceConfig` | - | `CreateTrainedModelResponse` | `AccessDeniedException`, `ConflictException`, `InternalServiceException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a trained model from an associated configured model algorithm using data from any member of the collaboration. |
-| `CreateTrainingDataset` | `POST /training-dataset` | `idempotent` | `name`, `roleArn`, `trainingData` | - | `CreateTrainingDatasetResponse` | `AccessDeniedException`, `ConflictException`, `ValidationException` | Defines the information necessary to create a training dataset. In Clean Rooms ML, the `TrainingDataset` is metadata that points to a Glue table, which is read only during `AudienceModel` creation. |
-| `DeleteAudienceGenerationJob` | `DELETE /audience-generation-job/{audienceGenerationJobArn}` | `idempotent` | `audienceGenerationJobArn` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `ResourceNotFoundException`, `ValidationException` | Deletes the specified audience generation job, and removes all data associated with the job. |
-| `DeleteAudienceModel` | `DELETE /audience-model/{audienceModelArn}` | `idempotent` | `audienceModelArn` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `ResourceNotFoundException`, `ValidationException` | Specifies an audience model that you want to delete. You can't delete an audience model if there are any configured audience models that depend on the audience model. |
-| `DeleteConfiguredAudienceModel` | `DELETE /configured-audience-model/{configuredAudienceModelArn}` | `idempotent` | `configuredAudienceModelArn` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `ResourceNotFoundException`, `ValidationException` | Deletes the specified configured audience model. You can't delete a configured audience model if there are any lookalike models that use the configured audience model. |
-| `DeleteConfiguredAudienceModelPolicy` | `DELETE /configured-audience-model/{configuredAudienceModelArn}/policy` | `idempotent` | `configuredAudienceModelArn` | - | `Unit` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Deletes the specified configured audience model policy. |
-| `DeleteConfiguredModelAlgorithm` | `DELETE /configured-model-algorithms/{configuredModelAlgorithmArn}` | `idempotent` | `configuredModelAlgorithmArn` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `ResourceNotFoundException`, `ValidationException` | Deletes a configured model algorithm. |
-| `DeleteConfiguredModelAlgorithmAssociation` | `DELETE /memberships/{membershipIdentifier}/configured-model-algorithm-associations/{configuredModelAlgorithmAssociationArn}` | `idempotent` | `configuredModelAlgorithmAssociationArn`, `membershipIdentifier` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a configured model algorithm association. |
-| `DeleteMLConfiguration` | `DELETE /memberships/{membershipIdentifier}/ml-configurations` | `idempotent` | `membershipIdentifier` | - | `Unit` | `AccessDeniedException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a ML modeling configuration. |
-| `DeleteMLInputChannelData` | `DELETE /memberships/{membershipIdentifier}/ml-input-channels/{mlInputChannelArn}` | `idempotent` | `membershipIdentifier`, `mlInputChannelArn` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Provides the information necessary to delete an ML input channel. |
-| `DeleteTrainedModelOutput` | `DELETE /memberships/{membershipIdentifier}/trained-models/{trainedModelArn}` | `idempotent` | `membershipIdentifier`, `trainedModelArn` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the model artifacts stored by the service. |
-| `DeleteTrainingDataset` | `DELETE /training-dataset/{trainingDatasetArn}` | `idempotent` | `trainingDatasetArn` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `ResourceNotFoundException`, `ValidationException` | Specifies a training dataset that you want to delete. You can't delete a training dataset if there are any audience models that depend on the training dataset. |
-| `GetAudienceGenerationJob` | `GET /audience-generation-job/{audienceGenerationJobArn}` | `readonly` | `audienceGenerationJobArn` | - | `GetAudienceGenerationJobResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Returns information about an audience generation job. |
-| `GetAudienceModel` | `GET /audience-model/{audienceModelArn}` | `readonly` | `audienceModelArn` | - | `GetAudienceModelResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Returns information about an audience model |
-| `GetCollaborationConfiguredModelAlgorithmAssociation` | `GET /collaborations/{collaborationIdentifier}/configured-model-algorithm-associations/{configuredModelAlgorithmAssociationArn}` | `readonly` | `collaborationIdentifier`, `configuredModelAlgorithmAssociationArn` | - | `GetCollaborationConfiguredModelAlgorithmAssociationResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about the configured model algorithm association in a collaboration. |
-| `GetCollaborationMLInputChannel` | `GET /collaborations/{collaborationIdentifier}/ml-input-channels/{mlInputChannelArn}` | `readonly` | `collaborationIdentifier`, `mlInputChannelArn` | - | `GetCollaborationMLInputChannelResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about a specific ML input channel in a collaboration. |
-| `GetCollaborationTrainedModel` | `GET /collaborations/{collaborationIdentifier}/trained-models/{trainedModelArn}` | `readonly` | `collaborationIdentifier`, `trainedModelArn` | - | `GetCollaborationTrainedModelResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about a trained model in a collaboration. |
-| `GetConfiguredAudienceModel` | `GET /configured-audience-model/{configuredAudienceModelArn}` | `readonly` | `configuredAudienceModelArn` | - | `GetConfiguredAudienceModelResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Returns information about a specified configured audience model. |
-| `GetConfiguredAudienceModelPolicy` | `GET /configured-audience-model/{configuredAudienceModelArn}/policy` | `readonly` | `configuredAudienceModelArn` | - | `GetConfiguredAudienceModelPolicyResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Returns information about a configured audience model policy. |
-| `GetConfiguredModelAlgorithm` | `GET /configured-model-algorithms/{configuredModelAlgorithmArn}` | `readonly` | `configuredModelAlgorithmArn` | - | `GetConfiguredModelAlgorithmResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Returns information about a configured model algorithm. |
-| `GetConfiguredModelAlgorithmAssociation` | `GET /memberships/{membershipIdentifier}/configured-model-algorithm-associations/{configuredModelAlgorithmAssociationArn}` | `readonly` | `configuredModelAlgorithmAssociationArn`, `membershipIdentifier` | - | `GetConfiguredModelAlgorithmAssociationResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about a configured model algorithm association. |
-| `GetMLConfiguration` | `GET /memberships/{membershipIdentifier}/ml-configurations` | `readonly` | `membershipIdentifier` | - | `GetMLConfigurationResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about a specific ML configuration. |
-| `GetMLInputChannel` | `GET /memberships/{membershipIdentifier}/ml-input-channels/{mlInputChannelArn}` | `readonly` | `membershipIdentifier`, `mlInputChannelArn` | - | `GetMLInputChannelResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about an ML input channel. |
-| `GetTrainedModel` | `GET /memberships/{membershipIdentifier}/trained-models/{trainedModelArn}` | `readonly` | `membershipIdentifier`, `trainedModelArn` | - | `GetTrainedModelResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about a trained model. |
-| `GetTrainedModelInferenceJob` | `GET /memberships/{membershipIdentifier}/trained-model-inference-jobs/{trainedModelInferenceJobArn}` | `readonly` | `membershipIdentifier`, `trainedModelInferenceJobArn` | - | `GetTrainedModelInferenceJobResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about a trained model inference job. |
-| `GetTrainingDataset` | `GET /training-dataset/{trainingDatasetArn}` | `readonly` | `trainingDatasetArn` | - | `GetTrainingDatasetResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Returns information about a training dataset. |
-| `ListAudienceExportJobs` | `GET /audience-export-job` | `readonly`, `paginated` | - | - | `ListAudienceExportJobsResponse` | `AccessDeniedException`, `ValidationException` | Returns a list of the audience export jobs. |
-| `ListAudienceGenerationJobs` | `GET /audience-generation-job` | `readonly`, `paginated` | - | - | `ListAudienceGenerationJobsResponse` | `AccessDeniedException`, `ValidationException` | Returns a list of audience generation jobs. |
-| `ListAudienceModels` | `GET /audience-model` | `readonly`, `paginated` | - | - | `ListAudienceModelsResponse` | `AccessDeniedException`, `ValidationException` | Returns a list of audience models. |
 | `ListCollaborationConfiguredModelAlgorithmAssociations` | `GET /collaborations/{collaborationIdentifier}/configured-model-algorithm-associations` | `readonly`, `paginated` | `collaborationIdentifier` | - | `ListCollaborationConfiguredModelAlgorithmAssociationsResponse` | `AccessDeniedException`, `ThrottlingException`, `ValidationException` | Returns a list of the configured model algorithm associations in a collaboration. |
 | `ListCollaborationMLInputChannels` | `GET /collaborations/{collaborationIdentifier}/ml-input-channels` | `readonly`, `paginated` | `collaborationIdentifier` | - | `ListCollaborationMLInputChannelsResponse` | `AccessDeniedException`, `ThrottlingException`, `ValidationException` | Returns a list of the ML input channels in a collaboration. |
 | `ListCollaborationTrainedModelExportJobs` | `GET /collaborations/{collaborationIdentifier}/trained-models/{trainedModelArn}/export-jobs` | `readonly`, `paginated` | `collaborationIdentifier`, `trainedModelArn` | - | `ListCollaborationTrainedModelExportJobsResponse` | `AccessDeniedException`, `ThrottlingException`, `ValidationException` | Returns a list of the export jobs for a trained model in a collaboration. |
 | `ListCollaborationTrainedModelInferenceJobs` | `GET /collaborations/{collaborationIdentifier}/trained-model-inference-jobs` | `readonly`, `paginated` | `collaborationIdentifier` | - | `ListCollaborationTrainedModelInferenceJobsResponse` | `AccessDeniedException`, `ThrottlingException`, `ValidationException` | Returns a list of trained model inference jobs in a specified collaboration. |
 | `ListCollaborationTrainedModels` | `GET /collaborations/{collaborationIdentifier}/trained-models` | `readonly`, `paginated` | `collaborationIdentifier` | - | `ListCollaborationTrainedModelsResponse` | `AccessDeniedException`, `ThrottlingException`, `ValidationException` | Returns a list of the trained models in a collaboration. |
-| `ListConfiguredAudienceModels` | `GET /configured-audience-model` | `readonly`, `paginated` | - | - | `ListConfiguredAudienceModelsResponse` | `AccessDeniedException`, `ValidationException` | Returns a list of the configured audience models. |
-| `ListConfiguredModelAlgorithmAssociations` | `GET /memberships/{membershipIdentifier}/configured-model-algorithm-associations` | `readonly`, `paginated` | `membershipIdentifier` | - | `ListConfiguredModelAlgorithmAssociationsResponse` | `AccessDeniedException`, `ThrottlingException`, `ValidationException` | Returns a list of configured model algorithm associations. |
-| `ListConfiguredModelAlgorithms` | `GET /configured-model-algorithms` | `readonly`, `paginated` | - | - | `ListConfiguredModelAlgorithmsResponse` | `AccessDeniedException`, `ValidationException` | Returns a list of configured model algorithms. |
-| `ListMLInputChannels` | `GET /memberships/{membershipIdentifier}/ml-input-channels` | `readonly`, `paginated` | `membershipIdentifier` | - | `ListMLInputChannelsResponse` | `AccessDeniedException`, `ThrottlingException`, `ValidationException` | Returns a list of ML input channels. |
 | `ListTagsForResource` | `GET /tags/{resourceArn}` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Returns a list of tags for a provided resource. |
-| `ListTrainedModelInferenceJobs` | `GET /memberships/{membershipIdentifier}/trained-model-inference-jobs` | `readonly`, `paginated` | `membershipIdentifier` | - | `ListTrainedModelInferenceJobsResponse` | `AccessDeniedException`, `ThrottlingException`, `ValidationException` | Returns a list of trained model inference jobs that match the request parameters. |
-| `ListTrainedModelVersions` | `GET /memberships/{membershipIdentifier}/trained-models/{trainedModelArn}/versions` | `readonly`, `paginated` | `membershipIdentifier`, `trainedModelArn` | - | `ListTrainedModelVersionsResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of trained model versions for a specified trained model. This operation allows you to view all versions of a trained model, including information about their status and creation details. |
-| `ListTrainedModels` | `GET /memberships/{membershipIdentifier}/trained-models` | `readonly`, `paginated` | `membershipIdentifier` | - | `ListTrainedModelsResponse` | `AccessDeniedException`, `ThrottlingException`, `ValidationException` | Returns a list of trained models. |
-| `ListTrainingDatasets` | `GET /training-dataset` | `readonly`, `paginated` | - | - | `ListTrainingDatasetsResponse` | `AccessDeniedException`, `ValidationException` | Returns a list of training datasets. |
-| `PutConfiguredAudienceModelPolicy` | `PUT /configured-audience-model/{configuredAudienceModelArn}/policy` | `idempotent` | `configuredAudienceModelArn`, `configuredAudienceModelPolicy` | - | `PutConfiguredAudienceModelPolicyResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Create or update the resource policy for a configured audience model. |
-| `PutMLConfiguration` | `PUT /memberships/{membershipIdentifier}/ml-configurations` | `idempotent` | `defaultOutputLocation`, `membershipIdentifier` | - | `Unit` | `AccessDeniedException`, `ThrottlingException`, `ValidationException` | Assigns information about an ML configuration. |
-| `StartAudienceExportJob` | `POST /audience-export-job` | `idempotent` | `audienceGenerationJobArn`, `audienceSize`, `name` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Export an audience of a specified size after you have generated an audience. |
-| `StartAudienceGenerationJob` | `POST /audience-generation-job` | `idempotent` | `configuredAudienceModelArn`, `name`, `seedAudience` | - | `StartAudienceGenerationJobResponse` | `AccessDeniedException`, `ConflictException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Information necessary to start the audience generation job. |
-| `StartTrainedModelExportJob` | `POST /memberships/{membershipIdentifier}/trained-models/{trainedModelArn}/export-jobs` | `idempotent` | `membershipIdentifier`, `name`, `outputConfiguration`, `trainedModelArn` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Provides the information necessary to start a trained model export job. |
-| `StartTrainedModelInferenceJob` | `POST /memberships/{membershipIdentifier}/trained-model-inference-jobs` | `idempotent` | `dataSource`, `membershipIdentifier`, `name`, `outputConfiguration`, `resourceConfig`, `trainedModelArn` | - | `StartTrainedModelInferenceJobResponse` | `AccessDeniedException`, `ConflictException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Defines the information necessary to begin a trained model inference job. |
 | `TagResource` | `POST /tags/{resourceArn}` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Adds metadata tags to a specified resource. |
 | `UntagResource` | `DELETE /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Removes metadata tags from a specified resource. |
-| `UpdateConfiguredAudienceModel` | `PATCH /configured-audience-model/{configuredAudienceModelArn}` | `idempotent` | `configuredAudienceModelArn` | - | `UpdateConfiguredAudienceModelResponse` | `AccessDeniedException`, `ConflictException`, `ResourceNotFoundException`, `ValidationException` | Provides the information necessary to update a configured audience model. Updates that impact audience generation jobs take effect when a new job starts, but do not impact currently running jobs. |
 
 ## HTTP Bindings
 
@@ -201,30 +108,56 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | You do not have sufficient access to perform this action. |
-| `ValidationException` | `structure` | `message` | The request parameters for this request are incorrect. |
-| `ResourceNotFoundException` | `structure` | `message` | The resource you are requesting does not exist. |
-| `ThrottlingException` | `structure` | `message` | The request was denied due to request throttling. |
-| `ConflictException` | `structure` | `message` | You can't complete this action because another resource depends on this resource. |
-| `ServiceQuotaExceededException` | `structure` | `message`, `quotaName`, `quotaValue` | You have exceeded your service quota. |
-| `CancelTrainedModelRequest` | `structure` | `membershipIdentifier`, `trainedModelArn`, `versionIdentifier` | - |
-| `CancelTrainedModelInferenceJobRequest` | `structure` | `membershipIdentifier`, `trainedModelInferenceJobArn` | - |
-| `CreateAudienceModelRequest` | `structure` | `description`, `kmsKeyArn`, `name`, `tags`, `trainingDataEndTime`, `trainingDataStartTime`, `trainingDatasetArn` | - |
-| `CreateAudienceModelResponse` | `structure` | `audienceModelArn` | - |
-| `CreateConfiguredAudienceModelRequest` | `structure` | `audienceModelArn`, `audienceSizeConfig`, `childResourceTagOnCreatePolicy`, `description`, `minMatchingSeedSize`, `name`, `outputConfig`, `sharedAudienceMetrics`, `tags` | - |
-| `CreateConfiguredAudienceModelResponse` | `structure` | `configuredAudienceModelArn` | - |
-| `CreateConfiguredModelAlgorithmRequest` | `structure` | `description`, `inferenceContainerConfig`, `kmsKeyArn`, `name`, `roleArn`, `tags`, `trainingContainerConfig` | - |
-| `CreateConfiguredModelAlgorithmResponse` | `structure` | `configuredModelAlgorithmArn` | - |
-| `CreateConfiguredModelAlgorithmAssociationRequest` | `structure` | `configuredModelAlgorithmArn`, `description`, `membershipIdentifier`, `name`, `privacyConfiguration`, `tags` | - |
-| `CreateConfiguredModelAlgorithmAssociationResponse` | `structure` | `configuredModelAlgorithmAssociationArn` | - |
-| `CreateMLInputChannelRequest` | `structure` | `configuredModelAlgorithmAssociations`, `description`, `inputChannel`, `kmsKeyArn`, `membershipIdentifier`, `name`, `retentionInDays`, `tags` | - |
-| `CreateMLInputChannelResponse` | `structure` | `mlInputChannelArn` | - |
-| `CreateTrainedModelRequest` | `structure` | `configuredModelAlgorithmAssociationArn`, `dataChannels`, `description`, `environment`, `hyperparameters`, `incrementalTrainingDataChannels`, `kmsKeyArn`, `membershipIdentifier`, `name`, `resourceConfig`, `stoppingCondition`, `tags`, ... (+1) | - |
-| `CreateTrainedModelResponse` | `structure` | `trainedModelArn`, `versionIdentifier` | - |
-| `InternalServiceException` | `structure` | `message` | An internal service error occurred. |
-| `CreateTrainingDatasetRequest` | `structure` | `description`, `name`, `roleArn`, `tags`, `trainingData` | - |
-| `CreateTrainingDatasetResponse` | `structure` | `trainingDatasetArn` | - |
-
+| `AccessDeniedException` | `structure` | message | You do not have sufficient access to perform this action. |
+| `ConflictException` | `structure` | message | You can't complete this action because another resource depends on this resource. |
+| `InternalServiceException` | `structure` | message | An internal service error occurred. Retry your request. If the problem persists, contact AWS Support. |
+| `ResourceNotFoundException` | `structure` | message | The resource you are requesting does not exist. |
+| `ServiceQuotaExceededException` | `structure` | message, quotaName, quotaValue | You have exceeded your service quota. |
+| `ThrottlingException` | `structure` | message | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | message | The request parameters for this request are incorrect. |
+| `ListCollaborationConfiguredModelAlgorithmAssociationsRequest` | `structure` | nextToken, maxResults, collaborationIdentifier | - |
+| `ListCollaborationConfiguredModelAlgorithmAssociationsResponse` | `structure` | nextToken, collaborationConfiguredModelAlgorithmAssociations | - |
+| `ListCollaborationMLInputChannelsRequest` | `structure` | nextToken, maxResults, collaborationIdentifier | - |
+| `ListCollaborationMLInputChannelsResponse` | `structure` | nextToken, collaborationMLInputChannelsList | - |
+| `ListCollaborationTrainedModelExportJobsRequest` | `structure` | nextToken, maxResults, collaborationIdentifier, trainedModelArn, trainedModelVersionIdentifier | - |
+| `ListCollaborationTrainedModelExportJobsResponse` | `structure` | nextToken, collaborationTrainedModelExportJobs | - |
+| `ListCollaborationTrainedModelInferenceJobsRequest` | `structure` | nextToken, maxResults, collaborationIdentifier, trainedModelArn, trainedModelVersionIdentifier | - |
+| `ListCollaborationTrainedModelInferenceJobsResponse` | `structure` | nextToken, collaborationTrainedModelInferenceJobs | - |
+| `ListCollaborationTrainedModelsRequest` | `structure` | nextToken, maxResults, collaborationIdentifier | - |
+| `ListCollaborationTrainedModelsResponse` | `structure` | nextToken, collaborationTrainedModels | - |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `TagResourceRequest` | `structure` | resourceArn, tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | resourceArn, tagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `AccessBudgetType` | `enum` | CALENDAR_DAY, CALENDAR_MONTH, CALENDAR_WEEK, LIFETIME | - |
+| `AudienceExportJobStatus` | `enum` | CREATE_PENDING, CREATE_IN_PROGRESS, CREATE_FAILED, ACTIVE | - |
+| `AudienceGenerationJobStatus` | `enum` | CREATE_PENDING, CREATE_IN_PROGRESS, CREATE_FAILED, ACTIVE, DELETE_PENDING, DELETE_IN_PROGRESS, DELETE_FAILED | - |
+| `AudienceModelStatus` | `enum` | CREATE_PENDING, CREATE_IN_PROGRESS, CREATE_FAILED, ACTIVE, DELETE_PENDING, DELETE_IN_PROGRESS, DELETE_FAILED | - |
+| `AudienceSizeType` | `enum` | ABSOLUTE, PERCENTAGE | - |
+| `AutoRefreshMode` | `enum` | ENABLED, DISABLED | - |
+| `ColumnType` | `enum` | USER_ID, ITEM_ID, TIMESTAMP, CATEGORICAL_FEATURE, NUMERICAL_FEATURE | - |
+| `ConfiguredAudienceModelStatus` | `enum` | ACTIVE | - |
+| `DatasetType` | `enum` | INTERACTIONS | - |
+| `EntityType` | `enum` | ALL_PERSONALLY_IDENTIFIABLE_INFORMATION, NUMBERS, CUSTOM | - |
+| `InferenceInstanceType` | `enum` | ML_R7I_48XLARGE, ML_R6I_16XLARGE, ML_M6I_XLARGE, ML_M5_4XLARGE, ML_P2_XLARGE, ML_M4_16XLARGE, ML_R7I_16XLARGE, ML_M7I_XLARGE, ML_M6I_12XLARGE, ML_R7I_8XLARGE, ML_R7I_LARGE, ML_M7I_12XLARGE, ... (+82) | - |
+| `InstanceType` | `enum` | ML_M4_XLARGE, ML_M4_2XLARGE, ML_M4_4XLARGE, ML_M4_10XLARGE, ML_M4_16XLARGE, ML_G4DN_XLARGE, ML_G4DN_2XLARGE, ML_G4DN_4XLARGE, ML_G4DN_8XLARGE, ML_G4DN_12XLARGE, ML_G4DN_16XLARGE, ML_M5_LARGE, ... (+121) | - |
+| `LogType` | `enum` | ALL, ERROR_SUMMARY | - |
+| `LogsStatus` | `enum` | PUBLISH_SUCCEEDED, PUBLISH_FAILED | - |
+| `MLInputChannelStatus` | `enum` | CREATE_PENDING, CREATE_IN_PROGRESS, CREATE_FAILED, ACTIVE, DELETE_PENDING, DELETE_IN_PROGRESS, DELETE_FAILED, INACTIVE | - |
+| `MembershipInferenceAttackVersion` | `enum` | DISTANCE_TO_CLOSEST_RECORD_V1 | - |
+| `MetricsStatus` | `enum` | PUBLISH_SUCCEEDED, PUBLISH_FAILED | - |
+| `NoiseLevelType` | `enum` | HIGH, MEDIUM, LOW, NONE | - |
+| `PolicyExistenceCondition` | `enum` | POLICY_MUST_EXIST, POLICY_MUST_NOT_EXIST | - |
+| `ResultFormat` | `enum` | CSV, PARQUET | File format of the returned data. |
+| `S3DataDistributionType` | `enum` | FULLY_REPLICATED, SHARDED_BY_S3_KEY | - |
+| `SharedAudienceMetrics` | `enum` | ALL, NONE | - |
+| `SyntheticDataColumnType` | `enum` | CATEGORICAL, NUMERICAL | - |
+| `TagOnCreatePolicy` | `enum` | FROM_PARENT_RESOURCE, NONE | - |
+| `TrainedModelArtifactMaxSizeUnitType` | `enum` | GB | - |
+| `TrainedModelExportFileType` | `enum` | MODEL, OUTPUT | - |
+| `TrainedModelExportJobStatus` | `enum` | CREATE_PENDING, CREATE_IN_PROGRESS, CREATE_FAILED, ACTIVE | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

@@ -40,37 +40,37 @@ Amazon Augmented AI (Amazon A2I) adds the benefit of human judgment to any machi
 ### Delete
 
 - Operations: `DeleteHumanLoop`
-- Common required input members in this group: `HumanLoopName`
+- Common required input members in this group: -
 
 ### Describe
 
 - Operations: `DescribeHumanLoop`
-- Common required input members in this group: `HumanLoopName`
+- Common required input members in this group: -
 
 ### List
 
 - Operations: `ListHumanLoops`
 - Traits: `paginated` (1)
-- Common required input members in this group: `FlowDefinitionArn`
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartHumanLoop`
-- Common required input members in this group: `FlowDefinitionArn`, `HumanLoopInput`, `HumanLoopName`
+- Common required input members in this group: -
 
 ### Stop
 
 - Operations: `StopHumanLoop`
-- Common required input members in this group: `HumanLoopName`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `DeleteHumanLoop` | `DELETE /human-loops/{HumanLoopName}` | - | `HumanLoopName` | - | `DeleteHumanLoopResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the specified human loop for a flow definition. If the human loop was deleted, this operation will return a `ResourceNotFoundException`. |
-| `DescribeHumanLoop` | `GET /human-loops/{HumanLoopName}` | - | `HumanLoopName` | - | `DescribeHumanLoopResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about the specified human loop. If the human loop was deleted, this operation will return a `ResourceNotFoundException` error. |
+| `DeleteHumanLoop` | `DELETE /human-loops/{HumanLoopName}` | - | `HumanLoopName` | - | `DeleteHumanLoopResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the specified human loop for a flow definition. If the human loop was deleted, this operation will return a ResourceNotFoundException . |
+| `DescribeHumanLoop` | `GET /human-loops/{HumanLoopName}` | - | `HumanLoopName` | - | `DescribeHumanLoopResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about the specified human loop. If the human loop was deleted, this operation will return a ResourceNotFoundException error. |
 | `ListHumanLoops` | `GET /human-loops` | `paginated` | `FlowDefinitionArn` | - | `ListHumanLoopsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about human loops, given the specified parameters. If a human loop was deleted, it will not be included. |
-| `StartHumanLoop` | `POST /human-loops` | - | `FlowDefinitionArn`, `HumanLoopInput`, `HumanLoopName` | - | `StartHumanLoopResponse` | `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Starts a human loop, provided that at least one activation condition is met. |
+| `StartHumanLoop` | `POST /human-loops` | - | `HumanLoopName`, `FlowDefinitionArn`, `HumanLoopInput` | - | `StartHumanLoopResponse` | `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Starts a human loop, provided that at least one activation condition is met. |
 | `StopHumanLoop` | `POST /human-loops/stop` | - | `HumanLoopName` | - | `StopHumanLoopResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Stops the specified human loop. |
 
 ## HTTP Bindings
@@ -85,23 +85,25 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `Message` | We couldn't process your request because of an issue with the server. |
-| `ThrottlingException` | `structure` | `Message` | You exceeded the maximum number of requests. |
-| `ValidationException` | `structure` | `Message` | The request isn't valid. |
-| `ResourceNotFoundException` | `structure` | `Message` | We couldn't find the requested resource. |
-| `DeleteHumanLoopRequest` | `structure` | `HumanLoopName` | - |
-| `DeleteHumanLoopResponse` | `structure` | - | - |
-| `DescribeHumanLoopRequest` | `structure` | `HumanLoopName` | - |
-| `DescribeHumanLoopResponse` | `structure` | `CreationTime`, `FailureCode`, `FailureReason`, `FlowDefinitionArn`, `HumanLoopArn`, `HumanLoopName`, `HumanLoopOutput`, `HumanLoopStatus` | - |
-| `ListHumanLoopsRequest` | `structure` | `CreationTimeAfter`, `CreationTimeBefore`, `FlowDefinitionArn`, `MaxResults`, `NextToken`, `SortOrder` | - |
-| `ListHumanLoopsResponse` | `structure` | `HumanLoopSummaries`, `NextToken` | - |
-| `StartHumanLoopRequest` | `structure` | `DataAttributes`, `FlowDefinitionArn`, `HumanLoopInput`, `HumanLoopName` | - |
-| `StartHumanLoopResponse` | `structure` | `HumanLoopArn` | - |
-| `ConflictException` | `structure` | `Message` | Your request has the same name as another active human loop but has different input data. |
-| `ServiceQuotaExceededException` | `structure` | `Message` | You exceeded your service quota. |
-| `StopHumanLoopRequest` | `structure` | `HumanLoopName` | - |
-| `StopHumanLoopResponse` | `structure` | - | - |
-
+| `ConflictException` | `structure` | Message | Your request has the same name as another active human loop but has different input data. You cannot start two human loops with the same name and different ... |
+| `InternalServerException` | `structure` | Message | We couldn't process your request because of an issue with the server. Try again later. |
+| `ResourceNotFoundException` | `structure` | Message | We couldn't find the requested resource. Check that your resources exists and were created in the same AWS Region as your request, and try your request again. |
+| `ServiceQuotaExceededException` | `structure` | Message | You exceeded your service quota. Service quotas, also referred to as limits, are the maximum number of service resources or operations for your AWS account. ... |
+| `ThrottlingException` | `structure` | Message | You exceeded the maximum number of requests. |
+| `ValidationException` | `structure` | Message | The request isn't valid. Check the syntax and try again. |
+| `DeleteHumanLoopRequest` | `structure` | HumanLoopName | - |
+| `DeleteHumanLoopResponse` | `structure` | **empty (no members)** | - |
+| `DescribeHumanLoopRequest` | `structure` | HumanLoopName | - |
+| `DescribeHumanLoopResponse` | `structure` | CreationTime, FailureReason, FailureCode, HumanLoopStatus, HumanLoopName, HumanLoopArn, FlowDefinitionArn, HumanLoopOutput | - |
+| `ListHumanLoopsRequest` | `structure` | CreationTimeAfter, CreationTimeBefore, FlowDefinitionArn, SortOrder, NextToken, MaxResults | - |
+| `ListHumanLoopsResponse` | `structure` | HumanLoopSummaries, NextToken | - |
+| `StartHumanLoopRequest` | `structure` | HumanLoopName, FlowDefinitionArn, HumanLoopInput, DataAttributes | - |
+| `StartHumanLoopResponse` | `structure` | HumanLoopArn | - |
+| `StopHumanLoopRequest` | `structure` | HumanLoopName | - |
+| `StopHumanLoopResponse` | `structure` | **empty (no members)** | - |
+| `ContentClassifier` | `enum` | FREE_OF_PERSONALLY_IDENTIFIABLE_INFORMATION, FREE_OF_ADULT_CONTENT | - |
+| `HumanLoopStatus` | `enum` | IN_PROGRESS, FAILED, COMPLETED, STOPPED, STOPPING | - |
+| `SortOrder` | `enum` | ASCENDING, DESCENDING | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

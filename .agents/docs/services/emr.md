@@ -75,149 +75,149 @@ EMR currently records VPC-related settings as EMR metadata.
 
 ### List
 
-- Operations: `ListBootstrapActions`, `ListClusters`, `ListInstanceFleets`, `ListInstanceGroups`, `ListInstances`, `ListNotebookExecutions`, `ListReleaseLabels`, `ListSecurityConfigurations`, `ListSteps`, `ListStudioSessionMappings`, `ListStudios`, `ListSupportedInstanceTypes`
+- Operations: `ListBootstrapActions`, `ListClusters`, `ListInstanceFleets`, `ListInstanceGroups`, `ListInstances`, `ListNotebookExecutions`, `ListReleaseLabels`, `ListSecurityConfigurations`, `ListSteps`, `ListStudios`, `ListStudioSessionMappings`, `ListSupportedInstanceTypes`
 - Traits: `paginated` (12)
-- Common required input members in this group: `ClusterId`, `ReleaseLabel`
+- Common required input members in this group: `ClusterId`
 
 ### Describe
 
 - Operations: `DescribeCluster`, `DescribeJobFlows`, `DescribeNotebookExecution`, `DescribePersistentAppUI`, `DescribeReleaseLabel`, `DescribeSecurityConfiguration`, `DescribeStep`, `DescribeStudio`
-- Common required input members in this group: `ClusterId`, `Name`, `NotebookExecutionId`, `PersistentAppUIId`, `StepId`, `StudioId`
+- Common required input members in this group: `ClusterId`
 
 ### Get
 
 - Operations: `GetAutoTerminationPolicy`, `GetBlockPublicAccessConfiguration`, `GetClusterSessionCredentials`, `GetManagedScalingPolicy`, `GetOnClusterAppUIPresignedURL`, `GetPersistentAppUIPresignedURL`, `GetStudioSessionMapping`
-- Common required input members in this group: `ClusterId`, `IdentityType`, `PersistentAppUIId`, `StudioId`
+- Common required input members in this group: `ClusterId`
 
 ### Add
 
 - Operations: `AddInstanceFleet`, `AddInstanceGroups`, `AddJobFlowSteps`, `AddTags`
-- Common required input members in this group: `ClusterId`, `InstanceFleet`, `InstanceGroups`, `JobFlowId`, `ResourceId`, `Steps`, `Tags`
+- Common required input members in this group: `JobFlowId`
 
 ### Create
 
 - Operations: `CreatePersistentAppUI`, `CreateSecurityConfiguration`, `CreateStudio`, `CreateStudioSessionMapping`
-- Common required input members in this group: `AuthMode`, `DefaultS3Location`, `EngineSecurityGroupId`, `IdentityType`, `Name`, `SecurityConfiguration`, `ServiceRole`, `SessionPolicyArn`, `StudioId`, `SubnetIds`, `TargetResourceArn`, `VpcId`, `WorkspaceSecurityGroupId`
+- Common required input members in this group: `Name`
 
 ### Put
 
 - Operations: `PutAutoScalingPolicy`, `PutAutoTerminationPolicy`, `PutBlockPublicAccessConfiguration`, `PutManagedScalingPolicy`
-- Common required input members in this group: `AutoScalingPolicy`, `BlockPublicAccessConfiguration`, `ClusterId`, `InstanceGroupId`, `ManagedScalingPolicy`
+- Common required input members in this group: `ClusterId`
 
 ### Remove
 
 - Operations: `RemoveAutoScalingPolicy`, `RemoveAutoTerminationPolicy`, `RemoveManagedScalingPolicy`, `RemoveTags`
-- Common required input members in this group: `ClusterId`, `InstanceGroupId`, `ResourceId`, `TagKeys`
+- Common required input members in this group: `ClusterId`
 
 ### Set
 
 - Operations: `SetKeepJobFlowAliveWhenNoSteps`, `SetTerminationProtection`, `SetUnhealthyNodeReplacement`, `SetVisibleToAllUsers`
-- Common required input members in this group: `JobFlowIds`, `KeepJobFlowAliveWhenNoSteps`, `TerminationProtected`, `UnhealthyNodeReplacement`, `VisibleToAllUsers`
+- Common required input members in this group: `JobFlowIds`
 
 ### Delete
 
 - Operations: `DeleteSecurityConfiguration`, `DeleteStudio`, `DeleteStudioSessionMapping`
-- Common required input members in this group: `IdentityType`, `Name`, `StudioId`
+- Common required input members in this group: `StudioId`
 
 ### Modify
 
 - Operations: `ModifyCluster`, `ModifyInstanceFleet`, `ModifyInstanceGroups`
-- Common required input members in this group: `ClusterId`, `InstanceFleet`
+- Common required input members in this group: `ClusterId`
 
 ### Update
 
 - Operations: `UpdateStudio`, `UpdateStudioSessionMapping`
-- Common required input members in this group: `IdentityType`, `SessionPolicyArn`, `StudioId`
+- Common required input members in this group: `StudioId`
 
 ### Cancel
 
 - Operations: `CancelSteps`
-- Common required input members in this group: `ClusterId`, `StepIds`
+- Common required input members in this group: -
 
 ### Run
 
 - Operations: `RunJobFlow`
-- Common required input members in this group: `Instances`, `Name`
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartNotebookExecution`
-- Common required input members in this group: `ExecutionEngine`, `ServiceRole`
+- Common required input members in this group: -
 
 ### Stop
 
 - Operations: `StopNotebookExecution`
-- Common required input members in this group: `NotebookExecutionId`
+- Common required input members in this group: -
 
 ### Terminate
 
 - Operations: `TerminateJobFlows`
-- Common required input members in this group: `JobFlowIds`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AddInstanceFleet` | - | - | `ClusterId`, `InstanceFleet` | - | `AddInstanceFleetOutput` | `InternalServerException`, `InvalidRequestException` | Adds an instance fleet to a running cluster. The instance fleet configuration is available only in Amazon EMR releases 4.8.0 and later, excluding 5.0.x. |
-| `AddInstanceGroups` | - | - | `InstanceGroups`, `JobFlowId` | - | `AddInstanceGroupsOutput` | `InternalServerError` | Adds one or more instance groups to a running cluster. |
-| `AddJobFlowSteps` | - | - | `JobFlowId`, `Steps` | - | `AddJobFlowStepsOutput` | `InternalServerError` | AddJobFlowSteps adds new steps to a running cluster. A maximum of 256 steps are allowed in each job flow. |
-| `AddTags` | - | - | `ResourceId`, `Tags` | - | `AddTagsOutput` | `InternalServerException`, `InvalidRequestException` | Adds tags to an Amazon EMR resource, such as a cluster or an Amazon EMR Studio. Tags make it easier to associate resources in various ways, such as grouping clusters to track your Amazon EMR resource allocation costs. |
-| `CancelSteps` | - | - | `ClusterId`, `StepIds` | - | `CancelStepsOutput` | `InternalServerError`, `InvalidRequestException` | Cancels a pending step or steps in a running cluster. Available only in Amazon EMR versions 4.8.0 and later, excluding version 5.0.0. |
-| `CreatePersistentAppUI` | - | - | `TargetResourceArn` | - | `CreatePersistentAppUIOutput` | `InternalServerException`, `InvalidRequestException` | Creates a persistent application user interface. |
-| `CreateSecurityConfiguration` | - | - | `Name`, `SecurityConfiguration` | - | `CreateSecurityConfigurationOutput` | `InternalServerException`, `InvalidRequestException` | Creates a security configuration, which is stored in the service and can be specified when a cluster is created. |
-| `CreateStudio` | - | - | `AuthMode`, `DefaultS3Location`, `EngineSecurityGroupId`, `Name`, `ServiceRole`, `SubnetIds`, `VpcId`, `WorkspaceSecurityGroupId` | - | `CreateStudioOutput` | `InternalServerException`, `InvalidRequestException` | Creates a new Amazon EMR Studio. |
-| `CreateStudioSessionMapping` | - | - | `IdentityType`, `SessionPolicyArn`, `StudioId` | - | `Unit` | `InternalServerError`, `InvalidRequestException` | Maps a user or group to the Amazon EMR Studio specified by `StudioId`, and applies a session policy to refine Studio permissions for that user or group. Use `CreateStudioSessionMapping` to assign users to a Studio when you use IAM Identity Center... |
-| `DeleteSecurityConfiguration` | - | - | `Name` | - | `DeleteSecurityConfigurationOutput` | `InternalServerException`, `InvalidRequestException` | Deletes a security configuration. |
-| `DeleteStudio` | - | - | `StudioId` | - | `Unit` | `InternalServerException`, `InvalidRequestException` | Removes an Amazon EMR Studio from the Studio metadata store. |
-| `DeleteStudioSessionMapping` | - | - | `IdentityType`, `StudioId` | - | `Unit` | `InternalServerError`, `InvalidRequestException` | Removes a user or group from an Amazon EMR Studio. |
-| `DescribeCluster` | - | - | `ClusterId` | - | `DescribeClusterOutput` | `InternalServerException`, `InvalidRequestException` | Provides cluster-level details including status, hardware and software configuration, VPC settings, and so on. |
-| `DescribeJobFlows` | - | - | - | - | `DescribeJobFlowsOutput` | `InternalServerError` | This API is no longer supported and will eventually be removed. We recommend you use ListClusters, DescribeCluster, ListSteps, ListInstanceGroups and ListBootstrapActions instead. |
-| `DescribeNotebookExecution` | - | - | `NotebookExecutionId` | - | `DescribeNotebookExecutionOutput` | `InternalServerError`, `InvalidRequestException` | Provides details of a notebook execution. |
-| `DescribePersistentAppUI` | - | - | `PersistentAppUIId` | - | `DescribePersistentAppUIOutput` | `InternalServerException`, `InvalidRequestException` | Describes a persistent application user interface. |
-| `DescribeReleaseLabel` | - | - | - | - | `DescribeReleaseLabelOutput` | `InternalServerException`, `InvalidRequestException` | Provides Amazon EMR release label details, such as the releases available the Region where the API request is run, and the available applications for a specific Amazon EMR release label. Can also list Amazon EMR releases that support a specified version of... |
-| `DescribeSecurityConfiguration` | - | - | `Name` | - | `DescribeSecurityConfigurationOutput` | `InternalServerException`, `InvalidRequestException` | Provides the details of a security configuration by returning the configuration JSON. |
-| `DescribeStep` | - | - | `ClusterId`, `StepId` | - | `DescribeStepOutput` | `InternalServerException`, `InvalidRequestException` | Provides more detail about the cluster step. |
-| `DescribeStudio` | - | - | `StudioId` | - | `DescribeStudioOutput` | `InternalServerException`, `InvalidRequestException` | Returns details for the specified Amazon EMR Studio including ID, Name, VPC, Studio access URL, and so on. |
-| `GetAutoTerminationPolicy` | - | - | `ClusterId` | - | `GetAutoTerminationPolicyOutput` | - | Returns the auto-termination policy for an Amazon EMR cluster. |
-| `GetBlockPublicAccessConfiguration` | - | - | - | - | `GetBlockPublicAccessConfigurationOutput` | `InternalServerException`, `InvalidRequestException` | Returns the Amazon EMR block public access configuration for your Amazon Web Services account in the current Region. For more information see Configure Block Public Access for Amazon EMR in the Amazon EMR Management Guide . |
-| `GetClusterSessionCredentials` | - | - | `ClusterId` | - | `GetClusterSessionCredentialsOutput` | `InternalServerError`, `InvalidRequestException` | Provides temporary, HTTP basic credentials that are associated with a given runtime IAM role and used by a cluster with fine-grained access control activated. You can use these credentials to connect to cluster endpoints that support username and password... |
-| `GetManagedScalingPolicy` | - | - | `ClusterId` | - | `GetManagedScalingPolicyOutput` | - | Fetches the attached managed scaling policy for an Amazon EMR cluster. |
-| `GetOnClusterAppUIPresignedURL` | - | - | `ClusterId` | - | `GetOnClusterAppUIPresignedURLOutput` | `InternalServerError`, `InvalidRequestException` | The presigned URL properties for the cluster's application user interface. |
-| `GetPersistentAppUIPresignedURL` | - | - | `PersistentAppUIId` | - | `GetPersistentAppUIPresignedURLOutput` | `InternalServerError`, `InvalidRequestException` | The presigned URL properties for the cluster's application user interface. |
-| `GetStudioSessionMapping` | - | - | `IdentityType`, `StudioId` | - | `GetStudioSessionMappingOutput` | `InternalServerError`, `InvalidRequestException` | Fetches mapping details for the specified Amazon EMR Studio and identity (user or group). |
-| `ListBootstrapActions` | - | `paginated` | `ClusterId` | - | `ListBootstrapActionsOutput` | `InternalServerException`, `InvalidRequestException` | Provides information about the bootstrap actions associated with a cluster. |
-| `ListClusters` | - | `paginated` | - | - | `ListClustersOutput` | `InternalServerException`, `InvalidRequestException` | Provides the status of all clusters visible to this Amazon Web Services account. Allows you to filter the list of clusters based on certain criteria; for example, filtering by cluster creation date and time or by status. |
-| `ListInstanceFleets` | - | `paginated` | `ClusterId` | - | `ListInstanceFleetsOutput` | `InternalServerException`, `InvalidRequestException` | Lists all available details about the instance fleets in a cluster. The instance fleet configuration is available only in Amazon EMR releases 4.8.0 and later, excluding 5.0.x versions. |
-| `ListInstanceGroups` | - | `paginated` | `ClusterId` | - | `ListInstanceGroupsOutput` | `InternalServerException`, `InvalidRequestException` | Provides all available details about the instance groups in a cluster. |
-| `ListInstances` | - | `paginated` | `ClusterId` | - | `ListInstancesOutput` | `InternalServerException`, `InvalidRequestException` | Provides information for all active Amazon EC2 instances and Amazon EC2 instances terminated in the last 30 days, up to a maximum of 2,000. Amazon EC2 instances in any of the following states are considered active: AWAITING_FULFILLMENT, PROVISIONING... |
-| `ListNotebookExecutions` | - | `paginated` | - | - | `ListNotebookExecutionsOutput` | `InternalServerError`, `InvalidRequestException` | Provides summaries of all notebook executions. You can filter the list based on multiple criteria such as status, time range, and editor id. |
-| `ListReleaseLabels` | - | `paginated` | - | - | `ListReleaseLabelsOutput` | `InternalServerException`, `InvalidRequestException` | Retrieves release labels of Amazon EMR services in the Region where the API is called. |
-| `ListSecurityConfigurations` | - | `paginated` | - | - | `ListSecurityConfigurationsOutput` | `InternalServerException`, `InvalidRequestException` | Lists all the security configurations visible to this account, providing their creation dates and times, and their names. This call returns a maximum of 50 clusters per call, but returns a marker to track the paging of the cluster list across multiple... |
-| `ListSteps` | - | `paginated` | `ClusterId` | - | `ListStepsOutput` | `InternalServerException`, `InvalidRequestException` | Provides a list of steps for the cluster in reverse order unless you specify `stepIds` with the request or filter by `StepStates`. You can specify a maximum of 10 `stepIDs`. |
-| `ListStudioSessionMappings` | - | `paginated` | - | - | `ListStudioSessionMappingsOutput` | `InternalServerError`, `InvalidRequestException` | Returns a list of all user or group session mappings for the Amazon EMR Studio specified by `StudioId`. |
-| `ListStudios` | - | `paginated` | - | - | `ListStudiosOutput` | `InternalServerException`, `InvalidRequestException` | Returns a list of all Amazon EMR Studios associated with the Amazon Web Services account. The list includes details such as ID, Studio Access URL, and creation time for each Studio. |
-| `ListSupportedInstanceTypes` | - | `paginated` | `ReleaseLabel` | - | `ListSupportedInstanceTypesOutput` | `InternalServerException`, `InvalidRequestException` | A list of the instance types that Amazon EMR supports. You can filter the list by Amazon Web Services Region and Amazon EMR release. |
-| `ModifyCluster` | - | - | `ClusterId` | - | `ModifyClusterOutput` | `InternalServerError`, `InvalidRequestException` | Modifies the number of steps that can be executed concurrently for the cluster specified using ClusterID. |
-| `ModifyInstanceFleet` | - | - | `ClusterId`, `InstanceFleet` | - | `Unit` | `InternalServerException`, `InvalidRequestException` | Modifies the target On-Demand and target Spot capacities for the instance fleet with the specified InstanceFleetID within the cluster specified using ClusterID. The call either succeeds or fails atomically. |
-| `ModifyInstanceGroups` | - | - | - | - | `Unit` | `InternalServerError` | ModifyInstanceGroups modifies the number of nodes and configuration settings of an instance group. The input parameters include the new target instance count for the group and the instance group ID. |
-| `PutAutoScalingPolicy` | - | - | `AutoScalingPolicy`, `ClusterId`, `InstanceGroupId` | - | `PutAutoScalingPolicyOutput` | - | Creates or updates an automatic scaling policy for a core instance group or task instance group in an Amazon EMR cluster. The automatic scaling policy defines how an instance group dynamically adds and terminates Amazon EC2 instances in response to the value... |
-| `PutAutoTerminationPolicy` | - | - | `ClusterId` | - | `PutAutoTerminationPolicyOutput` | - | Auto-termination is supported in Amazon EMR releases 5.30.0 and 6.1.0 and later. For more information, see Using an auto-termination policy. |
-| `PutBlockPublicAccessConfiguration` | - | - | `BlockPublicAccessConfiguration` | - | `PutBlockPublicAccessConfigurationOutput` | `InternalServerException`, `InvalidRequestException` | Creates or updates an Amazon EMR block public access configuration for your Amazon Web Services account in the current Region. For more information see Configure Block Public Access for Amazon EMR in the Amazon EMR Management Guide . |
-| `PutManagedScalingPolicy` | - | - | `ClusterId`, `ManagedScalingPolicy` | - | `PutManagedScalingPolicyOutput` | - | Creates or updates a managed scaling policy for an Amazon EMR cluster. The managed scaling policy defines the limits for resources, such as Amazon EC2 instances that can be added or terminated from a cluster. |
-| `RemoveAutoScalingPolicy` | - | - | `ClusterId`, `InstanceGroupId` | - | `RemoveAutoScalingPolicyOutput` | - | Removes an automatic scaling policy from a specified instance group within an Amazon EMR cluster. |
-| `RemoveAutoTerminationPolicy` | - | - | `ClusterId` | - | `RemoveAutoTerminationPolicyOutput` | - | Removes an auto-termination policy from an Amazon EMR cluster. |
-| `RemoveManagedScalingPolicy` | - | - | `ClusterId` | - | `RemoveManagedScalingPolicyOutput` | - | Removes a managed scaling policy from a specified Amazon EMR cluster. |
-| `RemoveTags` | - | - | `ResourceId`, `TagKeys` | - | `RemoveTagsOutput` | `InternalServerException`, `InvalidRequestException` | Removes tags from an Amazon EMR resource, such as a cluster or Amazon EMR Studio. Tags make it easier to associate resources in various ways, such as grouping clusters to track your Amazon EMR resource allocation costs. |
-| `RunJobFlow` | - | - | `Instances`, `Name` | - | `RunJobFlowOutput` | `InternalServerError` | RunJobFlow creates and starts running a new cluster (job flow). The cluster runs the steps specified. |
-| `SetKeepJobFlowAliveWhenNoSteps` | - | - | `JobFlowIds`, `KeepJobFlowAliveWhenNoSteps` | - | `Unit` | `InternalServerError` | You can use the `SetKeepJobFlowAliveWhenNoSteps` to configure a cluster (job flow) to terminate after the step execution, i.e., all your steps are executed. If you want a transient cluster that shuts down after the last of the current executing steps are... |
-| `SetTerminationProtection` | - | - | `JobFlowIds`, `TerminationProtected` | - | `Unit` | `InternalServerError` | SetTerminationProtection locks a cluster (job flow) so the Amazon EC2 instances in the cluster cannot be terminated by user intervention, an API call, or in the event of a job-flow error. The cluster still terminates upon successful completion of the job flow. |
-| `SetUnhealthyNodeReplacement` | - | - | `JobFlowIds`, `UnhealthyNodeReplacement` | - | `Unit` | `InternalServerError` | Specify whether to enable unhealthy node replacement, which lets Amazon EMR gracefully replace core nodes on a cluster if any nodes become unhealthy. For example, a node becomes unhealthy if disk usage is above 90%. |
-| `SetVisibleToAllUsers` | - | - | `JobFlowIds`, `VisibleToAllUsers` | - | `Unit` | `InternalServerError` | The SetVisibleToAllUsers parameter is no longer supported. Your cluster may be visible to all users in your account. |
-| `StartNotebookExecution` | - | - | `ExecutionEngine`, `ServiceRole` | - | `StartNotebookExecutionOutput` | `InternalServerException`, `InvalidRequestException` | Starts a notebook execution. |
-| `StopNotebookExecution` | - | - | `NotebookExecutionId` | - | `Unit` | `InternalServerError`, `InvalidRequestException` | Stops a notebook execution. |
-| `TerminateJobFlows` | - | - | `JobFlowIds` | - | `Unit` | `InternalServerError` | TerminateJobFlows shuts a list of clusters (job flows) down. When a job flow is shut down, any step not yet completed is canceled and the Amazon EC2 instances on which the cluster is running are stopped. |
-| `UpdateStudio` | - | - | `StudioId` | - | `Unit` | `InternalServerException`, `InvalidRequestException` | Updates an Amazon EMR Studio configuration, including attributes such as name, description, and subnets. |
-| `UpdateStudioSessionMapping` | - | - | `IdentityType`, `SessionPolicyArn`, `StudioId` | - | `Unit` | `InternalServerError`, `InvalidRequestException` | Updates the session policy attached to the user or group for the specified Amazon EMR Studio. |
+| `AddInstanceFleet` | `-` | - | `ClusterId`, `InstanceFleet` | - | `AddInstanceFleetOutput` | `InternalServerException`, `InvalidRequestException` | Adds an instance fleet to a running cluster. The instance fleet configuration is available only in Amazon EMR releases 4.8.0 and later, excluding 5.0.x. |
+| `AddInstanceGroups` | `-` | - | `InstanceGroups`, `JobFlowId` | - | `AddInstanceGroupsOutput` | `InternalServerError` | Adds one or more instance groups to a running cluster. |
+| `AddJobFlowSteps` | `-` | - | `JobFlowId`, `Steps` | - | `AddJobFlowStepsOutput` | `InternalServerError` | AddJobFlowSteps adds new steps to a running cluster. A maximum of 256 steps are allowed in each job flow. If your cluster is long-running (such as a Hive data warehouse) or complex, you may require more than 256 step ... |
+| `AddTags` | `-` | - | `ResourceId`, `Tags` | - | `AddTagsOutput` | `InternalServerException`, `InvalidRequestException` | Adds tags to an Amazon EMR resource, such as a cluster or an Amazon EMR Studio. Tags make it easier to associate resources in various ways, such as grouping clusters to track your Amazon EMR resource allocation costs ... |
+| `CancelSteps` | `-` | - | `ClusterId`, `StepIds` | - | `CancelStepsOutput` | `InternalServerError`, `InvalidRequestException` | Cancels a pending step or steps in a running cluster. Available only in Amazon EMR versions 4.8.0 and later, excluding version 5.0.0. A maximum of 256 steps are allowed in each CancelSteps request. CancelSteps is ide ... |
+| `CreatePersistentAppUI` | `-` | - | `TargetResourceArn` | - | `CreatePersistentAppUIOutput` | `InternalServerException`, `InvalidRequestException` | Creates a persistent application user interface. |
+| `CreateSecurityConfiguration` | `-` | - | `Name`, `SecurityConfiguration` | - | `CreateSecurityConfigurationOutput` | `InternalServerException`, `InvalidRequestException` | Creates a security configuration, which is stored in the service and can be specified when a cluster is created. |
+| `CreateStudio` | `-` | - | `Name`, `AuthMode`, `VpcId`, `SubnetIds`, `ServiceRole`, `WorkspaceSecurityGroupId`, `EngineSecurityGroupId`, `DefaultS3Location` | - | `CreateStudioOutput` | `InternalServerException`, `InvalidRequestException` | Creates a new Amazon EMR Studio. |
+| `CreateStudioSessionMapping` | `-` | - | `StudioId`, `IdentityType`, `SessionPolicyArn` | - | `Unit` | `InternalServerError`, `InvalidRequestException` | Maps a user or group to the Amazon EMR Studio specified by StudioId , and applies a session policy to refine Studio permissions for that user or group. Use CreateStudioSessionMapping to assign users to a Studio when ... |
+| `DeleteSecurityConfiguration` | `-` | - | `Name` | - | `DeleteSecurityConfigurationOutput` | `InternalServerException`, `InvalidRequestException` | Deletes a security configuration. |
+| `DeleteStudio` | `-` | - | `StudioId` | - | `Unit` | `InternalServerException`, `InvalidRequestException` | Removes an Amazon EMR Studio from the Studio metadata store. |
+| `DeleteStudioSessionMapping` | `-` | - | `StudioId`, `IdentityType` | - | `Unit` | `InternalServerError`, `InvalidRequestException` | Removes a user or group from an Amazon EMR Studio. |
+| `DescribeCluster` | `-` | - | `ClusterId` | - | `DescribeClusterOutput` | `InternalServerException`, `InvalidRequestException` | Provides cluster-level details including status, hardware and software configuration, VPC settings, and so on. |
+| `DescribeJobFlows` | `-` | - | - | - | `DescribeJobFlowsOutput` | `InternalServerError` | This API is no longer supported and will eventually be removed. We recommend you use ListClusters , DescribeCluster , ListSteps , ListInstanceGroups and ListBootstrapActions instead. DescribeJobFlows returns a list o ... |
+| `DescribeNotebookExecution` | `-` | - | `NotebookExecutionId` | - | `DescribeNotebookExecutionOutput` | `InternalServerError`, `InvalidRequestException` | Provides details of a notebook execution. |
+| `DescribePersistentAppUI` | `-` | - | `PersistentAppUIId` | - | `DescribePersistentAppUIOutput` | `InternalServerException`, `InvalidRequestException` | Describes a persistent application user interface. |
+| `DescribeReleaseLabel` | `-` | - | - | - | `DescribeReleaseLabelOutput` | `InternalServerException`, `InvalidRequestException` | Provides Amazon EMR release label details, such as the releases available the Region where the API request is run, and the available applications for a specific Amazon EMR release label. Can also list Amazon EMR rele ... |
+| `DescribeSecurityConfiguration` | `-` | - | `Name` | - | `DescribeSecurityConfigurationOutput` | `InternalServerException`, `InvalidRequestException` | Provides the details of a security configuration by returning the configuration JSON. |
+| `DescribeStep` | `-` | - | `ClusterId`, `StepId` | - | `DescribeStepOutput` | `InternalServerException`, `InvalidRequestException` | Provides more detail about the cluster step. |
+| `DescribeStudio` | `-` | - | `StudioId` | - | `DescribeStudioOutput` | `InternalServerException`, `InvalidRequestException` | Returns details for the specified Amazon EMR Studio including ID, Name, VPC, Studio access URL, and so on. |
+| `GetAutoTerminationPolicy` | `-` | - | `ClusterId` | - | `GetAutoTerminationPolicyOutput` | - | Returns the auto-termination policy for an Amazon EMR cluster. |
+| `GetBlockPublicAccessConfiguration` | `-` | - | - | - | `GetBlockPublicAccessConfigurationOutput` | `InternalServerException`, `InvalidRequestException` | Returns the Amazon EMR block public access configuration for your Amazon Web Services account in the current Region. For more information see Configure Block Public Access for Amazon EMR in the Amazon EMR Management ... |
+| `GetClusterSessionCredentials` | `-` | - | `ClusterId` | - | `GetClusterSessionCredentialsOutput` | `InternalServerError`, `InvalidRequestException` | Provides temporary, HTTP basic credentials that are associated with a given runtime IAM role and used by a cluster with fine-grained access control activated. You can use these credentials to connect to cluster endpo ... |
+| `GetManagedScalingPolicy` | `-` | - | `ClusterId` | - | `GetManagedScalingPolicyOutput` | - | Fetches the attached managed scaling policy for an Amazon EMR cluster. |
+| `GetOnClusterAppUIPresignedURL` | `-` | - | `ClusterId` | - | `GetOnClusterAppUIPresignedURLOutput` | `InternalServerError`, `InvalidRequestException` | The presigned URL properties for the cluster's application user interface. |
+| `GetPersistentAppUIPresignedURL` | `-` | - | `PersistentAppUIId` | - | `GetPersistentAppUIPresignedURLOutput` | `InternalServerError`, `InvalidRequestException` | The presigned URL properties for the cluster's application user interface. |
+| `GetStudioSessionMapping` | `-` | - | `StudioId`, `IdentityType` | - | `GetStudioSessionMappingOutput` | `InternalServerError`, `InvalidRequestException` | Fetches mapping details for the specified Amazon EMR Studio and identity (user or group). |
+| `ListBootstrapActions` | `-` | `paginated` | `ClusterId` | - | `ListBootstrapActionsOutput` | `InternalServerException`, `InvalidRequestException` | Provides information about the bootstrap actions associated with a cluster. |
+| `ListClusters` | `-` | `paginated` | - | - | `ListClustersOutput` | `InternalServerException`, `InvalidRequestException` | Provides the status of all clusters visible to this Amazon Web Services account. Allows you to filter the list of clusters based on certain criteria; for example, filtering by cluster creation date and time or by sta ... |
+| `ListInstanceFleets` | `-` | `paginated` | `ClusterId` | - | `ListInstanceFleetsOutput` | `InternalServerException`, `InvalidRequestException` | Lists all available details about the instance fleets in a cluster. The instance fleet configuration is available only in Amazon EMR releases 4.8.0 and later, excluding 5.0.x versions. |
+| `ListInstanceGroups` | `-` | `paginated` | `ClusterId` | - | `ListInstanceGroupsOutput` | `InternalServerException`, `InvalidRequestException` | Provides all available details about the instance groups in a cluster. |
+| `ListInstances` | `-` | `paginated` | `ClusterId` | - | `ListInstancesOutput` | `InternalServerException`, `InvalidRequestException` | Provides information for all active Amazon EC2 instances and Amazon EC2 instances terminated in the last 30 days, up to a maximum of 2,000. Amazon EC2 instances in any of the following states are considered active: A ... |
+| `ListNotebookExecutions` | `-` | `paginated` | - | - | `ListNotebookExecutionsOutput` | `InternalServerError`, `InvalidRequestException` | Provides summaries of all notebook executions. You can filter the list based on multiple criteria such as status, time range, and editor id. Returns a maximum of 50 notebook executions and a marker to track the pagin ... |
+| `ListReleaseLabels` | `-` | `paginated` | - | - | `ListReleaseLabelsOutput` | `InternalServerException`, `InvalidRequestException` | Retrieves release labels of Amazon EMR services in the Region where the API is called. |
+| `ListSecurityConfigurations` | `-` | `paginated` | - | - | `ListSecurityConfigurationsOutput` | `InternalServerException`, `InvalidRequestException` | Lists all the security configurations visible to this account, providing their creation dates and times, and their names. This call returns a maximum of 50 clusters per call, but returns a marker to track the paging ... |
+| `ListSteps` | `-` | `paginated` | `ClusterId` | - | `ListStepsOutput` | `InternalServerException`, `InvalidRequestException` | Provides a list of steps for the cluster in reverse order unless you specify stepIds with the request or filter by StepStates . You can specify a maximum of 10 stepIDs . The CLI automatically paginates results to ret ... |
+| `ListStudios` | `-` | `paginated` | - | - | `ListStudiosOutput` | `InternalServerException`, `InvalidRequestException` | Returns a list of all Amazon EMR Studios associated with the Amazon Web Services account. The list includes details such as ID, Studio Access URL, and creation time for each Studio. |
+| `ListStudioSessionMappings` | `-` | `paginated` | - | - | `ListStudioSessionMappingsOutput` | `InternalServerError`, `InvalidRequestException` | Returns a list of all user or group session mappings for the Amazon EMR Studio specified by StudioId . |
+| `ListSupportedInstanceTypes` | `-` | `paginated` | `ReleaseLabel` | - | `ListSupportedInstanceTypesOutput` | `InternalServerException`, `InvalidRequestException` | A list of the instance types that Amazon EMR supports. You can filter the list by Amazon Web Services Region and Amazon EMR release. |
+| `ModifyCluster` | `-` | - | `ClusterId` | - | `ModifyClusterOutput` | `InternalServerError`, `InvalidRequestException` | Modifies the number of steps that can be executed concurrently for the cluster specified using ClusterID. |
+| `ModifyInstanceFleet` | `-` | - | `ClusterId`, `InstanceFleet` | - | `Unit` | `InternalServerException`, `InvalidRequestException` | Modifies the target On-Demand and target Spot capacities for the instance fleet with the specified InstanceFleetID within the cluster specified using ClusterID. The call either succeeds or fails atomically. The insta ... |
+| `ModifyInstanceGroups` | `-` | - | - | - | `Unit` | `InternalServerError` | ModifyInstanceGroups modifies the number of nodes and configuration settings of an instance group. The input parameters include the new target instance count for the group and the instance group ID. The call will eit ... |
+| `PutAutoScalingPolicy` | `-` | - | `ClusterId`, `InstanceGroupId`, `AutoScalingPolicy` | - | `PutAutoScalingPolicyOutput` | - | Creates or updates an automatic scaling policy for a core instance group or task instance group in an Amazon EMR cluster. The automatic scaling policy defines how an instance group dynamically adds and terminates Ama ... |
+| `PutAutoTerminationPolicy` | `-` | - | `ClusterId` | - | `PutAutoTerminationPolicyOutput` | - | Auto-termination is supported in Amazon EMR releases 5.30.0 and 6.1.0 and later. For more information, see Using an auto-termination policy . Creates or updates an auto-termination policy for an Amazon EMR cluster. A ... |
+| `PutBlockPublicAccessConfiguration` | `-` | - | `BlockPublicAccessConfiguration` | - | `PutBlockPublicAccessConfigurationOutput` | `InternalServerException`, `InvalidRequestException` | Creates or updates an Amazon EMR block public access configuration for your Amazon Web Services account in the current Region. For more information see Configure Block Public Access for Amazon EMR in the Amazon EMR M ... |
+| `PutManagedScalingPolicy` | `-` | - | `ClusterId`, `ManagedScalingPolicy` | - | `PutManagedScalingPolicyOutput` | - | Creates or updates a managed scaling policy for an Amazon EMR cluster. The managed scaling policy defines the limits for resources, such as Amazon EC2 instances that can be added or terminated from a cluster. The pol ... |
+| `RemoveAutoScalingPolicy` | `-` | - | `ClusterId`, `InstanceGroupId` | - | `RemoveAutoScalingPolicyOutput` | - | Removes an automatic scaling policy from a specified instance group within an Amazon EMR cluster. |
+| `RemoveAutoTerminationPolicy` | `-` | - | `ClusterId` | - | `RemoveAutoTerminationPolicyOutput` | - | Removes an auto-termination policy from an Amazon EMR cluster. |
+| `RemoveManagedScalingPolicy` | `-` | - | `ClusterId` | - | `RemoveManagedScalingPolicyOutput` | - | Removes a managed scaling policy from a specified Amazon EMR cluster. |
+| `RemoveTags` | `-` | - | `ResourceId`, `TagKeys` | - | `RemoveTagsOutput` | `InternalServerException`, `InvalidRequestException` | Removes tags from an Amazon EMR resource, such as a cluster or Amazon EMR Studio. Tags make it easier to associate resources in various ways, such as grouping clusters to track your Amazon EMR resource allocation cos ... |
+| `RunJobFlow` | `-` | - | `Name`, `Instances` | - | `RunJobFlowOutput` | `InternalServerError` | RunJobFlow creates and starts running a new cluster (job flow). The cluster runs the steps specified. After the steps complete, the cluster stops and the HDFS partition is lost. To prevent loss of data, configure the ... |
+| `SetKeepJobFlowAliveWhenNoSteps` | `-` | - | `JobFlowIds`, `KeepJobFlowAliveWhenNoSteps` | - | `Unit` | `InternalServerError` | You can use the SetKeepJobFlowAliveWhenNoSteps to configure a cluster (job flow) to terminate after the step execution, i.e., all your steps are executed. If you want a transient cluster that shuts down after the las ... |
+| `SetTerminationProtection` | `-` | - | `JobFlowIds`, `TerminationProtected` | - | `Unit` | `InternalServerError` | SetTerminationProtection locks a cluster (job flow) so the Amazon EC2 instances in the cluster cannot be terminated by user intervention, an API call, or in the event of a job-flow error. The cluster still terminates ... |
+| `SetUnhealthyNodeReplacement` | `-` | - | `JobFlowIds`, `UnhealthyNodeReplacement` | - | `Unit` | `InternalServerError` | Specify whether to enable unhealthy node replacement, which lets Amazon EMR gracefully replace core nodes on a cluster if any nodes become unhealthy. For example, a node becomes unhealthy if disk usage is above 90%. ... |
+| `SetVisibleToAllUsers` | `-` | - | `JobFlowIds`, `VisibleToAllUsers` | - | `Unit` | `InternalServerError` | The SetVisibleToAllUsers parameter is no longer supported. Your cluster may be visible to all users in your account. To restrict cluster access using an IAM policy, see Identity and Access Management for Amazon EMR . ... |
+| `StartNotebookExecution` | `-` | - | `ExecutionEngine`, `ServiceRole` | - | `StartNotebookExecutionOutput` | `InternalServerException`, `InvalidRequestException` | Starts a notebook execution. |
+| `StopNotebookExecution` | `-` | - | `NotebookExecutionId` | - | `Unit` | `InternalServerError`, `InvalidRequestException` | Stops a notebook execution. |
+| `TerminateJobFlows` | `-` | - | `JobFlowIds` | - | `Unit` | `InternalServerError` | TerminateJobFlows shuts a list of clusters (job flows) down. When a job flow is shut down, any step not yet completed is canceled and the Amazon EC2 instances on which the cluster is running are stopped. Any log file ... |
+| `UpdateStudio` | `-` | - | `StudioId` | - | `Unit` | `InternalServerException`, `InvalidRequestException` | Updates an Amazon EMR Studio configuration, including attributes such as name, description, and subnets. |
+| `UpdateStudioSessionMapping` | `-` | - | `StudioId`, `IdentityType`, `SessionPolicyArn` | - | `Unit` | `InternalServerError`, `InvalidRequestException` | Updates the session policy attached to the user or group for the specified Amazon EMR Studio. |
 
 ## HTTP Bindings
 
@@ -229,30 +229,56 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InvalidRequestException` | `structure` | `ErrorCode`, `Message` | This exception occurs when there is something wrong with user input. |
-| `InternalServerException` | `structure` | `Message` | This exception occurs when there is an internal failure in the Amazon EMR service. |
-| `InternalServerError` | `structure` | - | Indicates that an error occurred while processing the request and that the request was not completed. |
-| `AddInstanceFleetInput` | `structure` | `ClusterId`, `InstanceFleet` | - |
-| `AddInstanceFleetOutput` | `structure` | `ClusterArn`, `ClusterId`, `InstanceFleetId` | - |
-| `AddInstanceGroupsInput` | `structure` | `InstanceGroups`, `JobFlowId` | Input to an AddInstanceGroups call. |
-| `AddInstanceGroupsOutput` | `structure` | `ClusterArn`, `InstanceGroupIds`, `JobFlowId` | Output from an AddInstanceGroups call. |
-| `AddJobFlowStepsInput` | `structure` | `ExecutionRoleArn`, `JobFlowId`, `Steps` | The input argument to the AddJobFlowSteps operation. |
-| `AddJobFlowStepsOutput` | `structure` | `StepIds` | The output for the AddJobFlowSteps operation. |
-| `AddTagsInput` | `structure` | `ResourceId`, `Tags` | This input identifies an Amazon EMR resource and a list of tags to attach. |
-| `AddTagsOutput` | `structure` | - | This output indicates the result of adding tags to a resource. |
-| `CancelStepsInput` | `structure` | `ClusterId`, `StepCancellationOption`, `StepIds` | The input argument to the CancelSteps operation. |
-| `CancelStepsOutput` | `structure` | `CancelStepsInfoList` | The output for the CancelSteps operation. |
-| `CreatePersistentAppUIInput` | `structure` | `EMRContainersConfig`, `ProfilerType`, `Tags`, `TargetResourceArn`, `XReferer` | - |
-| `CreatePersistentAppUIOutput` | `structure` | `PersistentAppUIId`, `RuntimeRoleEnabledCluster` | - |
-| `CreateSecurityConfigurationInput` | `structure` | `Name`, `SecurityConfiguration` | - |
-| `CreateSecurityConfigurationOutput` | `structure` | `CreationDateTime`, `Name` | - |
-| `CreateStudioInput` | `structure` | `AuthMode`, `DefaultS3Location`, `Description`, `EncryptionKeyArn`, `EngineSecurityGroupId`, `IdcInstanceArn`, `IdcUserAssignment`, `IdpAuthUrl`, `IdpRelayStateParameterName`, `Name`, `ServiceRole`, `SubnetIds`, ... (+5) | - |
-| `CreateStudioOutput` | `structure` | `StudioId`, `Url` | - |
-| `CreateStudioSessionMappingInput` | `structure` | `IdentityId`, `IdentityName`, `IdentityType`, `SessionPolicyArn`, `StudioId` | - |
-| `DeleteSecurityConfigurationInput` | `structure` | `Name` | - |
-| `DeleteSecurityConfigurationOutput` | `structure` | - | - |
-| `DeleteStudioInput` | `structure` | `StudioId` | - |
-
+| `InternalServerError` | `structure` | **empty (no members)** | Indicates that an error occurred while processing the request and that the request was not completed. |
+| `InternalServerException` | `structure` | Message | This exception occurs when there is an internal failure in the Amazon EMR service. |
+| `InvalidRequestException` | `structure` | ErrorCode, Message | This exception occurs when there is something wrong with user input. |
+| `AddInstanceFleetInput` | `structure` | ClusterId, InstanceFleet | - |
+| `AddInstanceFleetOutput` | `structure` | ClusterId, InstanceFleetId, ClusterArn | - |
+| `AddInstanceGroupsInput` | `structure` | InstanceGroups, JobFlowId | Input to an AddInstanceGroups call. |
+| `AddInstanceGroupsOutput` | `structure` | JobFlowId, InstanceGroupIds, ClusterArn | Output from an AddInstanceGroups call. |
+| `AddJobFlowStepsInput` | `structure` | JobFlowId, Steps, ExecutionRoleArn | The input argument to the AddJobFlowSteps operation. |
+| `AddJobFlowStepsOutput` | `structure` | StepIds | The output for the AddJobFlowSteps operation. |
+| `AddTagsInput` | `structure` | ResourceId, Tags | This input identifies an Amazon EMR resource and a list of tags to attach. |
+| `AddTagsOutput` | `structure` | **empty (no members)** | This output indicates the result of adding tags to a resource. |
+| `CancelStepsInput` | `structure` | ClusterId, StepIds, StepCancellationOption | The input argument to the CancelSteps operation. |
+| `CancelStepsOutput` | `structure` | CancelStepsInfoList | The output for the CancelSteps operation. |
+| `CreatePersistentAppUIInput` | `structure` | TargetResourceArn, EMRContainersConfig, Tags, XReferer, ProfilerType | - |
+| `CreatePersistentAppUIOutput` | `structure` | PersistentAppUIId, RuntimeRoleEnabledCluster | - |
+| `CreateSecurityConfigurationInput` | `structure` | Name, SecurityConfiguration | - |
+| `CreateSecurityConfigurationOutput` | `structure` | Name, CreationDateTime | - |
+| `CreateStudioInput` | `structure` | Name, Description, AuthMode, VpcId, SubnetIds, ServiceRole, UserRole, WorkspaceSecurityGroupId, EngineSecurityGroupId, DefaultS3Location, IdpAuthUrl, IdpRelayStateParameterName, ... (+5) | - |
+| `CreateStudioOutput` | `structure` | StudioId, Url | - |
+| `CreateStudioSessionMappingInput` | `structure` | StudioId, IdentityId, IdentityName, IdentityType, SessionPolicyArn | - |
+| `DeleteSecurityConfigurationInput` | `structure` | Name | - |
+| `DeleteSecurityConfigurationOutput` | `structure` | **empty (no members)** | - |
+| `DeleteStudioInput` | `structure` | StudioId | - |
+| `DeleteStudioSessionMappingInput` | `structure` | StudioId, IdentityId, IdentityName, IdentityType | - |
+| `DescribeClusterInput` | `structure` | ClusterId | This input determines which cluster to describe. |
+| `DescribeClusterOutput` | `structure` | Cluster | This output contains the description of the cluster. |
+| `DescribeJobFlowsInput` | `structure` | CreatedAfter, CreatedBefore, JobFlowIds, JobFlowStates | The input for the DescribeJobFlows operation. |
+| `DescribeJobFlowsOutput` | `structure` | JobFlows | The output for the DescribeJobFlows operation. |
+| `DescribeNotebookExecutionInput` | `structure` | NotebookExecutionId | - |
+| `DescribeNotebookExecutionOutput` | `structure` | NotebookExecution | - |
+| `DescribePersistentAppUIInput` | `structure` | PersistentAppUIId | - |
+| `DescribePersistentAppUIOutput` | `structure` | PersistentAppUI | - |
+| `DescribeReleaseLabelInput` | `structure` | ReleaseLabel, NextToken, MaxResults | - |
+| `DescribeReleaseLabelOutput` | `structure` | ReleaseLabel, Applications, NextToken, AvailableOSReleases | - |
+| `DescribeSecurityConfigurationInput` | `structure` | Name | - |
+| `DescribeSecurityConfigurationOutput` | `structure` | Name, SecurityConfiguration, CreationDateTime | - |
+| `DescribeStepInput` | `structure` | ClusterId, StepId | This input determines which step to describe. |
+| `DescribeStepOutput` | `structure` | Step | This output contains the description of the cluster step. |
+| `DescribeStudioInput` | `structure` | StudioId | - |
+| `DescribeStudioOutput` | `structure` | Studio | - |
+| `ActionOnFailure` | `enum` | TERMINATE_JOB_FLOW, TERMINATE_CLUSTER, CANCEL_AND_WAIT, CONTINUE | - |
+| `AdjustmentType` | `enum` | CHANGE_IN_CAPACITY, PERCENT_CHANGE_IN_CAPACITY, EXACT_CAPACITY | - |
+| `AuthMode` | `enum` | SSO, IAM | - |
+| `AutoScalingPolicyState` | `enum` | PENDING, ATTACHING, ATTACHED, DETACHING, DETACHED, FAILED | - |
+| `AutoScalingPolicyStateChangeReasonCode` | `enum` | USER_REQUEST, PROVISION_FAILURE, CLEANUP_FAILURE | - |
+| `CancelStepsRequestStatus` | `enum` | SUBMITTED, FAILED | - |
+| `ClusterState` | `enum` | STARTING, BOOTSTRAPPING, RUNNING, WAITING, TERMINATING, TERMINATED, TERMINATED_WITH_ERRORS | - |
+| `ClusterStateChangeReasonCode` | `enum` | INTERNAL_ERROR, VALIDATION_ERROR, INSTANCE_FAILURE, INSTANCE_FLEET_TIMEOUT, BOOTSTRAP_FAILURE, USER_REQUEST, STEP_FAILURE, ALL_STEPS_COMPLETED | - |
+| `ComparisonOperator` | `enum` | GREATER_THAN_OR_EQUAL, GREATER_THAN, LESS_THAN, LESS_THAN_OR_EQUAL | - |
+| `ComputeLimitsUnitType` | `enum` | InstanceFleetUnits, Instances, VCPU | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

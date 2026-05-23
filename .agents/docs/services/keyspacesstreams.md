@@ -39,21 +39,22 @@ Amazon Keyspaces (for Apache Cassandra) change data capture (CDC) records change
 
 - Operations: `GetRecords`, `GetShardIterator`, `GetStream`
 - Traits: `paginated` (1)
-- Common required input members in this group: `shardId`, `shardIterator`, `shardIteratorType`, `streamArn`
+- Common required input members in this group: `streamArn`
 
 ### List
 
 - Operations: `ListStreams`
 - Traits: `paginated` (1)
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `GetRecords` | - | - | `shardIterator` | - | `GetRecordsOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves data records from a specified shard in an Amazon Keyspaces data stream. This operation returns a collection of data records from the shard, including the primary key columns and information about modifications made to the captured table data. |
-| `GetShardIterator` | - | - | `shardId`, `shardIteratorType`, `streamArn` | - | `GetShardIteratorOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a shard iterator that serves as a bookmark for reading data from a specific position in an Amazon Keyspaces data stream's shard. The shard iterator specifies the shard position from which to start reading data records sequentially. |
-| `GetStream` | - | `paginated` | `streamArn` | - | `GetStreamOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns detailed information about a specific data capture stream for an Amazon Keyspaces table. The information includes the stream's Amazon Resource Name (ARN), creation time, current status, retention period, shard composition, and associated table details. |
-| `ListStreams` | - | `paginated` | - | - | `ListStreamsOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of all data capture streams associated with your Amazon Keyspaces account or for a specific keyspace or table. The response includes information such as stream ARNs, table associations, creation timestamps, and current status. |
+| `GetRecords` | `-` | - | `shardIterator` | - | `GetRecordsOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves data records from a specified shard in an Amazon Keyspaces data stream. This operation returns a collection of data records from the shard, including the primary key columns and information about modificati ... |
+| `GetShardIterator` | `-` | - | `streamArn`, `shardId`, `shardIteratorType` | - | `GetShardIteratorOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a shard iterator that serves as a bookmark for reading data from a specific position in an Amazon Keyspaces data stream's shard. The shard iterator specifies the shard position from which to start reading dat ... |
+| `GetStream` | `-` | `paginated` | `streamArn` | - | `GetStreamOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns detailed information about a specific data capture stream for an Amazon Keyspaces table. The information includes the stream's Amazon Resource Name (ARN), creation time, current status, retention period, shar ... |
+| `ListStreams` | `-` | `paginated` | - | - | `ListStreamsOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of all data capture streams associated with your Amazon Keyspaces account or for a specific keyspace or table. The response includes information such as stream ARNs, table associations, creation timest ... |
 
 ## HTTP Bindings
 
@@ -65,20 +66,25 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | You don't have sufficient access permissions to perform this operation. |
-| `InternalServerException` | `structure` | `message` | The Amazon Keyspaces service encountered an unexpected error while processing the request. |
-| `ResourceNotFoundException` | `structure` | `message` | The requested resource doesn't exist or could not be found. |
-| `ThrottlingException` | `structure` | `message` | The request rate is too high and exceeds the service's throughput limits. |
-| `ValidationException` | `structure` | `errorCode`, `message` | The request validation failed because one or more input parameters failed validation. |
-| `GetRecordsInput` | `structure` | `maxResults`, `shardIterator` | - |
-| `GetRecordsOutput` | `structure` | `changeRecords`, `nextShardIterator` | - |
-| `GetShardIteratorInput` | `structure` | `sequenceNumber`, `shardId`, `shardIteratorType`, `streamArn` | - |
-| `GetShardIteratorOutput` | `structure` | `shardIterator` | - |
-| `GetStreamInput` | `structure` | `maxResults`, `nextToken`, `shardFilter`, `streamArn` | - |
-| `GetStreamOutput` | `structure` | `creationRequestDateTime`, `keyspaceName`, `nextToken`, `shards`, `streamArn`, `streamLabel`, `streamStatus`, `streamViewType`, `tableName` | - |
-| `ListStreamsInput` | `structure` | `keyspaceName`, `maxResults`, `nextToken`, `tableName` | - |
-| `ListStreamsOutput` | `structure` | `nextToken`, `streams` | - |
-
+| `AccessDeniedException` | `structure` | message | You don't have sufficient access permissions to perform this operation. This exception occurs when your IAM user or role lacks the required permissions to a ... |
+| `InternalServerException` | `structure` | message | The Amazon Keyspaces service encountered an unexpected error while processing the request. This internal server error is not related to your request paramet ... |
+| `ResourceNotFoundException` | `structure` | message | The requested resource doesn't exist or could not be found. This exception occurs when you attempt to access a keyspace, table, stream, or other Amazon Keys ... |
+| `ThrottlingException` | `structure` | message | The request rate is too high and exceeds the service's throughput limits. This exception occurs when you send too many requests in a short period of time. I ... |
+| `ValidationException` | `structure` | message, errorCode | The request validation failed because one or more input parameters failed validation. This exception occurs when there are syntax errors in the request, fie ... |
+| `GetRecordsInput` | `structure` | shardIterator, maxResults | - |
+| `GetRecordsOutput` | `structure` | changeRecords, nextShardIterator | - |
+| `GetShardIteratorInput` | `structure` | streamArn, shardId, shardIteratorType, sequenceNumber | - |
+| `GetShardIteratorOutput` | `structure` | shardIterator | - |
+| `GetStreamInput` | `structure` | streamArn, maxResults, shardFilter, nextToken | - |
+| `GetStreamOutput` | `structure` | streamArn, streamLabel, streamStatus, streamViewType, creationRequestDateTime, keyspaceName, tableName, shards, nextToken | - |
+| `ListStreamsInput` | `structure` | keyspaceName, tableName, maxResults, nextToken | - |
+| `ListStreamsOutput` | `structure` | streams, nextToken | - |
+| `OriginType` | `enum` | USER, REPLICATION, TTL | - |
+| `ShardFilterType` | `enum` | CHILD_SHARDS | - |
+| `ShardIteratorType` | `enum` | TRIM_HORIZON, LATEST, AT_SEQUENCE_NUMBER, AFTER_SEQUENCE_NUMBER | - |
+| `StreamStatus` | `enum` | ENABLING, ENABLED, DISABLING, DISABLED | - |
+| `StreamViewType` | `enum` | NEW_IMAGE, OLD_IMAGE, NEW_AND_OLD_IMAGES, KEYS_ONLY | - |
+| `ValidationExceptionType` | `enum` | InvalidFormat, TrimmedDataAccess, ExpiredIterator, ExpiredNextToken | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

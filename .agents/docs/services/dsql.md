@@ -74,69 +74,31 @@ DSQL currently exposes a VPC endpoint service-name API shape but does not implem
 
 ## Operation Groups
 
-### Get
-
-- Operations: `GetCluster`, `GetClusterPolicy`, `GetVpcEndpointServiceName`
-- Traits: `readonly` (3)
-- Common required input members in this group: `identifier`
-
-### Delete
-
-- Operations: `DeleteCluster`, `DeleteClusterPolicy`
-- Traits: `idempotency-token` (2), `idempotent` (2)
-- Common required input members in this group: `identifier`
-
 ### List
 
-- Operations: `ListClusters`, `ListTagsForResource`
-- Traits: `paginated` (1), `readonly` (2)
-- Common required input members in this group: `resourceArn`
-
-### Create
-
-- Operations: `CreateCluster`
-- Traits: `idempotency-token` (1)
-
-### Put
-
-- Operations: `PutClusterPolicy`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `identifier`, `policy`
+- Operations: `ListTagsForResource`
+- Traits: `readonly` (1)
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
-
-### Update
-
-- Operations: `UpdateCluster`
-- Traits: `idempotency-token` (1)
-- Common required input members in this group: `identifier`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateCluster` | `POST /cluster` | `idempotency-token` | - | `clientToken` | `CreateClusterOutput` | `ConflictException`, `ServiceQuotaExceededException`, `ValidationException` | The CreateCluster API allows you to create both single-Region clusters and multi-Region clusters. With the addition of the multiRegionProperties parameter, you can create a cluster with witness Region support and establish peer relationships with clusters in... |
-| `DeleteCluster` | `DELETE /cluster/{identifier}` | `idempotent`, `idempotency-token` | `identifier` | `clientToken` | `DeleteClusterOutput` | `ConflictException`, `ResourceNotFoundException` | Deletes a cluster in Amazon Aurora DSQL. |
-| `DeleteClusterPolicy` | `DELETE /cluster/{identifier}/policy` | `idempotent`, `idempotency-token` | `identifier` | `clientToken` | `DeleteClusterPolicyOutput` | `ConflictException`, `ResourceNotFoundException`, `ValidationException` | Deletes the resource-based policy attached to a cluster. This removes all access permissions defined by the policy, reverting to default access controls. |
-| `GetCluster` | `GET /cluster/{identifier}` | `readonly` | `identifier` | - | `GetClusterOutput` | `ResourceNotFoundException` | Retrieves information about a cluster. |
-| `GetClusterPolicy` | `GET /cluster/{identifier}/policy` | `readonly` | `identifier` | - | `GetClusterPolicyOutput` | `ResourceNotFoundException`, `ValidationException` | Retrieves the resource-based policy document attached to a cluster. This policy defines the access permissions and conditions for the cluster. |
-| `GetVpcEndpointServiceName` | `GET /clusters/{identifier}/vpc-endpoint-service-name` | `readonly` | `identifier` | - | `GetVpcEndpointServiceNameOutput` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves the VPC endpoint service name. |
-| `ListClusters` | `GET /cluster` | `readonly`, `paginated` | - | - | `ListClustersOutput` | `ResourceNotFoundException` | Retrieves information about a list of clusters. |
 | `ListTagsForResource` | `GET /tags/{resourceArn}` | `readonly` | `resourceArn` | - | `ListTagsForResourceOutput` | `ResourceNotFoundException` | Lists all of the tags for a resource. |
-| `PutClusterPolicy` | `POST /cluster/{identifier}/policy` | `idempotent`, `idempotency-token` | `identifier`, `policy` | `clientToken` | `PutClusterPolicyOutput` | `ConflictException`, `ResourceNotFoundException`, `ValidationException` | Attaches a resource-based policy to a cluster. This policy defines access permissions and conditions for the cluster, allowing you to control which principals can perform actions on the cluster. |
 | `TagResource` | `POST /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tags` | - | `Unit` | `ResourceNotFoundException`, `ServiceQuotaExceededException` | Tags a resource with a map of key and value pairs. |
 | `UntagResource` | `DELETE /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `Unit` | `ResourceNotFoundException` | Removes a tag from a resource. |
-| `UpdateCluster` | `POST /cluster/{identifier}` | `idempotency-token` | `identifier` | `clientToken` | `UpdateClusterOutput` | `ConflictException`, `ResourceNotFoundException`, `ValidationException` | The UpdateCluster API allows you to modify both single-Region and multi-Region cluster configurations. With the multiRegionProperties parameter, you can add or modify witness Region support and manage peer relationships with clusters in other Regions. |
 
 ## HTTP Bindings
 
@@ -150,30 +112,21 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ResourceNotFoundException` | `structure` | `message`, `resourceId`, `resourceType` | The resource could not be found. |
-| `ValidationException` | `structure` | `fieldList`, `message`, `reason` | The input failed to satisfy the constraints specified by an Amazon Web Services service. |
-| `ConflictException` | `structure` | `message`, `resourceId`, `resourceType` | The submitted action has conflicts. |
-| `ServiceQuotaExceededException` | `structure` | `message`, `quotaCode`, `resourceId`, `resourceType`, `serviceCode` | The service limit was exceeded. |
-| `CreateClusterInput` | `structure` | `bypassPolicyLockoutSafetyCheck`, `clientToken`, `deletionProtectionEnabled`, `kmsEncryptionKey`, `multiRegionProperties`, `policy`, `tags` | - |
-| `CreateClusterOutput` | `structure` | `arn`, `creationTime`, `deletionProtectionEnabled`, `encryptionDetails`, `endpoint`, `identifier`, `multiRegionProperties`, `status` | The output of a created cluster. |
-| `DeleteClusterInput` | `structure` | `clientToken`, `identifier` | - |
-| `DeleteClusterOutput` | `structure` | `arn`, `creationTime`, `identifier`, `status` | The output from a deleted cluster. |
-| `DeleteClusterPolicyInput` | `structure` | `clientToken`, `expectedPolicyVersion`, `identifier` | - |
-| `DeleteClusterPolicyOutput` | `structure` | `policyVersion` | - |
-| `GetClusterInput` | `structure` | `identifier` | - |
-| `GetClusterOutput` | `structure` | `arn`, `creationTime`, `deletionProtectionEnabled`, `encryptionDetails`, `endpoint`, `identifier`, `multiRegionProperties`, `status`, `tags` | The output of a cluster. |
-| `GetClusterPolicyInput` | `structure` | `identifier` | - |
-| `GetClusterPolicyOutput` | `structure` | `policy`, `policyVersion` | - |
-| `GetVpcEndpointServiceNameInput` | `structure` | `identifier` | - |
-| `GetVpcEndpointServiceNameOutput` | `structure` | `clusterVpcEndpoint`, `serviceName` | - |
-| `InternalServerException` | `structure` | `message`, `retryAfterSeconds` | The request processing has failed because of an unknown error, exception or failure. |
-| `ThrottlingException` | `structure` | `message`, `quotaCode`, `retryAfterSeconds`, `serviceCode` | The request was denied due to request throttling. |
-| `ListClustersInput` | `structure` | `maxResults`, `nextToken` | - |
-| `ListClustersOutput` | `structure` | `clusters`, `nextToken` | - |
-| `ListTagsForResourceInput` | `structure` | `resourceArn` | - |
-| `ListTagsForResourceOutput` | `structure` | `tags` | - |
-| `PutClusterPolicyInput` | `structure` | `bypassPolicyLockoutSafetyCheck`, `clientToken`, `expectedPolicyVersion`, `identifier`, `policy` | - |
-
+| `AccessDeniedException` | `structure` | message | You do not have sufficient access to perform this action. |
+| `ConflictException` | `structure` | message, resourceId, resourceType | The submitted action has conflicts. |
+| `InternalServerException` | `structure` | message, retryAfterSeconds | The request processing has failed because of an unknown error, exception or failure. |
+| `ResourceNotFoundException` | `structure` | message, resourceId, resourceType | The resource could not be found. |
+| `ServiceQuotaExceededException` | `structure` | message, resourceId, resourceType, serviceCode, quotaCode | The service limit was exceeded. |
+| `ThrottlingException` | `structure` | message, serviceCode, quotaCode, retryAfterSeconds | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | message, reason, fieldList | The input failed to satisfy the constraints specified by an Amazon Web Services service. |
+| `ListTagsForResourceInput` | `structure` | resourceArn | - |
+| `ListTagsForResourceOutput` | `structure` | tags | - |
+| `TagResourceInput` | `structure` | resourceArn, tags | - |
+| `UntagResourceInput` | `structure` | resourceArn, tagKeys | - |
+| `ClusterStatus` | `enum` | CREATING, ACTIVE, IDLE, INACTIVE, UPDATING, DELETING, DELETED, FAILED, PENDING_SETUP, PENDING_DELETE | The current status of a cluster. |
+| `EncryptionStatus` | `enum` | ENABLED, UPDATING, KMS_KEY_INACCESSIBLE, ENABLING | - |
+| `EncryptionType` | `enum` | AWS_OWNED_KMS_KEY, CUSTOMER_MANAGED_KMS_KEY | - |
+| `ValidationExceptionReason` | `enum` | UNKNOWN_OPERATION, CANNOT_PARSE, FIELD_VALIDATION_FAILED, DELETION_PROTECTION_ENABLED, OTHER | The reason for the validation exception. |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

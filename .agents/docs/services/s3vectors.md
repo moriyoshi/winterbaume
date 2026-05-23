@@ -47,76 +47,31 @@ Amazon S3 vector buckets are a bucket type to store and search vectors with sub-
 | `VectorResource` | - | - | `DeleteVectors`, `GetVectors`, `ListVectors`, `PutVectors`, `QueryVectors` | - |
 ## Operation Groups
 
-### Delete
-
-- Operations: `DeleteIndex`, `DeleteVectorBucket`, `DeleteVectorBucketPolicy`, `DeleteVectors`
-- Traits: `idempotent` (2)
-- Common required input members in this group: `keys`
-
-### Get
-
-- Operations: `GetIndex`, `GetVectorBucket`, `GetVectorBucketPolicy`, `GetVectors`
-- Traits: `readonly` (4)
-- Common required input members in this group: `keys`
-
 ### List
 
-- Operations: `ListIndexes`, `ListTagsForResource`, `ListVectorBuckets`, `ListVectors`
-- Traits: `paginated` (3), `readonly` (4)
-- Common required input members in this group: `resourceArn`
-
-### Create
-
-- Operations: `CreateIndex`, `CreateVectorBucket`
-- Common required input members in this group: `dataType`, `dimension`, `distanceMetric`, `indexName`, `vectorBucketName`
-
-### Put
-
-- Operations: `PutVectorBucketPolicy`, `PutVectors`
-- Traits: `idempotent` (2)
-- Common required input members in this group: `policy`, `vectors`
-
-### Query
-
-- Operations: `QueryVectors`
+- Operations: `ListTagsForResource`
 - Traits: `readonly` (1)
-- Common required input members in this group: `queryVector`, `topK`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateIndex` | `POST /CreateIndex` | - | `dataType`, `dimension`, `distanceMetric`, `indexName` | - | `CreateIndexOutput` | `ConflictException`, `NotFoundException`, `ServiceQuotaExceededException`, `ServiceUnavailableException` | Creates a vector index within a vector bucket. To specify the vector bucket, you must use either the vector bucket name or the vector bucket Amazon Resource Name (ARN). |
-| `CreateVectorBucket` | `POST /CreateVectorBucket` | - | `vectorBucketName` | - | `CreateVectorBucketOutput` | `ConflictException`, `ServiceQuotaExceededException`, `ServiceUnavailableException` | Creates a vector bucket in the Amazon Web Services Region that you want your bucket to be in. Permissions You must have the `s3vectors:CreateVectorBucket` permission to use this operation. |
-| `DeleteIndex` | `POST /DeleteIndex` | - | - | - | `DeleteIndexOutput` | `NotFoundException`, `ServiceUnavailableException` | Deletes a vector index. To specify the vector index, you can either use both the vector bucket name and vector index name, or use the vector index Amazon Resource Name (ARN). |
-| `DeleteVectorBucket` | `POST /DeleteVectorBucket` | - | - | - | `DeleteVectorBucketOutput` | `ConflictException`, `NotFoundException`, `ServiceUnavailableException` | Deletes a vector bucket. All vector indexes in the vector bucket must be deleted before the vector bucket can be deleted. |
-| `DeleteVectorBucketPolicy` | `POST /DeleteVectorBucketPolicy` | `idempotent` | - | - | `DeleteVectorBucketPolicyOutput` | `NotFoundException`, `ServiceUnavailableException` | Deletes a vector bucket policy. To specify the bucket, you must use either the vector bucket name or the vector bucket Amazon Resource Name (ARN). |
-| `DeleteVectors` | `POST /DeleteVectors` | `idempotent` | `keys` | - | `DeleteVectorsOutput` | `AccessDeniedException`, `KmsDisabledException`, `KmsInvalidKeyUsageException`, `KmsInvalidStateException`, `KmsNotFoundException`, `NotFoundException`, `ServiceUnavailableException` | Deletes one or more vectors in a vector index. To specify the vector index, you can either use both the vector bucket name and vector index name, or use the vector index Amazon Resource Name (ARN). |
-| `GetIndex` | `POST /GetIndex` | `readonly` | - | - | `GetIndexOutput` | `NotFoundException`, `ServiceUnavailableException` | Returns vector index attributes. To specify the vector index, you can either use both the vector bucket name and the vector index name, or use the vector index Amazon Resource Name (ARN). |
-| `GetVectorBucket` | `POST /GetVectorBucket` | `readonly` | - | - | `GetVectorBucketOutput` | `NotFoundException`, `ServiceUnavailableException` | Returns vector bucket attributes. To specify the bucket, you must use either the vector bucket name or the vector bucket Amazon Resource Name (ARN). |
-| `GetVectorBucketPolicy` | `POST /GetVectorBucketPolicy` | `readonly` | - | - | `GetVectorBucketPolicyOutput` | `NotFoundException`, `ServiceUnavailableException` | Gets details about a vector bucket policy. To specify the bucket, you must use either the vector bucket name or the vector bucket Amazon Resource Name (ARN). |
-| `GetVectors` | `POST /GetVectors` | `readonly` | `keys` | - | `GetVectorsOutput` | `KmsDisabledException`, `KmsInvalidKeyUsageException`, `KmsInvalidStateException`, `KmsNotFoundException`, `NotFoundException`, `ServiceUnavailableException` | Returns vector attributes. To specify the vector index, you can either use both the vector bucket name and the vector index name, or use the vector index Amazon Resource Name (ARN). |
-| `ListIndexes` | `POST /ListIndexes` | `readonly`, `paginated` | - | - | `ListIndexesOutput` | `NotFoundException`, `ServiceUnavailableException` | Returns a list of all the vector indexes within the specified vector bucket. To specify the bucket, you must use either the vector bucket name or the vector bucket Amazon Resource Name (ARN). |
-| `ListTagsForResource` | `GET /tags/{resourceArn}` | `readonly` | `resourceArn` | - | `ListTagsForResourceOutput` | `NotFoundException`, `ServiceUnavailableException` | Lists all of the tags applied to a specified Amazon S3 Vectors resource. Each tag is a label consisting of a key and value pair. |
-| `ListVectorBuckets` | `POST /ListVectorBuckets` | `readonly`, `paginated` | - | - | `ListVectorBucketsOutput` | `ServiceUnavailableException` | Returns a list of all the vector buckets that are owned by the authenticated sender of the request. Permissions You must have the `s3vectors:ListVectorBuckets` permission to use this operation. |
-| `ListVectors` | `POST /ListVectors` | `readonly`, `paginated` | - | - | `ListVectorsOutput` | `AccessDeniedException`, `NotFoundException`, `ServiceUnavailableException` | List vectors in the specified vector index. To specify the vector index, you can either use both the vector bucket name and the vector index name, or use the vector index Amazon Resource Name (ARN). |
-| `PutVectorBucketPolicy` | `POST /PutVectorBucketPolicy` | `idempotent` | `policy` | - | `PutVectorBucketPolicyOutput` | `NotFoundException`, `ServiceUnavailableException` | Creates a bucket policy for a vector bucket. To specify the bucket, you must use either the vector bucket name or the vector bucket Amazon Resource Name (ARN). |
-| `PutVectors` | `POST /PutVectors` | `idempotent` | `vectors` | - | `PutVectorsOutput` | `AccessDeniedException`, `KmsDisabledException`, `KmsInvalidKeyUsageException`, `KmsInvalidStateException`, `KmsNotFoundException`, `NotFoundException`, `ServiceQuotaExceededException`, `ServiceUnavailableException` | Adds one or more vectors to a vector index. To specify the vector index, you can either use both the vector bucket name and the vector index name, or use the vector index Amazon Resource Name (ARN). |
-| `QueryVectors` | `POST /QueryVectors` | `readonly` | `queryVector`, `topK` | - | `QueryVectorsOutput` | `KmsDisabledException`, `KmsInvalidKeyUsageException`, `KmsInvalidStateException`, `KmsNotFoundException`, `NotFoundException`, `ServiceUnavailableException` | Performs an approximate nearest neighbor search query in a vector index using a query vector. By default, it returns the keys of approximate nearest neighbors. |
-| `TagResource` | `POST /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tags` | - | `TagResourceOutput` | `ConflictException`, `NotFoundException`, `ServiceUnavailableException` | Applies one or more user-defined tags to an Amazon S3 Vectors resource or updates existing tags. Each tag is a label consisting of a key and value pair. |
-| `UntagResource` | `DELETE /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceOutput` | `ConflictException`, `NotFoundException`, `ServiceUnavailableException` | Removes the specified user-defined tags from an Amazon S3 Vectors resource. You can pass one or more tag keys. |
+| `ListTagsForResource` | `GET /tags/{resourceArn}` | `readonly` | `resourceArn` | - | `ListTagsForResourceOutput` | `NotFoundException`, `ServiceUnavailableException` | Lists all of the tags applied to a specified Amazon S3 Vectors resource. Each tag is a label consisting of a key and value pair. Tags can help you organize, track costs for, and control access to resources. For a lis ... |
+| `TagResource` | `POST /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tags` | - | `TagResourceOutput` | `ConflictException`, `NotFoundException`, `ServiceUnavailableException` | Applies one or more user-defined tags to an Amazon S3 Vectors resource or updates existing tags. Each tag is a label consisting of a key and value pair. Tags can help you organize, track costs for, and control access ... |
+| `UntagResource` | `DELETE /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceOutput` | `ConflictException`, `NotFoundException`, `ServiceUnavailableException` | Removes the specified user-defined tags from an Amazon S3 Vectors resource. You can pass one or more tag keys. For a list of S3 resources that support tagging, see Managing tags for Amazon S3 resources . Permissions ... |
 
 ## HTTP Bindings
 
@@ -130,31 +85,28 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ServiceUnavailableException` | `structure` | `message` | The service is unavailable. |
-| `NotFoundException` | `structure` | `message` | The request was rejected because the specified resource can't be found. |
-| `ConflictException` | `structure` | `message` | The request failed because a vector bucket name or a vector index name already exists. |
-| `KmsDisabledException` | `structure` | `message` | The specified Amazon Web Services KMS key isn't enabled. |
-| `KmsInvalidKeyUsageException` | `structure` | `message` | The request was rejected for one of the following reasons: The `KeyUsage` value of the KMS key is incompatible with the API operation. |
-| `KmsInvalidStateException` | `structure` | `message` | The key state of the KMS key isn't compatible with the operation. |
-| `KmsNotFoundException` | `structure` | `message` | The KMS key can't be found. |
-| `ServiceQuotaExceededException` | `structure` | `message` | Your request exceeds a service quota. |
-| `AccessDeniedException` | `structure` | `message` | Access denied. |
-| `CreateIndexInput` | `structure` | `dataType`, `dimension`, `distanceMetric`, `encryptionConfiguration`, `indexName`, `metadataConfiguration`, `tags`, `vectorBucketArn`, `vectorBucketName` | - |
-| `CreateIndexOutput` | `structure` | `indexArn` | - |
-| `CreateVectorBucketInput` | `structure` | `encryptionConfiguration`, `tags`, `vectorBucketName` | - |
-| `CreateVectorBucketOutput` | `structure` | `vectorBucketArn` | - |
-| `DeleteIndexInput` | `structure` | `indexArn`, `indexName`, `vectorBucketName` | - |
-| `DeleteIndexOutput` | `structure` | - | - |
-| `DeleteVectorBucketInput` | `structure` | `vectorBucketArn`, `vectorBucketName` | - |
-| `DeleteVectorBucketOutput` | `structure` | - | - |
-| `DeleteVectorBucketPolicyInput` | `structure` | `vectorBucketArn`, `vectorBucketName` | - |
-| `DeleteVectorBucketPolicyOutput` | `structure` | - | - |
-| `DeleteVectorsInput` | `structure` | `indexArn`, `indexName`, `keys`, `vectorBucketName` | - |
-| `DeleteVectorsOutput` | `structure` | - | - |
-| `GetIndexInput` | `structure` | `indexArn`, `indexName`, `vectorBucketName` | - |
-| `GetIndexOutput` | `structure` | `index` | - |
-| `GetVectorBucketInput` | `structure` | `vectorBucketArn`, `vectorBucketName` | - |
-
+| `AccessDeniedException` | `structure` | message | Access denied. |
+| `ConflictException` | `structure` | message | The request failed because a vector bucket name or a vector index name already exists. Vector bucket names must be unique within your Amazon Web Services ac ... |
+| `InternalServerException` | `structure` | message | The request failed due to an internal server error. |
+| `KmsDisabledException` | `structure` | message | The specified Amazon Web Services KMS key isn't enabled. |
+| `KmsInvalidKeyUsageException` | `structure` | message | The request was rejected for one of the following reasons: The KeyUsage value of the KMS key is incompatible with the API operation. The encryption algorith ... |
+| `KmsInvalidStateException` | `structure` | message | The key state of the KMS key isn't compatible with the operation. For more information, see KMSInvalidStateException in the Amazon Web Services Key Manageme ... |
+| `KmsNotFoundException` | `structure` | message | The KMS key can't be found. |
+| `NotFoundException` | `structure` | message | The request was rejected because the specified resource can't be found. |
+| `RequestTimeoutException` | `structure` | message | The request timed out. Retry your request. |
+| `ServiceQuotaExceededException` | `structure` | message | Your request exceeds a service quota. |
+| `ServiceUnavailableException` | `structure` | message | The service is unavailable. Wait briefly and retry your request. If it continues to fail, increase your waiting time between retries. |
+| `TooManyRequestsException` | `structure` | message | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | message, fieldList | The requested action isn't valid. |
+| `ListTagsForResourceInput` | `structure` | resourceArn | - |
+| `ListTagsForResourceOutput` | `structure` | tags | - |
+| `TagResourceInput` | `structure` | resourceArn, tags | - |
+| `TagResourceOutput` | `structure` | **empty (no members)** | - |
+| `UntagResourceInput` | `structure` | resourceArn, tagKeys | - |
+| `UntagResourceOutput` | `structure` | **empty (no members)** | - |
+| `DataType` | `enum` | FLOAT32 | - |
+| `DistanceMetric` | `enum` | EUCLIDEAN, COSINE | - |
+| `SseType` | `enum` | AES256, AWS_KMS | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

@@ -70,61 +70,61 @@ Parity implications:
 ### Delete
 
 - Operations: `DeleteScalingPolicy`, `DeleteScheduledAction`
-- Common required input members in this group: `PolicyName`, `ResourceId`, `ScalableDimension`, `ScheduledActionName`, `ServiceNamespace`
+- Common required input members in this group: `ServiceNamespace`, `ResourceId`, `ScalableDimension`
 
 ### Put
 
 - Operations: `PutScalingPolicy`, `PutScheduledAction`
-- Common required input members in this group: `PolicyName`, `ResourceId`, `ScalableDimension`, `ScheduledActionName`, `ServiceNamespace`
+- Common required input members in this group: `ServiceNamespace`, `ResourceId`, `ScalableDimension`
 
 ### Deregister
 
 - Operations: `DeregisterScalableTarget`
-- Common required input members in this group: `ResourceId`, `ScalableDimension`, `ServiceNamespace`
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetPredictiveScalingForecast`
-- Common required input members in this group: `EndTime`, `PolicyName`, `ResourceId`, `ScalableDimension`, `ServiceNamespace`, `StartTime`
+- Common required input members in this group: -
 
 ### List
 
 - Operations: `ListTagsForResource`
-- Common required input members in this group: `ResourceARN`
+- Common required input members in this group: -
 
 ### Register
 
 - Operations: `RegisterScalableTarget`
-- Common required input members in this group: `ResourceId`, `ScalableDimension`, `ServiceNamespace`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceARN`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceARN`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `DeleteScalingPolicy` | - | - | `PolicyName`, `ResourceId`, `ScalableDimension`, `ServiceNamespace` | - | `DeleteScalingPolicyResponse` | `ConcurrentUpdateException`, `InternalServiceException`, `ObjectNotFoundException`, `ValidationException` | Deletes the specified scaling policy for an Application Auto Scaling scalable target. Deleting a step scaling policy deletes the underlying alarm action, but does not delete the CloudWatch alarm associated with the scaling policy, even if it no longer has an... |
-| `DeleteScheduledAction` | - | - | `ResourceId`, `ScalableDimension`, `ScheduledActionName`, `ServiceNamespace` | - | `DeleteScheduledActionResponse` | `ConcurrentUpdateException`, `InternalServiceException`, `ObjectNotFoundException`, `ValidationException` | Deletes the specified scheduled action for an Application Auto Scaling scalable target. For more information, see Delete a scheduled action in the Application Auto Scaling User Guide . |
-| `DeregisterScalableTarget` | - | - | `ResourceId`, `ScalableDimension`, `ServiceNamespace` | - | `DeregisterScalableTargetResponse` | `ConcurrentUpdateException`, `InternalServiceException`, `ObjectNotFoundException`, `ValidationException` | Deregisters an Application Auto Scaling scalable target when you have finished using it. To see which resources have been registered, use DescribeScalableTargets. |
-| `DescribeScalableTargets` | - | `paginated` | `ServiceNamespace` | - | `DescribeScalableTargetsResponse` | `ConcurrentUpdateException`, `InternalServiceException`, `InvalidNextTokenException`, `ValidationException` | Gets information about the scalable targets in the specified namespace. You can filter the results using `ResourceIds` and `ScalableDimension`. |
-| `DescribeScalingActivities` | - | `paginated` | `ServiceNamespace` | - | `DescribeScalingActivitiesResponse` | `ConcurrentUpdateException`, `InternalServiceException`, `InvalidNextTokenException`, `ValidationException` | Provides descriptive information about the scaling activities in the specified namespace from the previous six weeks. You can filter the results using `ResourceId` and `ScalableDimension`. |
-| `DescribeScalingPolicies` | - | `paginated` | `ServiceNamespace` | - | `DescribeScalingPoliciesResponse` | `ConcurrentUpdateException`, `FailedResourceAccessException`, `InternalServiceException`, `InvalidNextTokenException`, `ValidationException` | Describes the Application Auto Scaling scaling policies for the specified service namespace. You can filter the results using `ResourceId`, `ScalableDimension`, and `PolicyNames`. |
-| `DescribeScheduledActions` | - | `paginated` | `ServiceNamespace` | - | `DescribeScheduledActionsResponse` | `ConcurrentUpdateException`, `InternalServiceException`, `InvalidNextTokenException`, `ValidationException` | Describes the Application Auto Scaling scheduled actions for the specified service namespace. You can filter the results using the `ResourceId`, `ScalableDimension`, and `ScheduledActionNames` parameters. |
-| `GetPredictiveScalingForecast` | - | - | `EndTime`, `PolicyName`, `ResourceId`, `ScalableDimension`, `ServiceNamespace`, `StartTime` | - | `GetPredictiveScalingForecastResponse` | `InternalServiceException`, `ValidationException` | Retrieves the forecast data for a predictive scaling policy. Load forecasts are predictions of the hourly load values using historical load data from CloudWatch and an analysis of historical trends. |
-| `ListTagsForResource` | - | - | `ResourceARN` | - | `ListTagsForResourceResponse` | `ResourceNotFoundException` | Returns all the tags on the specified Application Auto Scaling scalable target. For general information about tags, including the format and syntax, see Tagging your Amazon Web Services resources in the Amazon Web Services General Reference . |
-| `PutScalingPolicy` | - | - | `PolicyName`, `ResourceId`, `ScalableDimension`, `ServiceNamespace` | - | `PutScalingPolicyResponse` | `ConcurrentUpdateException`, `FailedResourceAccessException`, `InternalServiceException`, `LimitExceededException`, `ObjectNotFoundException`, `ValidationException` | Creates or updates a scaling policy for an Application Auto Scaling scalable target. Each scalable target is identified by a service namespace, resource ID, and scalable dimension. |
-| `PutScheduledAction` | - | - | `ResourceId`, `ScalableDimension`, `ScheduledActionName`, `ServiceNamespace` | - | `PutScheduledActionResponse` | `ConcurrentUpdateException`, `InternalServiceException`, `LimitExceededException`, `ObjectNotFoundException`, `ValidationException` | Creates or updates a scheduled action for an Application Auto Scaling scalable target. Each scalable target is identified by a service namespace, resource ID, and scalable dimension. |
-| `RegisterScalableTarget` | - | - | `ResourceId`, `ScalableDimension`, `ServiceNamespace` | - | `RegisterScalableTargetResponse` | `ConcurrentUpdateException`, `InternalServiceException`, `LimitExceededException`, `ValidationException` | Registers or updates a scalable target, which is the resource that you want to scale. Scalable targets are uniquely identified by the combination of resource ID, scalable dimension, and namespace, which represents some capacity dimension of the underlying... |
-| `TagResource` | - | - | `ResourceARN`, `Tags` | - | `TagResourceResponse` | `ResourceNotFoundException`, `TooManyTagsException`, `ValidationException` | Adds or edits tags on an Application Auto Scaling scalable target. Each tag consists of a tag key and a tag value, which are both case-sensitive strings. |
-| `UntagResource` | - | - | `ResourceARN`, `TagKeys` | - | `UntagResourceResponse` | `ResourceNotFoundException`, `ValidationException` | Deletes tags from an Application Auto Scaling scalable target. To delete a tag, specify the tag key and the Application Auto Scaling scalable target. |
+| `DeleteScalingPolicy` | `-` | - | `PolicyName`, `ServiceNamespace`, `ResourceId`, `ScalableDimension` | - | `DeleteScalingPolicyResponse` | `ConcurrentUpdateException`, `InternalServiceException`, `ObjectNotFoundException`, `ValidationException` | Deletes the specified scaling policy for an Application Auto Scaling scalable target. Deleting a step scaling policy deletes the underlying alarm action, but does not delete the CloudWatch alarm associated with the s ... |
+| `DeleteScheduledAction` | `-` | - | `ServiceNamespace`, `ScheduledActionName`, `ResourceId`, `ScalableDimension` | - | `DeleteScheduledActionResponse` | `ConcurrentUpdateException`, `InternalServiceException`, `ObjectNotFoundException`, `ValidationException` | Deletes the specified scheduled action for an Application Auto Scaling scalable target. For more information, see Delete a scheduled action in the Application Auto Scaling User Guide . |
+| `DeregisterScalableTarget` | `-` | - | `ServiceNamespace`, `ResourceId`, `ScalableDimension` | - | `DeregisterScalableTargetResponse` | `ConcurrentUpdateException`, `InternalServiceException`, `ObjectNotFoundException`, `ValidationException` | Deregisters an Application Auto Scaling scalable target when you have finished using it. To see which resources have been registered, use DescribeScalableTargets . Deregistering a scalable target deletes the scaling ... |
+| `DescribeScalableTargets` | `-` | `paginated` | `ServiceNamespace` | - | `DescribeScalableTargetsResponse` | `ConcurrentUpdateException`, `InternalServiceException`, `InvalidNextTokenException`, `ValidationException` | Gets information about the scalable targets in the specified namespace. You can filter the results using ResourceIds and ScalableDimension . |
+| `DescribeScalingActivities` | `-` | `paginated` | `ServiceNamespace` | - | `DescribeScalingActivitiesResponse` | `ConcurrentUpdateException`, `InternalServiceException`, `InvalidNextTokenException`, `ValidationException` | Provides descriptive information about the scaling activities in the specified namespace from the previous six weeks. You can filter the results using ResourceId and ScalableDimension . For information about viewing ... |
+| `DescribeScalingPolicies` | `-` | `paginated` | `ServiceNamespace` | - | `DescribeScalingPoliciesResponse` | `ConcurrentUpdateException`, `FailedResourceAccessException`, `InternalServiceException`, `InvalidNextTokenException`, `ValidationException` | Describes the Application Auto Scaling scaling policies for the specified service namespace. You can filter the results using ResourceId , ScalableDimension , and PolicyNames . For more information, see Target tracki ... |
+| `DescribeScheduledActions` | `-` | `paginated` | `ServiceNamespace` | - | `DescribeScheduledActionsResponse` | `ConcurrentUpdateException`, `InternalServiceException`, `InvalidNextTokenException`, `ValidationException` | Describes the Application Auto Scaling scheduled actions for the specified service namespace. You can filter the results using the ResourceId , ScalableDimension , and ScheduledActionNames parameters. For more inform ... |
+| `GetPredictiveScalingForecast` | `-` | - | `ServiceNamespace`, `ResourceId`, `ScalableDimension`, `PolicyName`, `StartTime`, `EndTime` | - | `GetPredictiveScalingForecastResponse` | `InternalServiceException`, `ValidationException` | Retrieves the forecast data for a predictive scaling policy. Load forecasts are predictions of the hourly load values using historical load data from CloudWatch and an analysis of historical trends. Capacity forecast ... |
+| `ListTagsForResource` | `-` | - | `ResourceARN` | - | `ListTagsForResourceResponse` | `ResourceNotFoundException` | Returns all the tags on the specified Application Auto Scaling scalable target. For general information about tags, including the format and syntax, see Tagging your Amazon Web Services resources in the Amazon Web Se ... |
+| `PutScalingPolicy` | `-` | - | `PolicyName`, `ServiceNamespace`, `ResourceId`, `ScalableDimension` | - | `PutScalingPolicyResponse` | `ConcurrentUpdateException`, `FailedResourceAccessException`, `InternalServiceException`, `LimitExceededException`, `ObjectNotFoundException`, `ValidationException` | Creates or updates a scaling policy for an Application Auto Scaling scalable target. Each scalable target is identified by a service namespace, resource ID, and scalable dimension. A scaling policy applies to the sca ... |
+| `PutScheduledAction` | `-` | - | `ServiceNamespace`, `ScheduledActionName`, `ResourceId`, `ScalableDimension` | - | `PutScheduledActionResponse` | `ConcurrentUpdateException`, `InternalServiceException`, `LimitExceededException`, `ObjectNotFoundException`, `ValidationException` | Creates or updates a scheduled action for an Application Auto Scaling scalable target. Each scalable target is identified by a service namespace, resource ID, and scalable dimension. A scheduled action applies to the ... |
+| `RegisterScalableTarget` | `-` | - | `ServiceNamespace`, `ResourceId`, `ScalableDimension` | - | `RegisterScalableTargetResponse` | `ConcurrentUpdateException`, `InternalServiceException`, `LimitExceededException`, `ValidationException` | Registers or updates a scalable target, which is the resource that you want to scale. Scalable targets are uniquely identified by the combination of resource ID, scalable dimension, and namespace, which represents so ... |
+| `TagResource` | `-` | - | `ResourceARN`, `Tags` | - | `TagResourceResponse` | `ResourceNotFoundException`, `TooManyTagsException`, `ValidationException` | Adds or edits tags on an Application Auto Scaling scalable target. Each tag consists of a tag key and a tag value, which are both case-sensitive strings. To add a tag, specify a new tag key and a tag value. To edit a ... |
+| `UntagResource` | `-` | - | `ResourceARN`, `TagKeys` | - | `UntagResourceResponse` | `ResourceNotFoundException`, `ValidationException` | Deletes tags from an Application Auto Scaling scalable target. To delete a tag, specify the tag key and the Application Auto Scaling scalable target. |
 
 ## HTTP Bindings
 
@@ -136,31 +136,53 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ValidationException` | `structure` | `Message` | An exception was thrown for a validation issue. |
-| `InternalServiceException` | `structure` | `Message` | The service encountered an internal error. |
-| `ConcurrentUpdateException` | `structure` | `Message` | Concurrent updates caused an exception, for example, if you request an update to an Application Auto Scaling resource that already has a pending update. |
-| `ObjectNotFoundException` | `structure` | `Message` | The specified object could not be found. |
-| `InvalidNextTokenException` | `structure` | `Message` | The next token supplied was invalid. |
-| `ResourceNotFoundException` | `structure` | `Message`, `ResourceName` | The specified resource doesn't exist. |
-| `LimitExceededException` | `structure` | `Message` | A per-account resource limit is exceeded. |
-| `FailedResourceAccessException` | `structure` | `Message` | Failed access to resources caused an exception. |
-| `DeleteScalingPolicyRequest` | `structure` | `PolicyName`, `ResourceId`, `ScalableDimension`, `ServiceNamespace` | - |
-| `DeleteScalingPolicyResponse` | `structure` | - | - |
-| `DeleteScheduledActionRequest` | `structure` | `ResourceId`, `ScalableDimension`, `ScheduledActionName`, `ServiceNamespace` | - |
-| `DeleteScheduledActionResponse` | `structure` | - | - |
-| `DeregisterScalableTargetRequest` | `structure` | `ResourceId`, `ScalableDimension`, `ServiceNamespace` | - |
-| `DeregisterScalableTargetResponse` | `structure` | - | - |
-| `DescribeScalableTargetsRequest` | `structure` | `MaxResults`, `NextToken`, `ResourceIds`, `ScalableDimension`, `ServiceNamespace` | - |
-| `DescribeScalableTargetsResponse` | `structure` | `NextToken`, `ScalableTargets` | - |
-| `DescribeScalingActivitiesRequest` | `structure` | `IncludeNotScaledActivities`, `MaxResults`, `NextToken`, `ResourceId`, `ScalableDimension`, `ServiceNamespace` | - |
-| `DescribeScalingActivitiesResponse` | `structure` | `NextToken`, `ScalingActivities` | - |
-| `DescribeScalingPoliciesRequest` | `structure` | `MaxResults`, `NextToken`, `PolicyNames`, `ResourceId`, `ScalableDimension`, `ServiceNamespace` | - |
-| `DescribeScalingPoliciesResponse` | `structure` | `NextToken`, `ScalingPolicies` | - |
-| `DescribeScheduledActionsRequest` | `structure` | `MaxResults`, `NextToken`, `ResourceId`, `ScalableDimension`, `ScheduledActionNames`, `ServiceNamespace` | - |
-| `DescribeScheduledActionsResponse` | `structure` | `NextToken`, `ScheduledActions` | - |
-| `GetPredictiveScalingForecastRequest` | `structure` | `EndTime`, `PolicyName`, `ResourceId`, `ScalableDimension`, `ServiceNamespace`, `StartTime` | - |
-| `GetPredictiveScalingForecastResponse` | `structure` | `CapacityForecast`, `LoadForecast`, `UpdateTime` | - |
-
+| `ConcurrentUpdateException` | `structure` | Message | Concurrent updates caused an exception, for example, if you request an update to an Application Auto Scaling resource that already has a pending update. |
+| `FailedResourceAccessException` | `structure` | Message | Failed access to resources caused an exception. This exception is thrown when Application Auto Scaling is unable to retrieve the alarms associated with a sc ... |
+| `InternalServiceException` | `structure` | Message | The service encountered an internal error. |
+| `InvalidNextTokenException` | `structure` | Message | The next token supplied was invalid. |
+| `LimitExceededException` | `structure` | Message | A per-account resource limit is exceeded. For more information, see Application Auto Scaling service quotas . |
+| `ObjectNotFoundException` | `structure` | Message | The specified object could not be found. For any operation that depends on the existence of a scalable target, this exception is thrown if the scalable targ ... |
+| `ResourceNotFoundException` | `structure` | Message, ResourceName | The specified resource doesn't exist. |
+| `TooManyTagsException` | `structure` | Message, ResourceName | The request contains too many tags. Try the request again with fewer tags. |
+| `ValidationException` | `structure` | Message | An exception was thrown for a validation issue. Review the available parameters for the API request. |
+| `DeleteScalingPolicyRequest` | `structure` | PolicyName, ServiceNamespace, ResourceId, ScalableDimension | - |
+| `DeleteScalingPolicyResponse` | `structure` | **empty (no members)** | - |
+| `DeleteScheduledActionRequest` | `structure` | ServiceNamespace, ScheduledActionName, ResourceId, ScalableDimension | - |
+| `DeleteScheduledActionResponse` | `structure` | **empty (no members)** | - |
+| `DeregisterScalableTargetRequest` | `structure` | ServiceNamespace, ResourceId, ScalableDimension | - |
+| `DeregisterScalableTargetResponse` | `structure` | **empty (no members)** | - |
+| `DescribeScalableTargetsRequest` | `structure` | ServiceNamespace, ResourceIds, ScalableDimension, MaxResults, NextToken | - |
+| `DescribeScalableTargetsResponse` | `structure` | ScalableTargets, NextToken | - |
+| `DescribeScalingActivitiesRequest` | `structure` | ServiceNamespace, ResourceId, ScalableDimension, MaxResults, NextToken, IncludeNotScaledActivities | - |
+| `DescribeScalingActivitiesResponse` | `structure` | ScalingActivities, NextToken | - |
+| `DescribeScalingPoliciesRequest` | `structure` | PolicyNames, ServiceNamespace, ResourceId, ScalableDimension, MaxResults, NextToken | - |
+| `DescribeScalingPoliciesResponse` | `structure` | ScalingPolicies, NextToken | - |
+| `DescribeScheduledActionsRequest` | `structure` | ScheduledActionNames, ServiceNamespace, ResourceId, ScalableDimension, MaxResults, NextToken | - |
+| `DescribeScheduledActionsResponse` | `structure` | ScheduledActions, NextToken | - |
+| `GetPredictiveScalingForecastRequest` | `structure` | ServiceNamespace, ResourceId, ScalableDimension, PolicyName, StartTime, EndTime | - |
+| `GetPredictiveScalingForecastResponse` | `structure` | LoadForecast, CapacityForecast, UpdateTime | - |
+| `ListTagsForResourceRequest` | `structure` | ResourceARN | - |
+| `ListTagsForResourceResponse` | `structure` | Tags | - |
+| `PutScalingPolicyRequest` | `structure` | PolicyName, ServiceNamespace, ResourceId, ScalableDimension, PolicyType, StepScalingPolicyConfiguration, TargetTrackingScalingPolicyConfiguration, PredictiveScalingPolicyConfiguration | - |
+| `PutScalingPolicyResponse` | `structure` | PolicyARN, Alarms | - |
+| `PutScheduledActionRequest` | `structure` | ServiceNamespace, Schedule, Timezone, ScheduledActionName, ResourceId, ScalableDimension, StartTime, EndTime, ScalableTargetAction | - |
+| `PutScheduledActionResponse` | `structure` | **empty (no members)** | - |
+| `RegisterScalableTargetRequest` | `structure` | ServiceNamespace, ResourceId, ScalableDimension, MinCapacity, MaxCapacity, RoleARN, SuspendedState, Tags | - |
+| `RegisterScalableTargetResponse` | `structure` | ScalableTargetARN | - |
+| `TagResourceRequest` | `structure` | ResourceARN, Tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | ResourceARN, TagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `AdjustmentType` | `enum` | ChangeInCapacity, PercentChangeInCapacity, ExactCapacity | - |
+| `MetricAggregationType` | `enum` | Average, Minimum, Maximum | - |
+| `MetricStatistic` | `enum` | Average, Minimum, Maximum, SampleCount, Sum | - |
+| `MetricType` | `enum` | DynamoDBReadCapacityUtilization, DynamoDBWriteCapacityUtilization, ALBRequestCountPerTarget, RDSReaderAverageCPUUtilization, RDSReaderAverageDatabaseConnections, EC2SpotFleetRequestAverageCPUUtilization, EC2SpotFleetRequestAverageNetworkIn, EC2SpotFleetRequestAverageNetworkOut, SageMakerVariantInvocationsPerInstance, ECSServiceAverageCPUUtilization, ECSServiceAverageMemoryUtilization, AppStreamAverageCapacityUtilization, ... (+17) | - |
+| `PolicyType` | `enum` | StepScaling, TargetTrackingScaling, PredictiveScaling | - |
+| `PredictiveScalingMaxCapacityBreachBehavior` | `enum` | HonorMaxCapacity, IncreaseMaxCapacity | - |
+| `PredictiveScalingMode` | `enum` | ForecastOnly, ForecastAndScale | - |
+| `ScalableDimension` | `enum` | ECSServiceDesiredCount, EC2SpotFleetRequestTargetCapacity, EMRInstanceGroupInstanceCount, AppstreamFleetDesiredCapacity, DynamoDBTableReadCapacityUnits, DynamoDBTableWriteCapacityUnits, DynamoDBIndexReadCapacityUnits, DynamoDBIndexWriteCapacityUnits, RDSClusterReadReplicaCount, SageMakerVariantDesiredInstanceCount, CustomResourceScalableDimension, ComprehendDocClassifierEndpointInferenceUnits, ... (+12) | - |
+| `ScalingActivityStatusCode` | `enum` | Pending, InProgress, Successful, Overridden, Unfulfilled, Failed | - |
+| `ServiceNamespace` | `enum` | ECS, EMR, EC2, APPSTREAM, DYNAMODB, RDS, SAGEMAKER, CUSTOM_RESOURCE, COMPREHEND, LAMBDA, CASSANDRA, KAFKA, ... (+3) | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

@@ -59,75 +59,29 @@ Timestream for InfluxDB currently stores VPC subnet and security group lists dir
 
 ### List
 
-- Operations: `ListDbClusters`, `ListDbInstances`, `ListDbInstancesForCluster`, `ListDbParameterGroups`, `ListTagsForResource`
-- Traits: `paginated` (4), `readonly` (5)
-- Common required input members in this group: `dbClusterId`, `resourceArn`
-
-### Create
-
-- Operations: `CreateDbCluster`, `CreateDbInstance`, `CreateDbParameterGroup`
-- Traits: `idempotent` (3)
-- Common required input members in this group: `allocatedStorage`, `dbInstanceType`, `name`, `password`, `vpcSecurityGroupIds`, `vpcSubnetIds`
-
-### Get
-
-- Operations: `GetDbCluster`, `GetDbInstance`, `GetDbParameterGroup`
-- Traits: `readonly` (3)
-- Common required input members in this group: `dbClusterId`, `identifier`
-
-### Delete
-
-- Operations: `DeleteDbCluster`, `DeleteDbInstance`
-- Traits: `idempotent` (2)
-- Common required input members in this group: `dbClusterId`, `identifier`
-
-### Reboot
-
-- Operations: `RebootDbCluster`, `RebootDbInstance`
-- Traits: `idempotent` (2)
-- Common required input members in this group: `dbClusterId`, `identifier`
-
-### Update
-
-- Operations: `UpdateDbCluster`, `UpdateDbInstance`
-- Traits: `idempotent` (2)
-- Common required input members in this group: `dbClusterId`, `identifier`
+- Operations: `ListTagsForResource`
+- Traits: `readonly` (1)
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateDbCluster` | - | `idempotent` | `dbInstanceType`, `name`, `vpcSecurityGroupIds`, `vpcSubnetIds` | - | `CreateDbClusterOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a new Timestream for InfluxDB cluster. |
-| `CreateDbInstance` | - | `idempotent` | `allocatedStorage`, `dbInstanceType`, `name`, `password`, `vpcSecurityGroupIds`, `vpcSubnetIds` | - | `CreateDbInstanceOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a new Timestream for InfluxDB DB instance. |
-| `CreateDbParameterGroup` | - | `idempotent` | `name` | - | `CreateDbParameterGroupOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a new Timestream for InfluxDB DB parameter group to associate with DB instances. |
-| `DeleteDbCluster` | - | `idempotent` | `dbClusterId` | - | `DeleteDbClusterOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a Timestream for InfluxDB cluster. |
-| `DeleteDbInstance` | - | `idempotent` | `identifier` | - | `DeleteDbInstanceOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a Timestream for InfluxDB DB instance. |
-| `GetDbCluster` | - | `readonly` | `dbClusterId` | - | `GetDbClusterOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about a Timestream for InfluxDB cluster. |
-| `GetDbInstance` | - | `readonly` | `identifier` | - | `GetDbInstanceOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a Timestream for InfluxDB DB instance. |
-| `GetDbParameterGroup` | - | `readonly` | `identifier` | - | `GetDbParameterGroupOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a Timestream for InfluxDB DB parameter group. |
-| `ListDbClusters` | - | `readonly`, `paginated` | - | - | `ListDbClustersOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of Timestream for InfluxDB DB clusters. |
-| `ListDbInstances` | - | `readonly`, `paginated` | - | - | `ListDbInstancesOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of Timestream for InfluxDB DB instances. |
-| `ListDbInstancesForCluster` | - | `readonly`, `paginated` | `dbClusterId` | - | `ListDbInstancesForClusterOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of Timestream for InfluxDB clusters. |
-| `ListDbParameterGroups` | - | `readonly`, `paginated` | - | - | `ListDbParameterGroupsOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of Timestream for InfluxDB DB parameter groups. |
-| `ListTagsForResource` | - | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `ResourceNotFoundException` | A list of tags applied to the resource. |
-| `RebootDbCluster` | - | `idempotent` | `dbClusterId` | - | `RebootDbClusterOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Reboots a Timestream for InfluxDB cluster. |
-| `RebootDbInstance` | - | `idempotent` | `identifier` | - | `RebootDbInstanceOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Reboots a Timestream for InfluxDB instance. |
-| `TagResource` | - | `idempotent` | `resourceArn`, `tags` | - | `Unit` | `ResourceNotFoundException`, `ServiceQuotaExceededException` | Tags are composed of a Key/Value pairs. You can use tags to categorize and track your Timestream for InfluxDB resources. |
-| `UntagResource` | - | `idempotent` | `resourceArn`, `tagKeys` | - | `Unit` | `ResourceNotFoundException` | Removes the tag from the specified resource. |
-| `UpdateDbCluster` | - | `idempotent` | `dbClusterId` | - | `UpdateDbClusterOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a Timestream for InfluxDB cluster. |
-| `UpdateDbInstance` | - | `idempotent` | `identifier` | - | `UpdateDbInstanceOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a Timestream for InfluxDB DB instance. |
+| `ListTagsForResource` | `-` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `ResourceNotFoundException` | A list of tags applied to the resource. |
+| `TagResource` | `-` | `idempotent` | `resourceArn`, `tags` | - | `Unit` | `ResourceNotFoundException`, `ServiceQuotaExceededException` | Tags are composed of a Key/Value pairs. You can use tags to categorize and track your Timestream for InfluxDB resources. |
+| `UntagResource` | `-` | `idempotent` | `resourceArn`, `tagKeys` | - | `Unit` | `ResourceNotFoundException` | Removes the tag from the specified resource. |
 
 ## HTTP Bindings
 
@@ -139,30 +93,33 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ResourceNotFoundException` | `structure` | `message`, `resourceId`, `resourceType` | The requested resource was not found or does not exist. |
-| `AccessDeniedException` | `structure` | `message` | You do not have sufficient access to perform this action. |
-| `InternalServerException` | `structure` | `message` | The request processing has failed because of an unknown error, exception or failure. |
-| `ThrottlingException` | `structure` | `message`, `retryAfterSeconds` | The request was denied due to request throttling. |
-| `ValidationException` | `structure` | `message`, `reason` | The input fails to satisfy the constraints specified by Timestream for InfluxDB. |
-| `ConflictException` | `structure` | `message`, `resourceId`, `resourceType` | The request conflicts with an existing resource in Timestream for InfluxDB. |
-| `ServiceQuotaExceededException` | `structure` | `message` | The request exceeds the service quota. |
-| `CreateDbClusterInput` | `structure` | `allocatedStorage`, `bucket`, `dbInstanceType`, `dbParameterGroupIdentifier`, `dbStorageType`, `deploymentType`, `failoverMode`, `logDeliveryConfiguration`, `name`, `networkType`, `organization`, `password`, ... (+6) | - |
-| `CreateDbClusterOutput` | `structure` | `dbClusterId`, `dbClusterStatus` | - |
-| `CreateDbInstanceInput` | `structure` | `allocatedStorage`, `bucket`, `dbInstanceType`, `dbParameterGroupIdentifier`, `dbStorageType`, `deploymentType`, `logDeliveryConfiguration`, `name`, `networkType`, `organization`, `password`, `port`, ... (+5) | - |
-| `CreateDbInstanceOutput` | `structure` | `allocatedStorage`, `arn`, `availabilityZone`, `dbClusterId`, `dbInstanceType`, `dbParameterGroupIdentifier`, `dbStorageType`, `deploymentType`, `endpoint`, `id`, `influxAuthParametersSecretArn`, `instanceMode`, ... (+10) | - |
-| `CreateDbParameterGroupInput` | `structure` | `description`, `name`, `parameters`, `tags` | - |
-| `CreateDbParameterGroupOutput` | `structure` | `arn`, `description`, `id`, `name`, `parameters` | - |
-| `DeleteDbClusterInput` | `structure` | `dbClusterId` | - |
-| `DeleteDbClusterOutput` | `structure` | `dbClusterStatus` | - |
-| `DeleteDbInstanceInput` | `structure` | `identifier` | - |
-| `DeleteDbInstanceOutput` | `structure` | `allocatedStorage`, `arn`, `availabilityZone`, `dbClusterId`, `dbInstanceType`, `dbParameterGroupIdentifier`, `dbStorageType`, `deploymentType`, `endpoint`, `id`, `influxAuthParametersSecretArn`, `instanceMode`, ... (+10) | - |
-| `GetDbClusterInput` | `structure` | `dbClusterId` | - |
-| `GetDbClusterOutput` | `structure` | `allocatedStorage`, `arn`, `dbInstanceType`, `dbParameterGroupIdentifier`, `dbStorageType`, `deploymentType`, `endpoint`, `engineType`, `failoverMode`, `id`, `influxAuthParametersSecretArn`, `logDeliveryConfiguration`, ... (+8) | - |
-| `GetDbInstanceInput` | `structure` | `identifier` | - |
-| `GetDbInstanceOutput` | `structure` | `allocatedStorage`, `arn`, `availabilityZone`, `dbClusterId`, `dbInstanceType`, `dbParameterGroupIdentifier`, `dbStorageType`, `deploymentType`, `endpoint`, `id`, `influxAuthParametersSecretArn`, `instanceMode`, ... (+10) | - |
-| `GetDbParameterGroupInput` | `structure` | `identifier` | - |
-| `GetDbParameterGroupOutput` | `structure` | `arn`, `description`, `id`, `name`, `parameters` | - |
-
+| `AccessDeniedException` | `structure` | message | You do not have sufficient access to perform this action. |
+| `ConflictException` | `structure` | message, resourceId, resourceType | The request conflicts with an existing resource in Timestream for InfluxDB. |
+| `InternalServerException` | `structure` | message | The request processing has failed because of an unknown error, exception or failure. |
+| `ResourceNotFoundException` | `structure` | message, resourceId, resourceType | The requested resource was not found or does not exist. |
+| `ServiceQuotaExceededException` | `structure` | message | The request exceeds the service quota. |
+| `ThrottlingException` | `structure` | message, retryAfterSeconds | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | message, reason | The input fails to satisfy the constraints specified by Timestream for InfluxDB. |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `TagResourceRequest` | `structure` | resourceArn, tags | - |
+| `UntagResourceRequest` | `structure` | resourceArn, tagKeys | - |
+| `ClusterDeploymentType` | `enum` | MULTI_NODE_READ_REPLICAS | - |
+| `ClusterStatus` | `enum` | CREATING, UPDATING, DELETING, AVAILABLE, FAILED, DELETED, MAINTENANCE, UPDATING_INSTANCE_TYPE, REBOOTING, REBOOT_FAILED, PARTIALLY_AVAILABLE | - |
+| `DataFusionRuntimeType` | `enum` | MULTI_THREAD, MULTI_THREAD_ALT | - |
+| `DbInstanceType` | `enum` | DB_INFLUX_MEDIUM, DB_INFLUX_LARGE, DB_INFLUX_XLARGE, DB_INFLUX_2XLARGE, DB_INFLUX_4XLARGE, DB_INFLUX_8XLARGE, DB_INFLUX_12XLARGE, DB_INFLUX_16XLARGE, DB_INFLUX_24XLARGE | - |
+| `DbStorageType` | `enum` | INFLUX_IO_INCLUDED_T1, INFLUX_IO_INCLUDED_T2, INFLUX_IO_INCLUDED_T3 | - |
+| `DeploymentType` | `enum` | SINGLE_AZ, WITH_MULTIAZ_STANDBY | - |
+| `DurationType` | `enum` | HOURS, MINUTES, SECONDS, MILLISECONDS, DAYS | - |
+| `EngineType` | `enum` | INFLUXDB_V2, INFLUXDB_V3_CORE, INFLUXDB_V3_ENTERPRISE | - |
+| `FailoverMode` | `enum` | AUTOMATIC, NO_FAILOVER | - |
+| `InstanceMode` | `enum` | PRIMARY, STANDBY, REPLICA, INGEST, QUERY, COMPACT, PROCESS | - |
+| `LogFormats` | `enum` | FULL | - |
+| `LogLevel` | `enum` | DEBUG, INFO, ERROR | - |
+| `NetworkType` | `enum` | IPV4, DUAL | - |
+| `Status` | `enum` | CREATING, AVAILABLE, DELETING, MODIFYING, UPDATING, DELETED, FAILED, UPDATING_DEPLOYMENT_TYPE, UPDATING_INSTANCE_TYPE, MAINTENANCE, REBOOTING, REBOOT_FAILED | - |
+| `TracingType` | `enum` | LOG, JAEGER, DISABLED | - |
+| `ValidationExceptionReason` | `enum` | FIELD_VALIDATION_FAILED, OTHER | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

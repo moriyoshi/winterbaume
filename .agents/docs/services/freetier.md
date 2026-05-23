@@ -38,28 +38,29 @@ You can use the Amazon Web Services Free Tier API to query programmatically your
 ### Get
 
 - Operations: `GetAccountActivity`, `GetAccountPlanState`, `GetFreeTierUsage`
-- Traits: `paginated` (1), `readonly` (2)
-- Common required input members in this group: `activityId`
+- Traits: `readonly` (2), `paginated` (1)
+- Common required input members in this group: -
 
 ### List
 
 - Operations: `ListAccountActivities`
-- Traits: `paginated` (1), `readonly` (1)
+- Traits: `readonly` (1), `paginated` (1)
+- Common required input members in this group: -
 
 ### Upgrade
 
 - Operations: `UpgradeAccountPlan`
-- Common required input members in this group: `accountPlanType`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `GetAccountActivity` | - | `readonly` | `activityId` | - | `GetAccountActivityResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a specific activity record that is available to the customer. |
-| `GetAccountPlanState` | - | `readonly` | - | - | `GetAccountPlanStateResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | This returns all of the information related to the state of the account plan related to Free Tier. |
-| `GetFreeTierUsage` | - | `paginated` | - | - | `GetFreeTierUsageResponse` | `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of all Free Tier usage objects that match your filters. |
-| `ListAccountActivities` | - | `readonly`, `paginated` | - | - | `ListAccountActivitiesResponse` | `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of activities that are available. This operation supports pagination and filtering by status. |
-| `UpgradeAccountPlan` | - | - | `accountPlanType` | - | `UpgradeAccountPlanResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | The account plan type for the Amazon Web Services account. |
+| `GetAccountActivity` | `-` | `readonly` | `activityId` | - | `GetAccountActivityResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a specific activity record that is available to the customer. |
+| `GetAccountPlanState` | `-` | `readonly` | - | - | `GetAccountPlanStateResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | This returns all of the information related to the state of the account plan related to Free Tier. |
+| `GetFreeTierUsage` | `-` | `paginated` | - | - | `GetFreeTierUsageResponse` | `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of all Free Tier usage objects that match your filters. |
+| `ListAccountActivities` | `-` | `readonly`, `paginated` | - | - | `ListAccountActivitiesResponse` | `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of activities that are available. This operation supports pagination and filtering by status. |
+| `UpgradeAccountPlan` | `-` | - | `accountPlanType` | - | `UpgradeAccountPlanResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | The account plan type for the Amazon Web Services account. |
 
 ## HTTP Bindings
 
@@ -71,22 +72,28 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `message` | An unexpected error occurred during the processing of your request. |
-| `ThrottlingException` | `structure` | `message` | The request was denied due to request throttling. |
-| `ValidationException` | `structure` | `message` | The input fails to satisfy the constraints specified by an Amazon Web Services service. |
-| `ResourceNotFoundException` | `structure` | `message` | This exception is thrown when the requested resource cannot be found. |
-| `AccessDeniedException` | `structure` | `message` | You don't have sufficient access to perform this action. |
-| `GetAccountActivityRequest` | `structure` | `activityId`, `languageCode` | - |
-| `GetAccountActivityResponse` | `structure` | `activityId`, `completedAt`, `description`, `estimatedTimeToCompleteInMinutes`, `expiresAt`, `instructionsUrl`, `reward`, `startedAt`, `status`, `title` | - |
-| `GetAccountPlanStateRequest` | `structure` | - | - |
-| `GetAccountPlanStateResponse` | `structure` | `accountId`, `accountPlanExpirationDate`, `accountPlanRemainingCredits`, `accountPlanStatus`, `accountPlanType` | - |
-| `GetFreeTierUsageRequest` | `structure` | `filter`, `maxResults`, `nextToken` | - |
-| `GetFreeTierUsageResponse` | `structure` | `freeTierUsages`, `nextToken` | - |
-| `ListAccountActivitiesRequest` | `structure` | `filterActivityStatuses`, `languageCode`, `maxResults`, `nextToken` | - |
-| `ListAccountActivitiesResponse` | `structure` | `activities`, `nextToken` | - |
-| `UpgradeAccountPlanRequest` | `structure` | `accountPlanType` | - |
-| `UpgradeAccountPlanResponse` | `structure` | `accountId`, `accountPlanStatus`, `accountPlanType` | - |
-
+| `AccessDeniedException` | `structure` | message | You don't have sufficient access to perform this action. |
+| `InternalServerException` | `structure` | message | An unexpected error occurred during the processing of your request. |
+| `ResourceNotFoundException` | `structure` | message | This exception is thrown when the requested resource cannot be found. |
+| `ThrottlingException` | `structure` | message | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | message | The input fails to satisfy the constraints specified by an Amazon Web Services service. |
+| `GetAccountActivityRequest` | `structure` | activityId, languageCode | - |
+| `GetAccountActivityResponse` | `structure` | activityId, title, description, status, instructionsUrl, reward, estimatedTimeToCompleteInMinutes, expiresAt, startedAt, completedAt | - |
+| `GetAccountPlanStateRequest` | `structure` | **empty (no members)** | - |
+| `GetAccountPlanStateResponse` | `structure` | accountId, accountPlanType, accountPlanStatus, accountPlanRemainingCredits, accountPlanExpirationDate | - |
+| `GetFreeTierUsageRequest` | `structure` | filter, maxResults, nextToken | - |
+| `GetFreeTierUsageResponse` | `structure` | freeTierUsages, nextToken | - |
+| `ListAccountActivitiesRequest` | `structure` | filterActivityStatuses, nextToken, maxResults, languageCode | - |
+| `ListAccountActivitiesResponse` | `structure` | activities, nextToken | - |
+| `UpgradeAccountPlanRequest` | `structure` | accountPlanType | - |
+| `UpgradeAccountPlanResponse` | `structure` | accountId, accountPlanType, accountPlanStatus | - |
+| `AccountPlanStatus` | `enum` | NOT_STARTED, ACTIVE, EXPIRED | - |
+| `AccountPlanType` | `enum` | FREE, PAID | - |
+| `ActivityStatus` | `enum` | NOT_STARTED, IN_PROGRESS, COMPLETED, EXPIRING | - |
+| `CurrencyCode` | `enum` | USD | - |
+| `Dimension` | `enum` | SERVICE, OPERATION, USAGE_TYPE, REGION, FREE_TIER_TYPE, DESCRIPTION, USAGE_PERCENTAGE | - |
+| `LanguageCode` | `enum` | EN_US, EN_GB, ID_ID, DE_DE, ES_ES, FR_FR, JA_JP, IT_IT, PT_PT, KO_KR, ZH_CN, ZH_TW, ... (+1) | - |
+| `MatchOption` | `enum` | EQUALS, STARTS_WITH, ENDS_WITH, CONTAINS, GREATER_THAN_OR_EQUAL | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

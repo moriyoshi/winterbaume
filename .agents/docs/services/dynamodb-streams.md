@@ -60,25 +60,26 @@ Parity implications:
 ### Get
 
 - Operations: `GetRecords`, `GetShardIterator`
-- Common required input members in this group: `ShardId`, `ShardIterator`, `ShardIteratorType`, `StreamArn`
+- Common required input members in this group: -
 
 ### Describe
 
 - Operations: `DescribeStream`
-- Common required input members in this group: `StreamArn`
+- Common required input members in this group: -
 
 ### List
 
 - Operations: `ListStreams`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `DescribeStream` | - | - | `StreamArn` | - | `DescribeStreamOutput` | `InternalServerError`, `ResourceNotFoundException` | Returns information about a stream, including the current status of the stream, its Amazon Resource Name (ARN), the composition of its shards, and its corresponding DynamoDB table. You can call `DescribeStream` at a maximum rate of 10 times per second. |
-| `GetRecords` | - | - | `ShardIterator` | - | `GetRecordsOutput` | `ExpiredIteratorException`, `InternalServerError`, `LimitExceededException`, `ResourceNotFoundException`, `TrimmedDataAccessException` | Retrieves the stream records from a given shard. Specify a shard iterator using the `ShardIterator` parameter. |
-| `GetShardIterator` | - | - | `ShardId`, `ShardIteratorType`, `StreamArn` | - | `GetShardIteratorOutput` | `InternalServerError`, `ResourceNotFoundException`, `TrimmedDataAccessException` | Returns a shard iterator. A shard iterator provides information about how to retrieve the stream records from within a shard. |
-| `ListStreams` | - | - | - | - | `ListStreamsOutput` | `InternalServerError`, `ResourceNotFoundException` | Returns an array of stream ARNs associated with the current account and endpoint. If the `TableName` parameter is present, then `ListStreams` will return only the streams ARNs for that table. |
+| `DescribeStream` | `-` | - | `StreamArn` | - | `DescribeStreamOutput` | `InternalServerError`, `ResourceNotFoundException` | Returns information about a stream, including the current status of the stream, its Amazon Resource Name (ARN), the composition of its shards, and its corresponding DynamoDB table. You can call DescribeStream at a ma ... |
+| `GetRecords` | `-` | - | `ShardIterator` | - | `GetRecordsOutput` | `ExpiredIteratorException`, `InternalServerError`, `LimitExceededException`, `ResourceNotFoundException`, `TrimmedDataAccessException` | Retrieves the stream records from a given shard. Specify a shard iterator using the ShardIterator parameter. The shard iterator specifies the position in the shard from which you want to start reading stream records ... |
+| `GetShardIterator` | `-` | - | `StreamArn`, `ShardId`, `ShardIteratorType` | - | `GetShardIteratorOutput` | `InternalServerError`, `ResourceNotFoundException`, `TrimmedDataAccessException` | Returns a shard iterator. A shard iterator provides information about how to retrieve the stream records from within a shard. Use the shard iterator in a subsequent GetRecords request to read the stream records from ... |
+| `ListStreams` | `-` | - | - | - | `ListStreamsOutput` | `InternalServerError`, `ResourceNotFoundException` | Returns an array of stream ARNs associated with the current account and endpoint. If the TableName parameter is present, then ListStreams will return only the streams ARNs for that table. You can call ListStreams at ... |
 
 ## HTTP Bindings
 
@@ -90,20 +91,25 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerError` | `structure` | `message` | An error occurred on the server side. |
-| `ResourceNotFoundException` | `structure` | `message` | The operation tried to access a nonexistent table or index. |
-| `TrimmedDataAccessException` | `structure` | `message` | The operation attempted to read past the oldest stream record in a shard. |
-| `DescribeStreamInput` | `structure` | `ExclusiveStartShardId`, `Limit`, `ShardFilter`, `StreamArn` | Represents the input of a `DescribeStream` operation. |
-| `DescribeStreamOutput` | `structure` | `StreamDescription` | Represents the output of a `DescribeStream` operation. |
-| `GetRecordsInput` | `structure` | `Limit`, `ShardIterator` | Represents the input of a `GetRecords` operation. |
-| `GetRecordsOutput` | `structure` | `NextShardIterator`, `Records` | Represents the output of a `GetRecords` operation. |
-| `ExpiredIteratorException` | `structure` | `message` | The shard iterator has expired and can no longer be used to retrieve stream records. |
-| `LimitExceededException` | `structure` | `message` | There is no limit to the number of daily on-demand backups that can be taken. |
-| `GetShardIteratorInput` | `structure` | `SequenceNumber`, `ShardId`, `ShardIteratorType`, `StreamArn` | Represents the input of a `GetShardIterator` operation. |
-| `GetShardIteratorOutput` | `structure` | `ShardIterator` | Represents the output of a `GetShardIterator` operation. |
-| `ListStreamsInput` | `structure` | `ExclusiveStartStreamArn`, `Limit`, `TableName` | Represents the input of a `ListStreams` operation. |
-| `ListStreamsOutput` | `structure` | `LastEvaluatedStreamArn`, `Streams` | Represents the output of a `ListStreams` operation. |
-
+| `ExpiredIteratorException` | `structure` | message | The shard iterator has expired and can no longer be used to retrieve stream records. A shard iterator expires 15 minutes after it is retrieved using the Get ... |
+| `InternalServerError` | `structure` | message | An error occurred on the server side. |
+| `LimitExceededException` | `structure` | message | There is no limit to the number of daily on-demand backups that can be taken. For most purposes, up to 500 simultaneous table operations are allowed per acc ... |
+| `ResourceNotFoundException` | `structure` | message | The operation tried to access a nonexistent table or index. The resource might not be specified correctly, or its status might not be ACTIVE . |
+| `TrimmedDataAccessException` | `structure` | message | The operation attempted to read past the oldest stream record in a shard. In DynamoDB Streams, there is a 24 hour limit on data retention. Stream records wh ... |
+| `DescribeStreamInput` | `structure` | StreamArn, Limit, ExclusiveStartShardId, ShardFilter | Represents the input of a DescribeStream operation. |
+| `DescribeStreamOutput` | `structure` | StreamDescription | Represents the output of a DescribeStream operation. |
+| `GetRecordsInput` | `structure` | ShardIterator, Limit | Represents the input of a GetRecords operation. |
+| `GetRecordsOutput` | `structure` | Records, NextShardIterator | Represents the output of a GetRecords operation. |
+| `GetShardIteratorInput` | `structure` | StreamArn, ShardId, ShardIteratorType, SequenceNumber | Represents the input of a GetShardIterator operation. |
+| `GetShardIteratorOutput` | `structure` | ShardIterator | Represents the output of a GetShardIterator operation. |
+| `ListStreamsInput` | `structure` | TableName, Limit, ExclusiveStartStreamArn | Represents the input of a ListStreams operation. |
+| `ListStreamsOutput` | `structure` | Streams, LastEvaluatedStreamArn | Represents the output of a ListStreams operation. |
+| `KeyType` | `enum` | HASH, RANGE | - |
+| `OperationType` | `enum` | INSERT, MODIFY, REMOVE | - |
+| `ShardFilterType` | `enum` | CHILD_SHARDS | - |
+| `ShardIteratorType` | `enum` | TRIM_HORIZON, LATEST, AT_SEQUENCE_NUMBER, AFTER_SEQUENCE_NUMBER | - |
+| `StreamStatus` | `enum` | ENABLING, ENABLED, DISABLING, DISABLED | - |
+| `StreamViewType` | `enum` | NEW_IMAGE, OLD_IMAGE, NEW_AND_OLD_IMAGES, KEYS_ONLY | - |
 ## Winterbaume LTM Notes
 
 Sources: .agents/docs/LTM/runtime-state-and-service-infrastructure-synthesis.md, .agents/docs/LTM/aws-inter-service-integration-priorities.md, .agents/docs/LTM/cross-service-integration-and-engine-boundaries-synthesis.md.

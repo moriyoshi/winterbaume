@@ -39,38 +39,38 @@ AWS Auto Scaling Use AWS Auto Scaling to create scaling plans for your applicati
 ### Describe
 
 - Operations: `DescribeScalingPlanResources`, `DescribeScalingPlans`
-- Common required input members in this group: `ScalingPlanName`, `ScalingPlanVersion`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateScalingPlan`
-- Common required input members in this group: `ApplicationSource`, `ScalingInstructions`, `ScalingPlanName`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteScalingPlan`
-- Common required input members in this group: `ScalingPlanName`, `ScalingPlanVersion`
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetScalingPlanResourceForecastData`
-- Common required input members in this group: `EndTime`, `ForecastDataType`, `ResourceId`, `ScalableDimension`, `ScalingPlanName`, `ScalingPlanVersion`, `ServiceNamespace`, `StartTime`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateScalingPlan`
-- Common required input members in this group: `ScalingPlanName`, `ScalingPlanVersion`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateScalingPlan` | - | - | `ApplicationSource`, `ScalingInstructions`, `ScalingPlanName` | - | `CreateScalingPlanResponse` | `ConcurrentUpdateException`, `InternalServiceException`, `LimitExceededException`, `ValidationException` | Creates a scaling plan. |
-| `DeleteScalingPlan` | - | - | `ScalingPlanName`, `ScalingPlanVersion` | - | `DeleteScalingPlanResponse` | `ConcurrentUpdateException`, `InternalServiceException`, `ObjectNotFoundException`, `ValidationException` | Deletes the specified scaling plan. Deleting a scaling plan deletes the underlying ScalingInstruction for all of the scalable resources that are covered by the plan. |
-| `DescribeScalingPlanResources` | - | - | `ScalingPlanName`, `ScalingPlanVersion` | - | `DescribeScalingPlanResourcesResponse` | `ConcurrentUpdateException`, `InternalServiceException`, `InvalidNextTokenException`, `ValidationException` | Describes the scalable resources in the specified scaling plan. |
-| `DescribeScalingPlans` | - | - | - | - | `DescribeScalingPlansResponse` | `ConcurrentUpdateException`, `InternalServiceException`, `InvalidNextTokenException`, `ValidationException` | Describes one or more of your scaling plans. |
-| `GetScalingPlanResourceForecastData` | - | - | `EndTime`, `ForecastDataType`, `ResourceId`, `ScalableDimension`, `ScalingPlanName`, `ScalingPlanVersion`, `ServiceNamespace`, `StartTime` | - | `GetScalingPlanResourceForecastDataResponse` | `InternalServiceException`, `ValidationException` | Retrieves the forecast data for a scalable resource. Capacity forecasts are represented as predicted values, or data points, that are calculated using historical data points from a specified CloudWatch load metric. |
-| `UpdateScalingPlan` | - | - | `ScalingPlanName`, `ScalingPlanVersion` | - | `UpdateScalingPlanResponse` | `ConcurrentUpdateException`, `InternalServiceException`, `ObjectNotFoundException`, `ValidationException` | Updates the specified scaling plan. You cannot update a scaling plan if it is in the process of being created, updated, or deleted. |
+| `CreateScalingPlan` | `-` | - | `ScalingPlanName`, `ApplicationSource`, `ScalingInstructions` | - | `CreateScalingPlanResponse` | `ConcurrentUpdateException`, `InternalServiceException`, `LimitExceededException`, `ValidationException` | Creates a scaling plan. |
+| `DeleteScalingPlan` | `-` | - | `ScalingPlanName`, `ScalingPlanVersion` | - | `DeleteScalingPlanResponse` | `ConcurrentUpdateException`, `InternalServiceException`, `ObjectNotFoundException`, `ValidationException` | Deletes the specified scaling plan. Deleting a scaling plan deletes the underlying ScalingInstruction for all of the scalable resources that are covered by the plan. If the plan has launched resources or has scaling ... |
+| `DescribeScalingPlanResources` | `-` | - | `ScalingPlanName`, `ScalingPlanVersion` | - | `DescribeScalingPlanResourcesResponse` | `ConcurrentUpdateException`, `InternalServiceException`, `InvalidNextTokenException`, `ValidationException` | Describes the scalable resources in the specified scaling plan. |
+| `DescribeScalingPlans` | `-` | - | - | - | `DescribeScalingPlansResponse` | `ConcurrentUpdateException`, `InternalServiceException`, `InvalidNextTokenException`, `ValidationException` | Describes one or more of your scaling plans. |
+| `GetScalingPlanResourceForecastData` | `-` | - | `ScalingPlanName`, `ScalingPlanVersion`, `ServiceNamespace`, `ResourceId`, `ScalableDimension`, `ForecastDataType`, `StartTime`, `EndTime` | - | `GetScalingPlanResourceForecastDataResponse` | `InternalServiceException`, `ValidationException` | Retrieves the forecast data for a scalable resource. Capacity forecasts are represented as predicted values, or data points, that are calculated using historical data points from a specified CloudWatch load metric. D ... |
+| `UpdateScalingPlan` | `-` | - | `ScalingPlanName`, `ScalingPlanVersion` | - | `UpdateScalingPlanResponse` | `ConcurrentUpdateException`, `InternalServiceException`, `ObjectNotFoundException`, `ValidationException` | Updates the specified scaling plan. You cannot update a scaling plan if it is in the process of being created, updated, or deleted. |
 
 ## HTTP Bindings
 
@@ -82,25 +82,36 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServiceException` | `structure` | `Message` | The service encountered an internal error. |
-| `ValidationException` | `structure` | `Message` | An exception was thrown for a validation issue. |
-| `ConcurrentUpdateException` | `structure` | `Message` | Concurrent updates caused an exception, for example, if you request an update to a scaling plan that already has a pending update. |
-| `ObjectNotFoundException` | `structure` | `Message` | The specified object could not be found. |
-| `InvalidNextTokenException` | `structure` | `Message` | The token provided is not valid. |
-| `CreateScalingPlanRequest` | `structure` | `ApplicationSource`, `ScalingInstructions`, `ScalingPlanName` | - |
-| `CreateScalingPlanResponse` | `structure` | `ScalingPlanVersion` | - |
-| `LimitExceededException` | `structure` | `Message` | Your account exceeded a limit. |
-| `DeleteScalingPlanRequest` | `structure` | `ScalingPlanName`, `ScalingPlanVersion` | - |
-| `DeleteScalingPlanResponse` | `structure` | - | - |
-| `DescribeScalingPlanResourcesRequest` | `structure` | `MaxResults`, `NextToken`, `ScalingPlanName`, `ScalingPlanVersion` | - |
-| `DescribeScalingPlanResourcesResponse` | `structure` | `NextToken`, `ScalingPlanResources` | - |
-| `DescribeScalingPlansRequest` | `structure` | `ApplicationSources`, `MaxResults`, `NextToken`, `ScalingPlanNames`, `ScalingPlanVersion` | - |
-| `DescribeScalingPlansResponse` | `structure` | `NextToken`, `ScalingPlans` | - |
-| `GetScalingPlanResourceForecastDataRequest` | `structure` | `EndTime`, `ForecastDataType`, `ResourceId`, `ScalableDimension`, `ScalingPlanName`, `ScalingPlanVersion`, `ServiceNamespace`, `StartTime` | - |
-| `GetScalingPlanResourceForecastDataResponse` | `structure` | `Datapoints` | - |
-| `UpdateScalingPlanRequest` | `structure` | `ApplicationSource`, `ScalingInstructions`, `ScalingPlanName`, `ScalingPlanVersion` | - |
-| `UpdateScalingPlanResponse` | `structure` | - | - |
-
+| `ConcurrentUpdateException` | `structure` | Message | Concurrent updates caused an exception, for example, if you request an update to a scaling plan that already has a pending update. |
+| `InternalServiceException` | `structure` | Message | The service encountered an internal error. |
+| `InvalidNextTokenException` | `structure` | Message | The token provided is not valid. |
+| `LimitExceededException` | `structure` | Message | Your account exceeded a limit. This exception is thrown when a per-account resource limit is exceeded. |
+| `ObjectNotFoundException` | `structure` | Message | The specified object could not be found. |
+| `ValidationException` | `structure` | Message | An exception was thrown for a validation issue. Review the parameters provided. |
+| `CreateScalingPlanRequest` | `structure` | ScalingPlanName, ApplicationSource, ScalingInstructions | - |
+| `CreateScalingPlanResponse` | `structure` | ScalingPlanVersion | - |
+| `DeleteScalingPlanRequest` | `structure` | ScalingPlanName, ScalingPlanVersion | - |
+| `DeleteScalingPlanResponse` | `structure` | **empty (no members)** | - |
+| `DescribeScalingPlanResourcesRequest` | `structure` | ScalingPlanName, ScalingPlanVersion, MaxResults, NextToken | - |
+| `DescribeScalingPlanResourcesResponse` | `structure` | ScalingPlanResources, NextToken | - |
+| `DescribeScalingPlansRequest` | `structure` | ScalingPlanNames, ScalingPlanVersion, ApplicationSources, MaxResults, NextToken | - |
+| `DescribeScalingPlansResponse` | `structure` | ScalingPlans, NextToken | - |
+| `GetScalingPlanResourceForecastDataRequest` | `structure` | ScalingPlanName, ScalingPlanVersion, ServiceNamespace, ResourceId, ScalableDimension, ForecastDataType, StartTime, EndTime | - |
+| `GetScalingPlanResourceForecastDataResponse` | `structure` | Datapoints | - |
+| `UpdateScalingPlanRequest` | `structure` | ScalingPlanName, ScalingPlanVersion, ApplicationSource, ScalingInstructions | - |
+| `UpdateScalingPlanResponse` | `structure` | **empty (no members)** | - |
+| `ForecastDataType` | `enum` | CapacityForecast, LoadForecast, ScheduledActionMinCapacity, ScheduledActionMaxCapacity | - |
+| `LoadMetricType` | `enum` | ASGTotalCPUUtilization, ASGTotalNetworkIn, ASGTotalNetworkOut, ALBTargetGroupRequestCount | - |
+| `MetricStatistic` | `enum` | Average, Minimum, Maximum, SampleCount, Sum | - |
+| `PolicyType` | `enum` | TargetTrackingScaling | - |
+| `PredictiveScalingMaxCapacityBehavior` | `enum` | SetForecastCapacityToMaxCapacity, SetMaxCapacityToForecastCapacity, SetMaxCapacityAboveForecastCapacity | - |
+| `PredictiveScalingMode` | `enum` | ForecastAndScale, ForecastOnly | - |
+| `ScalableDimension` | `enum` | AutoScalingGroupDesiredCapacity, ECSServiceDesiredCount, EC2SpotFleetRequestTargetCapacity, RDSClusterReadReplicaCount, DynamoDBTableReadCapacityUnits, DynamoDBTableWriteCapacityUnits, DynamoDBIndexReadCapacityUnits, DynamoDBIndexWriteCapacityUnits | - |
+| `ScalingMetricType` | `enum` | ASGAverageCPUUtilization, ASGAverageNetworkIn, ASGAverageNetworkOut, DynamoDBReadCapacityUtilization, DynamoDBWriteCapacityUtilization, ECSServiceAverageCPUUtilization, ECSServiceAverageMemoryUtilization, ALBRequestCountPerTarget, RDSReaderAverageCPUUtilization, RDSReaderAverageDatabaseConnections, EC2SpotFleetRequestAverageCPUUtilization, EC2SpotFleetRequestAverageNetworkIn, ... (+1) | - |
+| `ScalingPlanStatusCode` | `enum` | Active, ActiveWithProblems, CreationInProgress, CreationFailed, DeletionInProgress, DeletionFailed, UpdateInProgress, UpdateFailed | - |
+| `ScalingPolicyUpdateBehavior` | `enum` | KeepExternalPolicies, ReplaceExternalPolicies | - |
+| `ScalingStatusCode` | `enum` | Inactive, PartiallyActive, Active | - |
+| `ServiceNamespace` | `enum` | AUTOSCALING, ECS, EC2, RDS, DYNAMODB | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

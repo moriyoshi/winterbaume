@@ -61,61 +61,61 @@ Parity implications:
 
 ### Describe
 
-- Operations: `DescribeEnvironmentMemberships`, `DescribeEnvironmentStatus`, `DescribeEnvironments`
+- Operations: `DescribeEnvironmentMemberships`, `DescribeEnvironments`, `DescribeEnvironmentStatus`
 - Traits: `paginated` (1)
-- Common required input members in this group: `environmentId`, `environmentIds`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateEnvironmentEC2`, `CreateEnvironmentMembership`
 - Traits: `idempotent` (2)
-- Common required input members in this group: `environmentId`, `imageId`, `instanceType`, `name`, `permissions`, `userArn`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteEnvironment`, `DeleteEnvironmentMembership`
 - Traits: `idempotent` (2)
-- Common required input members in this group: `environmentId`, `userArn`
+- Common required input members in this group: `environmentId`
 
 ### List
 
 - Operations: `ListEnvironments`, `ListTagsForResource`
 - Traits: `paginated` (1)
-- Common required input members in this group: `ResourceARN`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateEnvironment`, `UpdateEnvironmentMembership`
 - Traits: `idempotent` (2)
-- Common required input members in this group: `environmentId`, `permissions`, `userArn`
+- Common required input members in this group: `environmentId`
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceARN`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceARN`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateEnvironmentEC2` | - | `idempotent` | `imageId`, `instanceType`, `name` | - | `CreateEnvironmentEC2Result` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `TooManyRequestsException` | Creates an Cloud9 development environment, launches an Amazon Elastic Compute Cloud (Amazon EC2) instance, and then connects from the instance to the environment. Cloud9 is no longer available to new customers. |
-| `CreateEnvironmentMembership` | - | `idempotent` | `environmentId`, `permissions`, `userArn` | - | `CreateEnvironmentMembershipResult` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `TooManyRequestsException` | Adds an environment member to an Cloud9 development environment. Cloud9 is no longer available to new customers. |
-| `DeleteEnvironment` | - | `idempotent` | `environmentId` | - | `DeleteEnvironmentResult` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `TooManyRequestsException` | Deletes an Cloud9 development environment. If an Amazon EC2 instance is connected to the environment, also terminates the instance. |
-| `DeleteEnvironmentMembership` | - | `idempotent` | `environmentId`, `userArn` | - | `DeleteEnvironmentMembershipResult` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `TooManyRequestsException` | Deletes an environment member from a development environment. Cloud9 is no longer available to new customers. |
-| `DescribeEnvironmentMemberships` | - | `paginated` | - | - | `DescribeEnvironmentMembershipsResult` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `TooManyRequestsException` | Gets information about environment members for an Cloud9 development environment. Cloud9 is no longer available to new customers. |
-| `DescribeEnvironmentStatus` | - | - | `environmentId` | - | `DescribeEnvironmentStatusResult` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `TooManyRequestsException` | Gets status information for an Cloud9 development environment. Cloud9 is no longer available to new customers. |
-| `DescribeEnvironments` | - | - | `environmentIds` | - | `DescribeEnvironmentsResult` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `TooManyRequestsException` | Gets information about Cloud9 development environments. Cloud9 is no longer available to new customers. |
-| `ListEnvironments` | - | `paginated` | - | - | `ListEnvironmentsResult` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `TooManyRequestsException` | Gets a list of Cloud9 development environment identifiers. Cloud9 is no longer available to new customers. |
-| `ListTagsForResource` | - | - | `ResourceARN` | - | `ListTagsForResourceResponse` | `BadRequestException`, `InternalServerErrorException`, `NotFoundException` | Gets a list of the tags associated with an Cloud9 development environment. Cloud9 is no longer available to new customers. |
-| `TagResource` | - | - | `ResourceARN`, `Tags` | - | `TagResourceResponse` | `BadRequestException`, `ConcurrentAccessException`, `InternalServerErrorException`, `NotFoundException` | Adds tags to an Cloud9 development environment. Cloud9 is no longer available to new customers. |
-| `UntagResource` | - | - | `ResourceARN`, `TagKeys` | - | `UntagResourceResponse` | `BadRequestException`, `ConcurrentAccessException`, `InternalServerErrorException`, `NotFoundException` | Removes tags from an Cloud9 development environment. Cloud9 is no longer available to new customers. |
-| `UpdateEnvironment` | - | `idempotent` | `environmentId` | - | `UpdateEnvironmentResult` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `TooManyRequestsException` | Changes the settings of an existing Cloud9 development environment. Cloud9 is no longer available to new customers. |
-| `UpdateEnvironmentMembership` | - | `idempotent` | `environmentId`, `permissions`, `userArn` | - | `UpdateEnvironmentMembershipResult` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `TooManyRequestsException` | Changes the settings of an existing environment member for an Cloud9 development environment. Cloud9 is no longer available to new customers. |
+| `CreateEnvironmentEC2` | `-` | `idempotent` | `name`, `instanceType`, `imageId` | - | `CreateEnvironmentEC2Result` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `TooManyRequestsException` | Creates an Cloud9 development environment, launches an Amazon Elastic Compute Cloud (Amazon EC2) instance, and then connects from the instance to the environment. Cloud9 is no longer available to new customers. Exist ... |
+| `CreateEnvironmentMembership` | `-` | `idempotent` | `environmentId`, `userArn`, `permissions` | - | `CreateEnvironmentMembershipResult` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `TooManyRequestsException` | Adds an environment member to an Cloud9 development environment. Cloud9 is no longer available to new customers. Existing customers of Cloud9 can continue to use the service as normal. Learn more" |
+| `DeleteEnvironment` | `-` | `idempotent` | `environmentId` | - | `DeleteEnvironmentResult` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `TooManyRequestsException` | Deletes an Cloud9 development environment. If an Amazon EC2 instance is connected to the environment, also terminates the instance. Cloud9 is no longer available to new customers. Existing customers of Cloud9 can con ... |
+| `DeleteEnvironmentMembership` | `-` | `idempotent` | `environmentId`, `userArn` | - | `DeleteEnvironmentMembershipResult` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `TooManyRequestsException` | Deletes an environment member from a development environment. Cloud9 is no longer available to new customers. Existing customers of Cloud9 can continue to use the service as normal. Learn more" |
+| `DescribeEnvironmentMemberships` | `-` | `paginated` | - | - | `DescribeEnvironmentMembershipsResult` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `TooManyRequestsException` | Gets information about environment members for an Cloud9 development environment. Cloud9 is no longer available to new customers. Existing customers of Cloud9 can continue to use the service as normal. Learn more" |
+| `DescribeEnvironments` | `-` | - | `environmentIds` | - | `DescribeEnvironmentsResult` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `TooManyRequestsException` | Gets information about Cloud9 development environments. Cloud9 is no longer available to new customers. Existing customers of Cloud9 can continue to use the service as normal. Learn more" |
+| `DescribeEnvironmentStatus` | `-` | - | `environmentId` | - | `DescribeEnvironmentStatusResult` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `TooManyRequestsException` | Gets status information for an Cloud9 development environment. Cloud9 is no longer available to new customers. Existing customers of Cloud9 can continue to use the service as normal. Learn more" |
+| `ListEnvironments` | `-` | `paginated` | - | - | `ListEnvironmentsResult` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `TooManyRequestsException` | Gets a list of Cloud9 development environment identifiers. Cloud9 is no longer available to new customers. Existing customers of Cloud9 can continue to use the service as normal. Learn more" Cloud9 is no longer avail ... |
+| `ListTagsForResource` | `-` | - | `ResourceARN` | - | `ListTagsForResourceResponse` | `BadRequestException`, `InternalServerErrorException`, `NotFoundException` | Gets a list of the tags associated with an Cloud9 development environment. Cloud9 is no longer available to new customers. Existing customers of Cloud9 can continue to use the service as normal. Learn more" |
+| `TagResource` | `-` | - | `ResourceARN`, `Tags` | - | `TagResourceResponse` | `BadRequestException`, `ConcurrentAccessException`, `InternalServerErrorException`, `NotFoundException` | Adds tags to an Cloud9 development environment. Cloud9 is no longer available to new customers. Existing customers of Cloud9 can continue to use the service as normal. Learn more" Tags that you add to an Cloud9 envir ... |
+| `UntagResource` | `-` | - | `ResourceARN`, `TagKeys` | - | `UntagResourceResponse` | `BadRequestException`, `ConcurrentAccessException`, `InternalServerErrorException`, `NotFoundException` | Removes tags from an Cloud9 development environment. Cloud9 is no longer available to new customers. Existing customers of Cloud9 can continue to use the service as normal. Learn more" |
+| `UpdateEnvironment` | `-` | `idempotent` | `environmentId` | - | `UpdateEnvironmentResult` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `TooManyRequestsException` | Changes the settings of an existing Cloud9 development environment. Cloud9 is no longer available to new customers. Existing customers of Cloud9 can continue to use the service as normal. Learn more" |
+| `UpdateEnvironmentMembership` | `-` | `idempotent` | `environmentId`, `userArn`, `permissions` | - | `UpdateEnvironmentMembershipResult` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `TooManyRequestsException` | Changes the settings of an existing environment member for an Cloud9 development environment. Cloud9 is no longer available to new customers. Existing customers of Cloud9 can continue to use the service as normal. Le ... |
 
 ## HTTP Bindings
 
@@ -127,31 +127,48 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `BadRequestException` | `structure` | `className`, `code`, `message` | The target request is invalid. |
-| `InternalServerErrorException` | `structure` | `className`, `code`, `message` | An internal server error occurred. |
-| `NotFoundException` | `structure` | `className`, `code`, `message` | The target resource cannot be found. |
-| `ConflictException` | `structure` | `className`, `code`, `message` | A conflict occurred. |
-| `ForbiddenException` | `structure` | `className`, `code`, `message` | An access permissions issue occurred. |
-| `LimitExceededException` | `structure` | `className`, `code`, `message` | A service limit was exceeded. |
-| `TooManyRequestsException` | `structure` | `className`, `code`, `message` | Too many service requests were made over the given time period. |
-| `ConcurrentAccessException` | `structure` | `className`, `code`, `message` | A concurrent access issue occurred. |
-| `CreateEnvironmentEC2Request` | `structure` | `automaticStopTimeMinutes`, `clientRequestToken`, `connectionType`, `description`, `dryRun`, `imageId`, `instanceType`, `name`, `ownerArn`, `subnetId`, `tags` | - |
-| `CreateEnvironmentEC2Result` | `structure` | `environmentId` | - |
-| `CreateEnvironmentMembershipRequest` | `structure` | `environmentId`, `permissions`, `userArn` | - |
-| `CreateEnvironmentMembershipResult` | `structure` | `membership` | - |
-| `DeleteEnvironmentRequest` | `structure` | `environmentId` | - |
-| `DeleteEnvironmentResult` | `structure` | - | - |
-| `DeleteEnvironmentMembershipRequest` | `structure` | `environmentId`, `userArn` | - |
-| `DeleteEnvironmentMembershipResult` | `structure` | - | - |
-| `DescribeEnvironmentMembershipsRequest` | `structure` | `environmentId`, `maxResults`, `nextToken`, `permissions`, `userArn` | - |
-| `DescribeEnvironmentMembershipsResult` | `structure` | `memberships`, `nextToken` | - |
-| `DescribeEnvironmentStatusRequest` | `structure` | `environmentId` | - |
-| `DescribeEnvironmentStatusResult` | `structure` | `message`, `status` | - |
-| `DescribeEnvironmentsRequest` | `structure` | `environmentIds` | - |
-| `DescribeEnvironmentsResult` | `structure` | `environments` | - |
-| `ListEnvironmentsRequest` | `structure` | `maxResults`, `nextToken` | - |
-| `ListEnvironmentsResult` | `structure` | `environmentIds`, `nextToken` | - |
-
+| `BadRequestException` | `structure` | message, className, code | The target request is invalid. |
+| `ConcurrentAccessException` | `structure` | message, className, code | A concurrent access issue occurred. |
+| `ConflictException` | `structure` | message, className, code | A conflict occurred. |
+| `ForbiddenException` | `structure` | message, className, code | An access permissions issue occurred. |
+| `InternalServerErrorException` | `structure` | message, className, code | An internal server error occurred. |
+| `LimitExceededException` | `structure` | message, className, code | A service limit was exceeded. |
+| `NotFoundException` | `structure` | message, className, code | The target resource cannot be found. |
+| `TooManyRequestsException` | `structure` | message, className, code | Too many service requests were made over the given time period. |
+| `CreateEnvironmentEC2Request` | `structure` | name, description, clientRequestToken, instanceType, subnetId, imageId, automaticStopTimeMinutes, ownerArn, tags, connectionType, dryRun | - |
+| `CreateEnvironmentEC2Result` | `structure` | environmentId | - |
+| `CreateEnvironmentMembershipRequest` | `structure` | environmentId, userArn, permissions | - |
+| `CreateEnvironmentMembershipResult` | `structure` | membership | - |
+| `DeleteEnvironmentRequest` | `structure` | environmentId | - |
+| `DeleteEnvironmentResult` | `structure` | **empty (no members)** | - |
+| `DeleteEnvironmentMembershipRequest` | `structure` | environmentId, userArn | - |
+| `DeleteEnvironmentMembershipResult` | `structure` | **empty (no members)** | - |
+| `DescribeEnvironmentMembershipsRequest` | `structure` | userArn, environmentId, permissions, nextToken, maxResults | - |
+| `DescribeEnvironmentMembershipsResult` | `structure` | memberships, nextToken | - |
+| `DescribeEnvironmentsRequest` | `structure` | environmentIds | - |
+| `DescribeEnvironmentsResult` | `structure` | environments | - |
+| `DescribeEnvironmentStatusRequest` | `structure` | environmentId | - |
+| `DescribeEnvironmentStatusResult` | `structure` | status, message | - |
+| `ListEnvironmentsRequest` | `structure` | nextToken, maxResults | - |
+| `ListEnvironmentsResult` | `structure` | nextToken, environmentIds | - |
+| `ListTagsForResourceRequest` | `structure` | ResourceARN | - |
+| `ListTagsForResourceResponse` | `structure` | Tags | - |
+| `TagResourceRequest` | `structure` | ResourceARN, Tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | ResourceARN, TagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UpdateEnvironmentRequest` | `structure` | environmentId, name, description, managedCredentialsAction | - |
+| `UpdateEnvironmentResult` | `structure` | **empty (no members)** | - |
+| `UpdateEnvironmentMembershipRequest` | `structure` | environmentId, userArn, permissions | - |
+| `UpdateEnvironmentMembershipResult` | `structure` | membership | - |
+| `ConnectionType` | `enum` | CONNECT_SSH, CONNECT_SSM | - |
+| `EnvironmentLifecycleStatus` | `enum` | CREATING, CREATED, CREATE_FAILED, DELETING, DELETE_FAILED | - |
+| `EnvironmentStatus` | `enum` | ERROR, CREATING, CONNECTING, READY, STOPPING, STOPPED, DELETING | - |
+| `EnvironmentType` | `enum` | SSH, EC2 | - |
+| `ManagedCredentialsAction` | `enum` | ENABLE, DISABLE | - |
+| `ManagedCredentialsStatus` | `enum` | ENABLED_ON_CREATE, ENABLED_BY_OWNER, DISABLED_BY_DEFAULT, DISABLED_BY_OWNER, DISABLED_BY_COLLABORATOR, PENDING_REMOVAL_BY_COLLABORATOR, PENDING_START_REMOVAL_BY_COLLABORATOR, PENDING_REMOVAL_BY_OWNER, PENDING_START_REMOVAL_BY_OWNER, FAILED_REMOVAL_BY_COLLABORATOR, FAILED_REMOVAL_BY_OWNER | - |
+| `MemberPermissions` | `enum` | READ_WRITE, READ_ONLY | - |
+| `Permissions` | `enum` | OWNER, READ_WRITE, READ_ONLY | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

@@ -41,43 +41,43 @@ No high-level service documentation is embedded in the AWS API model.
 ### List
 
 - Operations: `ListConnectorOperations`, `ListConnectors`, `ListCustomPlugins`, `ListTagsForResource`, `ListWorkerConfigurations`
-- Traits: `paginated` (4), `readonly` (5)
-- Common required input members in this group: `connectorArn`, `resourceArn`
+- Traits: `readonly` (5), `paginated` (4)
+- Common required input members in this group: -
 
 ### Describe
 
 - Operations: `DescribeConnector`, `DescribeConnectorOperation`, `DescribeCustomPlugin`, `DescribeWorkerConfiguration`
 - Traits: `readonly` (4)
-- Common required input members in this group: `connectorArn`, `connectorOperationArn`, `customPluginArn`, `workerConfigurationArn`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateConnector`, `CreateCustomPlugin`, `CreateWorkerConfiguration`
-- Common required input members in this group: `capacity`, `connectorConfiguration`, `connectorName`, `contentType`, `kafkaCluster`, `kafkaClusterClientAuthentication`, `kafkaClusterEncryptionInTransit`, `kafkaConnectVersion`, `location`, `name`, `plugins`, `propertiesFileContent`, `serviceExecutionRoleArn`
+- Common required input members in this group: `name`
 
 ### Delete
 
 - Operations: `DeleteConnector`, `DeleteCustomPlugin`, `DeleteWorkerConfiguration`
 - Traits: `idempotent` (3)
-- Common required input members in this group: `connectorArn`, `customPluginArn`, `workerConfigurationArn`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateConnector`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `connectorArn`, `currentVersion`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
@@ -94,13 +94,13 @@ No high-level service documentation is embedded in the AWS API model.
 | `DescribeCustomPlugin` | `GET /v1/custom-plugins/{customPluginArn}` | `readonly` | `customPluginArn` | - | `DescribeCustomPluginResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException`, `UnauthorizedException` | A summary description of the custom plugin. |
 | `DescribeWorkerConfiguration` | `GET /v1/worker-configurations/{workerConfigurationArn}` | `readonly` | `workerConfigurationArn` | - | `DescribeWorkerConfigurationResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException`, `UnauthorizedException` | Returns information about a worker configuration. |
 | `ListConnectorOperations` | `GET /v1/connectors/{connectorArn}/operations` | `readonly`, `paginated` | `connectorArn` | - | `ListConnectorOperationsResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException`, `UnauthorizedException` | Lists information about a connector's operation(s). |
-| `ListConnectors` | `GET /v1/connectors` | `readonly`, `paginated` | - | - | `ListConnectorsResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException`, `UnauthorizedException` | Returns a list of all the connectors in this account and Region. The list is limited to connectors whose name starts with the specified prefix. |
+| `ListConnectors` | `GET /v1/connectors` | `readonly`, `paginated` | - | - | `ListConnectorsResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException`, `UnauthorizedException` | Returns a list of all the connectors in this account and Region. The list is limited to connectors whose name starts with the specified prefix. The response also includes a description of each of the listed connectors. |
 | `ListCustomPlugins` | `GET /v1/custom-plugins` | `readonly`, `paginated` | - | - | `ListCustomPluginsResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException`, `UnauthorizedException` | Returns a list of all of the custom plugins in this account and Region. |
 | `ListTagsForResource` | `GET /v1/tags/{resourceArn}` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException`, `UnauthorizedException` | Lists all the tags attached to the specified resource. |
 | `ListWorkerConfigurations` | `GET /v1/worker-configurations` | `readonly`, `paginated` | - | - | `ListWorkerConfigurationsResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException`, `UnauthorizedException` | Returns a list of all of the worker configurations in this account and Region. |
 | `TagResource` | `POST /v1/tags/{resourceArn}` | `idempotent` | `resourceArn`, `tags` | - | `TagResourceResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException`, `UnauthorizedException` | Attaches tags to the specified resource. |
 | `UntagResource` | `DELETE /v1/tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException`, `UnauthorizedException` | Removes tags from the specified resource. |
-| `UpdateConnector` | `PUT /v1/connectors/{connectorArn}` | `idempotent` | `connectorArn`, `currentVersion` | - | `UpdateConnectorResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException`, `UnauthorizedException` | Updates the specified connector. For request body, specify only one parameter: either `capacity` or `connectorConfiguration`. |
+| `UpdateConnector` | `PUT /v1/connectors/{connectorArn}` | `idempotent` | `connectorArn`, `currentVersion` | - | `UpdateConnectorResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException`, `UnauthorizedException` | Updates the specified connector. For request body, specify only one parameter: either capacity or connectorConfiguration . |
 
 ## HTTP Bindings
 
@@ -120,31 +120,46 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `BadRequestException` | `structure` | `message` | HTTP Status Code 400: Bad request due to incorrect input. |
-| `ForbiddenException` | `structure` | `message` | HTTP Status Code 403: Access forbidden. |
-| `InternalServerErrorException` | `structure` | `message` | HTTP Status Code 500: Unexpected internal server error. |
-| `NotFoundException` | `structure` | `message` | HTTP Status Code 404: Resource not found due to incorrect input. |
-| `ServiceUnavailableException` | `structure` | `message` | HTTP Status Code 503: Service Unavailable. |
-| `TooManyRequestsException` | `structure` | `message` | HTTP Status Code 429: Limit exceeded. |
-| `UnauthorizedException` | `structure` | `message` | HTTP Status Code 401: Unauthorized request. |
-| `ConflictException` | `structure` | `message` | HTTP Status Code 409: Conflict. |
-| `CreateConnectorRequest` | `structure` | `capacity`, `connectorConfiguration`, `connectorDescription`, `connectorName`, `kafkaCluster`, `kafkaClusterClientAuthentication`, `kafkaClusterEncryptionInTransit`, `kafkaConnectVersion`, `logDelivery`, `networkType`, `plugins`, `serviceExecutionRoleArn`, ... (+2) | - |
-| `CreateConnectorResponse` | `structure` | `connectorArn`, `connectorName`, `connectorState` | - |
-| `CreateCustomPluginRequest` | `structure` | `contentType`, `description`, `location`, `name`, `tags` | - |
-| `CreateCustomPluginResponse` | `structure` | `customPluginArn`, `customPluginState`, `name`, `revision` | - |
-| `CreateWorkerConfigurationRequest` | `structure` | `description`, `name`, `propertiesFileContent`, `tags` | - |
-| `CreateWorkerConfigurationResponse` | `structure` | `creationTime`, `latestRevision`, `name`, `workerConfigurationArn`, `workerConfigurationState` | - |
-| `DeleteConnectorRequest` | `structure` | `connectorArn`, `currentVersion` | - |
-| `DeleteConnectorResponse` | `structure` | `connectorArn`, `connectorState` | - |
-| `DeleteCustomPluginRequest` | `structure` | `customPluginArn` | - |
-| `DeleteCustomPluginResponse` | `structure` | `customPluginArn`, `customPluginState` | - |
-| `DeleteWorkerConfigurationRequest` | `structure` | `workerConfigurationArn` | - |
-| `DeleteWorkerConfigurationResponse` | `structure` | `workerConfigurationArn`, `workerConfigurationState` | - |
-| `DescribeConnectorRequest` | `structure` | `connectorArn` | - |
-| `DescribeConnectorResponse` | `structure` | `capacity`, `connectorArn`, `connectorConfiguration`, `connectorDescription`, `connectorName`, `connectorState`, `creationTime`, `currentVersion`, `kafkaCluster`, `kafkaClusterClientAuthentication`, `kafkaClusterEncryptionInTransit`, `kafkaConnectVersion`, ... (+6) | - |
-| `DescribeConnectorOperationRequest` | `structure` | `connectorOperationArn` | - |
-| `DescribeConnectorOperationResponse` | `structure` | `connectorArn`, `connectorOperationArn`, `connectorOperationState`, `connectorOperationType`, `creationTime`, `endTime`, `errorInfo`, `operationSteps`, `originConnectorConfiguration`, `originWorkerSetting`, `targetConnectorConfiguration`, `targetWorkerSetting` | - |
-
+| `BadRequestException` | `structure` | message | HTTP Status Code 400: Bad request due to incorrect input. Correct your request and then retry it. |
+| `ConflictException` | `structure` | message | HTTP Status Code 409: Conflict. A resource with this name already exists. Retry your request with another name. |
+| `ForbiddenException` | `structure` | message | HTTP Status Code 403: Access forbidden. Correct your credentials and then retry your request. |
+| `InternalServerErrorException` | `structure` | message | HTTP Status Code 500: Unexpected internal server error. Retrying your request might resolve the issue. |
+| `NotFoundException` | `structure` | message | HTTP Status Code 404: Resource not found due to incorrect input. Correct your request and then retry it. |
+| `ServiceUnavailableException` | `structure` | message | HTTP Status Code 503: Service Unavailable. Retrying your request in some time might resolve the issue. |
+| `TooManyRequestsException` | `structure` | message | HTTP Status Code 429: Limit exceeded. Resource limit reached. |
+| `UnauthorizedException` | `structure` | message | HTTP Status Code 401: Unauthorized request. The provided credentials couldn't be validated. |
+| `CreateConnectorRequest` | `structure` | capacity, connectorConfiguration, connectorDescription, connectorName, kafkaCluster, kafkaClusterClientAuthentication, kafkaClusterEncryptionInTransit, kafkaConnectVersion, logDelivery, networkType, plugins, serviceExecutionRoleArn, ... (+2) | - |
+| `CreateConnectorResponse` | `structure` | connectorArn, connectorName, connectorState | - |
+| `CreateCustomPluginRequest` | `structure` | contentType, description, location, name, tags | - |
+| `CreateCustomPluginResponse` | `structure` | customPluginArn, customPluginState, name, revision | - |
+| `CreateWorkerConfigurationRequest` | `structure` | description, name, propertiesFileContent, tags | - |
+| `CreateWorkerConfigurationResponse` | `structure` | creationTime, latestRevision, name, workerConfigurationArn, workerConfigurationState | - |
+| `DeleteConnectorRequest` | `structure` | connectorArn, currentVersion | - |
+| `DeleteConnectorResponse` | `structure` | connectorArn, connectorState | - |
+| `DeleteCustomPluginRequest` | `structure` | customPluginArn | - |
+| `DeleteCustomPluginResponse` | `structure` | customPluginArn, customPluginState | - |
+| `DeleteWorkerConfigurationRequest` | `structure` | workerConfigurationArn | - |
+| `DeleteWorkerConfigurationResponse` | `structure` | workerConfigurationArn, workerConfigurationState | - |
+| `DescribeConnectorRequest` | `structure` | connectorArn | - |
+| `DescribeConnectorResponse` | `structure` | capacity, connectorArn, connectorConfiguration, connectorDescription, connectorName, connectorState, creationTime, currentVersion, kafkaCluster, kafkaClusterClientAuthentication, kafkaClusterEncryptionInTransit, kafkaConnectVersion, ... (+6) | - |
+| `DescribeConnectorOperationRequest` | `structure` | connectorOperationArn | - |
+| `DescribeConnectorOperationResponse` | `structure` | connectorArn, connectorOperationArn, connectorOperationState, connectorOperationType, operationSteps, originWorkerSetting, originConnectorConfiguration, targetWorkerSetting, targetConnectorConfiguration, errorInfo, creationTime, endTime | - |
+| `DescribeCustomPluginRequest` | `structure` | customPluginArn | - |
+| `DescribeCustomPluginResponse` | `structure` | creationTime, customPluginArn, customPluginState, description, latestRevision, name, stateDescription | - |
+| `DescribeWorkerConfigurationRequest` | `structure` | workerConfigurationArn | - |
+| `DescribeWorkerConfigurationResponse` | `structure` | creationTime, description, latestRevision, name, workerConfigurationArn, workerConfigurationState | - |
+| `ListConnectorOperationsRequest` | `structure` | connectorArn, maxResults, nextToken | - |
+| `ListConnectorOperationsResponse` | `structure` | connectorOperations, nextToken | - |
+| `ListConnectorsRequest` | `structure` | connectorNamePrefix, maxResults, nextToken | - |
+| `ListConnectorsResponse` | `structure` | connectors, nextToken | - |
+| `ListCustomPluginsRequest` | `structure` | maxResults, nextToken, namePrefix | - |
+| `ListCustomPluginsResponse` | `structure` | customPlugins, nextToken | - |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `ListWorkerConfigurationsRequest` | `structure` | maxResults, nextToken, namePrefix | - |
+| `ListWorkerConfigurationsResponse` | `structure` | nextToken, workerConfigurations | - |
+| `TagResourceRequest` | `structure` | resourceArn, tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

@@ -37,17 +37,17 @@ The Amazon API Gateway Management API allows you to directly manage runtime aspe
 ### Delete
 
 - Operations: `DeleteConnection`
-- Common required input members in this group: `ConnectionId`
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetConnection`
-- Common required input members in this group: `ConnectionId`
+- Common required input members in this group: -
 
 ### Post
 
 - Operations: `PostToConnection`
-- Common required input members in this group: `ConnectionId`, `Data`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
@@ -55,7 +55,7 @@ The Amazon API Gateway Management API allows you to directly manage runtime aspe
 |---|---|---|---|---|---|---|---|
 | `DeleteConnection` | `DELETE /@connections/{ConnectionId}` | - | `ConnectionId` | - | `Unit` | `ForbiddenException`, `GoneException`, `LimitExceededException` | Delete the connection with the provided id. |
 | `GetConnection` | `GET /@connections/{ConnectionId}` | - | `ConnectionId` | - | `GetConnectionResponse` | `ForbiddenException`, `GoneException`, `LimitExceededException` | Get information about the connection with the provided id. |
-| `PostToConnection` | `POST /@connections/{ConnectionId}` | - | `ConnectionId`, `Data` | - | `Unit` | `ForbiddenException`, `GoneException`, `LimitExceededException`, `PayloadTooLargeException` | Sends the provided data to the specified connection. |
+| `PostToConnection` | `POST /@connections/{ConnectionId}` | - | `Data`, `ConnectionId` | - | `Unit` | `ForbiddenException`, `GoneException`, `LimitExceededException`, `PayloadTooLargeException` | Sends the provided data to the specified connection. |
 
 ## HTTP Bindings
 
@@ -69,15 +69,14 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ForbiddenException` | `structure` | - | The caller is not authorized to invoke this operation. |
-| `GoneException` | `structure` | - | The connection with the provided id no longer exists. |
-| `LimitExceededException` | `structure` | - | The client is sending more than the allowed number of requests per unit of time or the WebSocket client side buffer is full. |
-| `DeleteConnectionRequest` | `structure` | `ConnectionId` | - |
-| `GetConnectionRequest` | `structure` | `ConnectionId` | - |
-| `GetConnectionResponse` | `structure` | `ConnectedAt`, `Identity`, `LastActiveAt` | - |
-| `PostToConnectionRequest` | `structure` | `ConnectionId`, `Data` | - |
-| `PayloadTooLargeException` | `structure` | `Message` | The data has exceeded the maximum size allowed. |
-
+| `ForbiddenException` | `structure` | **empty (no members)** | The caller is not authorized to invoke this operation. |
+| `GoneException` | `structure` | **empty (no members)** | The connection with the provided id no longer exists. |
+| `LimitExceededException` | `structure` | **empty (no members)** | The client is sending more than the allowed number of requests per unit of time or the WebSocket client side buffer is full. |
+| `PayloadTooLargeException` | `structure` | Message | The data has exceeded the maximum size allowed. |
+| `DeleteConnectionRequest` | `structure` | ConnectionId | - |
+| `GetConnectionRequest` | `structure` | ConnectionId | - |
+| `GetConnectionResponse` | `structure` | ConnectedAt, Identity, LastActiveAt | - |
+| `PostToConnectionRequest` | `structure` | Data, ConnectionId | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

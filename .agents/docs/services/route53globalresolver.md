@@ -56,132 +56,35 @@ Amazon Route 53 Global Resolver is a global, internet-accessible DNS resolver th
 | `ManagedFirewallDomainList` | `id` | read: `GetManagedFirewallDomainList`; list: `ListManagedFirewallDomainLists` | - | Represents a Route 53 Global Resolver managed firewall domain list that provides AWS-managed collections of domains for common security use cases, such as blocking malware... |
 ## Operation Groups
 
-### List
-
-- Operations: `ListAccessSources`, `ListAccessTokens`, `ListDNSViews`, `ListFirewallDomainLists`, `ListFirewallDomains`, `ListFirewallRules`, `ListGlobalResolvers`, `ListHostedZoneAssociations`, `ListManagedFirewallDomainLists`, `ListTagsForResource`
-- Traits: `paginated` (9), `readonly` (9)
-- Common required input members in this group: `dnsViewId`, `firewallDomainListId`, `globalResolverId`, `managedFirewallDomainListType`, `resourceArn`
-
-### Get
-
-- Operations: `GetAccessSource`, `GetAccessToken`, `GetDNSView`, `GetFirewallDomainList`, `GetFirewallRule`, `GetGlobalResolver`, `GetHostedZoneAssociation`, `GetManagedFirewallDomainList`
-- Traits: `readonly` (8)
-- Common required input members in this group: `accessSourceId`, `accessTokenId`, `dnsViewId`, `firewallDomainListId`, `firewallRuleId`, `globalResolverId`, `hostedZoneAssociationId`, `managedFirewallDomainListId`
-
-### Update
-
-- Operations: `UpdateAccessSource`, `UpdateAccessToken`, `UpdateDNSView`, `UpdateFirewallDomains`, `UpdateFirewallRule`, `UpdateGlobalResolver`, `UpdateHostedZoneAssociation`
-- Traits: `idempotency-token` (1), `idempotent` (6)
-- Common required input members in this group: `accessSourceId`, `accessTokenId`, `clientToken`, `dnsViewId`, `domains`, `firewallDomainListId`, `firewallRuleId`, `globalResolverId`, `hostedZoneAssociationId`, `name`, `operation`
-
-### Create
-
-- Operations: `CreateAccessSource`, `CreateAccessToken`, `CreateDNSView`, `CreateFirewallDomainList`, `CreateFirewallRule`, `CreateGlobalResolver`
-- Traits: `idempotency-token` (6), `idempotent` (6)
-- Common required input members in this group: `action`, `cidr`, `dnsViewId`, `globalResolverId`, `name`, `protocol`, `regions`
-
-### Delete
-
-- Operations: `DeleteAccessSource`, `DeleteAccessToken`, `DeleteDNSView`, `DeleteFirewallDomainList`, `DeleteFirewallRule`, `DeleteGlobalResolver`
-- Traits: `idempotent` (6)
-- Common required input members in this group: `accessSourceId`, `accessTokenId`, `dnsViewId`, `firewallDomainListId`, `firewallRuleId`, `globalResolverId`
-
-### Batch
-
-- Operations: `BatchCreateFirewallRule`, `BatchDeleteFirewallRule`, `BatchUpdateFirewallRule`
-- Traits: `idempotent` (3)
-- Common required input members in this group: `firewallRules`
-
-### Associate
-
-- Operations: `AssociateHostedZone`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `hostedZoneId`, `name`, `resourceArn`
-
-### Disable
-
-- Operations: `DisableDNSView`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `dnsViewId`
-
 ### Disassociate
 
 - Operations: `DisassociateHostedZone`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `hostedZoneId`, `resourceArn`
+- Common required input members in this group: -
 
-### Enable
+### List
 
-- Operations: `EnableDNSView`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `dnsViewId`
-
-### Import
-
-- Operations: `ImportFirewallDomains`
-- Common required input members in this group: `domainFileUrl`, `firewallDomainListId`, `operation`
+- Operations: `ListTagsForResource`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AssociateHostedZone` | `POST /hosted-zone-associations/{hostedZoneId}` | `idempotent` | `hostedZoneId`, `name`, `resourceArn` | - | `AssociateHostedZoneOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Associates a Route 53 private hosted zone with a Route 53 Global Resolver resource. This allows the resolver to resolve DNS queries for the private hosted zone from anywhere globally. |
-| `BatchCreateFirewallRule` | `POST /firewall-rules/batch-create` | `idempotent` | `firewallRules` | - | `BatchCreateFirewallRuleOutput` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Creates multiple DNS firewall rules in a single operation. This is more efficient than creating rules individually when you need to set up multiple rules at once. |
-| `BatchDeleteFirewallRule` | `POST /firewall-rules/batch-delete` | `idempotent` | `firewallRules` | - | `BatchDeleteFirewallRuleOutput` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Deletes multiple DNS firewall rules in a single operation. This is more efficient than deleting rules individually. |
-| `BatchUpdateFirewallRule` | `POST /firewall-rules/batch-update` | `idempotent` | `firewallRules` | - | `BatchUpdateFirewallRuleOutput` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Updates multiple DNS firewall rules in a single operation. This is more efficient than updating rules individually. |
-| `CreateAccessSource` | `POST /access-sources` | `idempotent`, `idempotency-token` | `cidr`, `dnsViewId`, `protocol` | `clientToken` | `CreateAccessSourceOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates an access source for a DNS view. Access sources define IP addresses or CIDR ranges that are allowed to send DNS queries to the Route 53 Global Resolver, along with the permitted DNS protocols. |
-| `CreateAccessToken` | `POST /tokens/{dnsViewId}` | `idempotent`, `idempotency-token` | `dnsViewId` | `clientToken` | `CreateAccessTokenOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates an access token for a DNS view. Access tokens provide token-based authentication for DNS-over-HTTPS (DoH) and DNS-over-TLS (DoT) connections to the Route 53 Global Resolver. |
-| `CreateDNSView` | `POST /dns-views/{globalResolverId}` | `idempotent`, `idempotency-token` | `globalResolverId`, `name` | `clientToken` | `CreateDNSViewOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a DNS view within a Route 53 Global Resolver. A DNS view models end users, user groups, networks, and devices, and serves as a parent resource that holds configurations controlling access, authorization, DNS firewall rules, and forwarding rules. |
-| `CreateFirewallDomainList` | `POST /firewall-domain-lists/{globalResolverId}` | `idempotent`, `idempotency-token` | `globalResolverId`, `name` | `clientToken` | `CreateFirewallDomainListOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a firewall domain list. Domain lists are reusable sets of domain specifications that you use in DNS firewall rules to allow, block, or alert on DNS queries to specific domains. |
-| `CreateFirewallRule` | `POST /firewall-rules` | `idempotent`, `idempotency-token` | `action`, `dnsViewId`, `name` | `clientToken` | `CreateFirewallRuleOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a DNS firewall rule. Firewall rules define actions (ALLOW, BLOCK, or ALERT) to take on DNS queries that match specified domain lists, managed domain lists, or advanced threat protections. |
-| `CreateGlobalResolver` | `POST /global-resolver` | `idempotent`, `idempotency-token` | `name`, `regions` | `clientToken` | `CreateGlobalResolverOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a new Route 53 Global Resolver instance. A Route 53 Global Resolver is a global, internet-accessible DNS resolver that provides secure DNS resolution for both public and private domains through global anycast IP addresses. |
-| `DeleteAccessSource` | `DELETE /access-sources/{accessSourceId}` | `idempotent` | `accessSourceId` | - | `DeleteAccessSourceOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an access source. This operation cannot be undone. |
-| `DeleteAccessToken` | `DELETE /tokens/{accessTokenId}` | `idempotent` | `accessTokenId` | - | `DeleteAccessTokenOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an access token. This operation cannot be undone. |
-| `DeleteDNSView` | `DELETE /dns-views/{dnsViewId}` | `idempotent` | `dnsViewId` | - | `DeleteDNSViewOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a DNS view. This operation cannot be undone. |
-| `DeleteFirewallDomainList` | `DELETE /firewall-domain-lists/{firewallDomainListId}` | `idempotent` | `firewallDomainListId` | - | `DeleteFirewallDomainListOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a firewall domain list. This operation cannot be undone. |
-| `DeleteFirewallRule` | `DELETE /firewall-rules/{firewallRuleId}` | `idempotent` | `firewallRuleId` | - | `DeleteFirewallRuleOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a DNS firewall rule. This operation cannot be undone. |
-| `DeleteGlobalResolver` | `DELETE /global-resolver/{globalResolverId}` | `idempotent` | `globalResolverId` | - | `DeleteGlobalResolverOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a Route 53 Global Resolver instance. This operation cannot be undone. |
-| `DisableDNSView` | `PATCH /dns-views/{dnsViewId}/disable` | `idempotent` | `dnsViewId` | - | `DisableDNSViewOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Disables a DNS view, preventing it from serving DNS queries. Route 53 Global Resolver is a global service that supports resolvers in multiple Amazon Web Services Regions but you must specify the US East (Ohio) Region to create, update, or otherwise work with... |
-| `DisassociateHostedZone` | `DELETE /hosted-zone-associations/hosted-zone/{hostedZoneId}/resource-arn/{resourceArn+}` | `idempotent` | `hostedZoneId`, `resourceArn` | - | `DisassociateHostedZoneOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Disassociates a Route 53 private hosted zone from a Route 53 Global Resolver resource. Route 53 Global Resolver is a global service that supports resolvers in multiple Amazon Web Services Regions but you must specify the US East (Ohio) Region to create... |
-| `EnableDNSView` | `PATCH /dns-views/{dnsViewId}/enable` | `idempotent` | `dnsViewId` | - | `EnableDNSViewOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Enables a disabled DNS view, allowing it to serve DNS queries again. Route 53 Global Resolver is a global service that supports resolvers in multiple Amazon Web Services Regions but you must specify the US East (Ohio) Region to create, update, or otherwise... |
-| `GetAccessSource` | `GET /access-sources/{accessSourceId}` | `readonly` | `accessSourceId` | - | `GetAccessSourceOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about an access source. Route 53 Global Resolver is a global service that supports resolvers in multiple Amazon Web Services Regions but you must specify the US East (Ohio) Region to create, update, or otherwise work with Route 53 Global... |
-| `GetAccessToken` | `GET /tokens/{accessTokenId}` | `readonly` | `accessTokenId` | - | `GetAccessTokenOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about an access token. Route 53 Global Resolver is a global service that supports resolvers in multiple Amazon Web Services Regions but you must specify the US East (Ohio) Region to create, update, or otherwise work with Route 53 Global... |
-| `GetDNSView` | `GET /dns-views/{dnsViewId}` | `readonly` | `dnsViewId` | - | `GetDNSViewOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about a DNS view. Route 53 Global Resolver is a global service that supports resolvers in multiple Amazon Web Services Regions but you must specify the US East (Ohio) Region to create, update, or otherwise work with Route 53 Global... |
-| `GetFirewallDomainList` | `GET /firewall-domain-lists/{firewallDomainListId}` | `readonly` | `firewallDomainListId` | - | `GetFirewallDomainListOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about a firewall domain list. Route 53 Global Resolver is a global service that supports resolvers in multiple Amazon Web Services Regions but you must specify the US East (Ohio) Region to create, update, or otherwise work with Route 53... |
-| `GetFirewallRule` | `GET /firewall-rules/{firewallRuleId}` | `readonly` | `firewallRuleId` | - | `GetFirewallRuleOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about a DNS firewall rule. Route 53 Global Resolver is a global service that supports resolvers in multiple Amazon Web Services Regions but you must specify the US East (Ohio) Region to create, update, or otherwise work with Route 53... |
-| `GetGlobalResolver` | `GET /global-resolver/{globalResolverId}` | `readonly` | `globalResolverId` | - | `GetGlobalResolverOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about a Route 53 Global Resolver instance. Route 53 Global Resolver is a global service that supports resolvers in multiple Amazon Web Services Regions but you must specify the US East (Ohio) Region to create, update, or otherwise work... |
-| `GetHostedZoneAssociation` | `GET /hosted-zone-associations/{hostedZoneAssociationId}` | `readonly` | `hostedZoneAssociationId` | - | `GetHostedZoneAssociationOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about a hosted zone association. Route 53 Global Resolver is a global service that supports resolvers in multiple Amazon Web Services Regions but you must specify the US East (Ohio) Region to create, update, or otherwise work with Route... |
-| `GetManagedFirewallDomainList` | `GET /managed-firewall-domain-lists/{managedFirewallDomainListId}` | `readonly` | `managedFirewallDomainListId` | - | `GetManagedFirewallDomainListOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about an Amazon Web Services-managed firewall domain list. Managed domain lists contain domains associated with malicious activity, content categories, or specific threats. |
-| `ImportFirewallDomains` | `PATCH /firewall-domain-lists/{firewallDomainListId}/domains/s3_file_url` | - | `domainFileUrl`, `firewallDomainListId`, `operation` | - | `ImportFirewallDomainsOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Imports a list of domains from an Amazon S3 file into a firewall domain list. The file should contain one domain per line. |
-| `ListAccessSources` | `GET /access-sources` | `readonly`, `paginated` | - | - | `ListAccessSourcesOutput` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists all access sources with pagination support. Route 53 Global Resolver is a global service that supports resolvers in multiple Amazon Web Services Regions but you must specify the US East (Ohio) Region to create, update, or otherwise work with Route 53... |
-| `ListAccessTokens` | `GET /tokens/dns-view/{dnsViewId}` | `readonly`, `paginated` | `dnsViewId` | - | `ListAccessTokensOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all access tokens for a DNS view with pagination support. Route 53 Global Resolver is a global service that supports resolvers in multiple Amazon Web Services Regions but you must specify the US East (Ohio) Region to create, update, or otherwise work... |
-| `ListDNSViews` | `GET /dns-views/resolver/{globalResolverId}` | `readonly`, `paginated` | `globalResolverId` | - | `ListDNSViewsOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all DNS views for a Route 53 Global Resolver with pagination support. Route 53 Global Resolver is a global service that supports resolvers in multiple Amazon Web Services Regions but you must specify the US East (Ohio) Region to create, update, or... |
-| `ListFirewallDomainLists` | `GET /firewall-domain-lists` | `readonly`, `paginated` | - | - | `ListFirewallDomainListsOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all firewall domain lists for a Route 53 Global Resolver with pagination support. Route 53 Global Resolver is a global service that supports resolvers in multiple Amazon Web Services Regions but you must specify the US East (Ohio) Region to create... |
-| `ListFirewallDomains` | `GET /firewall-domain-lists/{firewallDomainListId}/domains` | `readonly`, `paginated` | `firewallDomainListId` | - | `ListFirewallDomainsOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all the domains in DNS Firewall domain list you have created. Route 53 Global Resolver is a global service that supports resolvers in multiple Amazon Web Services Regions but you must specify the US East (Ohio) Region to create, update, or otherwise... |
-| `ListFirewallRules` | `GET /firewall-rules` | `readonly`, `paginated` | `dnsViewId` | - | `ListFirewallRulesOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all DNS firewall rules for a DNS view with pagination support. Route 53 Global Resolver is a global service that supports resolvers in multiple Amazon Web Services Regions but you must specify the US East (Ohio) Region to create, update, or otherwise... |
-| `ListGlobalResolvers` | `GET /global-resolver` | `readonly`, `paginated` | - | - | `ListGlobalResolversOutput` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists all Route 53 Global Resolver instances in your account with pagination support. Route 53 Global Resolver is a global service that supports resolvers in multiple Amazon Web Services Regions but you must specify the US East (Ohio) Region to create... |
-| `ListHostedZoneAssociations` | `GET /hosted-zone-associations/resource-arn/{resourceArn+}` | `readonly`, `paginated` | `resourceArn` | - | `ListHostedZoneAssociationsOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all hosted zone associations for a Route 53 Global Resolver resource with pagination support. Route 53 Global Resolver is a global service that supports resolvers in multiple Amazon Web Services Regions but you must specify the US East (Ohio) Region to... |
-| `ListManagedFirewallDomainLists` | `GET /list-managed-firewall-domain-lists/{managedFirewallDomainListType}` | `readonly`, `paginated` | `managedFirewallDomainListType` | - | `ListManagedFirewallDomainListsOutput` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a paginated list of the Amazon Web Services Managed DNS Lists and the categories for DNS Firewall. The categories are either `THREAT` or `CONTENT`. |
-| `ListTagsForResource` | `POST /get-all-tags` | - | `resourceArn` | - | `ListTagsForResourceResponse` | `ResourceNotFoundException` | Lists the tags associated with a Route 53 Global Resolver resource. Route 53 Global Resolver is a global service that supports resolvers in multiple Amazon Web Services Regions but you must specify the US East (Ohio) Region to create, update, or otherwise... |
-| `TagResource` | `POST /tag-resource` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Adds or updates tags for a Route 53 Global Resolver resource. Tags are key-value pairs that help you organize and identify your resources. |
-| `UntagResource` | `POST /untag-resource` | - | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `ResourceNotFoundException`, `ValidationException` | Removes tags from a Route 53 Global Resolver resource. Route 53 Global Resolver is a global service that supports resolvers in multiple Amazon Web Services Regions but you must specify the US East (Ohio) Region to create, update, or otherwise work with Route... |
-| `UpdateAccessSource` | `PATCH /access-sources/{accessSourceId}` | `idempotent` | `accessSourceId` | - | `UpdateAccessSourceOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates the configuration of an access source. Route 53 Global Resolver is a global service that supports resolvers in multiple Amazon Web Services Regions but you must specify the US East (Ohio) Region to create, update, or otherwise work with Route 53... |
-| `UpdateAccessToken` | `PATCH /tokens/{accessTokenId}` | `idempotent` | `accessTokenId`, `name` | - | `UpdateAccessTokenOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates the configuration of an access token. Route 53 Global Resolver is a global service that supports resolvers in multiple Amazon Web Services Regions but you must specify the US East (Ohio) Region to create, update, or otherwise work with Route 53 Global... |
-| `UpdateDNSView` | `PATCH /dns-views/{dnsViewId}` | `idempotent` | `dnsViewId` | - | `UpdateDNSViewOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates the configuration of a DNS view. Route 53 Global Resolver is a global service that supports resolvers in multiple Amazon Web Services Regions but you must specify the US East (Ohio) Region to create, update, or otherwise work with Route 53 Global... |
-| `UpdateFirewallDomains` | `PATCH /firewall-domain-lists/{firewallDomainListId}/domains` | - | `domains`, `firewallDomainListId`, `operation` | - | `UpdateFirewallDomainsOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates a DNS Firewall domain list from an array of specified domains. Route 53 Global Resolver is a global service that supports resolvers in multiple Amazon Web Services Regions but you must specify the US East (Ohio) Region to create, update, or otherwise... |
-| `UpdateFirewallRule` | `PATCH /firewall-rules/{firewallRuleId}` | `idempotent`, `idempotency-token` | `clientToken`, `firewallRuleId` | `clientToken` | `UpdateFirewallRuleOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates the configuration of a DNS firewall rule. Route 53 Global Resolver is a global service that supports resolvers in multiple Amazon Web Services Regions but you must specify the US East (Ohio) Region to create, update, or otherwise work with Route 53... |
-| `UpdateGlobalResolver` | `PATCH /global-resolver/{globalResolverId}` | `idempotent` | `globalResolverId` | - | `UpdateGlobalResolverOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates the configuration of a Route 53 Global Resolver instance. You can modify the name, description, and observability Region. |
-| `UpdateHostedZoneAssociation` | `PATCH /hosted-zone-associations/{hostedZoneAssociationId}` | `idempotent` | `hostedZoneAssociationId` | - | `UpdateHostedZoneAssociationOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates the configuration of a hosted zone association. Route 53 Global Resolver is a global service that supports resolvers in multiple Amazon Web Services Regions but you must specify the US East (Ohio) Region to create, update, or otherwise work with Route... |
+| `DisassociateHostedZone` | `DELETE /hosted-zone-associations/hosted-zone/{hostedZoneId}/resource-arn/{resourceArn+}` | `idempotent` | `hostedZoneId`, `resourceArn` | - | `DisassociateHostedZoneOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Disassociates a Route 53 private hosted zone from a Route 53 Global Resolver resource. Route 53 Global Resolver is a global service that supports resolvers in multiple Amazon Web Services Regions but you must specify ... |
+| `ListTagsForResource` | `POST /get-all-tags` | - | `resourceArn` | - | `ListTagsForResourceResponse` | `ResourceNotFoundException` | Lists the tags associated with a Route 53 Global Resolver resource. Route 53 Global Resolver is a global service that supports resolvers in multiple Amazon Web Services Regions but you must specify the US East (Ohio) ... |
+| `TagResource` | `POST /tag-resource` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Adds or updates tags for a Route 53 Global Resolver resource. Tags are key-value pairs that help you organize and identify your resources. Route 53 Global Resolver is a global service that supports resolvers in multi ... |
+| `UntagResource` | `POST /untag-resource` | - | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `ResourceNotFoundException`, `ValidationException` | Removes tags from a Route 53 Global Resolver resource. Route 53 Global Resolver is a global service that supports resolvers in multiple Amazon Web Services Regions but you must specify the US East (Ohio) Region to cr ... |
 
 ## HTTP Bindings
 
@@ -193,31 +96,37 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ValidationException` | `structure` | `fieldList`, `message`, `reason` | The input parameters are invalid. |
-| `AccessDeniedException` | `structure` | `message` | You don't have permission to perform this operation. |
-| `InternalServerException` | `structure` | `message`, `retryAfterSeconds` | An internal server error occurred. |
-| `ThrottlingException` | `structure` | `message`, `quotaCode`, `retryAfterSeconds`, `serviceCode` | The request was throttled due to too many requests. |
-| `ResourceNotFoundException` | `structure` | `message`, `resourceId`, `resourceType` | The specified resource was not found. |
-| `ConflictException` | `structure` | `message`, `resourceId`, `resourceType` | The request conflicts with the current state of the resource. |
-| `ServiceQuotaExceededException` | `structure` | `message`, `quotaCode`, `resourceId`, `resourceType`, `serviceCode` | The request would exceed one or more service quotas. |
-| `AssociateHostedZoneInput` | `structure` | `hostedZoneId`, `name`, `resourceArn` | - |
-| `AssociateHostedZoneOutput` | `structure` | `createdAt`, `hostedZoneId`, `hostedZoneName`, `id`, `name`, `resourceArn`, `status`, `updatedAt` | - |
-| `BatchCreateFirewallRuleInput` | `structure` | `firewallRules` | - |
-| `BatchCreateFirewallRuleOutput` | `structure` | `failures`, `successes` | - |
-| `BatchDeleteFirewallRuleInput` | `structure` | `firewallRules` | - |
-| `BatchDeleteFirewallRuleOutput` | `structure` | `failures`, `successes` | - |
-| `BatchUpdateFirewallRuleInput` | `structure` | `firewallRules` | - |
-| `BatchUpdateFirewallRuleOutput` | `structure` | `failures`, `successes` | - |
-| `CreateAccessSourceInput` | `structure` | `cidr`, `clientToken`, `dnsViewId`, `ipAddressType`, `name`, `protocol`, `tags` | - |
-| `CreateAccessSourceOutput` | `structure` | `arn`, `cidr`, `createdAt`, `dnsViewId`, `id`, `ipAddressType`, `name`, `protocol`, `status`, `updatedAt` | - |
-| `CreateAccessTokenInput` | `structure` | `clientToken`, `dnsViewId`, `expiresAt`, `name`, `tags` | - |
-| `CreateAccessTokenOutput` | `structure` | `arn`, `clientToken`, `createdAt`, `dnsViewId`, `expiresAt`, `id`, `name`, `status`, `value` | - |
-| `CreateDNSViewInput` | `structure` | `clientToken`, `description`, `dnssecValidation`, `ednsClientSubnet`, `firewallRulesFailOpen`, `globalResolverId`, `name`, `tags` | - |
-| `CreateDNSViewOutput` | `structure` | `arn`, `clientToken`, `createdAt`, `description`, `dnssecValidation`, `ednsClientSubnet`, `firewallRulesFailOpen`, `globalResolverId`, `id`, `name`, `status`, `updatedAt` | - |
-| `CreateFirewallDomainListInput` | `structure` | `clientToken`, `description`, `globalResolverId`, `name`, `tags` | - |
-| `CreateFirewallDomainListOutput` | `structure` | `arn`, `createdAt`, `description`, `domainCount`, `globalResolverId`, `id`, `name`, `status`, `updatedAt` | - |
-| `CreateFirewallRuleInput` | `structure` | `action`, `blockOverrideDnsType`, `blockOverrideDomain`, `blockOverrideTtl`, `blockResponse`, `clientToken`, `confidenceThreshold`, `description`, `dnsAdvancedProtection`, `dnsViewId`, `firewallDomainListId`, `name`, ... (+2) | - |
-
+| `AccessDeniedException` | `structure` | message | You don't have permission to perform this operation. Check your IAM permissions and try again. |
+| `ConflictException` | `structure` | message, resourceId, resourceType | The request conflicts with the current state of the resource. This can occur when trying to modify a resource that is not in a valid state for the requested ... |
+| `InternalServerException` | `structure` | message, retryAfterSeconds | An internal server error occurred. Try again later. |
+| `ResourceNotFoundException` | `structure` | message, resourceId, resourceType | The specified resource was not found. Verify the resource ID and try again. |
+| `ServiceQuotaExceededException` | `structure` | message, resourceId, resourceType, serviceCode, quotaCode | The request would exceed one or more service quotas. Check your current usage and quotas, then try again. |
+| `ThrottlingException` | `structure` | message, serviceCode, quotaCode, retryAfterSeconds | The request was throttled due to too many requests. Wait a moment and try again. |
+| `ValidationException` | `structure` | message, reason, fieldList | The input parameters are invalid. Check the parameter values and try again. |
+| `DisassociateHostedZoneInput` | `structure` | hostedZoneId, resourceArn | - |
+| `DisassociateHostedZoneOutput` | `structure` | id, resourceArn, hostedZoneId, hostedZoneName, name, createdAt, updatedAt, status | - |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `TagResourceRequest` | `structure` | resourceArn, tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | resourceArn, tagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `BlockOverrideDnsQueryType` | `enum` | CNAME | - |
+| `CRResourceStatus` | `enum` | CREATING, OPERATIONAL, UPDATING, DELETING | - |
+| `ConfidenceThreshold` | `enum` | LOW, MEDIUM, HIGH | - |
+| `DnsAdvancedProtection` | `enum` | DGA, DNS_TUNNELING, DICTIONARY_DGA | - |
+| `DnsProtocol` | `enum` | DO53, DOH, DOT | - |
+| `DnsSecValidationType` | `enum` | ENABLED, DISABLED | - |
+| `EdnsClientSubnetType` | `enum` | ENABLED, DISABLED | - |
+| `FirewallBlockResponse` | `enum` | NODATA, NXDOMAIN, OVERRIDE | - |
+| `FirewallRuleAction` | `enum` | ALLOW, ALERT, BLOCK | - |
+| `FirewallRulesFailOpenType` | `enum` | ENABLED, DISABLED | - |
+| `GlobalResolverIpAddressType` | `enum` | IPV4, DUAL_STACK | - |
+| `HostedZoneAssociationStatus` | `enum` | CREATING, OPERATIONAL, DELETING | - |
+| `IpAddressType` | `enum` | IPV4, IPV6 | - |
+| `ProfileResourceStatus` | `enum` | CREATING, OPERATIONAL, UPDATING, ENABLING, DISABLING, DISABLED, DELETING | - |
+| `TokenStatus` | `enum` | CREATING, OPERATIONAL, DELETING | - |
+| `ValidationExceptionReason` | `enum` | UNKNOWN_OPERATION, CANNOT_PARSE, FIELD_VALIDATION_FAILED, OTHER | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

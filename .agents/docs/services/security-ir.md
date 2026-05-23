@@ -51,89 +51,28 @@ This guide documents the action and response elements for use of the service.
 
 ### List
 
-- Operations: `ListCaseEdits`, `ListCases`, `ListComments`, `ListInvestigations`, `ListMemberships`, `ListTagsForResource`
-- Traits: `paginated` (5), `readonly` (6)
-- Common required input members in this group: `caseId`, `resourceArn`
-
-### Update
-
-- Operations: `UpdateCase`, `UpdateCaseComment`, `UpdateCaseStatus`, `UpdateMembership`, `UpdateResolverType`
-- Traits: `idempotent` (2)
-- Common required input members in this group: `body`, `caseId`, `caseStatus`, `commentId`, `membershipId`, `resolverType`
-
-### Get
-
-- Operations: `GetCase`, `GetCaseAttachmentDownloadUrl`, `GetCaseAttachmentUploadUrl`, `GetMembership`
-- Traits: `idempotency-token` (1), `idempotent` (1), `readonly` (3)
-- Common required input members in this group: `attachmentId`, `caseId`, `contentLength`, `fileName`, `membershipId`
-
-### Create
-
-- Operations: `CreateCase`, `CreateCaseComment`, `CreateMembership`
-- Traits: `idempotency-token` (3), `idempotent` (3)
-- Common required input members in this group: `body`, `caseId`, `description`, `engagementType`, `impactedAccounts`, `incidentResponseTeam`, `membershipName`, `reportedIncidentStartDate`, `resolverType`, `title`, `watchers`
-
-### Batch
-
-- Operations: `BatchGetMemberAccountDetails`
+- Operations: `ListTagsForResource`
 - Traits: `readonly` (1)
-- Common required input members in this group: `accountIds`, `membershipId`
-
-### Cancel
-
-- Operations: `CancelMembership`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `membershipId`
-
-### Close
-
-- Operations: `CloseCase`
-- Common required input members in this group: `caseId`
-
-### Send
-
-- Operations: `SendFeedback`
-- Common required input members in this group: `caseId`, `resultId`, `usefulness`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `BatchGetMemberAccountDetails` | `POST /v1/membership/{membershipId}/batch-member-details` | `readonly` | `accountIds`, `membershipId` | - | `BatchGetMemberAccountDetailsResponse` | - | Provides information on whether the supplied account IDs are associated with a membership. AWS account ID's may appear less than 12 characters and need to be zero-prepended. |
-| `CancelMembership` | `PUT /v1/membership/{membershipId}` | `idempotent` | `membershipId` | - | `CancelMembershipResponse` | - | Cancels an existing membership. |
-| `CloseCase` | `POST /v1/cases/{caseId}/close-case` | - | `caseId` | - | `CloseCaseResponse` | - | Closes an existing case. |
-| `CreateCase` | `POST /v1/create-case` | `idempotent`, `idempotency-token` | `description`, `engagementType`, `impactedAccounts`, `reportedIncidentStartDate`, `resolverType`, `title`, `watchers` | `clientToken` | `CreateCaseResponse` | - | Creates a new case. |
-| `CreateCaseComment` | `POST /v1/cases/{caseId}/create-comment` | `idempotent`, `idempotency-token` | `body`, `caseId` | `clientToken` | `CreateCaseCommentResponse` | - | Adds a comment to an existing case. |
-| `CreateMembership` | `POST /v1/membership` | `idempotent`, `idempotency-token` | `incidentResponseTeam`, `membershipName` | `clientToken` | `CreateMembershipResponse` | - | Creates a new membership. |
-| `GetCase` | `GET /v1/cases/{caseId}/get-case` | `readonly` | `caseId` | - | `GetCaseResponse` | - | Returns the attributes of a case. |
-| `GetCaseAttachmentDownloadUrl` | `GET /v1/cases/{caseId}/get-presigned-url/{attachmentId}` | `readonly` | `attachmentId`, `caseId` | - | `GetCaseAttachmentDownloadUrlResponse` | - | Returns a Pre-Signed URL for uploading attachments into a case. |
-| `GetCaseAttachmentUploadUrl` | `POST /v1/cases/{caseId}/get-presigned-url` | `idempotent`, `idempotency-token` | `caseId`, `contentLength`, `fileName` | `clientToken` | `GetCaseAttachmentUploadUrlResponse` | - | Uploads an attachment to a case. |
-| `GetMembership` | `GET /v1/membership/{membershipId}` | `readonly` | `membershipId` | - | `GetMembershipResponse` | - | Returns the attributes of a membership. |
-| `ListCaseEdits` | `POST /v1/cases/{caseId}/list-case-edits` | `readonly`, `paginated` | `caseId` | - | `ListCaseEditsResponse` | - | Views the case history for edits made to a designated case. |
-| `ListCases` | `POST /v1/list-cases` | `readonly`, `paginated` | - | - | `ListCasesResponse` | - | Lists all cases the requester has access to. |
-| `ListComments` | `POST /v1/cases/{caseId}/list-comments` | `readonly`, `paginated` | `caseId` | - | `ListCommentsResponse` | - | Returns comments for a designated case. |
-| `ListInvestigations` | `GET /v1/cases/{caseId}/list-investigations` | `readonly`, `paginated` | `caseId` | - | `ListInvestigationsResponse` | - | Investigation performed by an agent for a security incident... |
-| `ListMemberships` | `POST /v1/memberships` | `readonly`, `paginated` | - | - | `ListMembershipsResponse` | - | Returns the memberships that the calling principal can access. |
 | `ListTagsForResource` | `GET /v1/tags/{resourceArn}` | `readonly` | `resourceArn` | - | `ListTagsForResourceOutput` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Returns currently configured tags on a resource. |
-| `SendFeedback` | `POST /v1/cases/{caseId}/feedback/{resultId}/send-feedback` | - | `caseId`, `resultId`, `usefulness` | - | `SendFeedbackResponse` | - | Send feedback based on response investigation action |
 | `TagResource` | `POST /v1/tags/{resourceArn}` | - | `resourceArn`, `tags` | - | `TagResourceOutput` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Adds a tag(s) to a designated resource. |
 | `UntagResource` | `DELETE /v1/tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceOutput` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Removes a tag(s) from a designate resource. |
-| `UpdateCase` | `POST /v1/cases/{caseId}/update-case` | - | `caseId` | - | `UpdateCaseResponse` | - | Updates an existing case. |
-| `UpdateCaseComment` | `PUT /v1/cases/{caseId}/update-case-comment/{commentId}` | `idempotent` | `body`, `caseId`, `commentId` | - | `UpdateCaseCommentResponse` | - | Updates an existing case comment. |
-| `UpdateCaseStatus` | `POST /v1/cases/{caseId}/update-case-status` | - | `caseId`, `caseStatus` | - | `UpdateCaseStatusResponse` | - | Updates the state transitions for a designated cases. Self-managed : the following states are available for self-managed cases. |
-| `UpdateMembership` | `PUT /v1/membership/{membershipId}/update-membership` | `idempotent` | `membershipId` | - | `UpdateMembershipResponse` | - | Updates membership configuration. |
-| `UpdateResolverType` | `POST /v1/cases/{caseId}/update-resolver-type` | - | `caseId`, `resolverType` | - | `UpdateResolverTypeResponse` | - | Updates the resolver type for a case. This is a one-way action and cannot be reversed. |
 
 ## HTTP Bindings
 
@@ -147,31 +86,39 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | - |
-| `ResourceNotFoundException` | `structure` | `message` | - |
-| `ValidationException` | `structure` | `fieldList`, `message`, `reason` | - |
-| `BatchGetMemberAccountDetailsRequest` | `structure` | `accountIds`, `membershipId` | - |
-| `BatchGetMemberAccountDetailsResponse` | `structure` | `errors`, `items` | - |
-| `CancelMembershipRequest` | `structure` | `membershipId` | - |
-| `CancelMembershipResponse` | `structure` | `membershipId` | - |
-| `CloseCaseRequest` | `structure` | `caseId` | - |
-| `CloseCaseResponse` | `structure` | `caseStatus`, `closedDate` | - |
-| `CreateCaseRequest` | `structure` | `clientToken`, `description`, `engagementType`, `impactedAccounts`, `impactedAwsRegions`, `impactedServices`, `reportedIncidentStartDate`, `resolverType`, `tags`, `threatActorIpAddresses`, `title`, `watchers` | - |
-| `CreateCaseResponse` | `structure` | `caseId` | - |
-| `CreateCaseCommentRequest` | `structure` | `body`, `caseId`, `clientToken` | - |
-| `CreateCaseCommentResponse` | `structure` | `commentId` | - |
-| `CreateMembershipRequest` | `structure` | `clientToken`, `coverEntireOrganization`, `incidentResponseTeam`, `membershipName`, `optInFeatures`, `tags` | - |
-| `CreateMembershipResponse` | `structure` | `membershipId` | - |
-| `GetCaseRequest` | `structure` | `caseId` | - |
-| `GetCaseResponse` | `structure` | `actualIncidentStartDate`, `caseArn`, `caseAttachments`, `caseMetadata`, `caseStatus`, `closedDate`, `closureCode`, `createdDate`, `description`, `engagementType`, `impactedAccounts`, `impactedAwsRegions`, ... (+8) | - |
-| `GetCaseAttachmentDownloadUrlRequest` | `structure` | `attachmentId`, `caseId` | - |
-| `GetCaseAttachmentDownloadUrlResponse` | `structure` | `attachmentPresignedUrl` | - |
-| `GetCaseAttachmentUploadUrlRequest` | `structure` | `caseId`, `clientToken`, `contentLength`, `fileName` | - |
-| `GetCaseAttachmentUploadUrlResponse` | `structure` | `attachmentPresignedUrl` | - |
-| `GetMembershipRequest` | `structure` | `membershipId` | - |
-| `GetMembershipResponse` | `structure` | `accountId`, `customerType`, `incidentResponseTeam`, `membershipAccountsConfigurations`, `membershipActivationTimestamp`, `membershipArn`, `membershipDeactivationTimestamp`, `membershipId`, `membershipName`, `membershipStatus`, `numberOfAccountsCovered`, `optInFeatures`, ... (+1) | - |
-| `ListCaseEditsRequest` | `structure` | `caseId`, `maxResults`, `nextToken` | - |
-
+| `AccessDeniedException` | `structure` | message | - |
+| `ConflictException` | `structure` | message, resourceId, resourceType | - |
+| `InternalServerException` | `structure` | message, retryAfterSeconds | - |
+| `InvalidTokenException` | `structure` | message | - |
+| `ResourceNotFoundException` | `structure` | message | - |
+| `SecurityIncidentResponseNotActiveException` | `structure` | message | - |
+| `ServiceQuotaExceededException` | `structure` | message, resourceId, resourceType, serviceCode, quotaCode | - |
+| `ThrottlingException` | `structure` | message, serviceCode, quotaCode, retryAfterSeconds | - |
+| `ValidationException` | `structure` | message, reason, fieldList | - |
+| `ListTagsForResourceInput` | `structure` | resourceArn | - |
+| `ListTagsForResourceOutput` | `structure` | tags | - |
+| `TagResourceInput` | `structure` | resourceArn, tags | - |
+| `TagResourceOutput` | `structure` | **empty (no members)** | - |
+| `UntagResourceInput` | `structure` | resourceArn, tagKeys | - |
+| `UntagResourceOutput` | `structure` | **empty (no members)** | - |
+| `ActionType` | `enum` | EVIDENCE_COLLECTION, INVESTIGATION_ANALYSIS, SUMMARIZATION | - |
+| `AwsRegion` | `enum` | AF_SOUTH_1, AP_EAST_1, AP_EAST_2, AP_NORTHEAST_1, AP_NORTHEAST_2, AP_NORTHEAST_3, AP_SOUTH_1, AP_SOUTH_2, AP_SOUTHEAST_1, AP_SOUTHEAST_2, AP_SOUTHEAST_3, AP_SOUTHEAST_4, ... (+24) | - |
+| `CaseAttachmentStatus` | `enum` | VERIFIED, FAILED, PENDING | - |
+| `CaseStatus` | `enum` | SUBMITTED, ACKNOWLEDGED, DETECTION_AND_ANALYSIS, CONTAINMENT_ERADICATION_AND_RECOVERY, POST_INCIDENT_ACTIVITIES, READY_TO_CLOSE, CLOSED | - |
+| `ClosureCode` | `enum` | INVESTIGATION_COMPLETED, NOT_RESOLVED, FALSE_POSITIVE, DUPLICATE | - |
+| `CommunicationType` | `enum` | CASE_CREATED, CASE_UPDATED, CASE_ACKNOWLEDGED, CASE_CLOSED, CASE_UPDATED_TO_SERVICE_MANAGED, CASE_UPDATE_CASE_STATUS, CASE_PENDING_CUSTOMER_ACTION_REMINDER, CASE_ATTACHMENT_URL_UPLOADED, CASE_COMMENT_ADDED, CASE_COMMENT_UPDATED, MEMBERSHIP_CREATED, MEMBERSHIP_UPDATED, ... (+4) | - |
+| `CustomerType` | `enum` | STANDALONE, ORGANIZATION | - |
+| `EngagementType` | `enum` | SECURITY_INCIDENT, INVESTIGATION | - |
+| `ExecutionStatus` | `enum` | PENDING, IN_PROGRESS, WAITING, COMPLETED, FAILED, CANCELLED | - |
+| `MembershipAccountRelationshipStatus` | `enum` | ASSOCIATED, DISASSOCIATED, UNASSOCIATED | - |
+| `MembershipAccountRelationshipType` | `enum` | ORGANIZATION, UNRELATED | - |
+| `MembershipStatus` | `enum` | ACTIVE, CANCELLED, TERMINATED | - |
+| `OptInFeatureName` | `enum` | TRIAGE | - |
+| `PendingAction` | `enum` | CUSTOMER, NONE | - |
+| `ResolverType` | `enum` | AWS, SELF | - |
+| `SelfManagedCaseStatus` | `enum` | SUBMITTED, DETECTION_AND_ANALYSIS, CONTAINMENT_ERADICATION_AND_RECOVERY, POST_INCIDENT_ACTIVITIES | - |
+| `UsefulnessRating` | `enum` | USEFUL, NOT_USEFUL | - |
+| `ValidationExceptionReason` | `enum` | UNKNOWN_OPERATION, CANNOT_PARSE, FIELD_VALIDATION_FAILED, OTHER | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

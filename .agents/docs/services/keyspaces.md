@@ -64,67 +64,67 @@ Parity implications:
 ### Get
 
 - Operations: `GetKeyspace`, `GetTable`, `GetTableAutoScalingSettings`, `GetType`
-- Common required input members in this group: `keyspaceName`, `tableName`, `typeName`
+- Common required input members in this group: `keyspaceName`, `tableName`
 
 ### List
 
 - Operations: `ListKeyspaces`, `ListTables`, `ListTagsForResource`, `ListTypes`
 - Traits: `paginated` (4)
-- Common required input members in this group: `keyspaceName`, `resourceArn`
+- Common required input members in this group: `keyspaceName`
 
 ### Create
 
 - Operations: `CreateKeyspace`, `CreateTable`, `CreateType`
-- Common required input members in this group: `fieldDefinitions`, `keyspaceName`, `schemaDefinition`, `tableName`, `typeName`
+- Common required input members in this group: `keyspaceName`
 
 ### Delete
 
 - Operations: `DeleteKeyspace`, `DeleteTable`, `DeleteType`
-- Common required input members in this group: `keyspaceName`, `tableName`, `typeName`
+- Common required input members in this group: `keyspaceName`
 
 ### Update
 
 - Operations: `UpdateKeyspace`, `UpdateTable`
-- Common required input members in this group: `keyspaceName`, `replicationSpecification`, `tableName`
+- Common required input members in this group: `keyspaceName`
 
 ### Restore
 
 - Operations: `RestoreTable`
-- Common required input members in this group: `sourceKeyspaceName`, `sourceTableName`, `targetKeyspaceName`, `targetTableName`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateKeyspace` | - | - | `keyspaceName` | - | `CreateKeyspaceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | The `CreateKeyspace` operation adds a new keyspace to your account. In an Amazon Web Services account, keyspace names must be unique within each Region. |
-| `CreateTable` | - | - | `keyspaceName`, `schemaDefinition`, `tableName` | - | `CreateTableResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | The `CreateTable` operation adds a new table to the specified keyspace. Within a keyspace, table names must be unique. |
-| `CreateType` | - | - | `fieldDefinitions`, `keyspaceName`, `typeName` | - | `CreateTypeResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | The `CreateType` operation creates a new user-defined type in the specified keyspace. To configure the required permissions, see Permissions to create a UDT in the Amazon Keyspaces Developer Guide . |
-| `DeleteKeyspace` | - | - | `keyspaceName` | - | `DeleteKeyspaceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | The `DeleteKeyspace` operation deletes a keyspace and all of its tables. |
-| `DeleteTable` | - | - | `keyspaceName`, `tableName` | - | `DeleteTableResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | The `DeleteTable` operation deletes a table and all of its data. After a `DeleteTable` request is received, the specified table is in the `DELETING` state until Amazon Keyspaces completes the deletion. |
-| `DeleteType` | - | - | `keyspaceName`, `typeName` | - | `DeleteTypeResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | The `DeleteType` operation deletes a user-defined type (UDT). You can only delete a type that is not used in a table or another UDT. |
-| `GetKeyspace` | - | - | `keyspaceName` | - | `GetKeyspaceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Returns the name of the specified keyspace, the Amazon Resource Name (ARN), the replication strategy, the Amazon Web Services Regions of a multi-Region keyspace, and the status of newly added Regions after an `UpdateKeyspace` operation. |
-| `GetTable` | - | - | `keyspaceName`, `tableName` | - | `GetTableResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Returns information about the table, including the table's name and current status, the keyspace name, configuration settings, and metadata. To read table metadata using `GetTable`, the IAM principal needs `Select` action permissions for the table and the... |
-| `GetTableAutoScalingSettings` | - | - | `keyspaceName`, `tableName` | - | `GetTableAutoScalingSettingsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Returns auto scaling related settings of the specified table in JSON format. If the table is a multi-Region table, the Amazon Web Services Region specific auto scaling settings of the table are included. |
-| `GetType` | - | - | `keyspaceName`, `typeName` | - | `GetTypeResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | The `GetType` operation returns information about the type, for example the field definitions, the timestamp when the type was last modified, the level of nesting, the status, and details about if the type is used in other types and tables. To read keyspace... |
-| `ListKeyspaces` | - | `paginated` | - | - | `ListKeyspacesResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | The `ListKeyspaces` operation returns a list of keyspaces. |
-| `ListTables` | - | `paginated` | `keyspaceName` | - | `ListTablesResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | The `ListTables` operation returns a list of tables for a specified keyspace. To read keyspace metadata using `ListTables`, the IAM principal needs `Select` action permissions for the system keyspace. |
-| `ListTagsForResource` | - | `paginated` | `resourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Returns a list of all tags associated with the specified Amazon Keyspaces resource. To read keyspace metadata using `ListTagsForResource`, the IAM principal needs `Select` action permissions for the specified resource and the system keyspace. |
-| `ListTypes` | - | `paginated` | `keyspaceName` | - | `ListTypesResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | The `ListTypes` operation returns a list of types for a specified keyspace. To read keyspace metadata using `ListTypes`, the IAM principal needs `Select` action permissions for the system keyspace. |
-| `RestoreTable` | - | - | `sourceKeyspaceName`, `sourceTableName`, `targetKeyspaceName`, `targetTableName` | - | `RestoreTableResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Restores the table to the specified point in time within the `earliest_restorable_timestamp` and the current time. For more information about restore points, see Time window for PITR continuous backups in the Amazon Keyspaces Developer Guide . |
-| `TagResource` | - | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Associates a set of tags with a Amazon Keyspaces resource. You can then activate these user-defined tags so that they appear on the Cost Management Console for cost allocation tracking. |
-| `UntagResource` | - | - | `resourceArn`, `tags` | - | `UntagResourceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Removes the association of tags from a Amazon Keyspaces resource. |
-| `UpdateKeyspace` | - | - | `keyspaceName`, `replicationSpecification` | - | `UpdateKeyspaceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Adds a new Amazon Web Services Region to the keyspace. You can add a new Region to a keyspace that is either a single or a multi-Region keyspace. |
-| `UpdateTable` | - | - | `keyspaceName`, `tableName` | - | `UpdateTableResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Adds new columns to the table or updates one of the table's settings, for example capacity mode, auto scaling, encryption, point-in-time recovery, or ttl settings. Note that you can only update one specific table setting per update operation. |
+| `CreateKeyspace` | `-` | - | `keyspaceName` | - | `CreateKeyspaceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | The CreateKeyspace operation adds a new keyspace to your account. In an Amazon Web Services account, keyspace names must be unique within each Region. CreateKeyspace is an asynchronous operation. You can monitor the ... |
+| `CreateTable` | `-` | - | `keyspaceName`, `tableName`, `schemaDefinition` | - | `CreateTableResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | The CreateTable operation adds a new table to the specified keyspace. Within a keyspace, table names must be unique. CreateTable is an asynchronous operation. When the request is received, the status of the table is ... |
+| `CreateType` | `-` | - | `keyspaceName`, `typeName`, `fieldDefinitions` | - | `CreateTypeResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | The CreateType operation creates a new user-defined type in the specified keyspace. To configure the required permissions, see Permissions to create a UDT in the Amazon Keyspaces Developer Guide . For more informatio ... |
+| `DeleteKeyspace` | `-` | - | `keyspaceName` | - | `DeleteKeyspaceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | The DeleteKeyspace operation deletes a keyspace and all of its tables. |
+| `DeleteTable` | `-` | - | `keyspaceName`, `tableName` | - | `DeleteTableResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | The DeleteTable operation deletes a table and all of its data. After a DeleteTable request is received, the specified table is in the DELETING state until Amazon Keyspaces completes the deletion. If the table is in t ... |
+| `DeleteType` | `-` | - | `keyspaceName`, `typeName` | - | `DeleteTypeResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | The DeleteType operation deletes a user-defined type (UDT). You can only delete a type that is not used in a table or another UDT. To configure the required permissions, see Permissions to delete a UDT in the Amazon ... |
+| `GetKeyspace` | `-` | - | `keyspaceName` | - | `GetKeyspaceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Returns the name of the specified keyspace, the Amazon Resource Name (ARN), the replication strategy, the Amazon Web Services Regions of a multi-Region keyspace, and the status of newly added Regions after an UpdateK ... |
+| `GetTable` | `-` | - | `keyspaceName`, `tableName` | - | `GetTableResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Returns information about the table, including the table's name and current status, the keyspace name, configuration settings, and metadata. To read table metadata using GetTable , the IAM principal needs Select acti ... |
+| `GetTableAutoScalingSettings` | `-` | - | `keyspaceName`, `tableName` | - | `GetTableAutoScalingSettingsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Returns auto scaling related settings of the specified table in JSON format. If the table is a multi-Region table, the Amazon Web Services Region specific auto scaling settings of the table are included. Amazon Keysp ... |
+| `GetType` | `-` | - | `keyspaceName`, `typeName` | - | `GetTypeResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | The GetType operation returns information about the type, for example the field definitions, the timestamp when the type was last modified, the level of nesting, the status, and details about if the type is used in o ... |
+| `ListKeyspaces` | `-` | `paginated` | - | - | `ListKeyspacesResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | The ListKeyspaces operation returns a list of keyspaces. |
+| `ListTables` | `-` | `paginated` | `keyspaceName` | - | `ListTablesResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | The ListTables operation returns a list of tables for a specified keyspace. To read keyspace metadata using ListTables , the IAM principal needs Select action permissions for the system keyspace. |
+| `ListTagsForResource` | `-` | `paginated` | `resourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Returns a list of all tags associated with the specified Amazon Keyspaces resource. To read keyspace metadata using ListTagsForResource , the IAM principal needs Select action permissions for the specified resource a ... |
+| `ListTypes` | `-` | `paginated` | `keyspaceName` | - | `ListTypesResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | The ListTypes operation returns a list of types for a specified keyspace. To read keyspace metadata using ListTypes , the IAM principal needs Select action permissions for the system keyspace. To configure the requir ... |
+| `RestoreTable` | `-` | - | `sourceKeyspaceName`, `sourceTableName`, `targetKeyspaceName`, `targetTableName` | - | `RestoreTableResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Restores the table to the specified point in time within the earliest_restorable_timestamp and the current time. For more information about restore points, see Time window for PITR continuous backups in the Amazon Ke ... |
+| `TagResource` | `-` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Associates a set of tags with a Amazon Keyspaces resource. You can then activate these user-defined tags so that they appear on the Cost Management Console for cost allocation tracking. For more information, see Addi ... |
+| `UntagResource` | `-` | - | `resourceArn`, `tags` | - | `UntagResourceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Removes the association of tags from a Amazon Keyspaces resource. |
+| `UpdateKeyspace` | `-` | - | `keyspaceName`, `replicationSpecification` | - | `UpdateKeyspaceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Adds a new Amazon Web Services Region to the keyspace. You can add a new Region to a keyspace that is either a single or a multi-Region keyspace. Amazon Keyspaces is going to replicate all tables in the keyspace to t ... |
+| `UpdateTable` | `-` | - | `keyspaceName`, `tableName` | - | `UpdateTableResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Adds new columns to the table or updates one of the table's settings, for example capacity mode, auto scaling, encryption, point-in-time recovery, or ttl settings. Note that you can only update one specific table set ... |
 
 ## HTTP Bindings
 
@@ -136,31 +136,46 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | You don't have sufficient access permissions to perform this action. |
-| `InternalServerException` | `structure` | `message` | Amazon Keyspaces was unable to fully process this request because of an internal server error. |
-| `ServiceQuotaExceededException` | `structure` | `message` | The operation exceeded the service quota for this resource. |
-| `ValidationException` | `structure` | `message` | The operation failed due to an invalid or malformed request. |
-| `ResourceNotFoundException` | `structure` | `message`, `resourceArn` | The operation tried to access a keyspace, table, or type that doesn't exist. |
-| `ConflictException` | `structure` | `message` | Amazon Keyspaces couldn't complete the requested action. |
-| `CreateKeyspaceRequest` | `structure` | `keyspaceName`, `replicationSpecification`, `tags` | - |
-| `CreateKeyspaceResponse` | `structure` | `resourceArn` | - |
-| `CreateTableRequest` | `structure` | `autoScalingSpecification`, `capacitySpecification`, `cdcSpecification`, `clientSideTimestamps`, `comment`, `defaultTimeToLive`, `encryptionSpecification`, `keyspaceName`, `pointInTimeRecovery`, `replicaSpecifications`, `schemaDefinition`, `tableName`, ... (+3) | - |
-| `CreateTableResponse` | `structure` | `resourceArn` | - |
-| `CreateTypeRequest` | `structure` | `fieldDefinitions`, `keyspaceName`, `typeName` | - |
-| `CreateTypeResponse` | `structure` | `keyspaceArn`, `typeName` | - |
-| `DeleteKeyspaceRequest` | `structure` | `keyspaceName` | - |
-| `DeleteKeyspaceResponse` | `structure` | - | - |
-| `DeleteTableRequest` | `structure` | `keyspaceName`, `tableName` | - |
-| `DeleteTableResponse` | `structure` | - | - |
-| `DeleteTypeRequest` | `structure` | `keyspaceName`, `typeName` | - |
-| `DeleteTypeResponse` | `structure` | `keyspaceArn`, `typeName` | - |
-| `GetKeyspaceRequest` | `structure` | `keyspaceName` | - |
-| `GetKeyspaceResponse` | `structure` | `keyspaceName`, `replicationGroupStatuses`, `replicationRegions`, `replicationStrategy`, `resourceArn` | - |
-| `GetTableRequest` | `structure` | `keyspaceName`, `tableName` | - |
-| `GetTableResponse` | `structure` | `capacitySpecification`, `cdcSpecification`, `clientSideTimestamps`, `comment`, `creationTimestamp`, `defaultTimeToLive`, `encryptionSpecification`, `keyspaceName`, `latestStreamArn`, `pointInTimeRecovery`, `replicaSpecifications`, `resourceArn`, ... (+5) | - |
-| `GetTableAutoScalingSettingsRequest` | `structure` | `keyspaceName`, `tableName` | - |
-| `GetTableAutoScalingSettingsResponse` | `structure` | `autoScalingSpecification`, `keyspaceName`, `replicaSpecifications`, `resourceArn`, `tableName` | - |
-
+| `AccessDeniedException` | `structure` | message | You don't have sufficient access permissions to perform this action. |
+| `ConflictException` | `structure` | message | Amazon Keyspaces couldn't complete the requested action. This error may occur if you try to perform an action and the same or a different action is already ... |
+| `InternalServerException` | `structure` | message | Amazon Keyspaces was unable to fully process this request because of an internal server error. |
+| `ResourceNotFoundException` | `structure` | message, resourceArn | The operation tried to access a keyspace, table, or type that doesn't exist. The resource might not be specified correctly, or its status might not be ACTIVE . |
+| `ServiceQuotaExceededException` | `structure` | message | The operation exceeded the service quota for this resource. For more information on service quotas, see Quotas in the Amazon Keyspaces Developer Guide . |
+| `ValidationException` | `structure` | message | The operation failed due to an invalid or malformed request. |
+| `CreateKeyspaceRequest` | `structure` | keyspaceName, tags, replicationSpecification | - |
+| `CreateKeyspaceResponse` | `structure` | resourceArn | - |
+| `CreateTableRequest` | `structure` | keyspaceName, tableName, schemaDefinition, comment, capacitySpecification, encryptionSpecification, pointInTimeRecovery, ttl, defaultTimeToLive, tags, clientSideTimestamps, autoScalingSpecification, ... (+3) | - |
+| `CreateTableResponse` | `structure` | resourceArn | - |
+| `CreateTypeRequest` | `structure` | keyspaceName, typeName, fieldDefinitions | - |
+| `CreateTypeResponse` | `structure` | keyspaceArn, typeName | - |
+| `DeleteKeyspaceRequest` | `structure` | keyspaceName | - |
+| `DeleteKeyspaceResponse` | `structure` | **empty (no members)** | - |
+| `DeleteTableRequest` | `structure` | keyspaceName, tableName | - |
+| `DeleteTableResponse` | `structure` | **empty (no members)** | - |
+| `DeleteTypeRequest` | `structure` | keyspaceName, typeName | - |
+| `DeleteTypeResponse` | `structure` | keyspaceArn, typeName | - |
+| `GetKeyspaceRequest` | `structure` | keyspaceName | - |
+| `GetKeyspaceResponse` | `structure` | keyspaceName, resourceArn, replicationStrategy, replicationRegions, replicationGroupStatuses | - |
+| `GetTableRequest` | `structure` | keyspaceName, tableName | - |
+| `GetTableResponse` | `structure` | keyspaceName, tableName, resourceArn, creationTimestamp, status, schemaDefinition, capacitySpecification, encryptionSpecification, pointInTimeRecovery, ttl, defaultTimeToLive, comment, ... (+5) | - |
+| `GetTableAutoScalingSettingsRequest` | `structure` | keyspaceName, tableName | - |
+| `GetTableAutoScalingSettingsResponse` | `structure` | keyspaceName, tableName, resourceArn, autoScalingSpecification, replicaSpecifications | - |
+| `GetTypeRequest` | `structure` | keyspaceName, typeName | - |
+| `GetTypeResponse` | `structure` | keyspaceName, typeName, fieldDefinitions, lastModifiedTimestamp, status, directReferringTables, directParentTypes, maxNestingDepth, keyspaceArn | - |
+| `ListKeyspacesRequest` | `structure` | nextToken, maxResults | - |
+| `ListKeyspacesResponse` | `structure` | nextToken, keyspaces | - |
+| `ListTablesRequest` | `structure` | nextToken, maxResults, keyspaceName | - |
+| `ListTablesResponse` | `structure` | nextToken, tables | - |
+| `ListTagsForResourceRequest` | `structure` | resourceArn, nextToken, maxResults | - |
+| `ListTagsForResourceResponse` | `structure` | nextToken, tags | - |
+| `ListTypesRequest` | `structure` | nextToken, maxResults, keyspaceName | - |
+| `ListTypesResponse` | `structure` | nextToken, types | - |
+| `RestoreTableRequest` | `structure` | sourceKeyspaceName, sourceTableName, targetKeyspaceName, targetTableName, restoreTimestamp, capacitySpecificationOverride, encryptionSpecificationOverride, pointInTimeRecoveryOverride, tagsOverride, autoScalingSpecification, replicaSpecifications | - |
+| `RestoreTableResponse` | `structure` | restoredTableARN | - |
+| `TagResourceRequest` | `structure` | resourceArn, tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | resourceArn, tags | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

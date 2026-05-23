@@ -51,118 +51,90 @@ Amazon Web Services Payment Cryptography Control Plane APIs manage encryption ke
 
 ### Get
 
-- Operations: `GetAlias`, `GetCertificateSigningRequest`, `GetDefaultKeyReplicationRegions`, `GetKey`, `GetParametersForExport`, `GetParametersForImport`, `GetPublicKeyCertificate`
+- Operations: `GetCertificateSigningRequest`, `GetDefaultKeyReplicationRegions`, `GetMpaTeamAssociation`, `GetParametersForExport`, `GetParametersForImport`, `GetPublicKeyCertificate`, `GetResourcePolicy`
 - Traits: `readonly` (3)
-- Common required input members in this group: `AliasName`, `CertificateSubject`, `KeyIdentifier`, `KeyMaterialType`, `SigningAlgorithm`, `SigningKeyAlgorithm`, `WrappingKeyAlgorithm`
+- Common required input members in this group: `KeyIdentifier`, `KeyMaterialType`
 
-### List
+### Associate
 
-- Operations: `ListAliases`, `ListKeys`, `ListTagsForResource`
-- Traits: `paginated` (3), `readonly` (3)
-- Common required input members in this group: `ResourceArn`
-
-### Create
-
-- Operations: `CreateAlias`, `CreateKey`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `AliasName`, `Exportable`, `KeyAttributes`
+- Operations: `AssociateMpaTeam`
+- Common required input members in this group: -
 
 ### Delete
 
-- Operations: `DeleteAlias`, `DeleteKey`
-- Traits: `idempotent` (2)
-- Common required input members in this group: `AliasName`, `KeyIdentifier`
-
-### Add
-
-- Operations: `AddKeyReplicationRegions`
-- Common required input members in this group: `KeyIdentifier`, `ReplicationRegions`
+- Operations: `DeleteResourcePolicy`
+- Traits: `idempotent` (1)
+- Common required input members in this group: -
 
 ### Disable
 
 - Operations: `DisableDefaultKeyReplicationRegions`
-- Common required input members in this group: `ReplicationRegions`
+- Common required input members in this group: -
+
+### Disassociate
+
+- Operations: `DisassociateMpaTeam`
+- Common required input members in this group: -
 
 ### Enable
 
 - Operations: `EnableDefaultKeyReplicationRegions`
-- Common required input members in this group: `ReplicationRegions`
+- Common required input members in this group: -
 
 ### Export
 
 - Operations: `ExportKey`
-- Common required input members in this group: `ExportKeyIdentifier`, `KeyMaterial`
+- Common required input members in this group: -
 
 ### Import
 
 - Operations: `ImportKey`
-- Common required input members in this group: `KeyMaterial`
+- Common required input members in this group: -
 
-### Remove
+### List
 
-- Operations: `RemoveKeyReplicationRegions`
-- Common required input members in this group: `KeyIdentifier`, `ReplicationRegions`
+- Operations: `ListTagsForResource`
+- Traits: `readonly` (1), `paginated` (1)
+- Common required input members in this group: -
 
-### Restore
+### Put
 
-- Operations: `RestoreKey`
-- Common required input members in this group: `KeyIdentifier`
-
-### Start
-
-- Operations: `StartKeyUsage`
-- Common required input members in this group: `KeyIdentifier`
-
-### Stop
-
-- Operations: `StopKeyUsage`
-- Common required input members in this group: `KeyIdentifier`
+- Operations: `PutResourcePolicy`
+- Traits: `idempotent` (1)
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceArn`, `TagKeys`
-
-### Update
-
-- Operations: `UpdateAlias`
-- Common required input members in this group: `AliasName`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AddKeyReplicationRegions` | - | - | `KeyIdentifier`, `ReplicationRegions` | - | `AddKeyReplicationRegionsOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Adds replication Amazon Web Services Regions to an existing Amazon Web Services Payment Cryptography key, enabling the key to be used for cryptographic operations in additional Amazon Web Services Regions. Multi-Region key replication allow you to use the... |
-| `CreateAlias` | - | `idempotent` | `AliasName` | - | `CreateAliasOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Creates an alias , or a friendly name, for an Amazon Web Services Payment Cryptography key. You can use an alias to identify a key in the console and when you call cryptographic operations such as EncryptData or DecryptData. |
-| `CreateKey` | - | - | `Exportable`, `KeyAttributes` | - | `CreateKeyOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Creates an Amazon Web Services Payment Cryptography key, a logical representation of a cryptographic key, that is unique in your account and Amazon Web Services Region. You use keys for cryptographic functions such as encryption and decryption. |
-| `DeleteAlias` | - | `idempotent` | `AliasName` | - | `DeleteAliasOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Deletes the alias, but doesn't affect the underlying key. Each key can have multiple aliases. |
-| `DeleteKey` | - | `idempotent` | `KeyIdentifier` | - | `DeleteKeyOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Deletes the key material and metadata associated with Amazon Web Services Payment Cryptography key. Key deletion is irreversible. |
-| `DisableDefaultKeyReplicationRegions` | - | - | `ReplicationRegions` | - | `DisableDefaultKeyReplicationRegionsOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Disables Multi-Region key replication settings for the specified Amazon Web Services Regions in your Amazon Web Services account, preventing new keys from being automatically replicated to those regions. After disabling Multi-Region key replication for... |
-| `EnableDefaultKeyReplicationRegions` | - | - | `ReplicationRegions` | - | `EnableDefaultKeyReplicationRegionsOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Enables Multi-Region key replication settings for your Amazon Web Services account, causing new keys to be automatically replicated to the specified Amazon Web Services Regions when created. When Multi-Region key replication are enabled, any new keys created... |
-| `ExportKey` | - | - | `ExportKeyIdentifier`, `KeyMaterial` | - | `ExportKeyOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Exports a key from Amazon Web Services Payment Cryptography. Amazon Web Services Payment Cryptography simplifies key exchange by replacing the existing paper-based approach with a modern electronic approach. |
-| `GetAlias` | - | `readonly` | `AliasName` | - | `GetAliasOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Gets the Amazon Web Services Payment Cryptography key associated with the alias. Cross-account use: This operation can't be used across different Amazon Web Services accounts. |
-| `GetCertificateSigningRequest` | - | - | `CertificateSubject`, `KeyIdentifier`, `SigningAlgorithm` | - | `GetCertificateSigningRequestOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Creates a certificate signing request (CSR) from a key pair. |
-| `GetDefaultKeyReplicationRegions` | - | - | - | - | `GetDefaultKeyReplicationRegionsOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Retrieves the list of Amazon Web Services Regions where Multi-Region key replication is currently enabled for your Amazon Web Services account. This operation returns the current Multi-Region key replication configuration. |
-| `GetKey` | - | `readonly` | `KeyIdentifier` | - | `GetKeyOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Gets the key metadata for an Amazon Web Services Payment Cryptography key, including the immutable and mutable attributes specified when the key was created. Returns key metadata including attributes, state, and timestamps, but does not return the actual... |
-| `GetParametersForExport` | - | - | `KeyMaterialType`, `SigningKeyAlgorithm` | - | `GetParametersForExportOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Gets the export token and the signing key certificate to initiate a TR-34 key export from Amazon Web Services Payment Cryptography. The signing key certificate signs the wrapped key under export within the TR-34 key payload. |
-| `GetParametersForImport` | - | - | `KeyMaterialType`, `WrappingKeyAlgorithm` | - | `GetParametersForImportOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Gets the import token and the wrapping key certificate in PEM format (base64 encoded) to initiate a TR-34 WrappedKeyBlock or a RSA WrappedKeyCryptogram import into Amazon Web Services Payment Cryptography. The wrapping key certificate wraps the key under... |
-| `GetPublicKeyCertificate` | - | `readonly` | `KeyIdentifier` | - | `GetPublicKeyCertificateOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Gets the public key certificate of the asymmetric key pair that exists within Amazon Web Services Payment Cryptography. Unlike the private key of an asymmetric key, which never leaves Amazon Web Services Payment Cryptography unencrypted, callers with... |
-| `ImportKey` | - | - | `KeyMaterial` | - | `ImportKeyOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Imports symmetric keys and public key certificates in PEM format (base64 encoded) into Amazon Web Services Payment Cryptography. Amazon Web Services Payment Cryptography simplifies key exchange by replacing the existing paper-based approach with a modern... |
-| `ListAliases` | - | `readonly`, `paginated` | - | - | `ListAliasesOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Lists the aliases for all keys in the caller's Amazon Web Services account and Amazon Web Services Region. You can filter the aliases by `keyARN`. |
-| `ListKeys` | - | `readonly`, `paginated` | - | - | `ListKeysOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Lists the keys in the caller's Amazon Web Services account and Amazon Web Services Region. You can filter the list of keys. |
-| `ListTagsForResource` | - | `readonly`, `paginated` | `ResourceArn` | - | `ListTagsForResourceOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Lists the tags for an Amazon Web Services resource. This is a paginated operation, which means that each response might contain only a subset of all the tags. |
-| `RemoveKeyReplicationRegions` | - | - | `KeyIdentifier`, `ReplicationRegions` | - | `RemoveKeyReplicationRegionsOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Removes Replication Regions from an existing Amazon Web Services Payment Cryptography key, disabling the key's availability for cryptographic operations in the specified Amazon Web Services Regions. When you remove Replication Regions, the key material is... |
-| `RestoreKey` | - | - | `KeyIdentifier` | - | `RestoreKeyOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Cancels a scheduled key deletion during the waiting period. Use this operation to restore a `Key` that is scheduled for deletion. |
-| `StartKeyUsage` | - | - | `KeyIdentifier` | - | `StartKeyUsageOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Enables an Amazon Web Services Payment Cryptography key, which makes it active for cryptographic operations within Amazon Web Services Payment Cryptography Cross-account use: This operation can't be used across different Amazon Web Services accounts. Related... |
-| `StopKeyUsage` | - | - | `KeyIdentifier` | - | `StopKeyUsageOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Disables an Amazon Web Services Payment Cryptography key, which makes it inactive within Amazon Web Services Payment Cryptography. You can use this operation instead of DeleteKey to deactivate a key. |
-| `TagResource` | - | - | `ResourceArn`, `Tags` | - | `TagResourceOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Adds or edits tags on an Amazon Web Services Payment Cryptography key. Tagging or untagging an Amazon Web Services Payment Cryptography key can allow or deny permission to the key. |
-| `UntagResource` | - | - | `ResourceArn`, `TagKeys` | - | `UntagResourceOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Deletes a tag from an Amazon Web Services Payment Cryptography key. Tagging or untagging an Amazon Web Services Payment Cryptography key can allow or deny permission to the key. |
-| `UpdateAlias` | - | - | `AliasName` | - | `UpdateAliasOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Associates an existing Amazon Web Services Payment Cryptography alias with a different key. Each alias is associated with only one Amazon Web Services Payment Cryptography key at a time, although a key can have multiple aliases. |
+| `AssociateMpaTeam` | `-` | - | `Action`, `MpaTeamArn` | - | `AssociateMpaTeamOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Associates a Multi-Party Approval (MPA) team with a protected operation. For more information, see Multi-Party Approval in the Amazon Web Services Payment Cryptography User Guide. Cross-account use: This operation ca ... |
+| `DeleteResourcePolicy` | `-` | `idempotent` | `ResourceArn` | - | `DeleteResourcePolicyOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Removes the resource-based policy attached to an Amazon Web Services Payment Cryptography key. Cross-account use: This operation can't be used across different Amazon Web Services accounts. Related operations: PutRes ... |
+| `DisableDefaultKeyReplicationRegions` | `-` | - | `ReplicationRegions` | - | `DisableDefaultKeyReplicationRegionsOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Disables Multi-Region key replication settings for the specified Amazon Web Services Regions in your Amazon Web Services account, preventing new keys from being automatically replicated to those regions. After disabl ... |
+| `DisassociateMpaTeam` | `-` | - | `Action` | - | `DisassociateMpaTeamOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Removes the association between a Multi-Party Approval (MPA) team and a protected operation. Cross-account use: This operation can't be used across different Amazon Web Services accounts. Related operations: Associat ... |
+| `EnableDefaultKeyReplicationRegions` | `-` | - | `ReplicationRegions` | - | `EnableDefaultKeyReplicationRegionsOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Enables Multi-Region key replication settings for your Amazon Web Services account, causing new keys to be automatically replicated to the specified Amazon Web Services Regions when created. When Multi-Region key rep ... |
+| `ExportKey` | `-` | - | `KeyMaterial`, `ExportKeyIdentifier` | - | `ExportKeyOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Exports a key from Amazon Web Services Payment Cryptography. Amazon Web Services Payment Cryptography simplifies key exchange by replacing the existing paper-based approach with a modern electronic approach. With Exp ... |
+| `GetCertificateSigningRequest` | `-` | - | `KeyIdentifier`, `SigningAlgorithm`, `CertificateSubject` | - | `GetCertificateSigningRequestOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Creates a certificate signing request (CSR) from a key pair. |
+| `GetDefaultKeyReplicationRegions` | `-` | - | - | - | `GetDefaultKeyReplicationRegionsOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Retrieves the list of Amazon Web Services Regions where Multi-Region key replication is currently enabled for your Amazon Web Services account. This operation returns the current Multi-Region key replication configur ... |
+| `GetMpaTeamAssociation` | `-` | `readonly` | `Action` | - | `GetMpaTeamAssociationOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Returns the Multi-Party Approval (MPA) team association for a protected operation. Cross-account use: This operation can't be used across different Amazon Web Services accounts. Related operations: AssociateMpaTeam D ... |
+| `GetParametersForExport` | `-` | - | `KeyMaterialType`, `SigningKeyAlgorithm` | - | `GetParametersForExportOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Gets the export token and the signing key certificate to initiate a TR-34 key export from Amazon Web Services Payment Cryptography. The signing key certificate signs the wrapped key under export within the TR-34 key ... |
+| `GetParametersForImport` | `-` | - | `KeyMaterialType`, `WrappingKeyAlgorithm` | - | `GetParametersForImportOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Gets the import token and the wrapping key certificate in PEM format (base64 encoded) to initiate a TR-34 WrappedKeyBlock or a RSA WrappedKeyCryptogram import into Amazon Web Services Payment Cryptography. The wrappi ... |
+| `GetPublicKeyCertificate` | `-` | `readonly` | `KeyIdentifier` | - | `GetPublicKeyCertificateOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Gets the public key certificate of the asymmetric key pair that exists within Amazon Web Services Payment Cryptography. Unlike the private key of an asymmetric key, which never leaves Amazon Web Services Payment Cryp ... |
+| `GetResourcePolicy` | `-` | `readonly` | `ResourceArn` | - | `GetResourcePolicyOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Returns the resource-based policy attached to an Amazon Web Services Payment Cryptography key. Cross-account use: This operation can't be used across different Amazon Web Services accounts. Related operations: PutRes ... |
+| `ImportKey` | `-` | - | `KeyMaterial` | - | `ImportKeyOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Imports symmetric keys and public key certificates in PEM format (base64 encoded) into Amazon Web Services Payment Cryptography. Amazon Web Services Payment Cryptography simplifies key exchange by replacing the exist ... |
+| `ListTagsForResource` | `-` | `readonly`, `paginated` | `ResourceArn` | - | `ListTagsForResourceOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Lists the tags for an Amazon Web Services resource. This is a paginated operation, which means that each response might contain only a subset of all the tags. When the response contains only a subset of tags, it incl ... |
+| `PutResourcePolicy` | `-` | `idempotent` | `ResourceArn`, `Policy` | - | `PutResourcePolicyOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `PublicPolicyException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Attaches or replaces a resource-based policy on an Amazon Web Services Payment Cryptography key. A resource-based policy can grant cross-account access to your key. If the policy would grant public access, the reques ... |
+| `TagResource` | `-` | - | `ResourceArn`, `Tags` | - | `TagResourceOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Adds or edits tags on an Amazon Web Services Payment Cryptography key. Tagging or untagging an Amazon Web Services Payment Cryptography key can allow or deny permission to the key. Each tag consists of a tag key and ... |
+| `UntagResource` | `-` | - | `ResourceArn`, `TagKeys` | - | `UntagResourceOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Deletes a tag from an Amazon Web Services Payment Cryptography key. Tagging or untagging an Amazon Web Services Payment Cryptography key can allow or deny permission to the key. Cross-account use: This operation supp ... |
 
 ## HTTP Bindings
 
@@ -174,31 +146,50 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `Message` | You do not have sufficient access to perform this action. |
-| `InternalServerException` | `structure` | `Message` | The request processing has failed because of an unknown error, exception, or failure. |
-| `ResourceNotFoundException` | `structure` | `ResourceId` | The request was denied due to resource not found. |
-| `ThrottlingException` | `structure` | `Message` | The request was denied due to request throttling. |
-| `ValidationException` | `structure` | `Message` | The request was denied due to an invalid request error. |
-| `ServiceUnavailableException` | `structure` | `Message` | The service cannot complete the request. |
-| `ConflictException` | `structure` | `Message` | This request can cause an inconsistent state for the resource. |
-| `ServiceQuotaExceededException` | `structure` | `Message` | This request would cause a service quota to be exceeded. |
-| `AddKeyReplicationRegionsInput` | `structure` | `KeyIdentifier`, `ReplicationRegions` | Input parameters for adding replication regions to a specific key. |
-| `AddKeyReplicationRegionsOutput` | `structure` | `Key` | Output from adding replication regions to a key. |
-| `CreateAliasInput` | `structure` | `AliasName`, `KeyArn` | - |
-| `CreateAliasOutput` | `structure` | `Alias` | - |
-| `CreateKeyInput` | `structure` | `DeriveKeyUsage`, `Enabled`, `Exportable`, `KeyAttributes`, `KeyCheckValueAlgorithm`, `ReplicationRegions`, `Tags` | - |
-| `CreateKeyOutput` | `structure` | `Key` | - |
-| `DeleteAliasInput` | `structure` | `AliasName` | - |
-| `DeleteAliasOutput` | `structure` | - | - |
-| `DeleteKeyInput` | `structure` | `DeleteKeyInDays`, `KeyIdentifier` | - |
-| `DeleteKeyOutput` | `structure` | `Key` | - |
-| `DisableDefaultKeyReplicationRegionsInput` | `structure` | `ReplicationRegions` | Input parameters for disabling default key replication regions for the account. |
-| `DisableDefaultKeyReplicationRegionsOutput` | `structure` | `EnabledReplicationRegions` | Output from disabling default key replication regions for the account. |
-| `EnableDefaultKeyReplicationRegionsInput` | `structure` | `ReplicationRegions` | Input parameters for enabling default key replication regions for the account. |
-| `EnableDefaultKeyReplicationRegionsOutput` | `structure` | `EnabledReplicationRegions` | Output from enabling default key replication regions for the account. |
-| `ExportKeyInput` | `structure` | `ExportAttributes`, `ExportKeyIdentifier`, `KeyMaterial` | - |
-| `ExportKeyOutput` | `structure` | `WrappedKey` | - |
-
+| `AccessDeniedException` | `structure` | Message | You do not have sufficient access to perform this action. This exception is thrown when the caller lacks the necessary IAM permissions to perform the reques ... |
+| `ConflictException` | `structure` | Message | This request can cause an inconsistent state for the resource. The requested operation conflicts with the current state of the resource. For example, attemp ... |
+| `InternalServerException` | `structure` | Message | The request processing has failed because of an unknown error, exception, or failure. This indicates a server-side error within the Amazon Web Services Paym ... |
+| `PublicPolicyException` | `structure` | Message | The resource-based policy would grant public access to the key. Modify the policy to restrict access to specific principals and resubmit the request. |
+| `ResourceNotFoundException` | `structure` | ResourceId | The request was denied due to resource not found. The specified key, alias, or other resource does not exist in your account or region. Verify that the reso ... |
+| `ServiceQuotaExceededException` | `structure` | Message | This request would cause a service quota to be exceeded. You have reached the maximum number of keys, aliases, or other resources allowed in your account. R ... |
+| `ServiceUnavailableException` | `structure` | Message | The service cannot complete the request. The Amazon Web Services Payment Cryptography service is temporarily unavailable. This is typically a temporary cond ... |
+| `ThrottlingException` | `structure` | Message | The request was denied due to request throttling. You have exceeded the rate limits for Amazon Web Services Payment Cryptography API calls. Implement expone ... |
+| `ValidationException` | `structure` | Message | The request was denied due to an invalid request error. One or more parameters in your request are invalid. Check the parameter values, formats, and constra ... |
+| `AssociateMpaTeamInput` | `structure` | Action, MpaTeamArn, RequesterComment | - |
+| `AssociateMpaTeamOutput` | `structure` | MpaTeamAssociation | - |
+| `DeleteResourcePolicyInput` | `structure` | ResourceArn | - |
+| `DeleteResourcePolicyOutput` | `structure` | **empty (no members)** | - |
+| `DisableDefaultKeyReplicationRegionsInput` | `structure` | ReplicationRegions | Input parameters for disabling default key replication regions for the account. |
+| `DisableDefaultKeyReplicationRegionsOutput` | `structure` | EnabledReplicationRegions | Output from disabling default key replication regions for the account. |
+| `DisassociateMpaTeamInput` | `structure` | Action, RequesterComment | - |
+| `DisassociateMpaTeamOutput` | `structure` | MpaTeamAssociation | - |
+| `EnableDefaultKeyReplicationRegionsInput` | `structure` | ReplicationRegions | Input parameters for enabling default key replication regions for the account. |
+| `EnableDefaultKeyReplicationRegionsOutput` | `structure` | EnabledReplicationRegions | Output from enabling default key replication regions for the account. |
+| `ExportKeyInput` | `structure` | KeyMaterial, ExportKeyIdentifier, ExportAttributes | - |
+| `ExportKeyOutput` | `structure` | WrappedKey | - |
+| `GetCertificateSigningRequestInput` | `structure` | KeyIdentifier, SigningAlgorithm, CertificateSubject | - |
+| `GetCertificateSigningRequestOutput` | `structure` | CertificateSigningRequest | - |
+| `GetDefaultKeyReplicationRegionsInput` | `structure` | **empty (no members)** | Input parameters for retrieving the account's default key replication regions. This operation requires no input parameters. |
+| `GetDefaultKeyReplicationRegionsOutput` | `structure` | EnabledReplicationRegions | Output containing the account's current default key replication configuration. |
+| `GetMpaTeamAssociationInput` | `structure` | Action | - |
+| `GetMpaTeamAssociationOutput` | `structure` | MpaTeamAssociation | - |
+| `GetParametersForExportInput` | `structure` | KeyMaterialType, SigningKeyAlgorithm, ReuseLastGeneratedToken | - |
+| `GetParametersForExportOutput` | `structure` | SigningKeyCertificate, SigningKeyCertificateChain, SigningKeyAlgorithm, ExportToken, ParametersValidUntilTimestamp | - |
+| `GetParametersForImportInput` | `structure` | KeyMaterialType, WrappingKeyAlgorithm, ReuseLastGeneratedToken | - |
+| `GetParametersForImportOutput` | `structure` | WrappingKeyCertificate, WrappingKeyCertificateChain, WrappingKeyAlgorithm, ImportToken, ParametersValidUntilTimestamp | - |
+| `GetPublicKeyCertificateInput` | `structure` | KeyIdentifier | - |
+| `GetPublicKeyCertificateOutput` | `structure` | KeyCertificate, KeyCertificateChain | - |
+| `GetResourcePolicyInput` | `structure` | ResourceArn | - |
+| `GetResourcePolicyOutput` | `structure` | ResourceArn, Policy | - |
+| `ImportKeyInput` | `structure` | KeyMaterial, KeyCheckValueAlgorithm, Enabled, Tags, ReplicationRegions, RequesterComment | - |
+| `ImportKeyOutput` | `structure` | Key | - |
+| `ListTagsForResourceInput` | `structure` | ResourceArn, NextToken, MaxResults | - |
+| `ListTagsForResourceOutput` | `structure` | Tags, NextToken | - |
+| `PutResourcePolicyInput` | `structure` | ResourceArn, Policy | - |
+| `As2805KeyVariant` | `enum` | TERMINAL_MAJOR_KEY_VARIANT_00, PIN_ENCRYPTION_KEY_VARIANT_28, MESSAGE_AUTHENTICATION_KEY_VARIANT_24, DATA_ENCRYPTION_KEY_VARIANT_22 | - |
+| `KeyDerivationFunction` | `enum` | NIST_SP800, ANSI_X963 | - |
+| `KeyDerivationHashAlgorithm` | `enum` | SHA_256, SHA_384, SHA_512 | - |
+| `SymmetricKeyAlgorithm` | `enum` | TDES_2KEY, TDES_3KEY, AES_128, AES_192, AES_256, HMAC_SHA256, HMAC_SHA384, HMAC_SHA512, HMAC_SHA224 | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

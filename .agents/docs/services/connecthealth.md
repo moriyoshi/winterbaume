@@ -45,55 +45,55 @@ Health Agent for healthcare providers and patient engagement
 ### Get
 
 - Operations: `GetDomain`, `GetMedicalScribeListeningSession`, `GetPatientInsightsJob`, `GetSubscription`
-- Traits: `endpoint-bound` (2), `readonly` (4)
-- Common required input members in this group: `domainId`, `jobId`, `sessionId`, `subscriptionId`
+- Traits: `readonly` (4)
+- Common required input members in this group: `domainId`, `subscriptionId`
 
 ### List
 
 - Operations: `ListDomains`, `ListSubscriptions`, `ListTagsForResource`
-- Traits: `paginated` (2), `readonly` (3)
-- Common required input members in this group: `domainId`, `resourceArn`
+- Traits: `readonly` (3), `paginated` (2)
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateDomain`, `CreateSubscription`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `domainId`, `name`
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartMedicalScribeListeningSession`, `StartPatientInsightsJob`
-- Traits: `endpoint-bound` (2), `idempotency-token` (1)
-- Common required input members in this group: `domainId`, `encounterContext`, `inputDataConfig`, `insightsContext`, `languageCode`, `mediaEncoding`, `mediaSampleRateHertz`, `outputDataConfig`, `patientContext`, `sessionId`, `subscriptionId`, `userContext`
+- Traits: `idempotency-token` (1)
+- Common required input members in this group: `domainId`
 
 ### Activate
 
 - Operations: `ActivateSubscription`
-- Common required input members in this group: `domainId`, `subscriptionId`
+- Common required input members in this group: -
 
 ### Deactivate
 
 - Operations: `DeactivateSubscription`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `domainId`, `subscriptionId`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteDomain`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `domainId`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
@@ -105,14 +105,14 @@ Health Agent for healthcare providers and patient engagement
 | `DeactivateSubscription` | `POST /domains/{domainId}/subscriptions/{subscriptionId}/deactivate` | `idempotent` | `domainId`, `subscriptionId` | - | `DeactivateSubscriptionOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deactivates a Subscription to stop billing for a user. |
 | `DeleteDomain` | `DELETE /domain/{domainId}` | `idempotent` | `domainId` | - | `DeleteDomainOutput` | `ResourceNotFoundException` | Deletes a Domain and all associated resources. |
 | `GetDomain` | `GET /domain/{domainId}` | `readonly` | `domainId` | - | `GetDomainOutput` | `ResourceNotFoundException` | Retrieves information about a Domain. |
-| `GetMedicalScribeListeningSession` | `GET /medical-scribe-stream/domain/{domainId}/subscription/{subscriptionId}/session/{sessionId}` | `readonly`, `endpoint-bound` | `domainId`, `sessionId`, `subscriptionId` | - | `GetMedicalScribeListeningSessionOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException` | Retrieves details about an existing Medical Scribe listening session |
-| `GetPatientInsightsJob` | `GET /domain/{domainId}/patient-insights-job/{jobId}` | `readonly`, `endpoint-bound` | `domainId`, `jobId` | - | `GetPatientInsightsJobResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get details of a started patient insights job. |
+| `GetMedicalScribeListeningSession` | `GET /medical-scribe-stream/domain/{domainId}/subscription/{subscriptionId}/session/{sessionId}` | `readonly` | `sessionId`, `domainId`, `subscriptionId` | - | `GetMedicalScribeListeningSessionOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException` | Retrieves details about an existing Medical Scribe listening session |
+| `GetPatientInsightsJob` | `GET /domain/{domainId}/patient-insights-job/{jobId}` | `readonly` | `domainId`, `jobId` | - | `GetPatientInsightsJobResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get details of a started patient insights job. |
 | `GetSubscription` | `GET /domains/{domainId}/subscriptions/{subscriptionId}` | `readonly` | `domainId`, `subscriptionId` | - | `GetSubscriptionOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Retrieves information about a Subscription. |
 | `ListDomains` | `GET /domain` | `readonly`, `paginated` | - | - | `ListDomainsOutput` | - | Lists Domains for a given account. |
 | `ListSubscriptions` | `GET /domains/{domainId}/subscriptions` | `readonly`, `paginated` | `domainId` | - | `ListSubscriptionsOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Lists all Subscriptions within a Domain. |
 | `ListTagsForResource` | `GET /tags/{resourceArn}` | `readonly` | `resourceArn` | - | `ListTagsForResourceOutput` | - | Lists the tags associated with the specified resource |
-| `StartMedicalScribeListeningSession` | `POST /medical-scribe-stream/` | `endpoint-bound` | `domainId`, `languageCode`, `mediaEncoding`, `mediaSampleRateHertz`, `sessionId`, `subscriptionId` | - | `StartMedicalScribeListeningSessionOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Starts a new Medical Scribe listening session for real-time audio transcription |
-| `StartPatientInsightsJob` | `POST /domain/{domainId}/patient-insights-job` | `endpoint-bound`, `idempotency-token` | `domainId`, `encounterContext`, `inputDataConfig`, `insightsContext`, `outputDataConfig`, `patientContext`, `userContext` | `clientToken` | `StartPatientInsightsJobResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Starts a new patient insights job. |
+| `StartMedicalScribeListeningSession` | `POST /medical-scribe-stream/` | - | `sessionId`, `domainId`, `subscriptionId`, `languageCode`, `mediaSampleRateHertz`, `mediaEncoding` | - | `StartMedicalScribeListeningSessionOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Starts a new Medical Scribe listening session for real-time audio transcription |
+| `StartPatientInsightsJob` | `POST /domain/{domainId}/patient-insights-job` | `idempotency-token` | `domainId`, `patientContext`, `insightsContext`, `encounterContext`, `userContext`, `inputDataConfig`, `outputDataConfig` | `clientToken` | `StartPatientInsightsJobResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Starts a new patient insights job. |
 | `TagResource` | `POST /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tags` | - | `Unit` | - | Associates the specified tags with the specified resource |
 | `UntagResource` | `DELETE /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `Unit` | - | Removes the specified tags from the specified resource |
 
@@ -131,30 +131,56 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ResourceNotFoundException` | `structure` | `message` | This error is thrown when the requested resource is not found. |
-| `AccessDeniedException` | `structure` | `message` | This error is thrown when the client does not supply proper credentials to the API. |
-| `InternalServerException` | `structure` | `message` | This error is thrown when a transient error causes our API to fail. |
-| `ValidationException` | `structure` | `message` | This error is thrown when the client supplies invalid input to the API. |
-| `ServiceQuotaExceededException` | `structure` | `message` | The request exceeds a service quota. |
-| `ThrottlingException` | `structure` | `message` | This error is thrown when the client exceeds the allowed request rate. |
-| `ActivateSubscriptionInput` | `structure` | `domainId`, `subscriptionId` | - |
-| `ActivateSubscriptionOutput` | `structure` | `subscription` | - |
-| `CreateDomainInput` | `structure` | `kmsKeyArn`, `name`, `tags`, `webAppSetupConfiguration` | - |
-| `CreateDomainOutput` | `structure` | `arn`, `createdAt`, `domainId`, `encryptionContext`, `kmsKeyArn`, `name`, `status`, `webAppConfiguration`, `webAppUrl` | - |
-| `CreateSubscriptionInput` | `structure` | `domainId` | - |
-| `CreateSubscriptionOutput` | `structure` | `activatedAt`, `arn`, `createdAt`, `deactivatedAt`, `domainId`, `lastUpdatedAt`, `status`, `subscriptionId` | - |
-| `DeactivateSubscriptionInput` | `structure` | `domainId`, `subscriptionId` | - |
-| `DeactivateSubscriptionOutput` | `structure` | `subscription` | - |
-| `DeleteDomainInput` | `structure` | `domainId` | - |
-| `DeleteDomainOutput` | `structure` | `arn`, `domainId`, `status` | - |
-| `GetDomainInput` | `structure` | `domainId` | - |
-| `GetDomainOutput` | `structure` | `arn`, `createdAt`, `domainId`, `encryptionContext`, `kmsKeyArn`, `name`, `status`, `tags`, `webAppConfiguration`, `webAppUrl` | - |
-| `GetMedicalScribeListeningSessionInput` | `structure` | `domainId`, `sessionId`, `subscriptionId` | - |
-| `GetMedicalScribeListeningSessionOutput` | `structure` | `medicalScribeListeningSessionDetails` | - |
-| `GetPatientInsightsJobRequest` | `structure` | `domainId`, `jobId` | - |
-| `GetPatientInsightsJobResponse` | `structure` | `creationTime`, `encounterContext`, `inputDataConfig`, `insightsContext`, `insightsOutput`, `jobArn`, `jobId`, `jobStatus`, `outputDataConfig`, `patientContext`, `statusDetails`, `updatedTime`, ... (+1) | - |
-| `GetSubscriptionInput` | `structure` | `domainId`, `subscriptionId` | - |
-
+| `AccessDeniedException` | `structure` | message | This error is thrown when the client does not supply proper credentials to the API. |
+| `ConflictException` | `structure` | message | This error is thrown when a resource update is no longer valid due to assumptions about initial state changing. |
+| `InternalServerException` | `structure` | message | This error is thrown when a transient error causes our API to fail. |
+| `ResourceNotFoundException` | `structure` | message | This error is thrown when the requested resource is not found. |
+| `ServiceQuotaExceededException` | `structure` | message | The request exceeds a service quota. |
+| `ThrottlingException` | `structure` | message | This error is thrown when the client exceeds the allowed request rate. |
+| `ValidationException` | `structure` | message | This error is thrown when the client supplies invalid input to the API. |
+| `ActivateSubscriptionInput` | `structure` | domainId, subscriptionId | - |
+| `ActivateSubscriptionOutput` | `structure` | subscription | - |
+| `CreateDomainInput` | `structure` | name, kmsKeyArn, webAppSetupConfiguration, tags | - |
+| `CreateDomainOutput` | `structure` | domainId, arn, name, kmsKeyArn, encryptionContext, status, webAppUrl, webAppConfiguration, createdAt | - |
+| `CreateSubscriptionInput` | `structure` | domainId | - |
+| `CreateSubscriptionOutput` | `structure` | domainId, subscriptionId, arn, status, createdAt, lastUpdatedAt, activatedAt, deactivatedAt | - |
+| `DeactivateSubscriptionInput` | `structure` | domainId, subscriptionId | - |
+| `DeactivateSubscriptionOutput` | `structure` | subscription | - |
+| `DeleteDomainInput` | `structure` | domainId | - |
+| `DeleteDomainOutput` | `structure` | domainId, arn, status | - |
+| `GetDomainInput` | `structure` | domainId | - |
+| `GetDomainOutput` | `structure` | domainId, arn, name, kmsKeyArn, encryptionContext, status, webAppUrl, webAppConfiguration, createdAt, tags | - |
+| `GetMedicalScribeListeningSessionInput` | `structure` | sessionId, domainId, subscriptionId | - |
+| `GetMedicalScribeListeningSessionOutput` | `structure` | medicalScribeListeningSessionDetails | - |
+| `GetPatientInsightsJobRequest` | `structure` | domainId, jobId | - |
+| `GetPatientInsightsJobResponse` | `structure` | jobId, jobArn, jobStatus, creationTime, updatedTime, insightsOutput, statusDetails, patientContext, insightsContext, encounterContext, userContext, inputDataConfig, ... (+1) | - |
+| `GetSubscriptionInput` | `structure` | domainId, subscriptionId | - |
+| `GetSubscriptionOutput` | `structure` | subscription | - |
+| `ListDomainsInput` | `structure` | status, maxResults, nextToken | - |
+| `ListDomainsOutput` | `structure` | domains, nextToken | - |
+| `ListSubscriptionsInput` | `structure` | domainId, maxResults, nextToken | - |
+| `ListSubscriptionsOutput` | `structure` | subscriptions, nextToken | - |
+| `ListTagsForResourceInput` | `structure` | resourceArn | - |
+| `ListTagsForResourceOutput` | `structure` | tags | - |
+| `StartMedicalScribeListeningSessionInput` | `structure` | sessionId, domainId, subscriptionId, languageCode, mediaSampleRateHertz, mediaEncoding, inputStream | - |
+| `StartMedicalScribeListeningSessionOutput` | `structure` | sessionId, domainId, subscriptionId, requestId, languageCode, mediaSampleRateHertz, mediaEncoding, responseStream | - |
+| `StartPatientInsightsJobRequest` | `structure` | domainId, patientContext, insightsContext, encounterContext, userContext, inputDataConfig, outputDataConfig, clientToken | - |
+| `StartPatientInsightsJobResponse` | `structure` | jobArn, jobId, creationTime | - |
+| `TagResourceInput` | `structure` | resourceArn, tags | - |
+| `UntagResourceInput` | `structure` | resourceArn, tagKeys | - |
+| `CustomTemplateBase` | `enum` | HISTORY_AND_PHYSICAL, GIRPP, DAP, SIRP, BIRP, BEHAVIORAL_SOAP | - |
+| `DomainStatus` | `enum` | ACTIVE, DELETING, DELETED | - |
+| `EncryptionType` | `enum` | AWS_OWNED_KEY, CUSTOMER_MANAGED_KEY | - |
+| `InsightsType` | `enum` | PRE_VISIT | - |
+| `JobStatus` | `enum` | SUBMITTED, IN_PROGRESS, FAILED, SUCCEEDED | - |
+| `ManagedNoteTemplate` | `enum` | HISTORY_AND_PHYSICAL, GIRPP, DAP, SIRP, BIRP, BEHAVIORAL_SOAP, PHYSICAL_SOAP | - |
+| `MedicalScribeLanguageCode` | `enum` | EN_US | - |
+| `MedicalScribeMediaEncoding` | `enum` | PCM, FLAC | - |
+| `MedicalScribeParticipantRole` | `enum` | PATIENT, CLINICIAN | - |
+| `MedicalScribeSessionControlEventType` | `enum` | END_OF_SESSION | - |
+| `MedicalScribeStreamStatus` | `enum` | IN_PROGRESS, PAUSED, FAILED, COMPLETED | - |
+| `PostStreamArtifactGenerationStatus` | `enum` | IN_PROGRESS, FAILED, COMPLETED | - |
+| `Pronouns` | `enum` | HE_HIM, SHE_HER, THEY_THEM | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

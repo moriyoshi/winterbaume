@@ -42,70 +42,70 @@ Amazon EventBridge Schema Registry
 ### Delete
 
 - Operations: `DeleteDiscoverer`, `DeleteRegistry`, `DeleteResourcePolicy`, `DeleteSchema`, `DeleteSchemaVersion`
-- Common required input members in this group: `DiscovererId`, `RegistryName`, `SchemaName`, `SchemaVersion`
+- Common required input members in this group: `RegistryName`, `SchemaName`
 
 ### List
 
-- Operations: `ListDiscoverers`, `ListRegistries`, `ListSchemaVersions`, `ListSchemas`, `ListTagsForResource`
+- Operations: `ListDiscoverers`, `ListRegistries`, `ListSchemas`, `ListSchemaVersions`, `ListTagsForResource`
 - Traits: `paginated` (4)
-- Common required input members in this group: `RegistryName`, `ResourceArn`, `SchemaName`
+- Common required input members in this group: `RegistryName`
 
 ### Describe
 
 - Operations: `DescribeCodeBinding`, `DescribeDiscoverer`, `DescribeRegistry`, `DescribeSchema`
-- Common required input members in this group: `DiscovererId`, `Language`, `RegistryName`, `SchemaName`
+- Common required input members in this group: `RegistryName`, `SchemaName`
 
 ### Create
 
 - Operations: `CreateDiscoverer`, `CreateRegistry`, `CreateSchema`
-- Common required input members in this group: `Content`, `RegistryName`, `SchemaName`, `SourceArn`, `Type`
+- Common required input members in this group: `RegistryName`
 
 ### Get
 
 - Operations: `GetCodeBindingSource`, `GetDiscoveredSchema`, `GetResourcePolicy`
-- Common required input members in this group: `Events`, `Language`, `RegistryName`, `SchemaName`, `Type`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateDiscoverer`, `UpdateRegistry`, `UpdateSchema`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `DiscovererId`, `RegistryName`, `SchemaName`
+- Common required input members in this group: `RegistryName`
 
 ### Put
 
 - Operations: `PutCodeBinding`, `PutResourcePolicy`
-- Common required input members in this group: `Language`, `Policy`, `RegistryName`, `SchemaName`
+- Common required input members in this group: -
 
 ### Export
 
 - Operations: `ExportSchema`
-- Common required input members in this group: `RegistryName`, `SchemaName`, `Type`
+- Common required input members in this group: -
 
 ### Search
 
 - Operations: `SearchSchemas`
 - Traits: `paginated` (1)
-- Common required input members in this group: `Keywords`, `RegistryName`
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartDiscoverer`
-- Common required input members in this group: `DiscovererId`
+- Common required input members in this group: -
 
 ### Stop
 
 - Operations: `StopDiscoverer`
-- Common required input members in this group: `DiscovererId`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
@@ -129,8 +129,8 @@ Amazon EventBridge Schema Registry
 | `GetResourcePolicy` | `GET /v1/policy` | - | - | - | `GetResourcePolicyResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `UnauthorizedException` | Retrieves the resource-based policy attached to a given registry. |
 | `ListDiscoverers` | `GET /v1/discoverers` | `paginated` | - | - | `ListDiscoverersResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `ServiceUnavailableException`, `UnauthorizedException` | List the discoverers. |
 | `ListRegistries` | `GET /v1/registries` | `paginated` | - | - | `ListRegistriesResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `ServiceUnavailableException`, `UnauthorizedException` | List the registries. |
-| `ListSchemaVersions` | `GET /v1/registries/name/{RegistryName}/schemas/name/{SchemaName}/versions` | `paginated` | `RegistryName`, `SchemaName` | - | `ListSchemaVersionsResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `UnauthorizedException` | Provides a list of the schema versions and related information. |
 | `ListSchemas` | `GET /v1/registries/name/{RegistryName}/schemas` | `paginated` | `RegistryName` | - | `ListSchemasResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `ServiceUnavailableException`, `UnauthorizedException` | List the schemas. |
+| `ListSchemaVersions` | `GET /v1/registries/name/{RegistryName}/schemas/name/{SchemaName}/versions` | `paginated` | `RegistryName`, `SchemaName` | - | `ListSchemaVersionsResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `UnauthorizedException` | Provides a list of the schema versions and related information. |
 | `ListTagsForResource` | `GET /tags/{ResourceArn}` | - | `ResourceArn` | - | `ListTagsForResourceResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException` | Get tags for resource. |
 | `PutCodeBinding` | `POST /v1/registries/name/{RegistryName}/schemas/name/{SchemaName}/language/{Language}` | - | `Language`, `RegistryName`, `SchemaName` | - | `PutCodeBindingResponse` | `BadRequestException`, `ForbiddenException`, `GoneException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException`, `UnauthorizedException` | Put code binding URI |
 | `PutResourcePolicy` | `PUT /v1/policy` | - | `Policy` | - | `PutResourcePolicyResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `PreconditionFailedException`, `ServiceUnavailableException`, `UnauthorizedException` | The name of the policy. |
@@ -168,30 +168,49 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `BadRequestException` | `structure` | `Code`, `Message` | - |
-| `ForbiddenException` | `structure` | `Code`, `Message` | - |
-| `InternalServerErrorException` | `structure` | `Code`, `Message` | - |
-| `UnauthorizedException` | `structure` | `Code`, `Message` | - |
-| `ServiceUnavailableException` | `structure` | `Code`, `Message` | - |
-| `NotFoundException` | `structure` | `Code`, `Message` | - |
-| `TooManyRequestsException` | `structure` | `Code`, `Message` | - |
-| `ConflictException` | `structure` | `Code`, `Message` | - |
-| `CreateDiscovererRequest` | `structure` | `CrossAccount`, `Description`, `SourceArn`, `Tags` | - |
-| `CreateDiscovererResponse` | `structure` | `CrossAccount`, `Description`, `DiscovererArn`, `DiscovererId`, `SourceArn`, `State`, `Tags` | - |
-| `CreateRegistryRequest` | `structure` | `Description`, `RegistryName`, `Tags` | - |
-| `CreateRegistryResponse` | `structure` | `Description`, `RegistryArn`, `RegistryName`, `Tags` | - |
-| `CreateSchemaRequest` | `structure` | `Content`, `Description`, `RegistryName`, `SchemaName`, `Tags`, `Type` | - |
-| `CreateSchemaResponse` | `structure` | `Description`, `LastModified`, `SchemaArn`, `SchemaName`, `SchemaVersion`, `Tags`, `Type`, `VersionCreatedDate` | - |
-| `DeleteDiscovererRequest` | `structure` | `DiscovererId` | - |
-| `DeleteRegistryRequest` | `structure` | `RegistryName` | - |
-| `DeleteResourcePolicyRequest` | `structure` | `RegistryName` | - |
-| `DeleteSchemaRequest` | `structure` | `RegistryName`, `SchemaName` | - |
-| `DeleteSchemaVersionRequest` | `structure` | `RegistryName`, `SchemaName`, `SchemaVersion` | - |
-| `DescribeCodeBindingRequest` | `structure` | `Language`, `RegistryName`, `SchemaName`, `SchemaVersion` | - |
-| `DescribeCodeBindingResponse` | `structure` | `CreationDate`, `LastModified`, `SchemaVersion`, `Status` | - |
-| `DescribeDiscovererRequest` | `structure` | `DiscovererId` | - |
-| `DescribeDiscovererResponse` | `structure` | `CrossAccount`, `Description`, `DiscovererArn`, `DiscovererId`, `SourceArn`, `State`, `Tags` | - |
-
+| `BadRequestException` | `structure` | Code, Message | - |
+| `ConflictException` | `structure` | Code, Message | - |
+| `ForbiddenException` | `structure` | Code, Message | - |
+| `GoneException` | `structure` | Code, Message | - |
+| `InternalServerErrorException` | `structure` | Code, Message | - |
+| `NotFoundException` | `structure` | Code, Message | - |
+| `PreconditionFailedException` | `structure` | Code, Message | - |
+| `ServiceUnavailableException` | `structure` | Code, Message | - |
+| `TooManyRequestsException` | `structure` | Code, Message | - |
+| `UnauthorizedException` | `structure` | Code, Message | - |
+| `CreateDiscovererRequest` | `structure` | Description, SourceArn, CrossAccount, Tags | - |
+| `CreateDiscovererResponse` | `structure` | Description, DiscovererArn, DiscovererId, SourceArn, State, CrossAccount, Tags | - |
+| `CreateRegistryRequest` | `structure` | Description, RegistryName, Tags | - |
+| `CreateRegistryResponse` | `structure` | Description, RegistryArn, RegistryName, Tags | - |
+| `CreateSchemaRequest` | `structure` | Content, Description, RegistryName, SchemaName, Tags, Type | - |
+| `CreateSchemaResponse` | `structure` | Description, LastModified, SchemaArn, SchemaName, SchemaVersion, Tags, Type, VersionCreatedDate | - |
+| `DeleteDiscovererRequest` | `structure` | DiscovererId | - |
+| `DeleteRegistryRequest` | `structure` | RegistryName | - |
+| `DeleteResourcePolicyRequest` | `structure` | RegistryName | - |
+| `DeleteSchemaRequest` | `structure` | RegistryName, SchemaName | - |
+| `DeleteSchemaVersionRequest` | `structure` | RegistryName, SchemaName, SchemaVersion | - |
+| `DescribeCodeBindingRequest` | `structure` | Language, RegistryName, SchemaName, SchemaVersion | - |
+| `DescribeCodeBindingResponse` | `structure` | CreationDate, LastModified, SchemaVersion, Status | - |
+| `DescribeDiscovererRequest` | `structure` | DiscovererId | - |
+| `DescribeDiscovererResponse` | `structure` | Description, DiscovererArn, DiscovererId, SourceArn, State, CrossAccount, Tags | - |
+| `DescribeRegistryRequest` | `structure` | RegistryName | - |
+| `DescribeRegistryResponse` | `structure` | Description, RegistryArn, RegistryName, Tags | - |
+| `DescribeSchemaRequest` | `structure` | RegistryName, SchemaName, SchemaVersion | - |
+| `DescribeSchemaResponse` | `structure` | Content, Description, LastModified, SchemaArn, SchemaName, SchemaVersion, Tags, Type, VersionCreatedDate | - |
+| `ExportSchemaRequest` | `structure` | RegistryName, SchemaName, SchemaVersion, Type | - |
+| `ExportSchemaResponse` | `structure` | Content, SchemaArn, SchemaName, SchemaVersion, Type | - |
+| `GetCodeBindingSourceRequest` | `structure` | Language, RegistryName, SchemaName, SchemaVersion | - |
+| `GetCodeBindingSourceResponse` | `structure` | Body | - |
+| `GetDiscoveredSchemaRequest` | `structure` | Events, Type | - |
+| `GetDiscoveredSchemaResponse` | `structure` | Content | - |
+| `GetResourcePolicyRequest` | `structure` | RegistryName | - |
+| `GetResourcePolicyResponse` | `structure` | Policy, RevisionId | - |
+| `ListDiscoverersRequest` | `structure` | DiscovererIdPrefix, Limit, NextToken, SourceArnPrefix | - |
+| `ListDiscoverersResponse` | `structure` | Discoverers, NextToken | - |
+| `ListRegistriesRequest` | `structure` | Limit, NextToken, RegistryNamePrefix, Scope | - |
+| `CodeGenerationStatus` | `enum` | CREATE_IN_PROGRESS, CREATE_COMPLETE, CREATE_FAILED | - |
+| `DiscovererState` | `enum` | STARTED, STOPPED | - |
+| `Type` | `enum` | OpenApi3, JSONSchemaDraft4 | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

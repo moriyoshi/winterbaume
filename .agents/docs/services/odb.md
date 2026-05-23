@@ -55,128 +55,65 @@ Oracle Database@Amazon Web Services is an offering that enables you to access Or
 
 ### List
 
-- Operations: `ListAutonomousVirtualMachines`, `ListCloudAutonomousVmClusters`, `ListCloudExadataInfrastructures`, `ListCloudVmClusters`, `ListDbNodes`, `ListDbServers`, `ListDbSystemShapes`, `ListGiVersions`, `ListOdbNetworks`, `ListOdbPeeringConnections`, `ListSystemVersions`, `ListTagsForResource`
-- Traits: `paginated` (11), `readonly` (12)
-- Common required input members in this group: `cloudAutonomousVmClusterId`, `cloudExadataInfrastructureId`, `cloudVmClusterId`, `giVersion`, `resourceArn`, `shape`
-
-### Get
-
-- Operations: `GetCloudAutonomousVmCluster`, `GetCloudExadataInfrastructure`, `GetCloudExadataInfrastructureUnallocatedResources`, `GetCloudVmCluster`, `GetDbNode`, `GetDbServer`, `GetOciOnboardingStatus`, `GetOdbNetwork`, `GetOdbPeeringConnection`
-- Traits: `readonly` (9)
-- Common required input members in this group: `cloudAutonomousVmClusterId`, `cloudExadataInfrastructureId`, `cloudVmClusterId`, `dbNodeId`, `dbServerId`, `odbNetworkId`, `odbPeeringConnectionId`
-
-### Create
-
-- Operations: `CreateCloudAutonomousVmCluster`, `CreateCloudExadataInfrastructure`, `CreateCloudVmCluster`, `CreateOdbNetwork`, `CreateOdbPeeringConnection`
-- Traits: `idempotency-token` (5), `idempotent` (5)
-- Common required input members in this group: `autonomousDataStorageSizeInTBs`, `clientSubnetCidr`, `cloudExadataInfrastructureId`, `computeCount`, `cpuCoreCount`, `cpuCoreCountPerNode`, `displayName`, `giVersion`, `hostname`, `memoryPerOracleComputeUnitInGBs`, `odbNetworkId`, `peerNetworkId`, `shape`, `sshPublicKeys`, `storageCount`, `totalContainerDatabases`
-
-### Delete
-
-- Operations: `DeleteCloudAutonomousVmCluster`, `DeleteCloudExadataInfrastructure`, `DeleteCloudVmCluster`, `DeleteOdbNetwork`, `DeleteOdbPeeringConnection`
-- Traits: `idempotent` (5)
-- Common required input members in this group: `cloudAutonomousVmClusterId`, `cloudExadataInfrastructureId`, `cloudVmClusterId`, `deleteAssociatedResources`, `odbNetworkId`, `odbPeeringConnectionId`
-
-### Update
-
-- Operations: `UpdateCloudExadataInfrastructure`, `UpdateOdbNetwork`, `UpdateOdbPeeringConnection`
-- Common required input members in this group: `cloudExadataInfrastructureId`, `odbNetworkId`, `odbPeeringConnectionId`
+- Operations: `ListDbSystemShapes`, `ListGiVersions`, `ListSystemVersions`, `ListTagsForResource`
+- Traits: `readonly` (4), `paginated` (3)
+- Common required input members in this group: -
 
 ### Accept
 
 - Operations: `AcceptMarketplaceRegistration`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `marketplaceRegistrationToken`
+- Common required input members in this group: -
 
 ### Associate
 
 - Operations: `AssociateIamRoleToResource`
-- Common required input members in this group: `awsIntegration`, `iamRoleArn`, `resourceArn`
+- Common required input members in this group: -
 
 ### Disassociate
 
 - Operations: `DisassociateIamRoleFromResource`
-- Common required input members in this group: `awsIntegration`, `iamRoleArn`, `resourceArn`
+- Common required input members in this group: -
+
+### Get
+
+- Operations: `GetOciOnboardingStatus`
+- Traits: `readonly` (1)
+- Common required input members in this group: -
 
 ### Initialize
 
 - Operations: `InitializeService`
 - Traits: `idempotent` (1)
-
-### Reboot
-
-- Operations: `RebootDbNode`
-- Common required input members in this group: `cloudVmClusterId`, `dbNodeId`
-
-### Start
-
-- Operations: `StartDbNode`
-- Common required input members in this group: `cloudVmClusterId`, `dbNodeId`
-
-### Stop
-
-- Operations: `StopDbNode`
-- Common required input members in this group: `cloudVmClusterId`, `dbNodeId`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AcceptMarketplaceRegistration` | - | `idempotent` | `marketplaceRegistrationToken` | - | `AcceptMarketplaceRegistrationOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Registers the Amazon Web Services Marketplace token for your Amazon Web Services account to activate your Oracle Database@Amazon Web Services subscription. |
-| `AssociateIamRoleToResource` | - | - | `awsIntegration`, `iamRoleArn`, `resourceArn` | - | `AssociateIamRoleToResourceOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Associates an Amazon Web Services Identity and Access Management (IAM) service role with a specified resource to enable Amazon Web Services service integration. |
-| `CreateCloudAutonomousVmCluster` | - | `idempotent`, `idempotency-token` | `autonomousDataStorageSizeInTBs`, `cloudExadataInfrastructureId`, `cpuCoreCountPerNode`, `displayName`, `memoryPerOracleComputeUnitInGBs`, `odbNetworkId`, `totalContainerDatabases` | `clientToken` | `CreateCloudAutonomousVmClusterOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a new Autonomous VM cluster in the specified Exadata infrastructure. |
-| `CreateCloudExadataInfrastructure` | - | `idempotent`, `idempotency-token` | `computeCount`, `displayName`, `shape`, `storageCount` | `clientToken` | `CreateCloudExadataInfrastructureOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates an Exadata infrastructure. |
-| `CreateCloudVmCluster` | - | `idempotent`, `idempotency-token` | `cloudExadataInfrastructureId`, `cpuCoreCount`, `displayName`, `giVersion`, `hostname`, `odbNetworkId`, `sshPublicKeys` | `clientToken` | `CreateCloudVmClusterOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a VM cluster on the specified Exadata infrastructure. |
-| `CreateOdbNetwork` | - | `idempotent`, `idempotency-token` | `clientSubnetCidr`, `displayName` | `clientToken` | `CreateOdbNetworkOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates an ODB network. |
-| `CreateOdbPeeringConnection` | - | `idempotent`, `idempotency-token` | `odbNetworkId`, `peerNetworkId` | `clientToken` | `CreateOdbPeeringConnectionOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a peering connection between an ODB network and a VPC. A peering connection enables private connectivity between the networks for application-tier communication. |
-| `DeleteCloudAutonomousVmCluster` | - | `idempotent` | `cloudAutonomousVmClusterId` | - | `DeleteCloudAutonomousVmClusterOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes an Autonomous VM cluster. |
-| `DeleteCloudExadataInfrastructure` | - | `idempotent` | `cloudExadataInfrastructureId` | - | `DeleteCloudExadataInfrastructureOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the specified Exadata infrastructure. Before you use this operation, make sure to delete all of the VM clusters that are hosted on this Exadata infrastructure. |
-| `DeleteCloudVmCluster` | - | `idempotent` | `cloudVmClusterId` | - | `DeleteCloudVmClusterOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes the specified VM cluster. |
-| `DeleteOdbNetwork` | - | `idempotent` | `deleteAssociatedResources`, `odbNetworkId` | - | `DeleteOdbNetworkOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the specified ODB network. |
-| `DeleteOdbPeeringConnection` | - | `idempotent` | `odbPeeringConnectionId` | - | `DeleteOdbPeeringConnectionOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an ODB peering connection. When you delete an ODB peering connection, the underlying VPC peering connection is also deleted. |
-| `DisassociateIamRoleFromResource` | - | - | `awsIntegration`, `iamRoleArn`, `resourceArn` | - | `DisassociateIamRoleFromResourceOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Disassociates an Amazon Web Services Identity and Access Management (IAM) service role from a specified resource to disable Amazon Web Services service integration. |
-| `GetCloudAutonomousVmCluster` | - | `readonly` | `cloudAutonomousVmClusterId` | - | `GetCloudAutonomousVmClusterOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets information about a specific Autonomous VM cluster. |
-| `GetCloudExadataInfrastructure` | - | `readonly` | `cloudExadataInfrastructureId` | - | `GetCloudExadataInfrastructureOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about the specified Exadata infrastructure. |
-| `GetCloudExadataInfrastructureUnallocatedResources` | - | `readonly` | `cloudExadataInfrastructureId` | - | `GetCloudExadataInfrastructureUnallocatedResourcesOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about unallocated resources in a specified Cloud Exadata Infrastructure. |
-| `GetCloudVmCluster` | - | `readonly` | `cloudVmClusterId` | - | `GetCloudVmClusterOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about the specified VM cluster. |
-| `GetDbNode` | - | `readonly` | `cloudVmClusterId`, `dbNodeId` | - | `GetDbNodeOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about the specified DB node. |
-| `GetDbServer` | - | `readonly` | `cloudExadataInfrastructureId`, `dbServerId` | - | `GetDbServerOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about the specified database server. |
-| `GetOciOnboardingStatus` | - | `readonly` | - | - | `GetOciOnboardingStatusOutput` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns the tenancy activation link and onboarding status for your Amazon Web Services account. |
-| `GetOdbNetwork` | - | `readonly` | `odbNetworkId` | - | `GetOdbNetworkOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about the specified ODB network. |
-| `GetOdbPeeringConnection` | - | `readonly` | `odbPeeringConnectionId` | - | `GetOdbPeeringConnectionOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about an ODB peering connection. |
-| `InitializeService` | - | `idempotent` | - | - | `InitializeServiceOutput` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Initializes the ODB service for the first time in an account. |
-| `ListAutonomousVirtualMachines` | - | `readonly`, `paginated` | `cloudAutonomousVmClusterId` | - | `ListAutonomousVirtualMachinesOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all Autonomous VMs in an Autonomous VM cluster. |
-| `ListCloudAutonomousVmClusters` | - | `readonly`, `paginated` | - | - | `ListCloudAutonomousVmClustersOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all Autonomous VM clusters in a specified Cloud Exadata infrastructure. |
-| `ListCloudExadataInfrastructures` | - | `readonly`, `paginated` | - | - | `ListCloudExadataInfrastructuresOutput` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns information about the Exadata infrastructures owned by your Amazon Web Services account. |
-| `ListCloudVmClusters` | - | `readonly`, `paginated` | - | - | `ListCloudVmClustersOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about the VM clusters owned by your Amazon Web Services account or only the ones on the specified Exadata infrastructure. |
-| `ListDbNodes` | - | `readonly`, `paginated` | `cloudVmClusterId` | - | `ListDbNodesOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about the DB nodes for the specified VM cluster. |
-| `ListDbServers` | - | `readonly`, `paginated` | `cloudExadataInfrastructureId` | - | `ListDbServersOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about the database servers that belong to the specified Exadata infrastructure. |
-| `ListDbSystemShapes` | - | `readonly`, `paginated` | - | - | `ListDbSystemShapesOutput` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns information about the shapes that are available for an Exadata infrastructure. |
-| `ListGiVersions` | - | `readonly`, `paginated` | - | - | `ListGiVersionsOutput` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns information about Oracle Grid Infrastructure (GI) software versions that are available for a VM cluster for the specified shape. |
-| `ListOdbNetworks` | - | `readonly`, `paginated` | - | - | `ListOdbNetworksOutput` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns information about the ODB networks owned by your Amazon Web Services account. |
-| `ListOdbPeeringConnections` | - | `readonly`, `paginated` | - | - | `ListOdbPeeringConnectionsOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all ODB peering connections or those associated with a specific ODB network. |
-| `ListSystemVersions` | - | `readonly`, `paginated` | `giVersion`, `shape` | - | `ListSystemVersionsOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about the system versions that are available for a VM cluster for the specified `giVersion` and `shape`. |
-| `ListTagsForResource` | - | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `ResourceNotFoundException` | Returns information about the tags applied to this resource. |
-| `RebootDbNode` | - | - | `cloudVmClusterId`, `dbNodeId` | - | `RebootDbNodeOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Reboots the specified DB node in a VM cluster. |
-| `StartDbNode` | - | - | `cloudVmClusterId`, `dbNodeId` | - | `StartDbNodeOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Starts the specified DB node in a VM cluster. |
-| `StopDbNode` | - | - | `cloudVmClusterId`, `dbNodeId` | - | `StopDbNodeOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Stops the specified DB node in a VM cluster. |
-| `TagResource` | - | `idempotent` | `resourceArn`, `tags` | - | `TagResourceResponse` | `ResourceNotFoundException`, `ServiceQuotaExceededException` | Applies tags to the specified resource. |
-| `UntagResource` | - | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `ResourceNotFoundException` | Removes tags from the specified resource. |
-| `UpdateCloudExadataInfrastructure` | - | - | `cloudExadataInfrastructureId` | - | `UpdateCloudExadataInfrastructureOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the properties of an Exadata infrastructure resource. |
-| `UpdateOdbNetwork` | - | - | `odbNetworkId` | - | `UpdateOdbNetworkOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates properties of a specified ODB network. |
-| `UpdateOdbPeeringConnection` | - | - | `odbPeeringConnectionId` | - | `UpdateOdbPeeringConnectionOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Modifies the settings of an Oracle Database@Amazon Web Services peering connection. You can update the display name and add or remove CIDR blocks from the peering connection. |
+| `AcceptMarketplaceRegistration` | `-` | `idempotent` | `marketplaceRegistrationToken` | - | `AcceptMarketplaceRegistrationOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Registers the Amazon Web Services Marketplace token for your Amazon Web Services account to activate your Oracle Database@Amazon Web Services subscription. |
+| `AssociateIamRoleToResource` | `-` | - | `iamRoleArn`, `awsIntegration`, `resourceArn` | - | `AssociateIamRoleToResourceOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Associates an Amazon Web Services Identity and Access Management (IAM) service role with a specified resource to enable Amazon Web Services service integration. |
+| `DisassociateIamRoleFromResource` | `-` | - | `iamRoleArn`, `awsIntegration`, `resourceArn` | - | `DisassociateIamRoleFromResourceOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Disassociates an Amazon Web Services Identity and Access Management (IAM) service role from a specified resource to disable Amazon Web Services service integration. |
+| `GetOciOnboardingStatus` | `-` | `readonly` | - | - | `GetOciOnboardingStatusOutput` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns the tenancy activation link and onboarding status for your Amazon Web Services account. |
+| `InitializeService` | `-` | `idempotent` | - | - | `InitializeServiceOutput` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Initializes the ODB service for the first time in an account. |
+| `ListDbSystemShapes` | `-` | `readonly`, `paginated` | - | - | `ListDbSystemShapesOutput` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns information about the shapes that are available for an Exadata infrastructure. |
+| `ListGiVersions` | `-` | `readonly`, `paginated` | - | - | `ListGiVersionsOutput` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns information about Oracle Grid Infrastructure (GI) software versions that are available for a VM cluster for the specified shape. |
+| `ListSystemVersions` | `-` | `readonly`, `paginated` | `giVersion`, `shape` | - | `ListSystemVersionsOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about the system versions that are available for a VM cluster for the specified giVersion and shape . |
+| `ListTagsForResource` | `-` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `ResourceNotFoundException` | Returns information about the tags applied to this resource. |
+| `TagResource` | `-` | `idempotent` | `resourceArn`, `tags` | - | `TagResourceResponse` | `ResourceNotFoundException`, `ServiceQuotaExceededException` | Applies tags to the specified resource. |
+| `UntagResource` | `-` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `ResourceNotFoundException` | Removes tags from the specified resource. |
 
 ## HTTP Bindings
 
@@ -192,31 +129,56 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | You don't have sufficient access to perform this action. |
-| `InternalServerException` | `structure` | `message`, `retryAfterSeconds` | Occurs when there is an internal failure in the Oracle Database@Amazon Web Services service. |
-| `ValidationException` | `structure` | `fieldList`, `message`, `reason` | The request has failed validation because it is missing required fields or has invalid inputs. |
-| `ThrottlingException` | `structure` | `message`, `retryAfterSeconds` | The request was denied due to request throttling. |
-| `ResourceNotFoundException` | `structure` | `message`, `resourceId`, `resourceType` | The operation tried to access a resource that doesn't exist. |
-| `ConflictException` | `structure` | `message`, `resourceId`, `resourceType` | Occurs when a conflict with the current status of your resource. |
-| `ServiceQuotaExceededException` | `structure` | `message`, `quotaCode`, `resourceId`, `resourceType` | You have exceeded the service quota. |
-| `AcceptMarketplaceRegistrationInput` | `structure` | `marketplaceRegistrationToken` | - |
-| `AcceptMarketplaceRegistrationOutput` | `structure` | - | - |
-| `AssociateIamRoleToResourceInput` | `structure` | `awsIntegration`, `iamRoleArn`, `resourceArn` | - |
-| `AssociateIamRoleToResourceOutput` | `structure` | - | - |
-| `CreateCloudAutonomousVmClusterInput` | `structure` | `autonomousDataStorageSizeInTBs`, `clientToken`, `cloudExadataInfrastructureId`, `cpuCoreCountPerNode`, `dbServers`, `description`, `displayName`, `isMtlsEnabledVmCluster`, `licenseModel`, `maintenanceWindow`, `memoryPerOracleComputeUnitInGBs`, `odbNetworkId`, ... (+5) | - |
-| `CreateCloudAutonomousVmClusterOutput` | `structure` | `cloudAutonomousVmClusterId`, `displayName`, `status`, `statusReason` | - |
-| `CreateCloudExadataInfrastructureInput` | `structure` | `availabilityZone`, `availabilityZoneId`, `clientToken`, `computeCount`, `customerContactsToSendToOCI`, `databaseServerType`, `displayName`, `maintenanceWindow`, `shape`, `storageCount`, `storageServerType`, `tags` | - |
-| `CreateCloudExadataInfrastructureOutput` | `structure` | `cloudExadataInfrastructureId`, `displayName`, `status`, `statusReason` | - |
-| `CreateCloudVmClusterInput` | `structure` | `clientToken`, `cloudExadataInfrastructureId`, `clusterName`, `cpuCoreCount`, `dataCollectionOptions`, `dataStorageSizeInTBs`, `dbNodeStorageSizeInGBs`, `dbServers`, `displayName`, `giVersion`, `hostname`, `isLocalBackupEnabled`, ... (+9) | - |
-| `CreateCloudVmClusterOutput` | `structure` | `cloudVmClusterId`, `displayName`, `status`, `statusReason` | - |
-| `CreateOdbNetworkInput` | `structure` | `availabilityZone`, `availabilityZoneId`, `backupSubnetCidr`, `clientSubnetCidr`, `clientToken`, `crossRegionS3RestoreSourcesToEnable`, `customDomainName`, `defaultDnsPrefix`, `displayName`, `kmsAccess`, `kmsPolicyDocument`, `s3Access`, ... (+5) | - |
-| `CreateOdbNetworkOutput` | `structure` | `displayName`, `odbNetworkId`, `status`, `statusReason` | - |
-| `CreateOdbPeeringConnectionInput` | `structure` | `clientToken`, `displayName`, `odbNetworkId`, `peerNetworkCidrsToBeAdded`, `peerNetworkId`, `peerNetworkRouteTableIds`, `tags` | - |
-| `CreateOdbPeeringConnectionOutput` | `structure` | `displayName`, `odbPeeringConnectionId`, `status`, `statusReason` | - |
-| `DeleteCloudAutonomousVmClusterInput` | `structure` | `cloudAutonomousVmClusterId` | - |
-| `DeleteCloudAutonomousVmClusterOutput` | `structure` | - | - |
-| `DeleteCloudExadataInfrastructureInput` | `structure` | `cloudExadataInfrastructureId` | - |
-
+| `AccessDeniedException` | `structure` | message | You don't have sufficient access to perform this action. Make sure you have the required permissions and try again. |
+| `ConflictException` | `structure` | message, resourceId, resourceType | Occurs when a conflict with the current status of your resource. Fix any inconsistencies with your resource and try again. |
+| `InternalServerException` | `structure` | message, retryAfterSeconds | Occurs when there is an internal failure in the Oracle Database@Amazon Web Services service. Wait and try again. |
+| `ResourceNotFoundException` | `structure` | message, resourceId, resourceType | The operation tried to access a resource that doesn't exist. Make sure you provided the correct resource and try again. |
+| `ServiceQuotaExceededException` | `structure` | message, resourceId, resourceType, quotaCode | You have exceeded the service quota. |
+| `ThrottlingException` | `structure` | message, retryAfterSeconds | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | message, reason, fieldList | The request has failed validation because it is missing required fields or has invalid inputs. |
+| `AcceptMarketplaceRegistrationInput` | `structure` | marketplaceRegistrationToken | - |
+| `AcceptMarketplaceRegistrationOutput` | `structure` | **empty (no members)** | - |
+| `AssociateIamRoleToResourceInput` | `structure` | iamRoleArn, awsIntegration, resourceArn | - |
+| `AssociateIamRoleToResourceOutput` | `structure` | **empty (no members)** | - |
+| `DisassociateIamRoleFromResourceInput` | `structure` | iamRoleArn, awsIntegration, resourceArn | - |
+| `DisassociateIamRoleFromResourceOutput` | `structure` | **empty (no members)** | - |
+| `GetOciOnboardingStatusInput` | `structure` | **empty (no members)** | - |
+| `GetOciOnboardingStatusOutput` | `structure` | status, existingTenancyActivationLink, newTenancyActivationLink, ociIdentityDomain | - |
+| `InitializeServiceInput` | `structure` | ociIdentityDomain | - |
+| `InitializeServiceOutput` | `structure` | **empty (no members)** | - |
+| `ListDbSystemShapesInput` | `structure` | maxResults, nextToken, availabilityZone, availabilityZoneId | - |
+| `ListDbSystemShapesOutput` | `structure` | nextToken, dbSystemShapes | - |
+| `ListGiVersionsInput` | `structure` | maxResults, nextToken, shape | - |
+| `ListGiVersionsOutput` | `structure` | nextToken, giVersions | - |
+| `ListSystemVersionsInput` | `structure` | maxResults, nextToken, giVersion, shape | - |
+| `ListSystemVersionsOutput` | `structure` | nextToken, systemVersions | - |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `TagResourceRequest` | `structure` | resourceArn, tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | resourceArn, tagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `Access` | `enum` | ENABLED, DISABLED | - |
+| `ComputeModel` | `enum` | ECPU, OCPU | - |
+| `DayOfWeekName` | `enum` | MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY | - |
+| `DbNodeMaintenanceType` | `enum` | VMDB_REBOOT_MIGRATION | - |
+| `DbNodeResourceStatus` | `enum` | AVAILABLE, FAILED, PROVISIONING, TERMINATED, TERMINATING, UPDATING, STOPPING, STOPPED, STARTING | - |
+| `DbServerPatchingStatus` | `enum` | COMPLETE, FAILED, MAINTENANCE_IN_PROGRESS, SCHEDULED | - |
+| `DiskRedundancy` | `enum` | HIGH, NORMAL | - |
+| `IamRoleStatus` | `enum` | ASSOCIATING, DISASSOCIATING, FAILED, CONNECTED, DISCONNECTED, PARTIALLY_CONNECTED, UNKNOWN | - |
+| `IormLifecycleState` | `enum` | BOOTSTRAPPING, DISABLED, ENABLED, FAILED, UPDATING | - |
+| `LicenseModel` | `enum` | BRING_YOUR_OWN_LICENSE, LICENSE_INCLUDED | - |
+| `ManagedResourceStatus` | `enum` | ENABLED, ENABLING, DISABLED, DISABLING | - |
+| `MonthName` | `enum` | JANUARY, FEBRUARY, MARCH, APRIL, MAY, JUNE, JULY, AUGUST, SEPTEMBER, OCTOBER, NOVEMBER, DECEMBER | - |
+| `Objective` | `enum` | AUTO, BALANCED, BASIC, HIGH_THROUGHPUT, LOW_LATENCY | - |
+| `OciOnboardingStatus` | `enum` | NOT_STARTED, PENDING_LINK_GENERATION, PENDING_CUSTOMER_ACTION, PENDING_INITIALIZATION, ACTIVATING, ACTIVE_IN_HOME_REGION, ACTIVE, ACTIVE_LIMITED, FAILED, PUBLIC_OFFER_UNSUPPORTED, SUSPENDED, CANCELED | - |
+| `PatchingModeType` | `enum` | ROLLING, NONROLLING | - |
+| `PreferenceType` | `enum` | NO_PREFERENCE, CUSTOM_PREFERENCE | - |
+| `ResourceStatus` | `enum` | AVAILABLE, FAILED, PROVISIONING, TERMINATED, TERMINATING, UPDATING, MAINTENANCE_IN_PROGRESS | - |
+| `ShapeType` | `enum` | AMD, INTEL, INTEL_FLEX_X9, AMPERE_FLEX_A1 | - |
+| `SupportedAwsIntegration` | `enum` | KmsTde | - |
+| `ValidationExceptionReason` | `enum` | UNKNOWN_OPERATION, CANNOT_PARSE, FIELD_VALIDATION_FAILED, OTHER | - |
+| `VpcEndpointType` | `enum` | SERVICENETWORK | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

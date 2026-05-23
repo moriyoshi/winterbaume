@@ -45,15 +45,15 @@ EC2 Instance Connect stores endpoint networking as service-local endpoint record
 
 ### Send
 
-- Operations: `SendSSHPublicKey`, `SendSerialConsoleSSHPublicKey`
-- Common required input members in this group: `InstanceId`, `InstanceOSUser`, `SSHPublicKey`
+- Operations: `SendSerialConsoleSSHPublicKey`, `SendSSHPublicKey`
+- Common required input members in this group: `InstanceId`, `SSHPublicKey`
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `SendSSHPublicKey` | - | - | `InstanceId`, `InstanceOSUser`, `SSHPublicKey` | - | `SendSSHPublicKeyResponse` | `AuthException`, `EC2InstanceNotFoundException`, `EC2InstanceStateInvalidException`, `EC2InstanceUnavailableException`, `InvalidArgsException`, `ServiceException`, `ThrottlingException` | Pushes an SSH public key to the specified EC2 instance for use by the specified user. The key remains for 60 seconds. |
-| `SendSerialConsoleSSHPublicKey` | - | - | `InstanceId`, `SSHPublicKey` | - | `SendSerialConsoleSSHPublicKeyResponse` | `AuthException`, `EC2InstanceNotFoundException`, `EC2InstanceStateInvalidException`, `EC2InstanceTypeInvalidException`, `EC2InstanceUnavailableException`, `InvalidArgsException`, `SerialConsoleAccessDisabledException`, `SerialConsoleSessionLimitExceededException`, ... (+4) | Pushes an SSH public key to the specified EC2 instance. The key remains for 60 seconds, which gives you 60 seconds to establish a serial console connection to the instance using SSH. |
+| `SendSerialConsoleSSHPublicKey` | `-` | - | `InstanceId`, `SSHPublicKey` | - | `SendSerialConsoleSSHPublicKeyResponse` | `AuthException`, `EC2InstanceNotFoundException`, `EC2InstanceStateInvalidException`, `EC2InstanceTypeInvalidException`, `EC2InstanceUnavailableException`, `InvalidArgsException`, `SerialConsoleAccessDisabledException`, `SerialConsoleSessionLimitExceededException`, `SerialConsoleSessionUnavailableException`, `SerialConsoleSessionUnsupportedException`, `ServiceException`, `ThrottlingException` | Pushes an SSH public key to the specified EC2 instance. The key remains for 60 seconds, which gives you 60 seconds to establish a serial console connection to the instance using SSH. For more information, see EC2 Ser ... |
+| `SendSSHPublicKey` | `-` | - | `InstanceId`, `InstanceOSUser`, `SSHPublicKey` | - | `SendSSHPublicKeyResponse` | `AuthException`, `EC2InstanceNotFoundException`, `EC2InstanceStateInvalidException`, `EC2InstanceUnavailableException`, `InvalidArgsException`, `ServiceException`, `ThrottlingException` | Pushes an SSH public key to the specified EC2 instance for use by the specified user. The key remains for 60 seconds. For more information, see Connect to your Linux instance using EC2 Instance Connect in the Amazon ... |
 
 ## HTTP Bindings
 
@@ -65,23 +65,22 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AuthException` | `structure` | `Message` | Either your AWS credentials are not valid or you do not have access to the EC2 instance. |
-| `EC2InstanceNotFoundException` | `structure` | `Message` | The specified instance was not found. |
-| `EC2InstanceStateInvalidException` | `structure` | `Message` | Unable to connect because the instance is not in a valid state. |
-| `EC2InstanceUnavailableException` | `structure` | `Message` | The instance is currently unavailable. |
-| `InvalidArgsException` | `structure` | `Message` | One of the parameters is not valid. |
-| `ServiceException` | `structure` | `Message` | The service encountered an error. |
-| `ThrottlingException` | `structure` | `Message` | The requests were made too frequently and have been throttled. |
-| `SendSSHPublicKeyRequest` | `structure` | `AvailabilityZone`, `InstanceId`, `InstanceOSUser`, `SSHPublicKey` | - |
-| `SendSSHPublicKeyResponse` | `structure` | `RequestId`, `Success` | - |
-| `SendSerialConsoleSSHPublicKeyRequest` | `structure` | `InstanceId`, `SSHPublicKey`, `SerialPort` | - |
-| `SendSerialConsoleSSHPublicKeyResponse` | `structure` | `RequestId`, `Success` | - |
-| `EC2InstanceTypeInvalidException` | `structure` | `Message` | The instance type is not supported for connecting via the serial console. |
-| `SerialConsoleAccessDisabledException` | `structure` | `Message` | Your account is not authorized to use the EC2 Serial Console. |
-| `SerialConsoleSessionLimitExceededException` | `structure` | `Message` | The instance currently has 1 active serial console session. |
-| `SerialConsoleSessionUnavailableException` | `structure` | `Message` | Unable to start a serial console session. |
-| `SerialConsoleSessionUnsupportedException` | `structure` | `Message` | Your instance's BIOS version is unsupported for serial console connection. |
-
+| `AuthException` | `structure` | Message | Either your AWS credentials are not valid or you do not have access to the EC2 instance. |
+| `EC2InstanceNotFoundException` | `structure` | Message | The specified instance was not found. |
+| `EC2InstanceStateInvalidException` | `structure` | Message | Unable to connect because the instance is not in a valid state. Connecting to a stopped or terminated instance is not supported. If the instance is stopped, ... |
+| `EC2InstanceTypeInvalidException` | `structure` | Message | The instance type is not supported for connecting via the serial console. Only Nitro instance types are currently supported. |
+| `EC2InstanceUnavailableException` | `structure` | Message | The instance is currently unavailable. Wait a few minutes and try again. |
+| `InvalidArgsException` | `structure` | Message | One of the parameters is not valid. |
+| `SerialConsoleAccessDisabledException` | `structure` | Message | Your account is not authorized to use the EC2 Serial Console. To authorize your account, run the EnableSerialConsoleAccess API. For more information, see En ... |
+| `SerialConsoleSessionLimitExceededException` | `structure` | Message | The instance currently has 1 active serial console session. Only 1 session is supported at a time. |
+| `SerialConsoleSessionUnavailableException` | `structure` | Message | Unable to start a serial console session. Please try again. |
+| `SerialConsoleSessionUnsupportedException` | `structure` | Message | Your instance's BIOS version is unsupported for serial console connection. Reboot your instance to update its BIOS, and then try again to connect. |
+| `ServiceException` | `structure` | Message | The service encountered an error. Follow the instructions in the error message and try again. |
+| `ThrottlingException` | `structure` | Message | The requests were made too frequently and have been throttled. Wait a while and try again. To increase the limit on your request frequency, contact AWS Support. |
+| `SendSerialConsoleSSHPublicKeyRequest` | `structure` | InstanceId, SerialPort, SSHPublicKey | - |
+| `SendSerialConsoleSSHPublicKeyResponse` | `structure` | RequestId, Success | - |
+| `SendSSHPublicKeyRequest` | `structure` | InstanceId, InstanceOSUser, SSHPublicKey, AvailabilityZone | - |
+| `SendSSHPublicKeyResponse` | `structure` | RequestId, Success | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

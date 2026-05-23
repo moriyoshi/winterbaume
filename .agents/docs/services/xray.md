@@ -65,102 +65,102 @@ Parity implications:
 
 - Operations: `GetEncryptionConfig`, `GetGroup`, `GetGroups`, `GetIndexingRules`, `GetInsight`, `GetInsightEvents`, `GetInsightImpactGraph`, `GetInsightSummaries`, `GetRetrievedTracesGraph`, `GetSamplingRules`, `GetSamplingStatisticSummaries`, `GetSamplingTargets`, `GetServiceGraph`, `GetTimeSeriesServiceStatistics`, `GetTraceGraph`, `GetTraceSegmentDestination`, `GetTraceSummaries`
 - Traits: `paginated` (9)
-- Common required input members in this group: `EndTime`, `InsightId`, `RetrievalToken`, `SamplingStatisticsDocuments`, `StartTime`, `TraceIds`
+- Common required input members in this group: `InsightId`, `StartTime`, `EndTime`
 
 ### Put
 
 - Operations: `PutEncryptionConfig`, `PutResourcePolicy`, `PutTelemetryRecords`, `PutTraceSegments`
-- Common required input members in this group: `PolicyDocument`, `PolicyName`, `TelemetryRecords`, `TraceSegmentDocuments`, `Type`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateGroup`, `UpdateIndexingRule`, `UpdateSamplingRule`, `UpdateTraceSegmentDestination`
-- Common required input members in this group: `Name`, `Rule`, `SamplingRuleUpdate`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteGroup`, `DeleteResourcePolicy`, `DeleteSamplingRule`
-- Common required input members in this group: `PolicyName`
+- Common required input members in this group: -
 
 ### List
 
 - Operations: `ListResourcePolicies`, `ListRetrievedTraces`, `ListTagsForResource`
 - Traits: `paginated` (2)
-- Common required input members in this group: `ResourceARN`, `RetrievalToken`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateGroup`, `CreateSamplingRule`
-- Common required input members in this group: `GroupName`, `SamplingRule`
+- Common required input members in this group: -
 
 ### Batch
 
 - Operations: `BatchGetTraces`
 - Traits: `paginated` (1)
-- Common required input members in this group: `TraceIds`
+- Common required input members in this group: -
 
 ### Cancel
 
 - Operations: `CancelTraceRetrieval`
-- Common required input members in this group: `RetrievalToken`
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartTraceRetrieval`
-- Common required input members in this group: `EndTime`, `StartTime`, `TraceIds`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceARN`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceARN`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `BatchGetTraces` | `POST /Traces` | `paginated` | `TraceIds` | - | `BatchGetTracesResult` | `InvalidRequestException`, `ThrottledException` | You cannot find traces through this API if Transaction Search is enabled since trace is not indexed in X-Ray. Retrieves a list of traces specified by ID. |
-| `CancelTraceRetrieval` | `POST /CancelTraceRetrieval` | - | `RetrievalToken` | - | `CancelTraceRetrievalResult` | `InvalidRequestException`, `ResourceNotFoundException`, `ThrottledException` | Cancels an ongoing trace retrieval job initiated by `StartTraceRetrieval` using the provided `RetrievalToken`. A successful cancellation will return an HTTP 200 response. |
+| `BatchGetTraces` | `POST /Traces` | `paginated` | `TraceIds` | - | `BatchGetTracesResult` | `InvalidRequestException`, `ThrottledException` | You cannot find traces through this API if Transaction Search is enabled since trace is not indexed in X-Ray. Retrieves a list of traces specified by ID. Each trace is a collection of segment documents that originate ... |
+| `CancelTraceRetrieval` | `POST /CancelTraceRetrieval` | - | `RetrievalToken` | - | `CancelTraceRetrievalResult` | `InvalidRequestException`, `ResourceNotFoundException`, `ThrottledException` | Cancels an ongoing trace retrieval job initiated by StartTraceRetrieval using the provided RetrievalToken . A successful cancellation will return an HTTP 200 response. |
 | `CreateGroup` | `POST /CreateGroup` | - | `GroupName` | - | `CreateGroupResult` | `InvalidRequestException`, `ThrottledException` | Creates a group resource with a name and a filter expression. |
-| `CreateSamplingRule` | `POST /CreateSamplingRule` | - | `SamplingRule` | - | `CreateSamplingRuleResult` | `InvalidRequestException`, `RuleLimitExceededException`, `ThrottledException` | Creates a rule to control sampling behavior for instrumented applications. Services retrieve rules with GetSamplingRules, and evaluate each rule in ascending order of priority for each request. |
+| `CreateSamplingRule` | `POST /CreateSamplingRule` | - | `SamplingRule` | - | `CreateSamplingRuleResult` | `InvalidRequestException`, `RuleLimitExceededException`, `ThrottledException` | Creates a rule to control sampling behavior for instrumented applications. Services retrieve rules with GetSamplingRules , and evaluate each rule in ascending order of priority for each request. If a rule matches, th ... |
 | `DeleteGroup` | `POST /DeleteGroup` | - | - | - | `DeleteGroupResult` | `InvalidRequestException`, `ThrottledException` | Deletes a group resource. |
 | `DeleteResourcePolicy` | `POST /DeleteResourcePolicy` | - | `PolicyName` | - | `DeleteResourcePolicyResult` | `InvalidPolicyRevisionIdException`, `InvalidRequestException`, `ThrottledException` | Deletes a resource policy from the target Amazon Web Services account. |
 | `DeleteSamplingRule` | `POST /DeleteSamplingRule` | - | - | - | `DeleteSamplingRuleResult` | `InvalidRequestException`, `ThrottledException` | Deletes a sampling rule. |
 | `GetEncryptionConfig` | `POST /EncryptionConfig` | - | - | - | `GetEncryptionConfigResult` | `InvalidRequestException`, `ThrottledException` | Retrieves the current encryption configuration for X-Ray data. |
 | `GetGroup` | `POST /GetGroup` | - | - | - | `GetGroupResult` | `InvalidRequestException`, `ThrottledException` | Retrieves group resource details. |
 | `GetGroups` | `POST /Groups` | `paginated` | - | - | `GetGroupsResult` | `InvalidRequestException`, `ThrottledException` | Retrieves all active group details. |
-| `GetIndexingRules` | `POST /GetIndexingRules` | - | - | - | `GetIndexingRulesResult` | `InvalidRequestException`, `ThrottledException` | Retrieves all indexing rules. Indexing rules are used to determine the server-side sampling rate for spans ingested through the CloudWatchLogs destination and indexed by X-Ray. |
+| `GetIndexingRules` | `POST /GetIndexingRules` | - | - | - | `GetIndexingRulesResult` | `InvalidRequestException`, `ThrottledException` | Retrieves all indexing rules. Indexing rules are used to determine the server-side sampling rate for spans ingested through the CloudWatchLogs destination and indexed by X-Ray. For more information, see Transaction S ... |
 | `GetInsight` | `POST /Insight` | - | `InsightId` | - | `GetInsightResult` | `InvalidRequestException`, `ThrottledException` | Retrieves the summary information of an insight. This includes impact to clients and root cause services, the top anomalous services, the category, the state of the insight, and the start and end time of the insight. |
 | `GetInsightEvents` | `POST /InsightEvents` | `paginated` | `InsightId` | - | `GetInsightEventsResult` | `InvalidRequestException`, `ThrottledException` | X-Ray reevaluates insights periodically until they're resolved, and records each intermediate state as an event. You can review an insight's events in the Impact Timeline on the Inspect page in the X-Ray console. |
-| `GetInsightImpactGraph` | `POST /InsightImpactGraph` | - | `EndTime`, `InsightId`, `StartTime` | - | `GetInsightImpactGraphResult` | `InvalidRequestException`, `ThrottledException` | Retrieves a service graph structure filtered by the specified insight. The service graph is limited to only structural information. |
-| `GetInsightSummaries` | `POST /InsightSummaries` | `paginated` | `EndTime`, `StartTime` | - | `GetInsightSummariesResult` | `InvalidRequestException`, `ThrottledException` | Retrieves the summaries of all insights in the specified group matching the provided filter values. |
-| `GetRetrievedTracesGraph` | `POST /GetRetrievedTracesGraph` | - | `RetrievalToken` | - | `GetRetrievedTracesGraphResult` | `InvalidRequestException`, `ResourceNotFoundException`, `ThrottledException` | Retrieves a service graph for traces based on the specified `RetrievalToken` from the CloudWatch log group generated by Transaction Search. This API does not initiate a retrieval job. |
+| `GetInsightImpactGraph` | `POST /InsightImpactGraph` | - | `InsightId`, `StartTime`, `EndTime` | - | `GetInsightImpactGraphResult` | `InvalidRequestException`, `ThrottledException` | Retrieves a service graph structure filtered by the specified insight. The service graph is limited to only structural information. For a complete service graph, use this API with the GetServiceGraph API. |
+| `GetInsightSummaries` | `POST /InsightSummaries` | `paginated` | `StartTime`, `EndTime` | - | `GetInsightSummariesResult` | `InvalidRequestException`, `ThrottledException` | Retrieves the summaries of all insights in the specified group matching the provided filter values. |
+| `GetRetrievedTracesGraph` | `POST /GetRetrievedTracesGraph` | - | `RetrievalToken` | - | `GetRetrievedTracesGraphResult` | `InvalidRequestException`, `ResourceNotFoundException`, `ThrottledException` | Retrieves a service graph for traces based on the specified RetrievalToken from the CloudWatch log group generated by Transaction Search. This API does not initiate a retrieval job. You must first execute StartTraceR ... |
 | `GetSamplingRules` | `POST /GetSamplingRules` | `paginated` | - | - | `GetSamplingRulesResult` | `InvalidRequestException`, `ThrottledException` | Retrieves all sampling rules. |
 | `GetSamplingStatisticSummaries` | `POST /SamplingStatisticSummaries` | `paginated` | - | - | `GetSamplingStatisticSummariesResult` | `InvalidRequestException`, `ThrottledException` | Retrieves information about recent sampling results for all sampling rules. |
 | `GetSamplingTargets` | `POST /SamplingTargets` | - | `SamplingStatisticsDocuments` | - | `GetSamplingTargetsResult` | `InvalidRequestException`, `ThrottledException` | Requests a sampling quota for rules that the service is using to sample requests. |
-| `GetServiceGraph` | `POST /ServiceGraph` | `paginated` | `EndTime`, `StartTime` | - | `GetServiceGraphResult` | `InvalidRequestException`, `ThrottledException` | Retrieves a document that describes services that process incoming requests, and downstream services that they call as a result. Root services process incoming requests and make calls to downstream services. |
-| `GetTimeSeriesServiceStatistics` | `POST /TimeSeriesServiceStatistics` | `paginated` | `EndTime`, `StartTime` | - | `GetTimeSeriesServiceStatisticsResult` | `InvalidRequestException`, `ThrottledException` | Get an aggregation of service statistics defined by a specific time range. |
+| `GetServiceGraph` | `POST /ServiceGraph` | `paginated` | `StartTime`, `EndTime` | - | `GetServiceGraphResult` | `InvalidRequestException`, `ThrottledException` | Retrieves a document that describes services that process incoming requests, and downstream services that they call as a result. Root services process incoming requests and make calls to downstream services. Root ser ... |
+| `GetTimeSeriesServiceStatistics` | `POST /TimeSeriesServiceStatistics` | `paginated` | `StartTime`, `EndTime` | - | `GetTimeSeriesServiceStatisticsResult` | `InvalidRequestException`, `ThrottledException` | Get an aggregation of service statistics defined by a specific time range. |
 | `GetTraceGraph` | `POST /TraceGraph` | `paginated` | `TraceIds` | - | `GetTraceGraphResult` | `InvalidRequestException`, `ThrottledException` | Retrieves a service graph for one or more specific trace IDs. |
-| `GetTraceSegmentDestination` | `POST /GetTraceSegmentDestination` | - | - | - | `GetTraceSegmentDestinationResult` | `InvalidRequestException`, `ThrottledException` | Retrieves the current destination of data sent to `PutTraceSegments` and OpenTelemetry protocol (OTLP) endpoint. The Transaction Search feature requires a CloudWatchLogs destination. |
-| `GetTraceSummaries` | `POST /TraceSummaries` | `paginated` | `EndTime`, `StartTime` | - | `GetTraceSummariesResult` | `InvalidRequestException`, `ThrottledException` | Retrieves IDs and annotations for traces available for a specified time frame using an optional filter. To get the full traces, pass the trace IDs to `BatchGetTraces`. |
+| `GetTraceSegmentDestination` | `POST /GetTraceSegmentDestination` | - | - | - | `GetTraceSegmentDestinationResult` | `InvalidRequestException`, `ThrottledException` | Retrieves the current destination of data sent to PutTraceSegments and OpenTelemetry protocol (OTLP) endpoint. The Transaction Search feature requires a CloudWatchLogs destination. For more information, see Transacti ... |
+| `GetTraceSummaries` | `POST /TraceSummaries` | `paginated` | `StartTime`, `EndTime` | - | `GetTraceSummariesResult` | `InvalidRequestException`, `ThrottledException` | Retrieves IDs and annotations for traces available for a specified time frame using an optional filter. To get the full traces, pass the trace IDs to BatchGetTraces . A filter expression can target traced requests th ... |
 | `ListResourcePolicies` | `POST /ListResourcePolicies` | `paginated` | - | - | `ListResourcePoliciesResult` | `InvalidRequestException`, `ThrottledException` | Returns the list of resource policies in the target Amazon Web Services account. |
-| `ListRetrievedTraces` | `POST /ListRetrievedTraces` | - | `RetrievalToken` | - | `ListRetrievedTracesResult` | `InvalidRequestException`, `ResourceNotFoundException`, `ThrottledException` | Retrieves a list of traces for a given `RetrievalToken` from the CloudWatch log group generated by Transaction Search. For information on what each trace returns, see BatchGetTraces. |
+| `ListRetrievedTraces` | `POST /ListRetrievedTraces` | - | `RetrievalToken` | - | `ListRetrievedTracesResult` | `InvalidRequestException`, `ResourceNotFoundException`, `ThrottledException` | Retrieves a list of traces for a given RetrievalToken from the CloudWatch log group generated by Transaction Search. For information on what each trace returns, see BatchGetTraces . This API does not initiate a retri ... |
 | `ListTagsForResource` | `POST /ListTagsForResource` | `paginated` | `ResourceARN` | - | `ListTagsForResourceResponse` | `InvalidRequestException`, `ResourceNotFoundException`, `ThrottledException` | Returns a list of tags that are applied to the specified Amazon Web Services X-Ray group or sampling rule. |
 | `PutEncryptionConfig` | `POST /PutEncryptionConfig` | - | `Type` | - | `PutEncryptionConfigResult` | `InvalidRequestException`, `ThrottledException` | Updates the encryption configuration for X-Ray data. |
-| `PutResourcePolicy` | `POST /PutResourcePolicy` | - | `PolicyDocument`, `PolicyName` | - | `PutResourcePolicyResult` | `InvalidPolicyRevisionIdException`, `LockoutPreventionException`, `MalformedPolicyDocumentException`, `PolicyCountLimitExceededException`, `PolicySizeLimitExceededException`, `ThrottledException` | Sets the resource policy to grant one or more Amazon Web Services services and accounts permissions to access X-Ray. Each resource policy will be associated with a specific Amazon Web Services account. |
+| `PutResourcePolicy` | `POST /PutResourcePolicy` | - | `PolicyName`, `PolicyDocument` | - | `PutResourcePolicyResult` | `InvalidPolicyRevisionIdException`, `LockoutPreventionException`, `MalformedPolicyDocumentException`, `PolicyCountLimitExceededException`, `PolicySizeLimitExceededException`, `ThrottledException` | Sets the resource policy to grant one or more Amazon Web Services services and accounts permissions to access X-Ray. Each resource policy will be associated with a specific Amazon Web Services account. Each Amazon We ... |
 | `PutTelemetryRecords` | `POST /TelemetryRecords` | - | `TelemetryRecords` | - | `PutTelemetryRecordsResult` | `InvalidRequestException`, `ThrottledException` | Used by the Amazon Web Services X-Ray daemon to upload telemetry. |
-| `PutTraceSegments` | `POST /TraceSegments` | - | `TraceSegmentDocuments` | - | `PutTraceSegmentsResult` | `InvalidRequestException`, `ThrottledException` | Uploads segment documents to Amazon Web Services X-Ray. A segment document can be a completed segment, an in-progress segment, or an array of subsegments. |
-| `StartTraceRetrieval` | `POST /StartTraceRetrieval` | - | `EndTime`, `StartTime`, `TraceIds` | - | `StartTraceRetrievalResult` | `InvalidRequestException`, `ResourceNotFoundException`, `ThrottledException` | Initiates a trace retrieval process using the specified time range and for the given trace IDs in the Transaction Search generated CloudWatch log group. For more information, see Transaction Search. |
+| `PutTraceSegments` | `POST /TraceSegments` | - | `TraceSegmentDocuments` | - | `PutTraceSegmentsResult` | `InvalidRequestException`, `ThrottledException` | Uploads segment documents to Amazon Web Services X-Ray. A segment document can be a completed segment, an in-progress segment, or an array of subsegments. Segments must include the following fields. For the full segm ... |
+| `StartTraceRetrieval` | `POST /StartTraceRetrieval` | - | `TraceIds`, `StartTime`, `EndTime` | - | `StartTraceRetrievalResult` | `InvalidRequestException`, `ResourceNotFoundException`, `ThrottledException` | Initiates a trace retrieval process using the specified time range and for the given trace IDs in the Transaction Search generated CloudWatch log group. For more information, see Transaction Search . API returns a Re ... |
 | `TagResource` | `POST /TagResource` | - | `ResourceARN`, `Tags` | - | `TagResourceResponse` | `InvalidRequestException`, `ResourceNotFoundException`, `ThrottledException`, `TooManyTagsException` | Applies tags to an existing Amazon Web Services X-Ray group or sampling rule. |
-| `UntagResource` | `POST /UntagResource` | - | `ResourceARN`, `TagKeys` | - | `UntagResourceResponse` | `InvalidRequestException`, `ResourceNotFoundException`, `ThrottledException` | Removes tags from an Amazon Web Services X-Ray group or sampling rule. You cannot edit or delete system tags (those with an `aws:` prefix). |
+| `UntagResource` | `POST /UntagResource` | - | `ResourceARN`, `TagKeys` | - | `UntagResourceResponse` | `InvalidRequestException`, `ResourceNotFoundException`, `ThrottledException` | Removes tags from an Amazon Web Services X-Ray group or sampling rule. You cannot edit or delete system tags (those with an aws: prefix). |
 | `UpdateGroup` | `POST /UpdateGroup` | - | - | - | `UpdateGroupResult` | `InvalidRequestException`, `ThrottledException` | Updates a group resource. |
-| `UpdateIndexingRule` | `POST /UpdateIndexingRule` | - | `Name`, `Rule` | - | `UpdateIndexingRuleResult` | `InvalidRequestException`, `ResourceNotFoundException`, `ThrottledException` | Modifies an indexing rule’s configuration. Indexing rules are used for determining the sampling rate for spans indexed from CloudWatch Logs. |
+| `UpdateIndexingRule` | `POST /UpdateIndexingRule` | - | `Name`, `Rule` | - | `UpdateIndexingRuleResult` | `InvalidRequestException`, `ResourceNotFoundException`, `ThrottledException` | Modifies an indexing rule’s configuration. Indexing rules are used for determining the sampling rate for spans indexed from CloudWatch Logs. For more information, see Transaction Search . |
 | `UpdateSamplingRule` | `POST /UpdateSamplingRule` | - | `SamplingRuleUpdate` | - | `UpdateSamplingRuleResult` | `InvalidRequestException`, `ThrottledException` | Modifies a sampling rule's configuration. |
-| `UpdateTraceSegmentDestination` | `POST /UpdateTraceSegmentDestination` | - | - | - | `UpdateTraceSegmentDestinationResult` | `InvalidRequestException`, `ThrottledException` | Modifies the destination of data sent to `PutTraceSegments`. The Transaction Search feature requires the CloudWatchLogs destination. |
+| `UpdateTraceSegmentDestination` | `POST /UpdateTraceSegmentDestination` | - | - | - | `UpdateTraceSegmentDestinationResult` | `InvalidRequestException`, `ThrottledException` | Modifies the destination of data sent to PutTraceSegments . The Transaction Search feature requires the CloudWatchLogs destination. For more information, see Transaction Search . |
 
 ## HTTP Bindings
 
@@ -172,31 +172,56 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ThrottledException` | `structure` | `Message` | The request exceeds the maximum number of requests per second. |
-| `InvalidRequestException` | `structure` | `Message` | The request is missing required parameters or has invalid parameters. |
-| `ResourceNotFoundException` | `structure` | `Message`, `ResourceName` | The resource was not found. |
-| `InvalidPolicyRevisionIdException` | `structure` | `Message` | A policy revision id was provided which does not match the latest policy revision. |
-| `BatchGetTracesRequest` | `structure` | `NextToken`, `TraceIds` | - |
-| `BatchGetTracesResult` | `structure` | `NextToken`, `Traces`, `UnprocessedTraceIds` | - |
-| `CancelTraceRetrievalRequest` | `structure` | `RetrievalToken` | - |
-| `CancelTraceRetrievalResult` | `structure` | - | - |
-| `CreateGroupRequest` | `structure` | `FilterExpression`, `GroupName`, `InsightsConfiguration`, `Tags` | - |
-| `CreateGroupResult` | `structure` | `Group` | - |
-| `CreateSamplingRuleRequest` | `structure` | `SamplingRule`, `Tags` | - |
-| `CreateSamplingRuleResult` | `structure` | `SamplingRuleRecord` | - |
-| `RuleLimitExceededException` | `structure` | `Message` | You have reached the maximum number of sampling rules. |
-| `DeleteGroupRequest` | `structure` | `GroupARN`, `GroupName` | - |
-| `DeleteGroupResult` | `structure` | - | - |
-| `DeleteResourcePolicyRequest` | `structure` | `PolicyName`, `PolicyRevisionId` | - |
-| `DeleteResourcePolicyResult` | `structure` | - | - |
-| `DeleteSamplingRuleRequest` | `structure` | `RuleARN`, `RuleName` | - |
-| `DeleteSamplingRuleResult` | `structure` | `SamplingRuleRecord` | - |
-| `GetEncryptionConfigRequest` | `structure` | - | - |
-| `GetEncryptionConfigResult` | `structure` | `EncryptionConfig` | - |
-| `GetGroupRequest` | `structure` | `GroupARN`, `GroupName` | - |
-| `GetGroupResult` | `structure` | `Group` | - |
-| `GetGroupsRequest` | `structure` | `NextToken` | - |
-
+| `InvalidPolicyRevisionIdException` | `structure` | Message | A policy revision id was provided which does not match the latest policy revision. This exception is also if a policy revision id of 0 is provided via PutRe ... |
+| `InvalidRequestException` | `structure` | Message | The request is missing required parameters or has invalid parameters. |
+| `LockoutPreventionException` | `structure` | Message | The provided resource policy would prevent the caller of this request from calling PutResourcePolicy in the future. |
+| `MalformedPolicyDocumentException` | `structure` | Message | Invalid policy document provided in request. |
+| `PolicyCountLimitExceededException` | `structure` | Message | Exceeded the maximum number of resource policies for a target Amazon Web Services account. |
+| `PolicySizeLimitExceededException` | `structure` | Message | Exceeded the maximum size for a resource policy. |
+| `ResourceNotFoundException` | `structure` | Message, ResourceName | The resource was not found. Verify that the name or Amazon Resource Name (ARN) of the resource is correct. |
+| `RuleLimitExceededException` | `structure` | Message | You have reached the maximum number of sampling rules. |
+| `ThrottledException` | `structure` | Message | The request exceeds the maximum number of requests per second. |
+| `TooManyTagsException` | `structure` | Message, ResourceName | You have exceeded the maximum number of tags you can apply to this resource. |
+| `BatchGetTracesRequest` | `structure` | TraceIds, NextToken | - |
+| `BatchGetTracesResult` | `structure` | Traces, UnprocessedTraceIds, NextToken | - |
+| `CancelTraceRetrievalRequest` | `structure` | RetrievalToken | - |
+| `CancelTraceRetrievalResult` | `structure` | **empty (no members)** | - |
+| `CreateGroupRequest` | `structure` | GroupName, FilterExpression, InsightsConfiguration, Tags | - |
+| `CreateGroupResult` | `structure` | Group | - |
+| `CreateSamplingRuleRequest` | `structure` | SamplingRule, Tags | - |
+| `CreateSamplingRuleResult` | `structure` | SamplingRuleRecord | - |
+| `DeleteGroupRequest` | `structure` | GroupName, GroupARN | - |
+| `DeleteGroupResult` | `structure` | **empty (no members)** | - |
+| `DeleteResourcePolicyRequest` | `structure` | PolicyName, PolicyRevisionId | - |
+| `DeleteResourcePolicyResult` | `structure` | **empty (no members)** | - |
+| `DeleteSamplingRuleRequest` | `structure` | RuleName, RuleARN | - |
+| `DeleteSamplingRuleResult` | `structure` | SamplingRuleRecord | - |
+| `GetEncryptionConfigRequest` | `structure` | **empty (no members)** | - |
+| `GetEncryptionConfigResult` | `structure` | EncryptionConfig | - |
+| `GetGroupRequest` | `structure` | GroupName, GroupARN | - |
+| `GetGroupResult` | `structure` | Group | - |
+| `GetGroupsRequest` | `structure` | NextToken | - |
+| `GetGroupsResult` | `structure` | Groups, NextToken | - |
+| `GetIndexingRulesRequest` | `structure` | NextToken | - |
+| `GetIndexingRulesResult` | `structure` | IndexingRules, NextToken | - |
+| `GetInsightRequest` | `structure` | InsightId | - |
+| `GetInsightResult` | `structure` | Insight | - |
+| `GetInsightEventsRequest` | `structure` | InsightId, MaxResults, NextToken | - |
+| `GetInsightEventsResult` | `structure` | InsightEvents, NextToken | - |
+| `GetInsightImpactGraphRequest` | `structure` | InsightId, StartTime, EndTime, NextToken | - |
+| `GetInsightImpactGraphResult` | `structure` | InsightId, StartTime, EndTime, ServiceGraphStartTime, ServiceGraphEndTime, Services, NextToken | - |
+| `GetInsightSummariesRequest` | `structure` | States, GroupARN, GroupName, StartTime, EndTime, MaxResults, NextToken | - |
+| `GetInsightSummariesResult` | `structure` | InsightSummaries, NextToken | - |
+| `EncryptionStatus` | `enum` | UPDATING, ACTIVE | - |
+| `EncryptionType` | `enum` | NONE, KMS | - |
+| `InsightCategory` | `enum` | FAULT | - |
+| `InsightState` | `enum` | ACTIVE, CLOSED | - |
+| `RetrievalStatus` | `enum` | SCHEDULED, RUNNING, COMPLETE, FAILED, CANCELLED, TIMEOUT | - |
+| `SamplingStrategyName` | `enum` | PartialScan, FixedRate | - |
+| `TimeRangeType` | `enum` | TraceId, Event, Service | - |
+| `TraceFormatType` | `enum` | XRAY, OTEL | - |
+| `TraceSegmentDestination` | `enum` | XRay, CloudWatchLogs | - |
+| `TraceSegmentDestinationStatus` | `enum` | PENDING, ACTIVE | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

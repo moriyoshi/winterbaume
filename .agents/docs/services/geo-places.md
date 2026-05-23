@@ -41,52 +41,10 @@ The Places API enables powerful location search and geocoding capabilities for y
 | `ProviderResource` | - | - | `Autocomplete`, `Geocode`, `GetPlace`, `ReverseGeocode`, `SearchNearby`, `SearchText`, `Suggest` | - |
 ## Operation Groups
 
-### Search
-
-- Operations: `SearchNearby`, `SearchText`
-- Traits: `readonly` (2)
-- Common required input members in this group: `QueryPosition`
-
-### Autocomplete
-
-- Operations: `Autocomplete`
-- Traits: `readonly` (1)
-- Common required input members in this group: `QueryText`
-
-### Geocode
-
-- Operations: `Geocode`
-- Traits: `readonly` (1)
-
-### Get
-
-- Operations: `GetPlace`
-- Traits: `readonly` (1)
-- Common required input members in this group: `PlaceId`
-
-### Reverse
-
-- Operations: `ReverseGeocode`
-- Traits: `readonly` (1)
-- Common required input members in this group: `QueryPosition`
-
-### Suggest
-
-- Operations: `Suggest`
-- Traits: `readonly` (1)
-- Common required input members in this group: `QueryText`
-
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `Autocomplete` | `POST /autocomplete` | `readonly` | `QueryText` | - | `AutocompleteResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | `Autocomplete` completes potential places and addresses as the user types, based on the partial input. The API enhances the efficiency and accuracy of address by completing query based on a few entered keystrokes. |
-| `Geocode` | `POST /geocode` | `readonly` | - | - | `GeocodeResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | `Geocode` converts a textual address or place into geographic coordinates. You can obtain geographic coordinates, address component, and other related information. |
-| `GetPlace` | `GET /place/{PlaceId}` | `readonly` | `PlaceId` | - | `GetPlaceResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | `GetPlace` finds a place by its unique ID. A `PlaceId` is returned by other place operations. |
-| `ReverseGeocode` | `POST /reverse-geocode` | `readonly` | `QueryPosition` | - | `ReverseGeocodeResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | `ReverseGeocode` converts geographic coordinates into a human-readable address or place. You can obtain address component, and other related information such as place type, category, street information. |
-| `SearchNearby` | `POST /search-nearby` | `readonly` | `QueryPosition` | - | `SearchNearbyResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | `SearchNearby` queries for points of interest within a radius from a central coordinates, returning place results with optional filters such as categories, business chains, food types and more. The API returns details such as a place name, address, phone... |
-| `SearchText` | `POST /search-text` | `readonly` | - | - | `SearchTextResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | `SearchText` searches for geocode and place information. You can then complete a follow-up query suggested from the `Suggest` API via a query id. |
-| `Suggest` | `POST /suggest` | `readonly` | `QueryText` | - | `SuggestResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | `Suggest` provides intelligent predictions or recommendations based on the user's input or context, such as relevant places, points of interest, query terms or search category. It is designed to help users find places or point of interests candidates or... |
 
 ## HTTP Bindings
 
@@ -98,25 +56,10 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `Message` | You don't have sufficient access to perform this action. |
-| `InternalServerException` | `structure` | `Message` | The request processing has failed because of an unknown error, exception or failure. |
-| `ThrottlingException` | `structure` | `Message` | The request was denied due to request throttling. |
-| `ValidationException` | `structure` | `FieldList`, `Message`, `Reason` | The input fails to satisfy the constraints specified by an AWS service. |
-| `AutocompleteRequest` | `structure` | `AdditionalFeatures`, `BiasPosition`, `Filter`, `IntendedUse`, `Key`, `Language`, `MaxResults`, `PoliticalView`, `PostalCodeMode`, `QueryText` | - |
-| `AutocompleteResponse` | `structure` | `PricingBucket`, `ResultItems` | - |
-| `GeocodeRequest` | `structure` | `AdditionalFeatures`, `BiasPosition`, `Filter`, `IntendedUse`, `Key`, `Language`, `MaxResults`, `PoliticalView`, `QueryComponents`, `QueryText` | - |
-| `GeocodeResponse` | `structure` | `PricingBucket`, `ResultItems` | - |
-| `GetPlaceRequest` | `structure` | `AdditionalFeatures`, `IntendedUse`, `Key`, `Language`, `PlaceId`, `PoliticalView` | - |
-| `GetPlaceResponse` | `structure` | `AccessPoints`, `AccessRestrictions`, `Address`, `AddressNumberCorrected`, `BusinessChains`, `Categories`, `Contacts`, `FoodTypes`, `MainAddress`, `MapView`, `OpeningHours`, `Phonemes`, ... (+9) | - |
-| `ReverseGeocodeRequest` | `structure` | `AdditionalFeatures`, `Filter`, `Heading`, `IntendedUse`, `Key`, `Language`, `MaxResults`, `PoliticalView`, `QueryPosition`, `QueryRadius` | - |
-| `ReverseGeocodeResponse` | `structure` | `PricingBucket`, `ResultItems` | - |
-| `SearchNearbyRequest` | `structure` | `AdditionalFeatures`, `Filter`, `IntendedUse`, `Key`, `Language`, `MaxResults`, `NextToken`, `PoliticalView`, `QueryPosition`, `QueryRadius` | - |
-| `SearchNearbyResponse` | `structure` | `NextToken`, `PricingBucket`, `ResultItems` | - |
-| `SearchTextRequest` | `structure` | `AdditionalFeatures`, `BiasPosition`, `Filter`, `IntendedUse`, `Key`, `Language`, `MaxResults`, `NextToken`, `PoliticalView`, `QueryId`, `QueryText` | - |
-| `SearchTextResponse` | `structure` | `NextToken`, `PricingBucket`, `ResultItems` | - |
-| `SuggestRequest` | `structure` | `AdditionalFeatures`, `BiasPosition`, `Filter`, `IntendedUse`, `Key`, `Language`, `MaxQueryRefinements`, `MaxResults`, `PoliticalView`, `QueryText` | - |
-| `SuggestResponse` | `structure` | `PricingBucket`, `QueryRefinements`, `ResultItems` | - |
-
+| `AccessDeniedException` | `structure` | Message | You don't have sufficient access to perform this action. |
+| `InternalServerException` | `structure` | Message | The request processing has failed because of an unknown error, exception or failure. |
+| `ThrottlingException` | `structure` | Message | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | Message, Reason, FieldList | The input fails to satisfy the constraints specified by an AWS service. |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

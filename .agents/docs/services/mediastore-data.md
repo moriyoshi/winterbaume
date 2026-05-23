@@ -46,27 +46,28 @@ An AWS Elemental MediaStore asset is an object, similar to an object in the Amaz
 ### Delete
 
 - Operations: `DeleteObject`
-- Common required input members in this group: `Path`
+- Common required input members in this group: -
 
 ### Describe
 
 - Operations: `DescribeObject`
-- Common required input members in this group: `Path`
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetObject`
-- Common required input members in this group: `Path`
+- Common required input members in this group: -
 
 ### List
 
 - Operations: `ListItems`
 - Traits: `paginated` (1)
+- Common required input members in this group: -
 
 ### Put
 
 - Operations: `PutObject`
-- Common required input members in this group: `Body`, `Path`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
@@ -74,7 +75,7 @@ An AWS Elemental MediaStore asset is an object, similar to an object in the Amaz
 |---|---|---|---|---|---|---|---|
 | `DeleteObject` | `DELETE /{Path+}` | - | `Path` | - | `DeleteObjectResponse` | `ContainerNotFoundException`, `InternalServerError`, `ObjectNotFoundException` | Deletes an object at the specified path. |
 | `DescribeObject` | `HEAD /{Path+}` | - | `Path` | - | `DescribeObjectResponse` | `ContainerNotFoundException`, `InternalServerError`, `ObjectNotFoundException` | Gets the headers for an object at the specified path. |
-| `GetObject` | `GET /{Path+}` | - | `Path` | - | `GetObjectResponse` | `ContainerNotFoundException`, `InternalServerError`, `ObjectNotFoundException`, `RequestedRangeNotSatisfiableException` | Downloads the object at the specified path. If the object’s upload availability is set to `streaming`, AWS Elemental MediaStore downloads the object even if it’s still uploading the object. |
+| `GetObject` | `GET /{Path+}` | - | `Path` | - | `GetObjectResponse` | `ContainerNotFoundException`, `InternalServerError`, `ObjectNotFoundException`, `RequestedRangeNotSatisfiableException` | Downloads the object at the specified path. If the object’s upload availability is set to streaming , AWS Elemental MediaStore downloads the object even if it’s still uploading the object. |
 | `ListItems` | `GET /` | `paginated` | - | - | `ListItemsResponse` | `ContainerNotFoundException`, `InternalServerError` | Provides a list of metadata entries about folders and objects in the specified folder. |
 | `PutObject` | `PUT /{Path+}` | - | `Body`, `Path` | - | `PutObjectResponse` | `ContainerNotFoundException`, `InternalServerError` | Uploads an object to the specified path. Object sizes are limited to 25 MB for standard upload availability and 10 MB for streaming upload availability. |
 
@@ -92,21 +93,23 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ContainerNotFoundException` | `structure` | `Message` | The specified container was not found for the specified account. |
-| `InternalServerError` | `structure` | `Message` | The service is temporarily unavailable. |
-| `ObjectNotFoundException` | `structure` | `Message` | Could not perform an operation on an object that does not exist. |
-| `DeleteObjectRequest` | `structure` | `Path` | - |
-| `DeleteObjectResponse` | `structure` | - | - |
-| `DescribeObjectRequest` | `structure` | `Path` | - |
-| `DescribeObjectResponse` | `structure` | `CacheControl`, `ContentLength`, `ContentType`, `ETag`, `LastModified` | - |
-| `GetObjectRequest` | `structure` | `Path`, `Range` | - |
-| `GetObjectResponse` | `structure` | `Body`, `CacheControl`, `ContentLength`, `ContentRange`, `ContentType`, `ETag`, `LastModified`, `StatusCode` | - |
-| `RequestedRangeNotSatisfiableException` | `structure` | `Message` | The requested content range is not valid. |
-| `ListItemsRequest` | `structure` | `MaxResults`, `NextToken`, `Path` | - |
-| `ListItemsResponse` | `structure` | `Items`, `NextToken` | - |
-| `PutObjectRequest` | `structure` | `Body`, `CacheControl`, `ContentType`, `Path`, `StorageClass`, `UploadAvailability` | - |
-| `PutObjectResponse` | `structure` | `ContentSHA256`, `ETag`, `StorageClass` | - |
-
+| `ContainerNotFoundException` | `structure` | Message | The specified container was not found for the specified account. |
+| `InternalServerError` | `structure` | Message | The service is temporarily unavailable. |
+| `ObjectNotFoundException` | `structure` | Message | Could not perform an operation on an object that does not exist. |
+| `RequestedRangeNotSatisfiableException` | `structure` | Message | The requested content range is not valid. |
+| `DeleteObjectRequest` | `structure` | Path | - |
+| `DeleteObjectResponse` | `structure` | **empty (no members)** | - |
+| `DescribeObjectRequest` | `structure` | Path | - |
+| `DescribeObjectResponse` | `structure` | ETag, ContentType, ContentLength, CacheControl, LastModified | - |
+| `GetObjectRequest` | `structure` | Path, Range | - |
+| `GetObjectResponse` | `structure` | Body, CacheControl, ContentRange, ContentLength, ContentType, ETag, LastModified, StatusCode | - |
+| `ListItemsRequest` | `structure` | Path, MaxResults, NextToken | - |
+| `ListItemsResponse` | `structure` | Items, NextToken | - |
+| `PutObjectRequest` | `structure` | Body, Path, ContentType, CacheControl, StorageClass, UploadAvailability | - |
+| `PutObjectResponse` | `structure` | ContentSHA256, ETag, StorageClass | - |
+| `ItemType` | `enum` | OBJECT, FOLDER | - |
+| `StorageClass` | `enum` | TEMPORAL | - |
+| `UploadAvailability` | `enum` | STANDARD, STREAMING | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

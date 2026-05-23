@@ -87,81 +87,81 @@ API Gateway V2 currently models VPC links as local metadata.
 
 ### Get
 
-- Operations: `GetApi`, `GetApiMapping`, `GetApiMappings`, `GetApis`, `GetAuthorizer`, `GetAuthorizers`, `GetDeployment`, `GetDeployments`, `GetDomainName`, `GetDomainNames`, `GetIntegration`, `GetIntegrationResponse`, `GetIntegrationResponses`, `GetIntegrations`, `GetModel`, `GetModelTemplate`, `GetModels`, `GetPortal`, `GetPortalProduct`, `GetPortalProductSharingPolicy`, `GetProductPage`, `GetProductRestEndpointPage`, `GetRoute`, `GetRouteResponse`, `GetRouteResponses`, `GetRoutes`, `GetRoutingRule`, `GetStage`, `GetStages`, `GetTags`, `GetVpcLink`, `GetVpcLinks`
-- Common required input members in this group: `ApiId`, `ApiMappingId`, `AuthorizerId`, `DeploymentId`, `DomainName`, `IntegrationId`, `IntegrationResponseId`, `ModelId`, `PortalId`, `PortalProductId`, `ProductPageId`, `ProductRestEndpointPageId`, `ResourceArn`, `RouteId`, `RouteResponseId`, `RoutingRuleId`, `StageName`, `VpcLinkId`
+- Operations: `GetApi`, `GetApiMapping`, `GetApiMappings`, `GetApis`, `GetAuthorizer`, `GetAuthorizers`, `GetDeployment`, `GetDeployments`, `GetDomainName`, `GetDomainNames`, `GetIntegration`, `GetIntegrationResponse`, `GetIntegrationResponses`, `GetIntegrations`, `GetModel`, `GetModels`, `GetModelTemplate`, `GetPortal`, `GetPortalProduct`, `GetPortalProductSharingPolicy`, `GetProductPage`, `GetProductRestEndpointPage`, `GetRoute`, `GetRouteResponse`, `GetRouteResponses`, `GetRoutes`, `GetRoutingRule`, `GetStage`, `GetStages`, `GetTags`, `GetVpcLink`, `GetVpcLinks`
+- Common required input members in this group: `ApiId`, `DomainName`, `IntegrationId`, `ModelId`, `PortalProductId`, `RouteId`
 
 ### Delete
 
 - Operations: `DeleteAccessLogSettings`, `DeleteApi`, `DeleteApiMapping`, `DeleteAuthorizer`, `DeleteCorsConfiguration`, `DeleteDeployment`, `DeleteDomainName`, `DeleteIntegration`, `DeleteIntegrationResponse`, `DeleteModel`, `DeletePortal`, `DeletePortalProduct`, `DeletePortalProductSharingPolicy`, `DeleteProductPage`, `DeleteProductRestEndpointPage`, `DeleteRoute`, `DeleteRouteRequestParameter`, `DeleteRouteResponse`, `DeleteRouteSettings`, `DeleteRoutingRule`, `DeleteStage`, `DeleteVpcLink`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `ApiId`, `ApiMappingId`, `AuthorizerId`, `DeploymentId`, `DomainName`, `IntegrationId`, `IntegrationResponseId`, `ModelId`, `PortalId`, `PortalProductId`, `ProductPageId`, `ProductRestEndpointPageId`, `RequestParameterKey`, `RouteId`, `RouteKey`, `RouteResponseId`, `RoutingRuleId`, `StageName`, `VpcLinkId`
+- Common required input members in this group: `ApiId`, `StageName`, `DomainName`, `IntegrationId`, `PortalProductId`, `RouteId`
 
 ### Create
 
 - Operations: `CreateApi`, `CreateApiMapping`, `CreateAuthorizer`, `CreateDeployment`, `CreateDomainName`, `CreateIntegration`, `CreateIntegrationResponse`, `CreateModel`, `CreatePortal`, `CreatePortalProduct`, `CreateProductPage`, `CreateProductRestEndpointPage`, `CreateRoute`, `CreateRouteResponse`, `CreateRoutingRule`, `CreateStage`, `CreateVpcLink`
-- Common required input members in this group: `Actions`, `ApiId`, `Authorization`, `AuthorizerType`, `Conditions`, `DisplayContent`, `DisplayName`, `DomainName`, `EndpointConfiguration`, `IdentitySource`, `IntegrationId`, `IntegrationResponseKey`, `IntegrationType`, `Name`, `PortalContent`, `PortalProductId`, `Priority`, `ProtocolType`, `RestEndpointIdentifier`, `RouteId`, `RouteKey`, `RouteResponseKey`, `Schema`, `Stage`, ... (+2)
+- Common required input members in this group: `Name`, `ApiId`, `DomainName`, `PortalProductId`
 
 ### Update
 
 - Operations: `UpdateApi`, `UpdateApiMapping`, `UpdateAuthorizer`, `UpdateDeployment`, `UpdateDomainName`, `UpdateIntegration`, `UpdateIntegrationResponse`, `UpdateModel`, `UpdatePortal`, `UpdatePortalProduct`, `UpdateProductPage`, `UpdateProductRestEndpointPage`, `UpdateRoute`, `UpdateRouteResponse`, `UpdateStage`, `UpdateVpcLink`
-- Common required input members in this group: `ApiId`, `ApiMappingId`, `AuthorizerId`, `DeploymentId`, `DomainName`, `IntegrationId`, `IntegrationResponseId`, `ModelId`, `PortalId`, `PortalProductId`, `ProductPageId`, `ProductRestEndpointPageId`, `RouteId`, `RouteResponseId`, `StageName`, `VpcLinkId`
+- Common required input members in this group: `ApiId`, `DomainName`, `IntegrationId`, `PortalProductId`, `RouteId`
 
 ### List
 
 - Operations: `ListPortalProducts`, `ListPortals`, `ListProductPages`, `ListProductRestEndpointPages`, `ListRoutingRules`
 - Traits: `paginated` (1)
-- Common required input members in this group: `DomainName`, `PortalProductId`
+- Common required input members in this group: `PortalProductId`
 
 ### Put
 
 - Operations: `PutPortalProductSharingPolicy`, `PutRoutingRule`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `Actions`, `Conditions`, `DomainName`, `PolicyDocument`, `PortalProductId`, `Priority`, `RoutingRuleId`
+- Common required input members in this group: -
 
 ### Disable
 
 - Operations: `DisablePortal`
-- Common required input members in this group: `PortalId`
+- Common required input members in this group: -
 
 ### Export
 
 - Operations: `ExportApi`
-- Common required input members in this group: `ApiId`, `OutputType`, `Specification`
+- Common required input members in this group: -
 
 ### Import
 
 - Operations: `ImportApi`
-- Common required input members in this group: `Body`
+- Common required input members in this group: -
 
 ### Preview
 
 - Operations: `PreviewPortal`
-- Common required input members in this group: `PortalId`
+- Common required input members in this group: -
 
 ### Publish
 
 - Operations: `PublishPortal`
-- Common required input members in this group: `PortalId`
+- Common required input members in this group: -
 
 ### Reimport
 
 - Operations: `ReimportApi`
-- Common required input members in this group: `ApiId`, `Body`
+- Common required input members in this group: -
 
 ### Reset
 
 - Operations: `ResetAuthorizersCache`
-- Common required input members in this group: `ApiId`, `StageName`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
@@ -223,8 +223,8 @@ API Gateway V2 currently models VPC links as local metadata.
 | `GetIntegrationResponses` | `GET /v2/apis/{ApiId}/integrations/{IntegrationId}/integrationresponses` | - | `ApiId`, `IntegrationId` | - | `GetIntegrationResponsesResponse` | `BadRequestException`, `NotFoundException`, `TooManyRequestsException` | Gets the IntegrationResponses for an Integration. |
 | `GetIntegrations` | `GET /v2/apis/{ApiId}/integrations` | - | `ApiId` | - | `GetIntegrationsResponse` | `BadRequestException`, `NotFoundException`, `TooManyRequestsException` | Gets the Integrations for an API. |
 | `GetModel` | `GET /v2/apis/{ApiId}/models/{ModelId}` | - | `ApiId`, `ModelId` | - | `GetModelResponse` | `NotFoundException`, `TooManyRequestsException` | Gets a Model. |
-| `GetModelTemplate` | `GET /v2/apis/{ApiId}/models/{ModelId}/template` | - | `ApiId`, `ModelId` | - | `GetModelTemplateResponse` | `NotFoundException`, `TooManyRequestsException` | Gets a model template. |
 | `GetModels` | `GET /v2/apis/{ApiId}/models` | - | `ApiId` | - | `GetModelsResponse` | `BadRequestException`, `NotFoundException`, `TooManyRequestsException` | Gets the Models for an API. |
+| `GetModelTemplate` | `GET /v2/apis/{ApiId}/models/{ModelId}/template` | - | `ApiId`, `ModelId` | - | `GetModelTemplateResponse` | `NotFoundException`, `TooManyRequestsException` | Gets a model template. |
 | `GetPortal` | `GET /v2/portals/{PortalId}` | - | `PortalId` | - | `GetPortalResponse` | `AccessDeniedException`, `BadRequestException`, `NotFoundException`, `TooManyRequestsException` | Gets a portal. |
 | `GetPortalProduct` | `GET /v2/portalproducts/{PortalProductId}` | - | `PortalProductId` | - | `GetPortalProductResponse` | `AccessDeniedException`, `BadRequestException`, `NotFoundException`, `TooManyRequestsException` | Gets a portal product. |
 | `GetPortalProductSharingPolicy` | `GET /v2/portalproducts/{PortalProductId}/sharingpolicy` | - | `PortalProductId` | - | `GetPortalProductSharingPolicyResponse` | `AccessDeniedException`, `BadRequestException`, `NotFoundException`, `TooManyRequestsException` | Gets the sharing policy for a portal product. |
@@ -310,30 +310,56 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `TooManyRequestsException` | `structure` | `LimitType`, `Message` | A limit has been exceeded. |
-| `NotFoundException` | `structure` | `Message`, `ResourceType` | The resource specified in the request was not found. |
-| `BadRequestException` | `structure` | `Message` | The request is not valid, for example, the input is incomplete or incorrect. |
-| `ConflictException` | `structure` | `Message` | The requested operation would cause a conflict with the current state of a service resource associated with the request. |
-| `AccessDeniedException` | `structure` | `Message` | - |
-| `CreateApiRequest` | `structure` | `ApiKeySelectionExpression`, `CorsConfiguration`, `CredentialsArn`, `Description`, `DisableExecuteApiEndpoint`, `DisableSchemaValidation`, `IpAddressType`, `Name`, `ProtocolType`, `RouteKey`, `RouteSelectionExpression`, `Tags`, ... (+2) | Creates a new Api resource to represent an API. |
-| `CreateApiResponse` | `structure` | `ApiEndpoint`, `ApiGatewayManaged`, `ApiId`, `ApiKeySelectionExpression`, `CorsConfiguration`, `CreatedDate`, `Description`, `DisableExecuteApiEndpoint`, `DisableSchemaValidation`, `ImportInfo`, `IpAddressType`, `Name`, ... (+5) | - |
-| `CreateApiMappingRequest` | `structure` | `ApiId`, `ApiMappingKey`, `DomainName`, `Stage` | Creates a new ApiMapping resource to represent an API mapping. |
-| `CreateApiMappingResponse` | `structure` | `ApiId`, `ApiMappingId`, `ApiMappingKey`, `Stage` | - |
-| `CreateAuthorizerRequest` | `structure` | `ApiId`, `AuthorizerCredentialsArn`, `AuthorizerPayloadFormatVersion`, `AuthorizerResultTtlInSeconds`, `AuthorizerType`, `AuthorizerUri`, `EnableSimpleResponses`, `IdentitySource`, `IdentityValidationExpression`, `JwtConfiguration`, `Name` | Creates a new Authorizer resource to represent an authorizer. |
-| `CreateAuthorizerResponse` | `structure` | `AuthorizerCredentialsArn`, `AuthorizerId`, `AuthorizerPayloadFormatVersion`, `AuthorizerResultTtlInSeconds`, `AuthorizerType`, `AuthorizerUri`, `EnableSimpleResponses`, `IdentitySource`, `IdentityValidationExpression`, `JwtConfiguration`, `Name` | - |
-| `CreateDeploymentRequest` | `structure` | `ApiId`, `Description`, `StageName` | Creates a new Deployment resource to represent a deployment. |
-| `CreateDeploymentResponse` | `structure` | `AutoDeployed`, `CreatedDate`, `DeploymentId`, `DeploymentStatus`, `DeploymentStatusMessage`, `Description` | - |
-| `CreateDomainNameRequest` | `structure` | `DomainName`, `DomainNameConfigurations`, `MutualTlsAuthentication`, `RoutingMode`, `Tags` | Creates a new DomainName resource to represent a domain name. |
-| `CreateDomainNameResponse` | `structure` | `ApiMappingSelectionExpression`, `DomainName`, `DomainNameArn`, `DomainNameConfigurations`, `MutualTlsAuthentication`, `RoutingMode`, `Tags` | - |
-| `CreateIntegrationRequest` | `structure` | `ApiId`, `ConnectionId`, `ConnectionType`, `ContentHandlingStrategy`, `CredentialsArn`, `Description`, `IntegrationMethod`, `IntegrationSubtype`, `IntegrationType`, `IntegrationUri`, `PassthroughBehavior`, `PayloadFormatVersion`, ... (+6) | Creates a new Integration resource to represent an integration. |
-| `CreateIntegrationResult` | `structure` | `ApiGatewayManaged`, `ConnectionId`, `ConnectionType`, `ContentHandlingStrategy`, `CredentialsArn`, `Description`, `IntegrationId`, `IntegrationMethod`, `IntegrationResponseSelectionExpression`, `IntegrationSubtype`, `IntegrationType`, `IntegrationUri`, ... (+8) | - |
-| `CreateIntegrationResponseRequest` | `structure` | `ApiId`, `ContentHandlingStrategy`, `IntegrationId`, `IntegrationResponseKey`, `ResponseParameters`, `ResponseTemplates`, `TemplateSelectionExpression` | Creates a new IntegrationResponse resource to represent an integration response. |
-| `CreateIntegrationResponseResponse` | `structure` | `ContentHandlingStrategy`, `IntegrationResponseId`, `IntegrationResponseKey`, `ResponseParameters`, `ResponseTemplates`, `TemplateSelectionExpression` | - |
-| `CreateModelRequest` | `structure` | `ApiId`, `ContentType`, `Description`, `Name`, `Schema` | Creates a new Model. |
-| `CreateModelResponse` | `structure` | `ContentType`, `Description`, `ModelId`, `Name`, `Schema` | - |
-| `CreatePortalRequest` | `structure` | `Authorization`, `EndpointConfiguration`, `IncludedPortalProductArns`, `LogoUri`, `PortalContent`, `RumAppMonitorName`, `Tags` | The request body for the post operation. |
-| `CreatePortalResponse` | `structure` | `Authorization`, `EndpointConfiguration`, `IncludedPortalProductArns`, `LastModified`, `LastPublished`, `LastPublishedDescription`, `PortalArn`, `PortalContent`, `PortalId`, `PublishStatus`, `RumAppMonitorName`, `StatusException`, ... (+1) | - |
-
+| `AccessDeniedException` | `structure` | Message | - |
+| `BadRequestException` | `structure` | Message | The request is not valid, for example, the input is incomplete or incorrect. See the accompanying error message for details. |
+| `ConflictException` | `structure` | Message | The requested operation would cause a conflict with the current state of a service resource associated with the request. Resolve the conflict before retryin ... |
+| `NotFoundException` | `structure` | Message, ResourceType | The resource specified in the request was not found. See the message field for more information. |
+| `TooManyRequestsException` | `structure` | LimitType, Message | A limit has been exceeded. See the accompanying error message for details. |
+| `CreateApiRequest` | `structure` | ApiKeySelectionExpression, CorsConfiguration, CredentialsArn, Description, DisableSchemaValidation, DisableExecuteApiEndpoint, IpAddressType, Name, ProtocolType, RouteKey, RouteSelectionExpression, Tags, ... (+2) | Creates a new Api resource to represent an API. |
+| `CreateApiResponse` | `structure` | ApiEndpoint, ApiGatewayManaged, ApiId, ApiKeySelectionExpression, CorsConfiguration, CreatedDate, Description, DisableSchemaValidation, DisableExecuteApiEndpoint, ImportInfo, IpAddressType, Name, ... (+5) | - |
+| `CreateApiMappingRequest` | `structure` | ApiId, ApiMappingKey, DomainName, Stage | Creates a new ApiMapping resource to represent an API mapping. |
+| `CreateApiMappingResponse` | `structure` | ApiId, ApiMappingId, ApiMappingKey, Stage | - |
+| `CreateAuthorizerRequest` | `structure` | ApiId, AuthorizerCredentialsArn, AuthorizerPayloadFormatVersion, AuthorizerResultTtlInSeconds, AuthorizerType, AuthorizerUri, EnableSimpleResponses, IdentitySource, IdentityValidationExpression, JwtConfiguration, Name | Creates a new Authorizer resource to represent an authorizer. |
+| `CreateAuthorizerResponse` | `structure` | AuthorizerCredentialsArn, AuthorizerId, AuthorizerPayloadFormatVersion, AuthorizerResultTtlInSeconds, AuthorizerType, AuthorizerUri, EnableSimpleResponses, IdentitySource, IdentityValidationExpression, JwtConfiguration, Name | - |
+| `CreateDeploymentRequest` | `structure` | ApiId, Description, StageName | Creates a new Deployment resource to represent a deployment. |
+| `CreateDeploymentResponse` | `structure` | AutoDeployed, CreatedDate, DeploymentId, DeploymentStatus, DeploymentStatusMessage, Description | - |
+| `CreateDomainNameRequest` | `structure` | DomainName, DomainNameConfigurations, MutualTlsAuthentication, RoutingMode, Tags | Creates a new DomainName resource to represent a domain name. |
+| `CreateDomainNameResponse` | `structure` | ApiMappingSelectionExpression, DomainName, DomainNameArn, DomainNameConfigurations, MutualTlsAuthentication, RoutingMode, Tags | - |
+| `CreateIntegrationRequest` | `structure` | ApiId, ConnectionId, ConnectionType, ContentHandlingStrategy, CredentialsArn, Description, IntegrationMethod, IntegrationSubtype, IntegrationType, IntegrationUri, PassthroughBehavior, PayloadFormatVersion, ... (+6) | Creates a new Integration resource to represent an integration. |
+| `CreateIntegrationResult` | `structure` | ApiGatewayManaged, ConnectionId, ConnectionType, ContentHandlingStrategy, CredentialsArn, Description, IntegrationId, IntegrationMethod, IntegrationResponseSelectionExpression, IntegrationSubtype, IntegrationType, IntegrationUri, ... (+8) | - |
+| `CreateIntegrationResponseRequest` | `structure` | ApiId, ContentHandlingStrategy, IntegrationId, IntegrationResponseKey, ResponseParameters, ResponseTemplates, TemplateSelectionExpression | Creates a new IntegrationResponse resource to represent an integration response. |
+| `CreateIntegrationResponseResponse` | `structure` | ContentHandlingStrategy, IntegrationResponseId, IntegrationResponseKey, ResponseParameters, ResponseTemplates, TemplateSelectionExpression | - |
+| `CreateModelRequest` | `structure` | ApiId, ContentType, Description, Name, Schema | Creates a new Model. |
+| `CreateModelResponse` | `structure` | ContentType, Description, ModelId, Name, Schema | - |
+| `CreatePortalRequest` | `structure` | Authorization, EndpointConfiguration, IncludedPortalProductArns, LogoUri, PortalContent, RumAppMonitorName, Tags | The request body for the post operation. |
+| `CreatePortalResponse` | `structure` | Authorization, EndpointConfiguration, IncludedPortalProductArns, LastModified, LastPublished, LastPublishedDescription, PortalArn, PortalContent, PortalId, PublishStatus, RumAppMonitorName, StatusException, ... (+1) | - |
+| `CreatePortalProductRequest` | `structure` | Description, DisplayName, Tags | The request body for the post operation. |
+| `CreatePortalProductResponse` | `structure` | Description, DisplayName, DisplayOrder, LastModified, PortalProductArn, PortalProductId, Tags | - |
+| `CreateProductPageRequest` | `structure` | DisplayContent, PortalProductId | The request body for the post operation. |
+| `CreateProductPageResponse` | `structure` | DisplayContent, LastModified, ProductPageArn, ProductPageId | - |
+| `CreateProductRestEndpointPageRequest` | `structure` | DisplayContent, PortalProductId, RestEndpointIdentifier, TryItState | The request body for the post operation. |
+| `CreateProductRestEndpointPageResponse` | `structure` | DisplayContent, LastModified, ProductRestEndpointPageArn, ProductRestEndpointPageId, RestEndpointIdentifier, Status, StatusException, TryItState | - |
+| `CreateRouteRequest` | `structure` | ApiId, ApiKeyRequired, AuthorizationScopes, AuthorizationType, AuthorizerId, ModelSelectionExpression, OperationName, RequestModels, RequestParameters, RouteKey, RouteResponseSelectionExpression, Target | Creates a new Route resource to represent a route. |
+| `CreateRouteResult` | `structure` | ApiGatewayManaged, ApiKeyRequired, AuthorizationScopes, AuthorizationType, AuthorizerId, ModelSelectionExpression, OperationName, RequestModels, RequestParameters, RouteId, RouteKey, RouteResponseSelectionExpression, ... (+1) | - |
+| `CreateRouteResponseRequest` | `structure` | ApiId, ModelSelectionExpression, ResponseModels, ResponseParameters, RouteId, RouteResponseKey | Creates a new RouteResponse resource to represent a route response. |
+| `CreateRouteResponseResponse` | `structure` | ModelSelectionExpression, ResponseModels, ResponseParameters, RouteResponseId, RouteResponseKey | - |
+| `CreateRoutingRuleRequest` | `structure` | Actions, Conditions, DomainName, DomainNameId, Priority | - |
+| `CreateRoutingRuleResponse` | `structure` | Actions, Conditions, Priority, RoutingRuleArn, RoutingRuleId | - |
+| `CreateStageRequest` | `structure` | AccessLogSettings, ApiId, AutoDeploy, ClientCertificateId, DefaultRouteSettings, DeploymentId, Description, RouteSettings, StageName, StageVariables, Tags | Creates a new Stage resource to represent a stage. |
+| `CreateStageResponse` | `structure` | AccessLogSettings, ApiGatewayManaged, AutoDeploy, ClientCertificateId, CreatedDate, DefaultRouteSettings, DeploymentId, Description, LastDeploymentStatusMessage, LastUpdatedDate, RouteSettings, StageName, ... (+2) | - |
+| `CreateVpcLinkRequest` | `structure` | Name, SecurityGroupIds, SubnetIds, Tags | Creates a VPC link |
+| `CreateVpcLinkResponse` | `structure` | CreatedDate, Name, SecurityGroupIds, SubnetIds, Tags, VpcLinkId, VpcLinkStatus, VpcLinkStatusMessage, VpcLinkVersion | - |
+| `DeleteAccessLogSettingsRequest` | `structure` | ApiId, StageName | - |
+| `AuthorizationType` | `enum` | NONE, AWS_IAM, CUSTOM, JWT | The authorization type. For WebSocket APIs, valid values are NONE for open access, AWS_IAM for using AWS IAM permissions, and CUSTOM for using a Lambda auth ... |
+| `AuthorizerType` | `enum` | REQUEST, JWT | The authorizer type. Specify REQUEST for a Lambda function using incoming request parameters. Specify JWT to use JSON Web Tokens (supported only for HTTP APIs). |
+| `ConnectionType` | `enum` | INTERNET, VPC_LINK | Represents a connection type. |
+| `ContentHandlingStrategy` | `enum` | CONVERT_TO_BINARY, CONVERT_TO_TEXT | Specifies how to handle response payload content type conversions. Supported only for WebSocket APIs. |
+| `DeploymentStatus` | `enum` | PENDING, FAILED, DEPLOYED | Represents a deployment status. |
+| `DomainNameStatus` | `enum` | AVAILABLE, UPDATING, PENDING_CERTIFICATE_REIMPORT, PENDING_OWNERSHIP_VERIFICATION | The status of the domain name migration. The valid values are AVAILABLE, UPDATING, PENDING_CERTIFICATE_REIMPORT, and PENDING_OWNERSHIP_VERIFICATION. If the ... |
+| `EndpointType` | `enum` | REGIONAL, EDGE | Represents an endpoint type. |
+| `IntegrationType` | `enum` | AWS, HTTP, MOCK, HTTP_PROXY, AWS_PROXY | Represents an API method integration type. |
+| `IpAddressType` | `enum` | ipv4, dualstack | The IP address types that can invoke your API or domain name. |
+| `LoggingLevel` | `enum` | ERROR, INFO, OFF | The logging level. |
 ## Winterbaume LTM Notes
 
 Sources: .agents/docs/LTM/aws-inter-service-integration-priorities.md, .agents/docs/LTM/cross-service-integration-and-engine-boundaries-synthesis.md.

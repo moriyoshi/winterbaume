@@ -46,64 +46,31 @@ Amazon CloudWatch Network Monitor is an Amazon Web Services active network monit
 | `ProbeResource` | `monitorName`, `probeId` | create: `CreateProbe`; read: `GetProbe`; update: `UpdateProbe`; delete: `DeleteProbe` | - | - |
 ## Operation Groups
 
-### Create
-
-- Operations: `CreateMonitor`, `CreateProbe`
-- Traits: `idempotency-token` (2), `idempotent` (2)
-- Common required input members in this group: `monitorName`, `probe`
-
-### Delete
-
-- Operations: `DeleteMonitor`, `DeleteProbe`
-- Traits: `idempotent` (2)
-- Common required input members in this group: `monitorName`, `probeId`
-
-### Get
-
-- Operations: `GetMonitor`, `GetProbe`
-- Traits: `readonly` (2)
-- Common required input members in this group: `monitorName`, `probeId`
-
 ### List
 
-- Operations: `ListMonitors`, `ListTagsForResource`
-- Traits: `paginated` (1), `readonly` (2)
-- Common required input members in this group: `resourceArn`
-
-### Update
-
-- Operations: `UpdateMonitor`, `UpdateProbe`
-- Traits: `idempotent` (2)
-- Common required input members in this group: `aggregationPeriod`, `monitorName`, `probeId`
+- Operations: `ListTagsForResource`
+- Traits: `readonly` (1)
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateMonitor` | `POST /monitors` | `idempotent`, `idempotency-token` | `monitorName` | `clientToken` | `CreateMonitorOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a monitor between a source subnet and destination IP address. Within a monitor you'll create one or more probes that monitor network traffic between your source Amazon Web Services VPC subnets and your destination IP addresses. |
-| `CreateProbe` | `POST /monitors/{monitorName}/probes` | `idempotent`, `idempotency-token` | `monitorName`, `probe` | `clientToken` | `CreateProbeOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Create a probe within a monitor. Once you create a probe, and it begins monitoring your network traffic, you'll incur billing charges for that probe. |
-| `DeleteMonitor` | `DELETE /monitors/{monitorName}` | `idempotent` | `monitorName` | - | `DeleteMonitorOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a specified monitor. This action requires the `monitorName` parameter. |
-| `DeleteProbe` | `DELETE /monitors/{monitorName}/probes/{probeId}` | `idempotent` | `monitorName`, `probeId` | - | `DeleteProbeOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Deletes the specified probe. Once a probe is deleted you'll no longer incur any billing fees for that probe. |
-| `GetMonitor` | `GET /monitors/{monitorName}` | `readonly` | `monitorName` | - | `GetMonitorOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns details about a specific monitor. This action requires the `monitorName` parameter. |
-| `GetProbe` | `GET /monitors/{monitorName}/probes/{probeId}` | `readonly` | `monitorName`, `probeId` | - | `GetProbeOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns the details about a probe. This action requires both the `monitorName` and `probeId` parameters. |
-| `ListMonitors` | `GET /monitors` | `readonly`, `paginated` | - | - | `ListMonitorsOutput` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of all of your monitors. |
 | `ListTagsForResource` | `GET /tags/{resourceArn}` | `readonly` | `resourceArn` | - | `ListTagsForResourceOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the tags assigned to this resource. |
 | `TagResource` | `POST /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tags` | - | `TagResourceOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Adds key-value pairs to a monitor or probe. |
 | `UntagResource` | `DELETE /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes a key-value pair from a monitor or probe. |
-| `UpdateMonitor` | `PATCH /monitors/{monitorName}` | `idempotent` | `aggregationPeriod`, `monitorName` | - | `UpdateMonitorOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates the `aggregationPeriod` for a monitor. Monitors support an `aggregationPeriod` of either `30` or `60` seconds. |
-| `UpdateProbe` | `PATCH /monitors/{monitorName}/probes/{probeId}` | `idempotent` | `monitorName`, `probeId` | - | `UpdateProbeOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates a monitor probe. This action requires both the `monitorName` and `probeId` parameters. |
 
 ## HTTP Bindings
 
@@ -117,31 +84,23 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | You do not have sufficient access to perform this action. |
-| `InternalServerException` | `structure` | `message` | The request processing has failed because of an unknown error, exception or failure. |
-| `ThrottlingException` | `structure` | `message` | The request was denied due to request throttling |
-| `ValidationException` | `structure` | `message` | One of the parameters for the request is not valid. |
-| `ResourceNotFoundException` | `structure` | `message` | The specified resource does not exist. |
-| `ServiceQuotaExceededException` | `structure` | `message` | This request exceeds a service quota. |
-| `ConflictException` | `structure` | `message` | This operation attempted to create a resource that already exists. |
-| `CreateMonitorInput` | `structure` | `aggregationPeriod`, `clientToken`, `monitorName`, `probes`, `tags` | - |
-| `CreateMonitorOutput` | `structure` | `aggregationPeriod`, `monitorArn`, `monitorName`, `state`, `tags` | - |
-| `CreateProbeInput` | `structure` | `clientToken`, `monitorName`, `probe`, `tags` | - |
-| `CreateProbeOutput` | `structure` | `addressFamily`, `createdAt`, `destination`, `destinationPort`, `modifiedAt`, `packetSize`, `probeArn`, `probeId`, `protocol`, `sourceArn`, `state`, `tags`, ... (+1) | - |
-| `DeleteMonitorInput` | `structure` | `monitorName` | - |
-| `DeleteMonitorOutput` | `structure` | - | - |
-| `DeleteProbeInput` | `structure` | `monitorName`, `probeId` | - |
-| `DeleteProbeOutput` | `structure` | - | - |
-| `GetMonitorInput` | `structure` | `monitorName` | - |
-| `GetMonitorOutput` | `structure` | `aggregationPeriod`, `createdAt`, `modifiedAt`, `monitorArn`, `monitorName`, `probes`, `state`, `tags` | - |
-| `GetProbeInput` | `structure` | `monitorName`, `probeId` | - |
-| `GetProbeOutput` | `structure` | `addressFamily`, `createdAt`, `destination`, `destinationPort`, `modifiedAt`, `packetSize`, `probeArn`, `probeId`, `protocol`, `sourceArn`, `state`, `tags`, ... (+1) | - |
-| `ListMonitorsInput` | `structure` | `maxResults`, `nextToken`, `state` | - |
-| `ListMonitorsOutput` | `structure` | `monitors`, `nextToken` | - |
-| `ListTagsForResourceInput` | `structure` | `resourceArn` | - |
-| `ListTagsForResourceOutput` | `structure` | `tags` | - |
-| `TagResourceInput` | `structure` | `resourceArn`, `tags` | - |
-
+| `AccessDeniedException` | `structure` | message | You do not have sufficient access to perform this action. |
+| `ConflictException` | `structure` | message | This operation attempted to create a resource that already exists. |
+| `InternalServerException` | `structure` | message | The request processing has failed because of an unknown error, exception or failure. |
+| `ResourceNotFoundException` | `structure` | message | The specified resource does not exist. |
+| `ServiceQuotaExceededException` | `structure` | message | This request exceeds a service quota. |
+| `ThrottlingException` | `structure` | message | The request was denied due to request throttling |
+| `ValidationException` | `structure` | message | One of the parameters for the request is not valid. |
+| `ListTagsForResourceInput` | `structure` | resourceArn | - |
+| `ListTagsForResourceOutput` | `structure` | tags | - |
+| `TagResourceInput` | `structure` | resourceArn, tags | - |
+| `TagResourceOutput` | `structure` | **empty (no members)** | - |
+| `UntagResourceInput` | `structure` | resourceArn, tagKeys | - |
+| `UntagResourceOutput` | `structure` | **empty (no members)** | - |
+| `AddressFamily` | `enum` | IPV4, IPV6 | - |
+| `MonitorState` | `enum` | PENDING, ACTIVE, INACTIVE, ERROR, DELETING | - |
+| `ProbeState` | `enum` | PENDING, ACTIVE, INACTIVE, ERROR, DELETING, DELETED | - |
+| `Protocol` | `enum` | TCP, ICMP | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

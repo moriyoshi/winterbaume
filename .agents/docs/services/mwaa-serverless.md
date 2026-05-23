@@ -52,75 +52,28 @@ Amazon Managed Workflows for Apache Airflow Serverless provides a managed workfl
 
 ### List
 
-- Operations: `ListTagsForResource`, `ListTaskInstances`, `ListWorkflowRuns`, `ListWorkflowVersions`, `ListWorkflows`
-- Traits: `paginated` (4), `readonly` (5)
-- Common required input members in this group: `ResourceArn`, `RunId`, `WorkflowArn`
-
-### Get
-
-- Operations: `GetTaskInstance`, `GetWorkflow`, `GetWorkflowRun`
-- Traits: `readonly` (3)
-- Common required input members in this group: `RunId`, `TaskInstanceId`, `WorkflowArn`
-
-### Create
-
-- Operations: `CreateWorkflow`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `DefinitionS3Location`, `Name`, `RoleArn`
-
-### Delete
-
-- Operations: `DeleteWorkflow`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `WorkflowArn`
-
-### Start
-
-- Operations: `StartWorkflowRun`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `WorkflowArn`
-
-### Stop
-
-- Operations: `StopWorkflowRun`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `RunId`, `WorkflowArn`
+- Operations: `ListTagsForResource`
+- Traits: `readonly` (1)
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `ResourceArn`, `TagKeys`
-
-### Update
-
-- Operations: `UpdateWorkflow`
-- Common required input members in this group: `DefinitionS3Location`, `RoleArn`, `WorkflowArn`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateWorkflow` | `POST /workflows` | `idempotent`, `idempotency-token` | `DefinitionS3Location`, `Name`, `RoleArn` | `ClientToken` | `CreateWorkflowResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `OperationTimeoutException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a new workflow in Amazon Managed Workflows for Apache Airflow Serverless. This operation initializes a workflow with the specified configuration including the workflow definition, execution role, and optional settings for encryption, logging, and... |
-| `DeleteWorkflow` | `DELETE /workflows/{WorkflowArn}` | `idempotent` | `WorkflowArn` | - | `DeleteWorkflowResponse` | `AccessDeniedException`, `InternalServerException`, `OperationTimeoutException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a workflow and all its versions. This operation permanently removes the workflow and cannot be undone. |
-| `GetTaskInstance` | `GET /workflows/{WorkflowArn}/runs/{RunId}/tasks/{TaskInstanceId}` | `readonly` | `RunId`, `TaskInstanceId`, `WorkflowArn` | - | `GetTaskInstanceResponse` | `AccessDeniedException`, `InternalServerException`, `OperationTimeoutException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves detailed information about a specific task instance within a workflow run. Task instances represent individual tasks that are executed as part of a workflow in the Amazon Managed Workflows for Apache Airflow Serverless environment. |
-| `GetWorkflow` | `GET /workflows/{WorkflowArn}` | `readonly` | `WorkflowArn` | - | `GetWorkflowResponse` | `AccessDeniedException`, `InternalServerException`, `OperationTimeoutException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves detailed information about a workflow, including its configuration, status, and metadata. |
-| `GetWorkflowRun` | `GET /workflows/{WorkflowArn}/runs/{RunId}` | `readonly` | `RunId`, `WorkflowArn` | - | `GetWorkflowRunResponse` | `AccessDeniedException`, `InternalServerException`, `OperationTimeoutException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves detailed information about a specific workflow run, including its status, execution details, and task instances. |
 | `ListTagsForResource` | `GET /tags/{ResourceArn}` | `readonly` | `ResourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `OperationTimeoutException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all tags that are associated with a specified Amazon Managed Workflows for Apache Airflow Serverless resource. |
-| `ListTaskInstances` | `GET /workflows/{WorkflowArn}/runs/{RunId}/tasks` | `readonly`, `paginated` | `RunId`, `WorkflowArn` | - | `ListTaskInstancesResponse` | `AccessDeniedException`, `InternalServerException`, `OperationTimeoutException`, `ThrottlingException`, `ValidationException` | Lists all task instances for a specific workflow run, with optional pagination support. |
-| `ListWorkflowRuns` | `GET /workflows/{WorkflowArn}/runs` | `readonly`, `paginated` | `WorkflowArn` | - | `ListWorkflowRunsResponse` | `AccessDeniedException`, `InternalServerException`, `OperationTimeoutException`, `ThrottlingException`, `ValidationException` | Lists all runs for a specified workflow, with optional pagination and filtering support. |
-| `ListWorkflowVersions` | `GET /workflows/{WorkflowArn}/versions` | `readonly`, `paginated` | `WorkflowArn` | - | `ListWorkflowVersionsResponse` | `AccessDeniedException`, `InternalServerException`, `OperationTimeoutException`, `ThrottlingException`, `ValidationException` | Lists all versions of a specified workflow, with optional pagination support. |
-| `ListWorkflows` | `GET /workflows` | `readonly`, `paginated` | - | - | `ListWorkflowsResponse` | `AccessDeniedException`, `InternalServerException`, `OperationTimeoutException`, `ThrottlingException`, `ValidationException` | Lists all workflows in your account, with optional pagination support. This operation returns summary information for workflows, showing only the most recently created version of each workflow. |
-| `StartWorkflowRun` | `POST /workflows/{WorkflowArn}/runs` | `idempotent`, `idempotency-token` | `WorkflowArn` | `ClientToken` | `StartWorkflowRunResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `OperationTimeoutException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Starts a new execution of a workflow. This operation creates a workflow run that executes the tasks that are defined in the workflow. |
-| `StopWorkflowRun` | `DELETE /workflows/{WorkflowArn}/runs/{RunId}` | `idempotent` | `RunId`, `WorkflowArn` | - | `StopWorkflowRunResponse` | `AccessDeniedException`, `InternalServerException`, `OperationTimeoutException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Stops a running workflow execution. This operation terminates all running tasks and prevents new tasks from starting. |
 | `TagResource` | `POST /tags/{ResourceArn}` | - | `ResourceArn`, `Tags` | - | `TagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `OperationTimeoutException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Adds tags to an Amazon Managed Workflows for Apache Airflow Serverless resource. Tags are key-value pairs that help you organize and categorize your resources. |
 | `UntagResource` | `DELETE /tags/{ResourceArn}` | `idempotent` | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `OperationTimeoutException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes tags from an Amazon Managed Workflows for Apache Airflow Serverless resource. This operation removes the specified tags from the resource. |
-| `UpdateWorkflow` | `PUT /workflows/{WorkflowArn}` | - | `DefinitionS3Location`, `RoleArn`, `WorkflowArn` | - | `UpdateWorkflowResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `OperationTimeoutException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates an existing workflow with new configuration settings. This operation allows you to modify the workflow definition, role, and other settings. |
 
 ## HTTP Bindings
 
@@ -134,31 +87,27 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `Message` | You do not have sufficient permission to perform this action. |
-| `InternalServerException` | `structure` | `Message`, `RetryAfterSeconds` | An unexpected server-side error occurred during request processing. |
-| `OperationTimeoutException` | `structure` | `Message` | The operation timed out. |
-| `ThrottlingException` | `structure` | `Message`, `QuotaCode`, `RetryAfterSeconds`, `ServiceCode` | The request was denied because too many requests were made in a short period, exceeding the service rate limits. |
-| `ValidationException` | `structure` | `FieldList`, `Message`, `Reason` | The specified request parameters are invalid, missing, or inconsistent with Amazon Managed Workflows for Apache Airflow Serverless service requirements. |
-| `ResourceNotFoundException` | `structure` | `Message`, `ResourceId`, `ResourceType` | The specified resource was not found. |
-| `ConflictException` | `structure` | `Message`, `ResourceId`, `ResourceType` | You cannot create a resource that already exists, or the resource is in a state that prevents the requested operation. |
-| `ServiceQuotaExceededException` | `structure` | `Message`, `QuotaCode`, `ResourceId`, `ResourceType`, `ServiceCode` | The request exceeds the service quota for Amazon Managed Workflows for Apache Airflow Serverless resources. |
-| `CreateWorkflowRequest` | `structure` | `ClientToken`, `DefinitionS3Location`, `Description`, `EncryptionConfiguration`, `EngineVersion`, `LoggingConfiguration`, `Name`, `NetworkConfiguration`, `RoleArn`, `Tags`, `TriggerMode` | - |
-| `CreateWorkflowResponse` | `structure` | `CreatedAt`, `IsLatestVersion`, `RevisionId`, `Warnings`, `WorkflowArn`, `WorkflowStatus`, `WorkflowVersion` | - |
-| `DeleteWorkflowRequest` | `structure` | `WorkflowArn`, `WorkflowVersion` | - |
-| `DeleteWorkflowResponse` | `structure` | `WorkflowArn`, `WorkflowVersion` | - |
-| `GetTaskInstanceRequest` | `structure` | `RunId`, `TaskInstanceId`, `WorkflowArn` | - |
-| `GetTaskInstanceResponse` | `structure` | `AttemptNumber`, `DurationInSeconds`, `EndedAt`, `ErrorMessage`, `LogStream`, `ModifiedAt`, `OperatorName`, `RunId`, `StartedAt`, `Status`, `TaskId`, `TaskInstanceId`, ... (+3) | - |
-| `GetWorkflowRequest` | `structure` | `WorkflowArn`, `WorkflowVersion` | - |
-| `GetWorkflowResponse` | `structure` | `CreatedAt`, `DefinitionS3Location`, `Description`, `EncryptionConfiguration`, `EngineVersion`, `LoggingConfiguration`, `ModifiedAt`, `Name`, `NetworkConfiguration`, `RoleArn`, `ScheduleConfiguration`, `TriggerMode`, ... (+4) | - |
-| `GetWorkflowRunRequest` | `structure` | `RunId`, `WorkflowArn` | - |
-| `GetWorkflowRunResponse` | `structure` | `OverrideParameters`, `RunDetail`, `RunId`, `RunType`, `WorkflowArn`, `WorkflowVersion` | - |
-| `ListTagsForResourceRequest` | `structure` | `ResourceArn` | - |
-| `ListTagsForResourceResponse` | `structure` | `Tags` | - |
-| `ListTaskInstancesRequest` | `structure` | `MaxResults`, `NextToken`, `RunId`, `WorkflowArn` | - |
-| `ListTaskInstancesResponse` | `structure` | `NextToken`, `TaskInstances` | - |
-| `ListWorkflowRunsRequest` | `structure` | `MaxResults`, `NextToken`, `WorkflowArn`, `WorkflowVersion` | - |
-| `ListWorkflowRunsResponse` | `structure` | `NextToken`, `WorkflowRuns` | - |
-
+| `AccessDeniedException` | `structure` | Message | You do not have sufficient permission to perform this action. |
+| `ConflictException` | `structure` | Message, ResourceId, ResourceType | You cannot create a resource that already exists, or the resource is in a state that prevents the requested operation. |
+| `InternalServerException` | `structure` | Message, RetryAfterSeconds | An unexpected server-side error occurred during request processing. |
+| `OperationTimeoutException` | `structure` | Message | The operation timed out. |
+| `ResourceNotFoundException` | `structure` | Message, ResourceId, ResourceType | The specified resource was not found. You can only access or modify a resource that already exists. |
+| `ServiceQuotaExceededException` | `structure` | Message, ResourceId, ResourceType, ServiceCode, QuotaCode | The request exceeds the service quota for Amazon Managed Workflows for Apache Airflow Serverless resources. This can occur when you attempt to create more w ... |
+| `ThrottlingException` | `structure` | Message, ServiceCode, QuotaCode, RetryAfterSeconds | The request was denied because too many requests were made in a short period, exceeding the service rate limits. Amazon Managed Workflows for Apache Airflow ... |
+| `ValidationException` | `structure` | Message, Reason, FieldList | The specified request parameters are invalid, missing, or inconsistent with Amazon Managed Workflows for Apache Airflow Serverless service requirements. Thi ... |
+| `ListTagsForResourceRequest` | `structure` | ResourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | Tags | - |
+| `TagResourceRequest` | `structure` | ResourceArn, Tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | ResourceArn, TagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `EncryptionType` | `enum` | AWS_MANAGED_KEY, CUSTOMER_MANAGED_KEY | - |
+| `EngineVersion` | `intEnum` | ONE | - |
+| `RunType` | `enum` | ON_DEMAND, SCHEDULED | - |
+| `TaskInstanceStatus` | `enum` | QUEUED, FAILED, SCHEDULED, RUNNING, SUCCESS, UP_FOR_RESCHEDULE, UP_FOR_RETRY, UPSTREAM_FAILED, REMOVED, RESTARTING, DEFERRED, NONE, ... (+2) | - |
+| `ValidationExceptionReason` | `enum` | UNKNOWN_OPERATION, CANNOT_PARSE, FIELD_VALIDATION_FAILED, OTHER | - |
+| `WorkflowRunStatus` | `enum` | STARTING, QUEUED, RUNNING, SUCCESS, FAILED, TIMEOUT, STOPPING, STOPPED | - |
+| `WorkflowStatus` | `enum` | READY, DELETING | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

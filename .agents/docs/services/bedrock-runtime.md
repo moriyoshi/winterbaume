@@ -49,58 +49,10 @@ Describes the API operations for running inference using Amazon Bedrock models.
 | `TokenizerResource` | - | - | `CountTokens` | - |
 ## Operation Groups
 
-### Invoke
-
-- Operations: `InvokeModel`, `InvokeModelWithBidirectionalStream`, `InvokeModelWithResponseStream`
-- Common required input members in this group: `body`, `modelId`
-
-### Converse
-
-- Operations: `Converse`, `ConverseStream`
-- Common required input members in this group: `modelId`
-
-### Apply
-
-- Operations: `ApplyGuardrail`
-- Common required input members in this group: `content`, `guardrailIdentifier`, `guardrailVersion`, `source`
-
-### Count
-
-- Operations: `CountTokens`
-- Traits: `readonly` (1)
-- Common required input members in this group: `input`, `modelId`
-
-### Get
-
-- Operations: `GetAsyncInvoke`
-- Traits: `readonly` (1)
-- Common required input members in this group: `invocationArn`
-
-### List
-
-- Operations: `ListAsyncInvokes`
-- Traits: `paginated` (1), `readonly` (1)
-
-### Start
-
-- Operations: `StartAsyncInvoke`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `modelId`, `modelInput`, `outputDataConfig`
-
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `ApplyGuardrail` | `POST /guardrail/{guardrailIdentifier}/version/{guardrailVersion}/apply` | - | `content`, `guardrailIdentifier`, `guardrailVersion`, `source` | - | `ApplyGuardrailResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | The action to apply a guardrail. For troubleshooting some of the common errors you might encounter when using the `ApplyGuardrail` API, see Troubleshooting Amazon Bedrock API Error Codes in the Amazon Bedrock User Guide |
-| `Converse` | `POST /model/{modelId}/converse` | - | `modelId` | - | `ConverseResponse` | `AccessDeniedException`, `InternalServerException`, `ModelErrorException`, `ModelNotReadyException`, `ModelTimeoutException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException`, ... (+1) | Sends messages to the specified Amazon Bedrock model. `Converse` provides a consistent interface that works with all models that support messages. |
-| `ConverseStream` | `POST /model/{modelId}/converse-stream` | - | `modelId` | - | `ConverseStreamResponse` | `AccessDeniedException`, `InternalServerException`, `ModelErrorException`, `ModelNotReadyException`, `ModelTimeoutException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException`, ... (+1) | Sends messages to the specified Amazon Bedrock model and returns the response in a stream. `ConverseStream` provides a consistent API that works with all Amazon Bedrock models that support messages. |
-| `CountTokens` | `POST /model/{modelId}/count-tokens` | `readonly` | `input`, `modelId` | - | `CountTokensResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Returns the token count for a given inference request. This operation helps you estimate token usage before sending requests to foundation models by returning the token count that would be used if the same input were sent to the model in an inference request. |
-| `GetAsyncInvoke` | `GET /async-invoke/{invocationArn}` | `readonly` | `invocationArn` | - | `GetAsyncInvokeResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Retrieve information about an asynchronous invocation. |
-| `InvokeModel` | `POST /model/{modelId}/invoke` | - | `modelId` | - | `InvokeModelResponse` | `AccessDeniedException`, `InternalServerException`, `ModelErrorException`, `ModelNotReadyException`, `ModelTimeoutException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ServiceUnavailableException`, ... (+2) | Invokes the specified Amazon Bedrock model to run inference using the prompt and inference parameters provided in the request body. You use model inference to generate text, images, and embeddings. |
-| `InvokeModelWithBidirectionalStream` | `POST /model/{modelId}/invoke-with-bidirectional-stream` | - | `body`, `modelId` | - | `InvokeModelWithBidirectionalStreamResponse` | `AccessDeniedException`, `InternalServerException`, `ModelErrorException`, `ModelNotReadyException`, `ModelStreamErrorException`, `ModelTimeoutException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, ... (+3) | Invoke the specified Amazon Bedrock model to run inference using the bidirectional stream. The response is returned in a stream that remains open for 8 minutes. |
-| `InvokeModelWithResponseStream` | `POST /model/{modelId}/invoke-with-response-stream` | - | `modelId` | - | `InvokeModelWithResponseStreamResponse` | `AccessDeniedException`, `InternalServerException`, `ModelErrorException`, `ModelNotReadyException`, `ModelStreamErrorException`, `ModelTimeoutException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, ... (+3) | Invoke the specified Amazon Bedrock model to run inference using the prompt and inference parameters provided in the request body. The response is returned in a stream. |
-| `ListAsyncInvokes` | `GET /async-invoke` | `readonly`, `paginated` | - | - | `ListAsyncInvokesResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists asynchronous invocations. |
-| `StartAsyncInvoke` | `POST /async-invoke` | `idempotent`, `idempotency-token` | `modelId`, `modelInput`, `outputDataConfig` | `clientRequestToken` | `StartAsyncInvokeResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Starts an asynchronous invocation. This operation requires permission for the `bedrock:InvokeModel` action. |
 
 ## HTTP Bindings
 
@@ -112,31 +64,56 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | The request is denied because you do not have sufficient permissions to perform the requested action. |
-| `InternalServerException` | `structure` | `message` | An internal server error occurred. |
-| `ThrottlingException` | `structure` | `message` | Your request was denied due to exceeding the account quotas for Amazon Bedrock . |
-| `ValidationException` | `structure` | `message` | The input fails to satisfy the constraints specified by Amazon Bedrock . |
-| `ResourceNotFoundException` | `structure` | `message` | The specified resource ARN was not found. |
-| `ServiceUnavailableException` | `structure` | `message` | The service isn't currently available. |
-| `ServiceQuotaExceededException` | `structure` | `message` | Your request exceeds the service quota for your account. |
-| `ModelErrorException` | `structure` | `message`, `originalStatusCode`, `resourceName` | The request failed due to an error while processing the model. |
-| `ModelNotReadyException` | `structure` | `message` | The model specified in the request is not ready to serve inference requests. |
-| `ModelTimeoutException` | `structure` | `message` | The request took too long to process. |
-| `ModelStreamErrorException` | `structure` | `message`, `originalMessage`, `originalStatusCode` | An error occurred while streaming the response. |
-| `ApplyGuardrailRequest` | `structure` | `content`, `guardrailIdentifier`, `guardrailVersion`, `outputScope`, `source` | - |
-| `ApplyGuardrailResponse` | `structure` | `action`, `actionReason`, `assessments`, `guardrailCoverage`, `outputs`, `usage` | - |
-| `ConverseRequest` | `structure` | `additionalModelRequestFields`, `additionalModelResponseFieldPaths`, `guardrailConfig`, `inferenceConfig`, `messages`, `modelId`, `outputConfig`, `performanceConfig`, `promptVariables`, `requestMetadata`, `serviceTier`, `system`, ... (+1) | - |
-| `ConverseResponse` | `structure` | `additionalModelResponseFields`, `metrics`, `output`, `performanceConfig`, `serviceTier`, `stopReason`, `trace`, `usage` | - |
-| `ConverseStreamRequest` | `structure` | `additionalModelRequestFields`, `additionalModelResponseFieldPaths`, `guardrailConfig`, `inferenceConfig`, `messages`, `modelId`, `outputConfig`, `performanceConfig`, `promptVariables`, `requestMetadata`, `serviceTier`, `system`, ... (+1) | - |
-| `ConverseStreamResponse` | `structure` | `stream` | - |
-| `CountTokensRequest` | `structure` | `input`, `modelId` | - |
-| `CountTokensResponse` | `structure` | `inputTokens` | - |
-| `GetAsyncInvokeRequest` | `structure` | `invocationArn` | - |
-| `GetAsyncInvokeResponse` | `structure` | `clientRequestToken`, `endTime`, `failureMessage`, `invocationArn`, `lastModifiedTime`, `modelArn`, `outputDataConfig`, `status`, `submitTime` | - |
-| `InvokeModelRequest` | `structure` | `accept`, `body`, `contentType`, `guardrailIdentifier`, `guardrailVersion`, `modelId`, `performanceConfigLatency`, `serviceTier`, `trace` | - |
-| `InvokeModelResponse` | `structure` | `body`, `contentType`, `performanceConfigLatency`, `serviceTier` | - |
-| `InvokeModelWithBidirectionalStreamRequest` | `structure` | `body`, `modelId` | - |
-
+| `AccessDeniedException` | `structure` | message | The request is denied because you do not have sufficient permissions to perform the requested action. For troubleshooting this error, see AccessDeniedExcept ... |
+| `ConflictException` | `structure` | message | Error occurred because of a conflict while performing an operation. |
+| `InternalServerException` | `structure` | message | An internal server error occurred. For troubleshooting this error, see InternalFailure in the Amazon Bedrock User Guide |
+| `ModelErrorException` | `structure` | message, originalStatusCode, resourceName | The request failed due to an error while processing the model. |
+| `ModelNotReadyException` | `structure` | message | The model specified in the request is not ready to serve inference requests. The AWS SDK will automatically retry the operation up to 5 times. For informati ... |
+| `ModelStreamErrorException` | `structure` | message, originalStatusCode, originalMessage | An error occurred while streaming the response. Retry your request. |
+| `ModelTimeoutException` | `structure` | message | The request took too long to process. Processing time exceeded the model timeout length. |
+| `ResourceNotFoundException` | `structure` | message | The specified resource ARN was not found. For troubleshooting this error, see ResourceNotFound in the Amazon Bedrock User Guide |
+| `ServiceQuotaExceededException` | `structure` | message | Your request exceeds the service quota for your account. You can view your quotas at Viewing service quotas . You can resubmit your request later. |
+| `ServiceUnavailableException` | `structure` | message | The service isn't currently available. For troubleshooting this error, see ServiceUnavailable in the Amazon Bedrock User Guide |
+| `ThrottlingException` | `structure` | message | Your request was denied due to exceeding the account quotas for Amazon Bedrock . For troubleshooting this error, see ThrottlingException in the Amazon Bedro ... |
+| `ValidationException` | `structure` | message | The input fails to satisfy the constraints specified by Amazon Bedrock . For troubleshooting this error, see ValidationError in the Amazon Bedrock User Guide |
+| `AsyncInvokeStatus` | `enum` | IN_PROGRESS, COMPLETED, FAILED | - |
+| `AudioFormat` | `enum` | MP3, OPUS, WAV, AAC, FLAC, MP4, OGG, MKV, MKA, X_AAC, M4A, MPEG, ... (+3) | - |
+| `CachePointType` | `enum` | DEFAULT | - |
+| `CacheTTL` | `enum` | FIVE_MINUTES, ONE_HOUR | Time-to-live duration for ephemeral cache entries |
+| `ConversationRole` | `enum` | USER, ASSISTANT | - |
+| `DocumentFormat` | `enum` | PDF, CSV, DOC, DOCX, XLS, XLSX, HTML, TXT, MD | - |
+| `GuardrailAction` | `enum` | NONE, GUARDRAIL_INTERVENED | - |
+| `GuardrailAutomatedReasoningLogicWarningType` | `enum` | ALWAYS_FALSE, ALWAYS_TRUE | - |
+| `GuardrailContentFilterConfidence` | `enum` | NONE, LOW, MEDIUM, HIGH | - |
+| `GuardrailContentFilterStrength` | `enum` | NONE, LOW, MEDIUM, HIGH | - |
+| `GuardrailContentFilterType` | `enum` | INSULTS, HATE, SEXUAL, VIOLENCE, MISCONDUCT, PROMPT_ATTACK | - |
+| `GuardrailContentPolicyAction` | `enum` | BLOCKED, NONE | - |
+| `GuardrailContentQualifier` | `enum` | GROUNDING_SOURCE, QUERY, GUARD_CONTENT | - |
+| `GuardrailContentSource` | `enum` | INPUT, OUTPUT | - |
+| `GuardrailContextualGroundingFilterType` | `enum` | GROUNDING, RELEVANCE | - |
+| `GuardrailContextualGroundingPolicyAction` | `enum` | BLOCKED, NONE | - |
+| `GuardrailConverseContentQualifier` | `enum` | GROUNDING_SOURCE, QUERY, GUARD_CONTENT | - |
+| `GuardrailConverseImageFormat` | `enum` | PNG, JPEG | - |
+| `GuardrailImageFormat` | `enum` | PNG, JPEG | - |
+| `GuardrailManagedWordType` | `enum` | PROFANITY | - |
+| `GuardrailOrigin` | `enum` | REQUEST, ACCOUNT_ENFORCED, ORGANIZATION_ENFORCED | - |
+| `GuardrailOutputScope` | `enum` | INTERVENTIONS, FULL | - |
+| `GuardrailOwnership` | `enum` | SELF, CROSS_ACCOUNT | - |
+| `GuardrailPiiEntityType` | `enum` | ADDRESS, AGE, AWS_ACCESS_KEY, AWS_SECRET_KEY, CA_HEALTH_NUMBER, CA_SOCIAL_INSURANCE_NUMBER, CREDIT_DEBIT_CARD_CVV, CREDIT_DEBIT_CARD_EXPIRY, CREDIT_DEBIT_CARD_NUMBER, DRIVER_ID, EMAIL, INTERNATIONAL_BANK_ACCOUNT_NUMBER, ... (+19) | - |
+| `GuardrailSensitiveInformationPolicyAction` | `enum` | ANONYMIZED, BLOCKED, NONE | - |
+| `GuardrailStreamProcessingMode` | `enum` | SYNC, ASYNC | - |
+| `GuardrailTopicPolicyAction` | `enum` | BLOCKED, NONE | - |
+| `GuardrailTopicType` | `enum` | DENY | - |
+| `GuardrailTrace` | `enum` | ENABLED, DISABLED, ENABLED_FULL | - |
+| `GuardrailWordPolicyAction` | `enum` | BLOCKED, NONE | - |
+| `ImageFormat` | `enum` | PNG, JPEG, GIF, WEBP | - |
+| `OutputFormatType` | `enum` | JSON_SCHEMA | The type of structured output format. Available options are: json_schema. |
+| `PerformanceConfigLatency` | `enum` | STANDARD, OPTIMIZED | - |
+| `ServiceTierType` | `enum` | PRIORITY, DEFAULT, FLEX, RESERVED | - |
+| `SortAsyncInvocationBy` | `enum` | SUBMISSION_TIME | - |
+| `SortOrder` | `enum` | ASCENDING, DESCENDING | - |
+| `StopReason` | `enum` | END_TURN, TOOL_USE, MAX_TOKENS, STOP_SEQUENCE, GUARDRAIL_INTERVENED, CONTENT_FILTERED, MALFORMED_MODEL_OUTPUT, MALFORMED_TOOL_USE, MODEL_CONTEXT_WINDOW_EXCEEDED | - |
+| `ToolResultStatus` | `enum` | SUCCESS, ERROR | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

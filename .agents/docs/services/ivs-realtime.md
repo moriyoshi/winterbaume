@@ -42,20 +42,20 @@ The Amazon Interactive Video Service (IVS) real-time API is REST compatible, usi
 
 ### List
 
-- Operations: `ListCompositions`, `ListEncoderConfigurations`, `ListIngestConfigurations`, `ListParticipantEvents`, `ListParticipantReplicas`, `ListParticipants`, `ListPublicKeys`, `ListStageSessions`, `ListStages`, `ListStorageConfigurations`, `ListTagsForResource`
-- Traits: `paginated` (10), `readonly` (11)
-- Common required input members in this group: `participantId`, `resourceArn`, `sessionId`, `sourceStageArn`, `stageArn`
+- Operations: `ListCompositions`, `ListEncoderConfigurations`, `ListIngestConfigurations`, `ListParticipantEvents`, `ListParticipantReplicas`, `ListParticipants`, `ListPublicKeys`, `ListStages`, `ListStageSessions`, `ListStorageConfigurations`, `ListTagsForResource`
+- Traits: `readonly` (11), `paginated` (10)
+- Common required input members in this group: `stageArn`, `sessionId`, `participantId`
 
 ### Get
 
 - Operations: `GetComposition`, `GetEncoderConfiguration`, `GetIngestConfiguration`, `GetParticipant`, `GetPublicKey`, `GetStage`, `GetStageSession`, `GetStorageConfiguration`
 - Traits: `readonly` (8)
-- Common required input members in this group: `arn`, `participantId`, `sessionId`, `stageArn`
+- Common required input members in this group: `arn`, `stageArn`, `sessionId`
 
 ### Create
 
 - Operations: `CreateEncoderConfiguration`, `CreateIngestConfiguration`, `CreateParticipantToken`, `CreateStage`, `CreateStorageConfiguration`
-- Common required input members in this group: `ingestProtocol`, `s3`, `stageArn`
+- Common required input members in this group: -
 
 ### Delete
 
@@ -66,12 +66,12 @@ The Amazon Interactive Video Service (IVS) real-time API is REST compatible, usi
 
 - Operations: `StartComposition`, `StartParticipantReplication`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `destinationStageArn`, `destinations`, `participantId`, `sourceStageArn`, `stageArn`
+- Common required input members in this group: -
 
 ### Stop
 
 - Operations: `StopComposition`, `StopParticipantReplication`
-- Common required input members in this group: `arn`, `destinationStageArn`, `participantId`, `sourceStageArn`
+- Common required input members in this group: -
 
 ### Update
 
@@ -81,23 +81,23 @@ The Amazon Interactive Video Service (IVS) real-time API is REST compatible, usi
 ### Disconnect
 
 - Operations: `DisconnectParticipant`
-- Common required input members in this group: `participantId`, `stageArn`
+- Common required input members in this group: -
 
 ### Import
 
 - Operations: `ImportPublicKey`
-- Common required input members in this group: `publicKeyMaterial`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
@@ -105,42 +105,42 @@ The Amazon Interactive Video Service (IVS) real-time API is REST compatible, usi
 |---|---|---|---|---|---|---|---|
 | `CreateEncoderConfiguration` | `POST /CreateEncoderConfiguration` | - | - | - | `CreateEncoderConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `PendingVerification`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates an EncoderConfiguration object. |
 | `CreateIngestConfiguration` | `POST /CreateIngestConfiguration` | - | `ingestProtocol` | - | `CreateIngestConfigurationResponse` | `AccessDeniedException`, `PendingVerification`, `ServiceQuotaExceededException`, `ValidationException` | Creates a new IngestConfiguration resource, used to specify the ingest protocol for a stage. |
-| `CreateParticipantToken` | `POST /CreateParticipantToken` | - | `stageArn` | - | `CreateParticipantTokenResponse` | `AccessDeniedException`, `PendingVerification`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates an additional token for a specified stage. This can be done after stage creation or when tokens expire. |
+| `CreateParticipantToken` | `POST /CreateParticipantToken` | - | `stageArn` | - | `CreateParticipantTokenResponse` | `AccessDeniedException`, `PendingVerification`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates an additional token for a specified stage. This can be done after stage creation or when tokens expire. Tokens always are scoped to the stage for which they are created. Encryption keys are owned by Amazon IV ... |
 | `CreateStage` | `POST /CreateStage` | - | - | - | `CreateStageResponse` | `AccessDeniedException`, `PendingVerification`, `ServiceQuotaExceededException`, `ValidationException` | Creates a new stage (and optionally participant tokens). |
-| `CreateStorageConfiguration` | `POST /CreateStorageConfiguration` | - | `s3` | - | `CreateStorageConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `PendingVerification`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a new storage configuration, used to enable recording to Amazon S3. When a StorageConfiguration is created, IVS will modify the S3 bucketPolicy of the provided bucket. |
+| `CreateStorageConfiguration` | `POST /CreateStorageConfiguration` | - | `s3` | - | `CreateStorageConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `PendingVerification`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a new storage configuration, used to enable recording to Amazon S3. When a StorageConfiguration is created, IVS will modify the S3 bucketPolicy of the provided bucket. This will ensure that IVS has sufficient ... |
 | `DeleteEncoderConfiguration` | `POST /DeleteEncoderConfiguration` | - | `arn` | - | `DeleteEncoderConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Deletes an EncoderConfiguration resource. Ensures that no Compositions are using this template; otherwise, returns an error. |
-| `DeleteIngestConfiguration` | `POST /DeleteIngestConfiguration` | - | `arn` | - | `DeleteIngestConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `PendingVerification`, `ResourceNotFoundException`, `ValidationException` | Deletes a specified IngestConfiguration, so it can no longer be used to broadcast. An IngestConfiguration cannot be deleted if the publisher is actively streaming to a stage, unless `force` is set to `true`. |
+| `DeleteIngestConfiguration` | `POST /DeleteIngestConfiguration` | - | `arn` | - | `DeleteIngestConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `PendingVerification`, `ResourceNotFoundException`, `ValidationException` | Deletes a specified IngestConfiguration, so it can no longer be used to broadcast. An IngestConfiguration cannot be deleted if the publisher is actively streaming to a stage, unless force is set to true . |
 | `DeletePublicKey` | `POST /DeletePublicKey` | - | `arn` | - | `DeletePublicKeyResponse` | `AccessDeniedException`, `ConflictException`, `PendingVerification`, `ResourceNotFoundException`, `ValidationException` | Deletes the specified public key used to sign stage participant tokens. This invalidates future participant tokens generated using the key pair’s private key. |
-| `DeleteStage` | `POST /DeleteStage` | - | `arn` | - | `DeleteStageResponse` | `AccessDeniedException`, `ConflictException`, `PendingVerification`, `ResourceNotFoundException`, `ValidationException` | Shuts down and deletes the specified stage (disconnecting all participants). This operation also removes the `stageArn` from the associated IngestConfiguration, if there are participants using the IngestConfiguration to publish to the stage. |
-| `DeleteStorageConfiguration` | `POST /DeleteStorageConfiguration` | - | `arn` | - | `DeleteStorageConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Deletes the storage configuration for the specified ARN. If you try to delete a storage configuration that is used by a Composition, you will get an error (409 ConflictException). |
-| `DisconnectParticipant` | `POST /DisconnectParticipant` | - | `participantId`, `stageArn` | - | `DisconnectParticipantResponse` | `AccessDeniedException`, `PendingVerification`, `ResourceNotFoundException`, `ValidationException` | Disconnects a specified participant from a specified stage. If the participant is publishing using an IngestConfiguration, DisconnectParticipant also updates the `stageArn` in the IngestConfiguration to be an empty string. |
+| `DeleteStage` | `POST /DeleteStage` | - | `arn` | - | `DeleteStageResponse` | `AccessDeniedException`, `ConflictException`, `PendingVerification`, `ResourceNotFoundException`, `ValidationException` | Shuts down and deletes the specified stage (disconnecting all participants). This operation also removes the stageArn from the associated IngestConfiguration , if there are participants using the IngestConfiguration ... |
+| `DeleteStorageConfiguration` | `POST /DeleteStorageConfiguration` | - | `arn` | - | `DeleteStorageConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Deletes the storage configuration for the specified ARN. If you try to delete a storage configuration that is used by a Composition, you will get an error (409 ConflictException). To avoid this, for all Compositions ... |
+| `DisconnectParticipant` | `POST /DisconnectParticipant` | - | `stageArn`, `participantId` | - | `DisconnectParticipantResponse` | `AccessDeniedException`, `PendingVerification`, `ResourceNotFoundException`, `ValidationException` | Disconnects a specified participant from a specified stage. If the participant is publishing using an IngestConfiguration , DisconnectParticipant also updates the stageArn in the IngestConfiguration to be an empty st ... |
 | `GetComposition` | `POST /GetComposition` | `readonly` | `arn` | - | `GetCompositionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Get information about the specified Composition resource. |
 | `GetEncoderConfiguration` | `POST /GetEncoderConfiguration` | `readonly` | `arn` | - | `GetEncoderConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Gets information about the specified EncoderConfiguration resource. |
 | `GetIngestConfiguration` | `POST /GetIngestConfiguration` | `readonly` | `arn` | - | `GetIngestConfigurationResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Gets information about the specified IngestConfiguration. |
-| `GetParticipant` | `POST /GetParticipant` | `readonly` | `participantId`, `sessionId`, `stageArn` | - | `GetParticipantResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Gets information about the specified participant token. |
+| `GetParticipant` | `POST /GetParticipant` | `readonly` | `stageArn`, `sessionId`, `participantId` | - | `GetParticipantResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Gets information about the specified participant token. |
 | `GetPublicKey` | `POST /GetPublicKey` | `readonly` | `arn` | - | `GetPublicKeyResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Gets information for the specified public key. |
 | `GetStage` | `POST /GetStage` | `readonly` | `arn` | - | `GetStageResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Gets information for the specified stage. |
-| `GetStageSession` | `POST /GetStageSession` | `readonly` | `sessionId`, `stageArn` | - | `GetStageSessionResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Gets information for the specified stage session. |
+| `GetStageSession` | `POST /GetStageSession` | `readonly` | `stageArn`, `sessionId` | - | `GetStageSessionResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Gets information for the specified stage session. |
 | `GetStorageConfiguration` | `POST /GetStorageConfiguration` | `readonly` | `arn` | - | `GetStorageConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Gets the storage configuration for the specified ARN. |
 | `ImportPublicKey` | `POST /ImportPublicKey` | - | `publicKeyMaterial` | - | `ImportPublicKeyResponse` | `AccessDeniedException`, `ConflictException`, `PendingVerification`, `ServiceQuotaExceededException`, `ValidationException` | Import a public key to be used for signing stage participant tokens. |
 | `ListCompositions` | `POST /ListCompositions` | `readonly`, `paginated` | - | - | `ListCompositionsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | Gets summary information about all Compositions in your account, in the AWS region where the API request is processed. |
 | `ListEncoderConfigurations` | `POST /ListEncoderConfigurations` | `readonly`, `paginated` | - | - | `ListEncoderConfigurationsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | Gets summary information about all EncoderConfigurations in your account, in the AWS region where the API request is processed. |
 | `ListIngestConfigurations` | `POST /ListIngestConfigurations` | `readonly`, `paginated` | - | - | `ListIngestConfigurationsResponse` | `AccessDeniedException`, `ValidationException` | Lists all IngestConfigurations in your account, in the AWS region where the API request is processed. |
-| `ListParticipantEvents` | `POST /ListParticipantEvents` | `readonly`, `paginated` | `participantId`, `sessionId`, `stageArn` | - | `ListParticipantEventsResponse` | `AccessDeniedException`, `ValidationException` | Lists events for a specified participant that occurred during a specified stage session. |
-| `ListParticipantReplicas` | `POST /ListParticipantReplicas` | `readonly`, `paginated` | `participantId`, `sourceStageArn` | - | `ListParticipantReplicasResponse` | `AccessDeniedException`, `ValidationException` | Lists all the replicas for a participant from a source stage. |
-| `ListParticipants` | `POST /ListParticipants` | `readonly`, `paginated` | `sessionId`, `stageArn` | - | `ListParticipantsResponse` | `AccessDeniedException`, `ValidationException` | Lists all participants in a specified stage session. |
+| `ListParticipantEvents` | `POST /ListParticipantEvents` | `readonly`, `paginated` | `stageArn`, `sessionId`, `participantId` | - | `ListParticipantEventsResponse` | `AccessDeniedException`, `ValidationException` | Lists events for a specified participant that occurred during a specified stage session. |
+| `ListParticipantReplicas` | `POST /ListParticipantReplicas` | `readonly`, `paginated` | `sourceStageArn`, `participantId` | - | `ListParticipantReplicasResponse` | `AccessDeniedException`, `ValidationException` | Lists all the replicas for a participant from a source stage. |
+| `ListParticipants` | `POST /ListParticipants` | `readonly`, `paginated` | `stageArn`, `sessionId` | - | `ListParticipantsResponse` | `AccessDeniedException`, `ValidationException` | Lists all participants in a specified stage session. |
 | `ListPublicKeys` | `POST /ListPublicKeys` | `readonly`, `paginated` | - | - | `ListPublicKeysResponse` | `AccessDeniedException`, `ValidationException` | Gets summary information about all public keys in your account, in the AWS region where the API request is processed. |
-| `ListStageSessions` | `POST /ListStageSessions` | `readonly`, `paginated` | `stageArn` | - | `ListStageSessionsResponse` | `AccessDeniedException`, `ValidationException` | Gets all sessions for a specified stage. |
 | `ListStages` | `POST /ListStages` | `readonly`, `paginated` | - | - | `ListStagesResponse` | `AccessDeniedException`, `ConflictException`, `ValidationException` | Gets summary information about all stages in your account, in the AWS region where the API request is processed. |
+| `ListStageSessions` | `POST /ListStageSessions` | `readonly`, `paginated` | `stageArn` | - | `ListStageSessionsResponse` | `AccessDeniedException`, `ValidationException` | Gets all sessions for a specified stage. |
 | `ListStorageConfigurations` | `POST /ListStorageConfigurations` | `readonly`, `paginated` | - | - | `ListStorageConfigurationsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | Gets summary information about all storage configurations in your account, in the AWS region where the API request is processed. |
 | `ListTagsForResource` | `GET /tags/{resourceArn}` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Gets information about AWS tags for the specified ARN. |
-| `StartComposition` | `POST /StartComposition` | `idempotency-token` | `destinations`, `stageArn` | `idempotencyToken` | `StartCompositionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `PendingVerification`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Starts a Composition from a stage based on the configuration provided in the request. A Composition is an ephemeral resource that exists after this operation returns successfully. |
-| `StartParticipantReplication` | `POST /StartParticipantReplication` | - | `destinationStageArn`, `participantId`, `sourceStageArn` | - | `StartParticipantReplicationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `PendingVerification`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Starts replicating a publishing participant from a source stage to a destination stage. |
+| `StartComposition` | `POST /StartComposition` | `idempotency-token` | `stageArn`, `destinations` | `idempotencyToken` | `StartCompositionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `PendingVerification`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Starts a Composition from a stage based on the configuration provided in the request. A Composition is an ephemeral resource that exists after this operation returns successfully. Composition stops and the resource i ... |
+| `StartParticipantReplication` | `POST /StartParticipantReplication` | - | `sourceStageArn`, `destinationStageArn`, `participantId` | - | `StartParticipantReplicationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `PendingVerification`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Starts replicating a publishing participant from a source stage to a destination stage. |
 | `StopComposition` | `POST /StopComposition` | - | `arn` | - | `StopCompositionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Stops and deletes a Composition resource. Any broadcast from the Composition resource is stopped. |
-| `StopParticipantReplication` | `POST /StopParticipantReplication` | - | `destinationStageArn`, `participantId`, `sourceStageArn` | - | `StopParticipantReplicationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Stops a replicated participant session. |
+| `StopParticipantReplication` | `POST /StopParticipantReplication` | - | `sourceStageArn`, `destinationStageArn`, `participantId` | - | `StopParticipantReplicationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Stops a replicated participant session. |
 | `TagResource` | `POST /tags/{resourceArn}` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Adds or updates tags for the AWS resource with the specified ARN. |
 | `UntagResource` | `DELETE /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Removes tags from the resource with the specified ARN. |
-| `UpdateIngestConfiguration` | `POST /UpdateIngestConfiguration` | - | `arn` | - | `UpdateIngestConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `PendingVerification`, `ResourceNotFoundException`, `ValidationException` | Updates a specified IngestConfiguration. Only the stage ARN attached to the IngestConfiguration can be updated. |
+| `UpdateIngestConfiguration` | `POST /UpdateIngestConfiguration` | - | `arn` | - | `UpdateIngestConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `PendingVerification`, `ResourceNotFoundException`, `ValidationException` | Updates a specified IngestConfiguration. Only the stage ARN attached to the IngestConfiguration can be updated. An IngestConfiguration that is active cannot be updated. |
 | `UpdateStage` | `POST /UpdateStage` | - | `arn` | - | `UpdateStageResponse` | `AccessDeniedException`, `ConflictException`, `PendingVerification`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Updates a stage’s configuration. |
 
 ## HTTP Bindings
@@ -155,31 +155,56 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ValidationException` | `structure` | `accessControlAllowOrigin`, `accessControlExposeHeaders`, `cacheControl`, `contentSecurityPolicy`, `exceptionMessage`, `strictTransportSecurity`, `xAmznErrorType`, `xContentTypeOptions`, `xFrameOptions` | - |
-| `AccessDeniedException` | `structure` | `accessControlAllowOrigin`, `accessControlExposeHeaders`, `cacheControl`, `contentSecurityPolicy`, `exceptionMessage`, `strictTransportSecurity`, `xAmznErrorType`, `xContentTypeOptions`, `xFrameOptions` | - |
-| `ResourceNotFoundException` | `structure` | `accessControlAllowOrigin`, `accessControlExposeHeaders`, `cacheControl`, `contentSecurityPolicy`, `exceptionMessage`, `strictTransportSecurity`, `xAmznErrorType`, `xContentTypeOptions`, `xFrameOptions` | - |
-| `ConflictException` | `structure` | `accessControlAllowOrigin`, `accessControlExposeHeaders`, `cacheControl`, `contentSecurityPolicy`, `exceptionMessage`, `strictTransportSecurity`, `xAmznErrorType`, `xContentTypeOptions`, `xFrameOptions` | - |
-| `ServiceQuotaExceededException` | `structure` | `accessControlAllowOrigin`, `accessControlExposeHeaders`, `cacheControl`, `contentSecurityPolicy`, `exceptionMessage`, `strictTransportSecurity`, `xAmznErrorType`, `xContentTypeOptions`, `xFrameOptions` | - |
-| `InternalServerException` | `structure` | `accessControlAllowOrigin`, `accessControlExposeHeaders`, `cacheControl`, `contentSecurityPolicy`, `exceptionMessage`, `strictTransportSecurity`, `xAmznErrorType`, `xContentTypeOptions`, `xFrameOptions` | - |
-| `PendingVerification` | `structure` | `accessControlAllowOrigin`, `accessControlExposeHeaders`, `cacheControl`, `contentSecurityPolicy`, `exceptionMessage`, `strictTransportSecurity`, `xAmznErrorType`, `xContentTypeOptions`, `xFrameOptions` | - |
-| `CreateEncoderConfigurationRequest` | `structure` | `name`, `tags`, `video` | - |
-| `CreateEncoderConfigurationResponse` | `structure` | `encoderConfiguration` | - |
-| `CreateIngestConfigurationRequest` | `structure` | `attributes`, `ingestProtocol`, `insecureIngest`, `name`, `stageArn`, `tags`, `userId` | - |
-| `CreateIngestConfigurationResponse` | `structure` | `ingestConfiguration` | - |
-| `CreateParticipantTokenRequest` | `structure` | `attributes`, `capabilities`, `duration`, `stageArn`, `userId` | - |
-| `CreateParticipantTokenResponse` | `structure` | `participantToken` | - |
-| `CreateStageRequest` | `structure` | `autoParticipantRecordingConfiguration`, `name`, `participantTokenConfigurations`, `tags` | - |
-| `CreateStageResponse` | `structure` | `participantTokens`, `stage` | - |
-| `CreateStorageConfigurationRequest` | `structure` | `name`, `s3`, `tags` | - |
-| `CreateStorageConfigurationResponse` | `structure` | `storageConfiguration` | - |
-| `DeleteEncoderConfigurationRequest` | `structure` | `arn` | - |
-| `DeleteEncoderConfigurationResponse` | `structure` | - | - |
-| `DeleteIngestConfigurationRequest` | `structure` | `arn`, `force` | - |
-| `DeleteIngestConfigurationResponse` | `structure` | - | - |
-| `DeletePublicKeyRequest` | `structure` | `arn` | - |
-| `DeletePublicKeyResponse` | `structure` | - | - |
-| `DeleteStageRequest` | `structure` | `arn` | - |
-
+| `AccessDeniedException` | `structure` | accessControlAllowOrigin, accessControlExposeHeaders, cacheControl, contentSecurityPolicy, strictTransportSecurity, xContentTypeOptions, xFrameOptions, xAmznErrorType, exceptionMessage | - |
+| `ConflictException` | `structure` | accessControlAllowOrigin, accessControlExposeHeaders, cacheControl, contentSecurityPolicy, strictTransportSecurity, xContentTypeOptions, xFrameOptions, xAmznErrorType, exceptionMessage | - |
+| `InternalServerException` | `structure` | accessControlAllowOrigin, accessControlExposeHeaders, cacheControl, contentSecurityPolicy, strictTransportSecurity, xContentTypeOptions, xFrameOptions, xAmznErrorType, exceptionMessage | - |
+| `PendingVerification` | `structure` | accessControlAllowOrigin, accessControlExposeHeaders, cacheControl, contentSecurityPolicy, strictTransportSecurity, xContentTypeOptions, xFrameOptions, xAmznErrorType, exceptionMessage | - |
+| `ResourceNotFoundException` | `structure` | accessControlAllowOrigin, accessControlExposeHeaders, cacheControl, contentSecurityPolicy, strictTransportSecurity, xContentTypeOptions, xFrameOptions, xAmznErrorType, exceptionMessage | - |
+| `ServiceQuotaExceededException` | `structure` | accessControlAllowOrigin, accessControlExposeHeaders, cacheControl, contentSecurityPolicy, strictTransportSecurity, xContentTypeOptions, xFrameOptions, xAmznErrorType, exceptionMessage | - |
+| `ValidationException` | `structure` | accessControlAllowOrigin, accessControlExposeHeaders, cacheControl, contentSecurityPolicy, strictTransportSecurity, xContentTypeOptions, xFrameOptions, xAmznErrorType, exceptionMessage | - |
+| `CreateEncoderConfigurationRequest` | `structure` | name, video, tags | - |
+| `CreateEncoderConfigurationResponse` | `structure` | encoderConfiguration | - |
+| `CreateIngestConfigurationRequest` | `structure` | name, stageArn, userId, attributes, ingestProtocol, insecureIngest, redundantIngest, tags | - |
+| `CreateIngestConfigurationResponse` | `structure` | ingestConfiguration | - |
+| `CreateParticipantTokenRequest` | `structure` | stageArn, duration, userId, attributes, capabilities | - |
+| `CreateParticipantTokenResponse` | `structure` | participantToken | - |
+| `CreateStageRequest` | `structure` | name, participantTokenConfigurations, tags, autoParticipantRecordingConfiguration | - |
+| `CreateStageResponse` | `structure` | stage, participantTokens | - |
+| `CreateStorageConfigurationRequest` | `structure` | name, s3, tags | - |
+| `CreateStorageConfigurationResponse` | `structure` | storageConfiguration | - |
+| `DeleteEncoderConfigurationRequest` | `structure` | arn | - |
+| `DeleteEncoderConfigurationResponse` | `structure` | **empty (no members)** | - |
+| `DeleteIngestConfigurationRequest` | `structure` | arn, force | - |
+| `DeleteIngestConfigurationResponse` | `structure` | **empty (no members)** | - |
+| `DeletePublicKeyRequest` | `structure` | arn | - |
+| `DeletePublicKeyResponse` | `structure` | **empty (no members)** | - |
+| `DeleteStageRequest` | `structure` | arn | - |
+| `DeleteStageResponse` | `structure` | **empty (no members)** | - |
+| `DeleteStorageConfigurationRequest` | `structure` | arn | - |
+| `DeleteStorageConfigurationResponse` | `structure` | **empty (no members)** | - |
+| `DisconnectParticipantRequest` | `structure` | stageArn, participantId, reason | - |
+| `DisconnectParticipantResponse` | `structure` | **empty (no members)** | - |
+| `GetCompositionRequest` | `structure` | arn | - |
+| `GetCompositionResponse` | `structure` | composition | - |
+| `GetEncoderConfigurationRequest` | `structure` | arn | - |
+| `GetEncoderConfigurationResponse` | `structure` | encoderConfiguration | - |
+| `GetIngestConfigurationRequest` | `structure` | arn | - |
+| `GetIngestConfigurationResponse` | `structure` | ingestConfiguration | - |
+| `GetParticipantRequest` | `structure` | stageArn, sessionId, participantId | - |
+| `GetParticipantResponse` | `structure` | participant | - |
+| `GetPublicKeyRequest` | `structure` | arn | - |
+| `GetPublicKeyResponse` | `structure` | publicKey | - |
+| `GetStageRequest` | `structure` | arn | - |
+| `EventErrorCode` | `enum` | INSUFFICIENT_CAPABILITIES, QUOTA_EXCEEDED, PUBLISHER_NOT_FOUND, BITRATE_EXCEEDED, RESOLUTION_EXCEEDED, STREAM_DURATION_EXCEEDED, INVALID_AUDIO_CODEC, INVALID_VIDEO_CODEC, INVALID_PROTOCOL, INVALID_STREAM_KEY, REUSE_OF_STREAM_KEY, B_FRAME_PRESENT, ... (+2) | - |
+| `IngestProtocol` | `enum` | RTMP, RTMPS | - |
+| `ParticipantProtocol` | `enum` | UNKNOWN, WHIP, RTMP, RTMPS | - |
+| `ParticipantRecordingMediaType` | `enum` | AUDIO_VIDEO, AUDIO_ONLY, NONE | - |
+| `PipBehavior` | `enum` | STATIC, DYNAMIC | - |
+| `PipPosition` | `enum` | TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT | - |
+| `ThumbnailRecordingMode` | `enum` | INTERVAL, DISABLED | - |
+| `ThumbnailStorageType` | `enum` | SEQUENTIAL, LATEST | - |
+| `VideoAspectRatio` | `enum` | AUTO, VIDEO, SQUARE, PORTRAIT | - |
+| `VideoFillMode` | `enum` | FILL, COVER, CONTAIN | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

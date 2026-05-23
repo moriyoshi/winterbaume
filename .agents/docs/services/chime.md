@@ -62,113 +62,114 @@ Parity implications:
 ### Get
 
 - Operations: `GetAccount`, `GetAccountSettings`, `GetBot`, `GetEventsConfiguration`, `GetGlobalSettings`, `GetPhoneNumber`, `GetPhoneNumberOrder`, `GetPhoneNumberSettings`, `GetRetentionSettings`, `GetRoom`, `GetUser`, `GetUserSettings`
-- Common required input members in this group: `AccountId`, `BotId`, `PhoneNumberId`, `PhoneNumberOrderId`, `RoomId`, `UserId`
+- Common required input members in this group: `AccountId`, `BotId`, `UserId`
 
 ### Update
 
 - Operations: `UpdateAccount`, `UpdateAccountSettings`, `UpdateBot`, `UpdateGlobalSettings`, `UpdatePhoneNumber`, `UpdatePhoneNumberSettings`, `UpdateRoom`, `UpdateRoomMembership`, `UpdateUser`, `UpdateUserSettings`
-- Common required input members in this group: `AccountId`, `AccountSettings`, `BotId`, `CallingName`, `MemberId`, `PhoneNumberId`, `RoomId`, `UserId`, `UserSettings`
+- Common required input members in this group: `AccountId`, `RoomId`, `UserId`
 
 ### List
 
 - Operations: `ListAccounts`, `ListBots`, `ListPhoneNumberOrders`, `ListPhoneNumbers`, `ListRoomMemberships`, `ListRooms`, `ListSupportedPhoneNumberCountries`, `ListUsers`
 - Traits: `paginated` (7)
-- Common required input members in this group: `AccountId`, `ProductType`, `RoomId`
+- Common required input members in this group: `AccountId`
 
 ### Create
 
 - Operations: `CreateAccount`, `CreateBot`, `CreateMeetingDialOut`, `CreatePhoneNumberOrder`, `CreateRoom`, `CreateRoomMembership`, `CreateUser`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `AccountId`, `DisplayName`, `E164PhoneNumbers`, `FromPhoneNumber`, `JoinToken`, `MeetingId`, `MemberId`, `Name`, `ProductType`, `RoomId`, `ToPhoneNumber`
+- Common required input members in this group: `Name`, `AccountId`
 
 ### Batch
 
 - Operations: `BatchCreateRoomMembership`, `BatchDeletePhoneNumber`, `BatchSuspendUser`, `BatchUnsuspendUser`, `BatchUpdatePhoneNumber`, `BatchUpdateUser`
-- Common required input members in this group: `AccountId`, `MembershipItemList`, `PhoneNumberIds`, `RoomId`, `UpdatePhoneNumberRequestItems`, `UpdateUserRequestItems`, `UserIdList`
+- Common required input members in this group: `AccountId`, `UserIdList`
 
 ### Delete
 
 - Operations: `DeleteAccount`, `DeleteEventsConfiguration`, `DeletePhoneNumber`, `DeleteRoom`, `DeleteRoomMembership`
-- Common required input members in this group: `AccountId`, `BotId`, `MemberId`, `PhoneNumberId`, `RoomId`
+- Common required input members in this group: `AccountId`, `RoomId`
 
 ### Associate
 
 - Operations: `AssociatePhoneNumberWithUser`, `AssociateSigninDelegateGroupsWithAccount`
-- Common required input members in this group: `AccountId`, `E164PhoneNumber`, `SigninDelegateGroups`, `UserId`
+- Common required input members in this group: `AccountId`
 
 ### Disassociate
 
 - Operations: `DisassociatePhoneNumberFromUser`, `DisassociateSigninDelegateGroupsFromAccount`
-- Common required input members in this group: `AccountId`, `GroupNames`, `UserId`
+- Common required input members in this group: `AccountId`
 
 ### Put
 
 - Operations: `PutEventsConfiguration`, `PutRetentionSettings`
-- Common required input members in this group: `AccountId`, `BotId`, `RetentionSettings`
+- Common required input members in this group: `AccountId`
 
 ### Redact
 
 - Operations: `RedactConversationMessage`, `RedactRoomMessage`
-- Common required input members in this group: `AccountId`, `ConversationId`, `MessageId`, `RoomId`
+- Common required input members in this group: `AccountId`, `MessageId`
 
 ### Invite
 
 - Operations: `InviteUsers`
-- Common required input members in this group: `AccountId`, `UserEmailList`
+- Common required input members in this group: -
 
 ### Logout
 
 - Operations: `LogoutUser`
-- Common required input members in this group: `AccountId`, `UserId`
+- Common required input members in this group: -
 
 ### Regenerate
 
 - Operations: `RegenerateSecurityToken`
-- Common required input members in this group: `AccountId`, `BotId`
+- Common required input members in this group: -
 
 ### Reset
 
 - Operations: `ResetPersonalPIN`
-- Common required input members in this group: `AccountId`, `UserId`
+- Common required input members in this group: -
 
 ### Restore
 
 - Operations: `RestorePhoneNumber`
-- Common required input members in this group: `PhoneNumberId`
+- Common required input members in this group: -
 
 ### Search
 
 - Operations: `SearchAvailablePhoneNumbers`
 - Traits: `paginated` (1)
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AssociatePhoneNumberWithUser` | `POST /accounts/{AccountId}/users/{UserId}?operation=associate-phone-number` | - | `AccountId`, `E164PhoneNumber`, `UserId` | - | `AssociatePhoneNumberWithUserResponse` | `AccessDeniedException`, `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Associates a phone number with the specified Amazon Chime user. |
+| `AssociatePhoneNumberWithUser` | `POST /accounts/{AccountId}/users/{UserId}?operation=associate-phone-number` | - | `AccountId`, `UserId`, `E164PhoneNumber` | - | `AssociatePhoneNumberWithUserResponse` | `AccessDeniedException`, `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Associates a phone number with the specified Amazon Chime user. |
 | `AssociateSigninDelegateGroupsWithAccount` | `POST /accounts/{AccountId}?operation=associate-signin-delegate-groups` | - | `AccountId`, `SigninDelegateGroups` | - | `AssociateSigninDelegateGroupsWithAccountResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Associates the specified sign-in delegate groups with the specified Amazon Chime account. |
-| `BatchCreateRoomMembership` | `POST /accounts/{AccountId}/rooms/{RoomId}/memberships?operation=batch-create` | - | `AccountId`, `MembershipItemList`, `RoomId` | - | `BatchCreateRoomMembershipResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Adds up to 50 members to a chat room in an Amazon Chime Enterprise account. Members can be users or bots. |
-| `BatchDeletePhoneNumber` | `POST /phone-numbers?operation=batch-delete` | - | `PhoneNumberIds` | - | `BatchDeletePhoneNumberResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Moves phone numbers into the Deletion queue . Phone numbers must be disassociated from any users or Amazon Chime Voice Connectors before they can be deleted. |
-| `BatchSuspendUser` | `POST /accounts/{AccountId}/users?operation=suspend` | - | `AccountId`, `UserIdList` | - | `BatchSuspendUserResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Suspends up to 50 users from a `Team` or `EnterpriseLWA` Amazon Chime account. For more information about different account types, see Managing Your Amazon Chime Accounts in the Amazon Chime Administration Guide . |
-| `BatchUnsuspendUser` | `POST /accounts/{AccountId}/users?operation=unsuspend` | - | `AccountId`, `UserIdList` | - | `BatchUnsuspendUserResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Removes the suspension from up to 50 previously suspended users for the specified Amazon Chime `EnterpriseLWA` account. Only users on `EnterpriseLWA` accounts can be unsuspended using this action. |
-| `BatchUpdatePhoneNumber` | `POST /phone-numbers?operation=batch-update` | - | `UpdatePhoneNumberRequestItems` | - | `BatchUpdatePhoneNumberResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates phone number product types or calling names. You can update one attribute at a time for each `UpdatePhoneNumberRequestItem`. |
-| `BatchUpdateUser` | `POST /accounts/{AccountId}/users` | - | `AccountId`, `UpdateUserRequestItems` | - | `BatchUpdateUserResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates user details within the UpdateUserRequestItem object for up to 20 users for the specified Amazon Chime account. Currently, only `LicenseType` updates are supported for this action. |
-| `CreateAccount` | `POST /accounts` | - | `Name` | - | `CreateAccountResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Creates an Amazon Chime account under the administrator's AWS account. Only `Team` account types are currently supported for this action. |
+| `BatchCreateRoomMembership` | `POST /accounts/{AccountId}/rooms/{RoomId}/memberships?operation=batch-create` | - | `AccountId`, `RoomId`, `MembershipItemList` | - | `BatchCreateRoomMembershipResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Adds up to 50 members to a chat room in an Amazon Chime Enterprise account. Members can be users or bots. The member role designates whether the member is a chat room administrator or a general chat room member. |
+| `BatchDeletePhoneNumber` | `POST /phone-numbers?operation=batch-delete` | - | `PhoneNumberIds` | - | `BatchDeletePhoneNumberResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Moves phone numbers into the Deletion queue . Phone numbers must be disassociated from any users or Amazon Chime Voice Connectors before they can be deleted. Phone numbers remain in the Deletion queue for 7 days befo ... |
+| `BatchSuspendUser` | `POST /accounts/{AccountId}/users?operation=suspend` | - | `AccountId`, `UserIdList` | - | `BatchSuspendUserResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Suspends up to 50 users from a Team or EnterpriseLWA Amazon Chime account. For more information about different account types, see Managing Your Amazon Chime Accounts in the Amazon Chime Administration Guide . Users ... |
+| `BatchUnsuspendUser` | `POST /accounts/{AccountId}/users?operation=unsuspend` | - | `AccountId`, `UserIdList` | - | `BatchUnsuspendUserResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Removes the suspension from up to 50 previously suspended users for the specified Amazon Chime EnterpriseLWA account. Only users on EnterpriseLWA accounts can be unsuspended using this action. For more information ab ... |
+| `BatchUpdatePhoneNumber` | `POST /phone-numbers?operation=batch-update` | - | `UpdatePhoneNumberRequestItems` | - | `BatchUpdatePhoneNumberResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates phone number product types or calling names. You can update one attribute at a time for each UpdatePhoneNumberRequestItem . For example, you can update the product type or the calling name. For toll-free numb ... |
+| `BatchUpdateUser` | `POST /accounts/{AccountId}/users` | - | `AccountId`, `UpdateUserRequestItems` | - | `BatchUpdateUserResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates user details within the UpdateUserRequestItem object for up to 20 users for the specified Amazon Chime account. Currently, only LicenseType updates are supported for this action. |
+| `CreateAccount` | `POST /accounts` | - | `Name` | - | `CreateAccountResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Creates an Amazon Chime account under the administrator's AWS account. Only Team account types are currently supported for this action. For more information about different account types, see Managing Your Amazon Chi ... |
 | `CreateBot` | `POST /accounts/{AccountId}/bots` | - | `AccountId`, `DisplayName` | - | `CreateBotResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Creates a bot for an Amazon Chime Enterprise account. |
-| `CreateMeetingDialOut` | `POST /meetings/{MeetingId}/dial-outs` | - | `FromPhoneNumber`, `JoinToken`, `MeetingId`, `ToPhoneNumber` | - | `CreateMeetingDialOutResponse` | `AccessDeniedException`, `BadRequestException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Uses the join token and call metadata in a meeting request (From number, To number, and so forth) to initiate an outbound call to a public switched telephone network (PSTN) and join them into a Chime meeting. Also ensures that the From number belongs to the... |
-| `CreatePhoneNumberOrder` | `POST /phone-number-orders` | - | `E164PhoneNumbers`, `ProductType` | - | `CreatePhoneNumberOrderResponse` | `AccessDeniedException`, `BadRequestException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Creates an order for phone numbers to be provisioned. For toll-free numbers, you cannot use the Amazon Chime Business Calling product type. |
+| `CreateMeetingDialOut` | `POST /meetings/{MeetingId}/dial-outs` | - | `MeetingId`, `FromPhoneNumber`, `ToPhoneNumber`, `JoinToken` | - | `CreateMeetingDialOutResponse` | `AccessDeniedException`, `BadRequestException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Uses the join token and call metadata in a meeting request (From number, To number, and so forth) to initiate an outbound call to a public switched telephone network (PSTN) and join them into a Chime meeting. Also en ... |
+| `CreatePhoneNumberOrder` | `POST /phone-number-orders` | - | `ProductType`, `E164PhoneNumbers` | - | `CreatePhoneNumberOrderResponse` | `AccessDeniedException`, `BadRequestException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Creates an order for phone numbers to be provisioned. For toll-free numbers, you cannot use the Amazon Chime Business Calling product type. For numbers outside the U.S., you must use the Amazon Chime SIP Media Applic ... |
 | `CreateRoom` | `POST /accounts/{AccountId}/rooms` | `idempotency-token` | `AccountId`, `Name` | `ClientRequestToken` | `CreateRoomResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Creates a chat room for the specified Amazon Chime Enterprise account. |
-| `CreateRoomMembership` | `POST /accounts/{AccountId}/rooms/{RoomId}/memberships` | - | `AccountId`, `MemberId`, `RoomId` | - | `CreateRoomMembershipResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `NotFoundException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, ... (+1) | Adds a member to a chat room in an Amazon Chime Enterprise account. A member can be either a user or a bot. |
+| `CreateRoomMembership` | `POST /accounts/{AccountId}/rooms/{RoomId}/memberships` | - | `AccountId`, `RoomId`, `MemberId` | - | `CreateRoomMembershipResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `NotFoundException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Adds a member to a chat room in an Amazon Chime Enterprise account. A member can be either a user or a bot. The member role designates whether the member is a chat room administrator or a general chat room member. |
 | `CreateUser` | `POST /accounts/{AccountId}/users?operation=create` | - | `AccountId` | - | `CreateUserResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Creates a user under the specified Amazon Chime account. |
-| `DeleteAccount` | `DELETE /accounts/{AccountId}` | - | `AccountId` | - | `DeleteAccountResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException`, `UnprocessableEntityException` | Deletes the specified Amazon Chime account. You must suspend all users before deleting `Team` account. |
+| `DeleteAccount` | `DELETE /accounts/{AccountId}` | - | `AccountId` | - | `DeleteAccountResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException`, `UnprocessableEntityException` | Deletes the specified Amazon Chime account. You must suspend all users before deleting Team account. You can use the BatchSuspendUser action to dodo. For EnterpriseLWA and EnterpriseAD accounts, you must release the ... |
 | `DeleteEventsConfiguration` | `DELETE /accounts/{AccountId}/bots/{BotId}/events-configuration` | - | `AccountId`, `BotId` | - | `Unit` | `BadRequestException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `UnauthorizedClientException` | Deletes the events configuration that allows a bot to receive outgoing events. |
-| `DeletePhoneNumber` | `DELETE /phone-numbers/{PhoneNumberId}` | - | `PhoneNumberId` | - | `Unit` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Moves the specified phone number into the Deletion queue . A phone number must be disassociated from any users or Amazon Chime Voice Connectors before it can be deleted. |
+| `DeletePhoneNumber` | `DELETE /phone-numbers/{PhoneNumberId}` | - | `PhoneNumberId` | - | `Unit` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Moves the specified phone number into the Deletion queue . A phone number must be disassociated from any users or Amazon Chime Voice Connectors before it can be deleted. Deleted phone numbers remain in the Deletion q ... |
 | `DeleteRoom` | `DELETE /accounts/{AccountId}/rooms/{RoomId}` | - | `AccountId`, `RoomId` | - | `Unit` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Deletes a chat room in an Amazon Chime Enterprise account. |
-| `DeleteRoomMembership` | `DELETE /accounts/{AccountId}/rooms/{RoomId}/memberships/{MemberId}` | - | `AccountId`, `MemberId`, `RoomId` | - | `Unit` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Removes a member from a chat room in an Amazon Chime Enterprise account. |
+| `DeleteRoomMembership` | `DELETE /accounts/{AccountId}/rooms/{RoomId}/memberships/{MemberId}` | - | `AccountId`, `RoomId`, `MemberId` | - | `Unit` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Removes a member from a chat room in an Amazon Chime Enterprise account. |
 | `DisassociatePhoneNumberFromUser` | `POST /accounts/{AccountId}/users/{UserId}?operation=disassociate-phone-number` | - | `AccountId`, `UserId` | - | `DisassociatePhoneNumberFromUserResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Disassociates the primary provisioned phone number from the specified Amazon Chime user. |
 | `DisassociateSigninDelegateGroupsFromAccount` | `POST /accounts/{AccountId}?operation=disassociate-signin-delegate-groups` | - | `AccountId`, `GroupNames` | - | `DisassociateSigninDelegateGroupsFromAccountResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Disassociates the specified sign-in delegate groups from the specified Amazon Chime account. |
 | `GetAccount` | `GET /accounts/{AccountId}` | - | `AccountId` | - | `GetAccountResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Retrieves details for the specified Amazon Chime account, such as account type and supported licenses. |
-| `GetAccountSettings` | `GET /accounts/{AccountId}/settings` | - | `AccountId` | - | `GetAccountSettingsResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Retrieves account settings for the specified Amazon Chime account ID, such as remote control and dialout settings. For more information about these settings, see Use the Policies Page in the Amazon Chime Administration Guide . |
+| `GetAccountSettings` | `GET /accounts/{AccountId}/settings` | - | `AccountId` | - | `GetAccountSettingsResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Retrieves account settings for the specified Amazon Chime account ID, such as remote control and dialout settings. For more information about these settings, see Use the Policies Page in the Amazon Chime Administrati ... |
 | `GetBot` | `GET /accounts/{AccountId}/bots/{BotId}` | - | `AccountId`, `BotId` | - | `GetBotResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Retrieves details for the specified bot, such as bot email address, bot type, status, and display name. |
 | `GetEventsConfiguration` | `GET /accounts/{AccountId}/bots/{BotId}/events-configuration` | - | `AccountId`, `BotId` | - | `GetEventsConfigurationResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `UnauthorizedClientException` | Gets details for an events configuration that allows a bot to receive outgoing events, such as an HTTPS endpoint or Lambda function ARN. |
 | `GetGlobalSettings` | `GET /settings` | - | - | - | `GetGlobalSettingsResponse` | `BadRequestException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Retrieves global settings for the administrator's AWS account, such as Amazon Chime Business Calling and Amazon Chime Voice Connector settings. |
@@ -177,10 +178,10 @@ Parity implications:
 | `GetPhoneNumberSettings` | `GET /settings/phone-number` | - | - | - | `GetPhoneNumberSettingsResponse` | `BadRequestException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Retrieves the phone number settings for the administrator's AWS account, such as the default outbound calling name. |
 | `GetRetentionSettings` | `GET /accounts/{AccountId}/retention-settings` | - | `AccountId` | - | `GetRetentionSettingsResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Gets the retention settings for the specified Amazon Chime Enterprise account. For more information about retention settings, see Managing Chat Retention Policies in the Amazon Chime Administration Guide . |
 | `GetRoom` | `GET /accounts/{AccountId}/rooms/{RoomId}` | - | `AccountId`, `RoomId` | - | `GetRoomResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Retrieves room details, such as the room name, for a room in an Amazon Chime Enterprise account. |
-| `GetUser` | `GET /accounts/{AccountId}/users/{UserId}` | - | `AccountId`, `UserId` | - | `GetUserResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Retrieves details for the specified user ID, such as primary email address, license type,and personal meeting PIN. To retrieve user details with an email address instead of a user ID, use the ListUsers action, and then filter by email address. |
+| `GetUser` | `GET /accounts/{AccountId}/users/{UserId}` | - | `AccountId`, `UserId` | - | `GetUserResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Retrieves details for the specified user ID, such as primary email address, license type,and personal meeting PIN. To retrieve user details with an email address instead of a user ID, use the ListUsers action, and th ... |
 | `GetUserSettings` | `GET /accounts/{AccountId}/users/{UserId}/settings` | - | `AccountId`, `UserId` | - | `GetUserSettingsResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Retrieves settings for the specified user ID, such as any associated phone number settings. |
-| `InviteUsers` | `POST /accounts/{AccountId}/users?operation=add` | - | `AccountId`, `UserEmailList` | - | `InviteUsersResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Sends email to a maximum of 50 users, inviting them to the specified Amazon Chime `Team` account. Only `Team` account types are currently supported for this action. |
-| `ListAccounts` | `GET /accounts` | `paginated` | - | - | `ListAccountsResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Lists the Amazon Chime accounts under the administrator's AWS account. You can filter accounts by account name prefix. |
+| `InviteUsers` | `POST /accounts/{AccountId}/users?operation=add` | - | `AccountId`, `UserEmailList` | - | `InviteUsersResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Sends email to a maximum of 50 users, inviting them to the specified Amazon Chime Team account. Only Team account types are currently supported for this action. |
+| `ListAccounts` | `GET /accounts` | `paginated` | - | - | `ListAccountsResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Lists the Amazon Chime accounts under the administrator's AWS account. You can filter accounts by account name prefix. To find out which Amazon Chime account a user belongs to, you can filter by the user's email addr ... |
 | `ListBots` | `GET /accounts/{AccountId}/bots` | `paginated` | `AccountId` | - | `ListBotsResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Lists the bots associated with the administrator's Amazon Chime Enterprise account ID. |
 | `ListPhoneNumberOrders` | `GET /phone-number-orders` | `paginated` | - | - | `ListPhoneNumberOrdersResponse` | `BadRequestException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Lists the phone number orders for the administrator's Amazon Chime account. |
 | `ListPhoneNumbers` | `GET /phone-numbers` | `paginated` | - | - | `ListPhoneNumbersResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Lists the phone numbers for the specified Amazon Chime account, Amazon Chime user, Amazon Chime Voice Connector, or Amazon Chime Voice Connector group. |
@@ -189,23 +190,23 @@ Parity implications:
 | `ListSupportedPhoneNumberCountries` | `GET /phone-number-countries` | - | `ProductType` | - | `ListSupportedPhoneNumberCountriesResponse` | `AccessDeniedException`, `BadRequestException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Lists supported phone number countries. |
 | `ListUsers` | `GET /accounts/{AccountId}/users` | `paginated` | `AccountId` | - | `ListUsersResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Lists the users that belong to the specified Amazon Chime account. You can specify an email address to list only the user that the email address belongs to. |
 | `LogoutUser` | `POST /accounts/{AccountId}/users/{UserId}?operation=logout` | - | `AccountId`, `UserId` | - | `LogoutUserResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Logs out the specified user from all of the devices they are currently logged into. |
-| `PutEventsConfiguration` | `PUT /accounts/{AccountId}/bots/{BotId}/events-configuration` | - | `AccountId`, `BotId` | - | `PutEventsConfigurationResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `UnauthorizedClientException` | Creates an events configuration that allows a bot to receive outgoing events sent by Amazon Chime. Choose either an HTTPS endpoint or a Lambda function ARN. |
-| `PutRetentionSettings` | `PUT /accounts/{AccountId}/retention-settings` | - | `AccountId`, `RetentionSettings` | - | `PutRetentionSettingsResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Puts retention settings for the specified Amazon Chime Enterprise account. We recommend using AWS CloudTrail to monitor usage of this API for your account. |
+| `PutEventsConfiguration` | `PUT /accounts/{AccountId}/bots/{BotId}/events-configuration` | - | `AccountId`, `BotId` | - | `PutEventsConfigurationResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `UnauthorizedClientException` | Creates an events configuration that allows a bot to receive outgoing events sent by Amazon Chime. Choose either an HTTPS endpoint or a Lambda function ARN. For more information, see Bot . |
+| `PutRetentionSettings` | `PUT /accounts/{AccountId}/retention-settings` | - | `AccountId`, `RetentionSettings` | - | `PutRetentionSettingsResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Puts retention settings for the specified Amazon Chime Enterprise account. We recommend using AWS CloudTrail to monitor usage of this API for your account. For more information, see Logging Amazon Chime API Calls wit ... |
 | `RedactConversationMessage` | `POST /accounts/{AccountId}/conversations/{ConversationId}/messages/{MessageId}?operation=redact` | - | `AccountId`, `ConversationId`, `MessageId` | - | `RedactConversationMessageResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Redacts the specified message from the specified Amazon Chime conversation. |
-| `RedactRoomMessage` | `POST /accounts/{AccountId}/rooms/{RoomId}/messages/{MessageId}?operation=redact` | - | `AccountId`, `MessageId`, `RoomId` | - | `RedactRoomMessageResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Redacts the specified message from the specified Amazon Chime channel. |
+| `RedactRoomMessage` | `POST /accounts/{AccountId}/rooms/{RoomId}/messages/{MessageId}?operation=redact` | - | `AccountId`, `RoomId`, `MessageId` | - | `RedactRoomMessageResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Redacts the specified message from the specified Amazon Chime channel. |
 | `RegenerateSecurityToken` | `POST /accounts/{AccountId}/bots/{BotId}?operation=regenerate-security-token` | - | `AccountId`, `BotId` | - | `RegenerateSecurityTokenResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Regenerates the security token for a bot. |
 | `ResetPersonalPIN` | `POST /accounts/{AccountId}/users/{UserId}?operation=reset-personal-pin` | - | `AccountId`, `UserId` | - | `ResetPersonalPINResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Resets the personal meeting PIN for the specified user on an Amazon Chime account. Returns the User object with the updated personal meeting PIN. |
 | `RestorePhoneNumber` | `POST /phone-numbers/{PhoneNumberId}?operation=restore` | - | `PhoneNumberId` | - | `RestorePhoneNumberResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Moves a phone number from the Deletion queue back into the phone number Inventory . |
-| `SearchAvailablePhoneNumbers` | `GET /search?type=phone-numbers` | `paginated` | - | - | `SearchAvailablePhoneNumbersResponse` | `AccessDeniedException`, `BadRequestException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Searches for phone numbers that can be ordered. For US numbers, provide at least one of the following search filters: `AreaCode`, `City`, `State`, or `TollFreePrefix`. |
+| `SearchAvailablePhoneNumbers` | `GET /search?type=phone-numbers` | `paginated` | - | - | `SearchAvailablePhoneNumbersResponse` | `AccessDeniedException`, `BadRequestException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Searches for phone numbers that can be ordered. For US numbers, provide at least one of the following search filters: AreaCode , City , State , or TollFreePrefix . If you provide City , you must also provide State . ... |
 | `UpdateAccount` | `POST /accounts/{AccountId}` | - | `AccountId` | - | `UpdateAccountResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates account details for the specified Amazon Chime account. Currently, only account name and default license updates are supported for this action. |
-| `UpdateAccountSettings` | `PUT /accounts/{AccountId}/settings` | - | `AccountId`, `AccountSettings` | - | `UpdateAccountSettingsResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates the settings for the specified Amazon Chime account. You can update settings for remote control of shared screens, or for the dial-out option. |
+| `UpdateAccountSettings` | `PUT /accounts/{AccountId}/settings` | - | `AccountId`, `AccountSettings` | - | `UpdateAccountSettingsResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates the settings for the specified Amazon Chime account. You can update settings for remote control of shared screens, or for the dial-out option. For more information about these settings, see Use the Policies P ... |
 | `UpdateBot` | `POST /accounts/{AccountId}/bots/{BotId}` | - | `AccountId`, `BotId` | - | `UpdateBotResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates the status of the specified bot, such as starting or stopping the bot from running in your Amazon Chime Enterprise account. |
 | `UpdateGlobalSettings` | `PUT /settings` | - | - | - | `Unit` | `BadRequestException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates global settings for the administrator's AWS account, such as Amazon Chime Business Calling and Amazon Chime Voice Connector settings. |
-| `UpdatePhoneNumber` | `POST /phone-numbers/{PhoneNumberId}` | - | `PhoneNumberId` | - | `UpdatePhoneNumberResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates phone number details, such as product type or calling name, for the specified phone number ID. You can update one phone number detail at a time. |
-| `UpdatePhoneNumberSettings` | `PUT /settings/phone-number` | - | `CallingName` | - | `Unit` | `BadRequestException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates the phone number settings for the administrator's AWS account, such as the default outbound calling name. You can update the default outbound calling name once every seven days. |
+| `UpdatePhoneNumber` | `POST /phone-numbers/{PhoneNumberId}` | - | `PhoneNumberId` | - | `UpdatePhoneNumberResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates phone number details, such as product type or calling name, for the specified phone number ID. You can update one phone number detail at a time. For example, you can update either the product type or the call ... |
+| `UpdatePhoneNumberSettings` | `PUT /settings/phone-number` | - | `CallingName` | - | `Unit` | `BadRequestException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates the phone number settings for the administrator's AWS account, such as the default outbound calling name. You can update the default outbound calling name once every seven days. Outbound calling names can tak ... |
 | `UpdateRoom` | `POST /accounts/{AccountId}/rooms/{RoomId}` | - | `AccountId`, `RoomId` | - | `UpdateRoomResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates room details, such as the room name, for a room in an Amazon Chime Enterprise account. |
-| `UpdateRoomMembership` | `POST /accounts/{AccountId}/rooms/{RoomId}/memberships/{MemberId}` | - | `AccountId`, `MemberId`, `RoomId` | - | `UpdateRoomMembershipResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates room membership details, such as the member role, for a room in an Amazon Chime Enterprise account. The member role designates whether the member is a chat room administrator or a general chat room member. |
-| `UpdateUser` | `POST /accounts/{AccountId}/users/{UserId}` | - | `AccountId`, `UserId` | - | `UpdateUserResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates user details for a specified user ID. Currently, only `LicenseType` updates are supported for this action. |
+| `UpdateRoomMembership` | `POST /accounts/{AccountId}/rooms/{RoomId}/memberships/{MemberId}` | - | `AccountId`, `RoomId`, `MemberId` | - | `UpdateRoomMembershipResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates room membership details, such as the member role, for a room in an Amazon Chime Enterprise account. The member role designates whether the member is a chat room administrator or a general chat room member. Th ... |
+| `UpdateUser` | `POST /accounts/{AccountId}/users/{UserId}` | - | `AccountId`, `UserId` | - | `UpdateUserResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates user details for a specified user ID. Currently, only LicenseType updates are supported for this action. |
 | `UpdateUserSettings` | `PUT /accounts/{AccountId}/users/{UserId}/settings` | - | `AccountId`, `UserId`, `UserSettings` | - | `Unit` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates the settings for the specified user, such as phone number settings. |
 
 ## HTTP Bindings
@@ -228,30 +229,56 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `BadRequestException` | `structure` | `Code`, `Message` | The input parameters don't match the service's restrictions. |
-| `ForbiddenException` | `structure` | `Code`, `Message` | The client is permanently forbidden from making the request. |
-| `ServiceFailureException` | `structure` | `Code`, `Message` | The service encountered an unexpected error. |
-| `ServiceUnavailableException` | `structure` | `Code`, `Message` | The service is currently unavailable. |
-| `UnauthorizedClientException` | `structure` | `Code`, `Message` | The client is not currently authorized to make the request. |
-| `ThrottledClientException` | `structure` | `Code`, `Message` | The client exceeded its request rate limit. |
-| `NotFoundException` | `structure` | `Code`, `Message` | One or more of the resources in the request does not exist in the system. |
-| `ResourceLimitExceededException` | `structure` | `Code`, `Message` | The request exceeds the resource limit. |
-| `AccessDeniedException` | `structure` | `Code`, `Message` | You don't have permissions to perform the requested operation. |
-| `ConflictException` | `structure` | `Code`, `Message` | The request could not be processed because of conflict in the current state of the resource. |
-| `AssociatePhoneNumberWithUserRequest` | `structure` | `AccountId`, `E164PhoneNumber`, `UserId` | - |
-| `AssociatePhoneNumberWithUserResponse` | `structure` | - | - |
-| `AssociateSigninDelegateGroupsWithAccountRequest` | `structure` | `AccountId`, `SigninDelegateGroups` | - |
-| `AssociateSigninDelegateGroupsWithAccountResponse` | `structure` | - | - |
-| `BatchCreateRoomMembershipRequest` | `structure` | `AccountId`, `MembershipItemList`, `RoomId` | - |
-| `BatchCreateRoomMembershipResponse` | `structure` | `Errors` | - |
-| `BatchDeletePhoneNumberRequest` | `structure` | `PhoneNumberIds` | - |
-| `BatchDeletePhoneNumberResponse` | `structure` | `PhoneNumberErrors` | - |
-| `BatchSuspendUserRequest` | `structure` | `AccountId`, `UserIdList` | - |
-| `BatchSuspendUserResponse` | `structure` | `UserErrors` | - |
-| `BatchUnsuspendUserRequest` | `structure` | `AccountId`, `UserIdList` | - |
-| `BatchUnsuspendUserResponse` | `structure` | `UserErrors` | - |
-| `BatchUpdatePhoneNumberRequest` | `structure` | `UpdatePhoneNumberRequestItems` | - |
-
+| `AccessDeniedException` | `structure` | Code, Message | You don't have permissions to perform the requested operation. |
+| `BadRequestException` | `structure` | Code, Message | The input parameters don't match the service's restrictions. |
+| `ConflictException` | `structure` | Code, Message | The request could not be processed because of conflict in the current state of the resource. |
+| `ForbiddenException` | `structure` | Code, Message | The client is permanently forbidden from making the request. |
+| `NotFoundException` | `structure` | Code, Message | One or more of the resources in the request does not exist in the system. |
+| `ResourceLimitExceededException` | `structure` | Code, Message | The request exceeds the resource limit. |
+| `ServiceFailureException` | `structure` | Code, Message | The service encountered an unexpected error. |
+| `ServiceUnavailableException` | `structure` | Code, Message | The service is currently unavailable. |
+| `ThrottledClientException` | `structure` | Code, Message | The client exceeded its request rate limit. |
+| `UnauthorizedClientException` | `structure` | Code, Message | The client is not currently authorized to make the request. |
+| `UnprocessableEntityException` | `structure` | Code, Message | The request was well-formed but was unable to be followed due to semantic errors. |
+| `AssociatePhoneNumberWithUserRequest` | `structure` | AccountId, UserId, E164PhoneNumber | - |
+| `AssociatePhoneNumberWithUserResponse` | `structure` | **empty (no members)** | - |
+| `AssociateSigninDelegateGroupsWithAccountRequest` | `structure` | AccountId, SigninDelegateGroups | - |
+| `AssociateSigninDelegateGroupsWithAccountResponse` | `structure` | **empty (no members)** | - |
+| `BatchCreateRoomMembershipRequest` | `structure` | AccountId, RoomId, MembershipItemList | - |
+| `BatchCreateRoomMembershipResponse` | `structure` | Errors | - |
+| `BatchDeletePhoneNumberRequest` | `structure` | PhoneNumberIds | - |
+| `BatchDeletePhoneNumberResponse` | `structure` | PhoneNumberErrors | - |
+| `BatchSuspendUserRequest` | `structure` | AccountId, UserIdList | - |
+| `BatchSuspendUserResponse` | `structure` | UserErrors | - |
+| `BatchUnsuspendUserRequest` | `structure` | AccountId, UserIdList | - |
+| `BatchUnsuspendUserResponse` | `structure` | UserErrors | - |
+| `BatchUpdatePhoneNumberRequest` | `structure` | UpdatePhoneNumberRequestItems | - |
+| `BatchUpdatePhoneNumberResponse` | `structure` | PhoneNumberErrors | - |
+| `BatchUpdateUserRequest` | `structure` | AccountId, UpdateUserRequestItems | - |
+| `BatchUpdateUserResponse` | `structure` | UserErrors | - |
+| `CreateAccountRequest` | `structure` | Name | - |
+| `CreateAccountResponse` | `structure` | Account | - |
+| `CreateBotRequest` | `structure` | AccountId, DisplayName, Domain | - |
+| `CreateBotResponse` | `structure` | Bot | - |
+| `CreateMeetingDialOutRequest` | `structure` | MeetingId, FromPhoneNumber, ToPhoneNumber, JoinToken | - |
+| `CreateMeetingDialOutResponse` | `structure` | TransactionId | - |
+| `CreatePhoneNumberOrderRequest` | `structure` | ProductType, E164PhoneNumbers | - |
+| `CreatePhoneNumberOrderResponse` | `structure` | PhoneNumberOrder | - |
+| `CreateRoomRequest` | `structure` | AccountId, Name, ClientRequestToken | - |
+| `CreateRoomResponse` | `structure` | Room | - |
+| `CreateRoomMembershipRequest` | `structure` | AccountId, RoomId, MemberId, Role | - |
+| `CreateRoomMembershipResponse` | `structure` | RoomMembership | - |
+| `CreateUserRequest` | `structure` | AccountId, Username, Email, UserType | - |
+| `AccountStatus` | `enum` | Suspended, Active | - |
+| `AccountType` | `enum` | Team, EnterpriseDirectory, EnterpriseLWA, EnterpriseOIDC | - |
+| `BotType` | `enum` | ChatBot | - |
+| `CallingNameStatus` | `enum` | Unassigned, UpdateInProgress, UpdateSucceeded, UpdateFailed | - |
+| `EmailStatus` | `enum` | NotSent, Sent, Failed | - |
+| `ErrorCode` | `enum` | BadRequest, Conflict, Forbidden, NotFound, PreconditionFailed, ResourceLimitExceeded, ServiceFailure, AccessDenied, ServiceUnavailable, Throttled, Throttling, Unauthorized, ... (+3) | - |
+| `InviteStatus` | `enum` | Pending, Accepted, Failed | - |
+| `License` | `enum` | Basic, Plus, Pro, ProTrial | - |
+| `MemberType` | `enum` | User, Bot, Webhook | - |
+| `OrderedPhoneNumberStatus` | `enum` | Processing, Acquired, Failed | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

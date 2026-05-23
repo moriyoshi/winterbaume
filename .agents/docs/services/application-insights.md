@@ -60,86 +60,86 @@ Parity implications:
 ### Describe
 
 - Operations: `DescribeApplication`, `DescribeComponent`, `DescribeComponentConfiguration`, `DescribeComponentConfigurationRecommendation`, `DescribeLogPattern`, `DescribeObservation`, `DescribeProblem`, `DescribeProblemObservations`, `DescribeWorkload`
-- Common required input members in this group: `ComponentName`, `ObservationId`, `PatternName`, `PatternSetName`, `ProblemId`, `ResourceGroupName`, `Tier`, `WorkloadId`
+- Common required input members in this group: `ResourceGroupName`, `ComponentName`, `ProblemId`
 
 ### List
 
-- Operations: `ListApplications`, `ListComponents`, `ListConfigurationHistory`, `ListLogPatternSets`, `ListLogPatterns`, `ListProblems`, `ListTagsForResource`, `ListWorkloads`
+- Operations: `ListApplications`, `ListComponents`, `ListConfigurationHistory`, `ListLogPatterns`, `ListLogPatternSets`, `ListProblems`, `ListTagsForResource`, `ListWorkloads`
 - Traits: `paginated` (7)
-- Common required input members in this group: `ComponentName`, `ResourceARN`, `ResourceGroupName`
+- Common required input members in this group: `ResourceGroupName`
 
 ### Update
 
 - Operations: `UpdateApplication`, `UpdateComponent`, `UpdateComponentConfiguration`, `UpdateLogPattern`, `UpdateProblem`, `UpdateWorkload`
-- Common required input members in this group: `ComponentName`, `PatternName`, `PatternSetName`, `ProblemId`, `ResourceGroupName`, `WorkloadConfiguration`
+- Common required input members in this group: `ResourceGroupName`, `ComponentName`
 
 ### Create
 
 - Operations: `CreateApplication`, `CreateComponent`, `CreateLogPattern`
-- Common required input members in this group: `ComponentName`, `Pattern`, `PatternName`, `PatternSetName`, `Rank`, `ResourceGroupName`, `ResourceList`
+- Common required input members in this group: `ResourceGroupName`
 
 ### Delete
 
 - Operations: `DeleteApplication`, `DeleteComponent`, `DeleteLogPattern`
-- Common required input members in this group: `ComponentName`, `PatternName`, `PatternSetName`, `ResourceGroupName`
+- Common required input members in this group: `ResourceGroupName`
 
 ### Add
 
 - Operations: `AddWorkload`
-- Common required input members in this group: `ComponentName`, `ResourceGroupName`, `WorkloadConfiguration`
+- Common required input members in this group: -
 
 ### Remove
 
 - Operations: `RemoveWorkload`
-- Common required input members in this group: `ComponentName`, `ResourceGroupName`, `WorkloadId`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceARN`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceARN`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AddWorkload` | - | - | `ComponentName`, `ResourceGroupName`, `WorkloadConfiguration` | - | `AddWorkloadResponse` | `InternalServerException`, `ResourceInUseException`, `ResourceNotFoundException`, `ValidationException` | Adds a workload to a component. Each component can have at most five workloads. |
-| `CreateApplication` | - | - | - | - | `CreateApplicationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceInUseException`, `ResourceNotFoundException`, `TagsAlreadyExistException`, `ValidationException` | Adds an application that is created from a resource group. |
-| `CreateComponent` | - | - | `ComponentName`, `ResourceGroupName`, `ResourceList` | - | `CreateComponentResponse` | `InternalServerException`, `ResourceInUseException`, `ResourceNotFoundException`, `ValidationException` | Creates a custom component by grouping similar standalone instances to monitor. |
-| `CreateLogPattern` | - | - | `Pattern`, `PatternName`, `PatternSetName`, `Rank`, `ResourceGroupName` | - | `CreateLogPatternResponse` | `InternalServerException`, `ResourceInUseException`, `ResourceNotFoundException`, `ValidationException` | Adds an log pattern to a `LogPatternSet`. |
-| `DeleteApplication` | - | - | `ResourceGroupName` | - | `DeleteApplicationResponse` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Removes the specified application from monitoring. Does not delete the application. |
-| `DeleteComponent` | - | - | `ComponentName`, `ResourceGroupName` | - | `DeleteComponentResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Ungroups a custom component. When you ungroup custom components, all applicable monitors that are set up for the component are removed and the instances revert to their standalone status. |
-| `DeleteLogPattern` | - | - | `PatternName`, `PatternSetName`, `ResourceGroupName` | - | `DeleteLogPatternResponse` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Removes the specified log pattern from a `LogPatternSet`. |
-| `DescribeApplication` | - | - | `ResourceGroupName` | - | `DescribeApplicationResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Describes the application. |
-| `DescribeComponent` | - | - | `ComponentName`, `ResourceGroupName` | - | `DescribeComponentResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Describes a component and lists the resources that are grouped together in a component. |
-| `DescribeComponentConfiguration` | - | - | `ComponentName`, `ResourceGroupName` | - | `DescribeComponentConfigurationResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Describes the monitoring configuration of the component. |
-| `DescribeComponentConfigurationRecommendation` | - | - | `ComponentName`, `ResourceGroupName`, `Tier` | - | `DescribeComponentConfigurationRecommendationResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Describes the recommended monitoring configuration of the component. |
-| `DescribeLogPattern` | - | - | `PatternName`, `PatternSetName`, `ResourceGroupName` | - | `DescribeLogPatternResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Describe a specific log pattern from a `LogPatternSet`. |
-| `DescribeObservation` | - | - | `ObservationId` | - | `DescribeObservationResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Describes an anomaly or error with the application. |
-| `DescribeProblem` | - | - | `ProblemId` | - | `DescribeProblemResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Describes an application problem. |
-| `DescribeProblemObservations` | - | - | `ProblemId` | - | `DescribeProblemObservationsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Describes the anomalies or errors associated with the problem. |
-| `DescribeWorkload` | - | - | `ComponentName`, `ResourceGroupName`, `WorkloadId` | - | `DescribeWorkloadResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Describes a workload and its configuration. |
-| `ListApplications` | - | `paginated` | - | - | `ListApplicationsResponse` | `InternalServerException`, `ValidationException` | Lists the IDs of the applications that you are monitoring. |
-| `ListComponents` | - | `paginated` | `ResourceGroupName` | - | `ListComponentsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Lists the auto-grouped, standalone, and custom components of the application. |
-| `ListConfigurationHistory` | - | `paginated` | - | - | `ListConfigurationHistoryResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Lists the INFO, WARN, and ERROR events for periodic configuration updates performed by Application Insights. Examples of events represented are: INFO: creating a new alarm or updating an alarm threshold. |
-| `ListLogPatternSets` | - | `paginated` | `ResourceGroupName` | - | `ListLogPatternSetsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Lists the log pattern sets in the specific application. |
-| `ListLogPatterns` | - | `paginated` | `ResourceGroupName` | - | `ListLogPatternsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Lists the log patterns in the specific log `LogPatternSet`. |
-| `ListProblems` | - | `paginated` | - | - | `ListProblemsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Lists the problems with your application. |
-| `ListTagsForResource` | - | - | `ResourceARN` | - | `ListTagsForResourceResponse` | `ResourceNotFoundException`, `ValidationException` | Retrieve a list of the tags (keys and values) that are associated with a specified application. A tag is a label that you optionally define and associate with an application. |
-| `ListWorkloads` | - | `paginated` | `ComponentName`, `ResourceGroupName` | - | `ListWorkloadsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Lists the workloads that are configured on a given component. |
-| `RemoveWorkload` | - | - | `ComponentName`, `ResourceGroupName`, `WorkloadId` | - | `RemoveWorkloadResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Remove workload from a component. |
-| `TagResource` | - | - | `ResourceARN`, `Tags` | - | `TagResourceResponse` | `ResourceNotFoundException`, `TooManyTagsException`, `ValidationException` | Add one or more tags (keys and values) to a specified application. A tag is a label that you optionally define and associate with an application. |
-| `UntagResource` | - | - | `ResourceARN`, `TagKeys` | - | `UntagResourceResponse` | `ResourceNotFoundException`, `ValidationException` | Remove one or more tags (keys and values) from a specified application. |
-| `UpdateApplication` | - | - | `ResourceGroupName` | - | `UpdateApplicationResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Updates the application. |
-| `UpdateComponent` | - | - | `ComponentName`, `ResourceGroupName` | - | `UpdateComponentResponse` | `InternalServerException`, `ResourceInUseException`, `ResourceNotFoundException`, `ValidationException` | Updates the custom component name and/or the list of resources that make up the component. |
-| `UpdateComponentConfiguration` | - | - | `ComponentName`, `ResourceGroupName` | - | `UpdateComponentConfigurationResponse` | `InternalServerException`, `ResourceInUseException`, `ResourceNotFoundException`, `ValidationException` | Updates the monitoring configurations for the component. The configuration input parameter is an escaped JSON of the configuration and should match the schema of what is returned by `DescribeComponentConfigurationRecommendation`. |
-| `UpdateLogPattern` | - | - | `PatternName`, `PatternSetName`, `ResourceGroupName` | - | `UpdateLogPatternResponse` | `InternalServerException`, `ResourceInUseException`, `ResourceNotFoundException`, `ValidationException` | Adds a log pattern to a `LogPatternSet`. |
-| `UpdateProblem` | - | - | `ProblemId` | - | `UpdateProblemResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Updates the visibility of the problem or specifies the problem as `RESOLVED`. |
-| `UpdateWorkload` | - | - | `ComponentName`, `ResourceGroupName`, `WorkloadConfiguration` | - | `UpdateWorkloadResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Adds a workload to a component. Each component can have at most five workloads. |
+| `AddWorkload` | `-` | - | `ResourceGroupName`, `ComponentName`, `WorkloadConfiguration` | - | `AddWorkloadResponse` | `InternalServerException`, `ResourceInUseException`, `ResourceNotFoundException`, `ValidationException` | Adds a workload to a component. Each component can have at most five workloads. |
+| `CreateApplication` | `-` | - | - | - | `CreateApplicationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceInUseException`, `ResourceNotFoundException`, `TagsAlreadyExistException`, `ValidationException` | Adds an application that is created from a resource group. |
+| `CreateComponent` | `-` | - | `ResourceGroupName`, `ComponentName`, `ResourceList` | - | `CreateComponentResponse` | `InternalServerException`, `ResourceInUseException`, `ResourceNotFoundException`, `ValidationException` | Creates a custom component by grouping similar standalone instances to monitor. |
+| `CreateLogPattern` | `-` | - | `ResourceGroupName`, `PatternSetName`, `PatternName`, `Pattern`, `Rank` | - | `CreateLogPatternResponse` | `InternalServerException`, `ResourceInUseException`, `ResourceNotFoundException`, `ValidationException` | Adds an log pattern to a LogPatternSet . |
+| `DeleteApplication` | `-` | - | `ResourceGroupName` | - | `DeleteApplicationResponse` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Removes the specified application from monitoring. Does not delete the application. |
+| `DeleteComponent` | `-` | - | `ResourceGroupName`, `ComponentName` | - | `DeleteComponentResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Ungroups a custom component. When you ungroup custom components, all applicable monitors that are set up for the component are removed and the instances revert to their standalone status. |
+| `DeleteLogPattern` | `-` | - | `ResourceGroupName`, `PatternSetName`, `PatternName` | - | `DeleteLogPatternResponse` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Removes the specified log pattern from a LogPatternSet . |
+| `DescribeApplication` | `-` | - | `ResourceGroupName` | - | `DescribeApplicationResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Describes the application. |
+| `DescribeComponent` | `-` | - | `ResourceGroupName`, `ComponentName` | - | `DescribeComponentResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Describes a component and lists the resources that are grouped together in a component. |
+| `DescribeComponentConfiguration` | `-` | - | `ResourceGroupName`, `ComponentName` | - | `DescribeComponentConfigurationResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Describes the monitoring configuration of the component. |
+| `DescribeComponentConfigurationRecommendation` | `-` | - | `ResourceGroupName`, `ComponentName`, `Tier` | - | `DescribeComponentConfigurationRecommendationResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Describes the recommended monitoring configuration of the component. |
+| `DescribeLogPattern` | `-` | - | `ResourceGroupName`, `PatternSetName`, `PatternName` | - | `DescribeLogPatternResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Describe a specific log pattern from a LogPatternSet . |
+| `DescribeObservation` | `-` | - | `ObservationId` | - | `DescribeObservationResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Describes an anomaly or error with the application. |
+| `DescribeProblem` | `-` | - | `ProblemId` | - | `DescribeProblemResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Describes an application problem. |
+| `DescribeProblemObservations` | `-` | - | `ProblemId` | - | `DescribeProblemObservationsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Describes the anomalies or errors associated with the problem. |
+| `DescribeWorkload` | `-` | - | `ResourceGroupName`, `ComponentName`, `WorkloadId` | - | `DescribeWorkloadResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Describes a workload and its configuration. |
+| `ListApplications` | `-` | `paginated` | - | - | `ListApplicationsResponse` | `InternalServerException`, `ValidationException` | Lists the IDs of the applications that you are monitoring. |
+| `ListComponents` | `-` | `paginated` | `ResourceGroupName` | - | `ListComponentsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Lists the auto-grouped, standalone, and custom components of the application. |
+| `ListConfigurationHistory` | `-` | `paginated` | - | - | `ListConfigurationHistoryResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Lists the INFO, WARN, and ERROR events for periodic configuration updates performed by Application Insights. Examples of events represented are: INFO: creating a new alarm or updating an alarm threshold. WARN: alarm ... |
+| `ListLogPatterns` | `-` | `paginated` | `ResourceGroupName` | - | `ListLogPatternsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Lists the log patterns in the specific log LogPatternSet . |
+| `ListLogPatternSets` | `-` | `paginated` | `ResourceGroupName` | - | `ListLogPatternSetsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Lists the log pattern sets in the specific application. |
+| `ListProblems` | `-` | `paginated` | - | - | `ListProblemsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Lists the problems with your application. |
+| `ListTagsForResource` | `-` | - | `ResourceARN` | - | `ListTagsForResourceResponse` | `ResourceNotFoundException`, `ValidationException` | Retrieve a list of the tags (keys and values) that are associated with a specified application. A tag is a label that you optionally define and associate with an application. Each tag consists of a required tag key a ... |
+| `ListWorkloads` | `-` | `paginated` | `ResourceGroupName`, `ComponentName` | - | `ListWorkloadsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Lists the workloads that are configured on a given component. |
+| `RemoveWorkload` | `-` | - | `ResourceGroupName`, `ComponentName`, `WorkloadId` | - | `RemoveWorkloadResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Remove workload from a component. |
+| `TagResource` | `-` | - | `ResourceARN`, `Tags` | - | `TagResourceResponse` | `ResourceNotFoundException`, `TooManyTagsException`, `ValidationException` | Add one or more tags (keys and values) to a specified application. A tag is a label that you optionally define and associate with an application. Tags can help you categorize and manage application in different ways, ... |
+| `UntagResource` | `-` | - | `ResourceARN`, `TagKeys` | - | `UntagResourceResponse` | `ResourceNotFoundException`, `ValidationException` | Remove one or more tags (keys and values) from a specified application. |
+| `UpdateApplication` | `-` | - | `ResourceGroupName` | - | `UpdateApplicationResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Updates the application. |
+| `UpdateComponent` | `-` | - | `ResourceGroupName`, `ComponentName` | - | `UpdateComponentResponse` | `InternalServerException`, `ResourceInUseException`, `ResourceNotFoundException`, `ValidationException` | Updates the custom component name and/or the list of resources that make up the component. |
+| `UpdateComponentConfiguration` | `-` | - | `ResourceGroupName`, `ComponentName` | - | `UpdateComponentConfigurationResponse` | `InternalServerException`, `ResourceInUseException`, `ResourceNotFoundException`, `ValidationException` | Updates the monitoring configurations for the component. The configuration input parameter is an escaped JSON of the configuration and should match the schema of what is returned by DescribeComponentConfigurationReco ... |
+| `UpdateLogPattern` | `-` | - | `ResourceGroupName`, `PatternSetName`, `PatternName` | - | `UpdateLogPatternResponse` | `InternalServerException`, `ResourceInUseException`, `ResourceNotFoundException`, `ValidationException` | Adds a log pattern to a LogPatternSet . |
+| `UpdateProblem` | `-` | - | `ProblemId` | - | `UpdateProblemResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Updates the visibility of the problem or specifies the problem as RESOLVED . |
+| `UpdateWorkload` | `-` | - | `ResourceGroupName`, `ComponentName`, `WorkloadConfiguration` | - | `UpdateWorkloadResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Adds a workload to a component. Each component can have at most five workloads. |
 
 ## HTTP Bindings
 
@@ -151,31 +151,56 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ValidationException` | `structure` | `Message` | The parameter is not valid. |
-| `ResourceNotFoundException` | `structure` | `Message` | The resource does not exist in the customer account. |
-| `InternalServerException` | `structure` | `Message` | The server encountered an internal error and is unable to complete the request. |
-| `ResourceInUseException` | `structure` | `Message` | The resource is already created or in use. |
-| `BadRequestException` | `structure` | `Message` | The request is not understood by the server. |
-| `AddWorkloadRequest` | `structure` | `ComponentName`, `ResourceGroupName`, `WorkloadConfiguration` | - |
-| `AddWorkloadResponse` | `structure` | `WorkloadConfiguration`, `WorkloadId` | - |
-| `CreateApplicationRequest` | `structure` | `AttachMissingPermission`, `AutoConfigEnabled`, `AutoCreate`, `CWEMonitorEnabled`, `GroupingType`, `OpsCenterEnabled`, `OpsItemSNSTopicArn`, `ResourceGroupName`, `SNSNotificationArn`, `Tags` | - |
-| `CreateApplicationResponse` | `structure` | `ApplicationInfo` | - |
-| `AccessDeniedException` | `structure` | `Message` | User does not have permissions to perform this action. |
-| `TagsAlreadyExistException` | `structure` | `Message` | Tags are already registered for the specified application ARN. |
-| `CreateComponentRequest` | `structure` | `ComponentName`, `ResourceGroupName`, `ResourceList` | - |
-| `CreateComponentResponse` | `structure` | - | - |
-| `CreateLogPatternRequest` | `structure` | `Pattern`, `PatternName`, `PatternSetName`, `Rank`, `ResourceGroupName` | - |
-| `CreateLogPatternResponse` | `structure` | `LogPattern`, `ResourceGroupName` | - |
-| `DeleteApplicationRequest` | `structure` | `ResourceGroupName` | - |
-| `DeleteApplicationResponse` | `structure` | - | - |
-| `DeleteComponentRequest` | `structure` | `ComponentName`, `ResourceGroupName` | - |
-| `DeleteComponentResponse` | `structure` | - | - |
-| `DeleteLogPatternRequest` | `structure` | `PatternName`, `PatternSetName`, `ResourceGroupName` | - |
-| `DeleteLogPatternResponse` | `structure` | - | - |
-| `DescribeApplicationRequest` | `structure` | `AccountId`, `ResourceGroupName` | - |
-| `DescribeApplicationResponse` | `structure` | `ApplicationInfo` | - |
-| `DescribeComponentRequest` | `structure` | `AccountId`, `ComponentName`, `ResourceGroupName` | - |
-
+| `AccessDeniedException` | `structure` | Message | User does not have permissions to perform this action. |
+| `BadRequestException` | `structure` | Message | The request is not understood by the server. |
+| `InternalServerException` | `structure` | Message | The server encountered an internal error and is unable to complete the request. |
+| `ResourceInUseException` | `structure` | Message | The resource is already created or in use. |
+| `ResourceNotFoundException` | `structure` | Message | The resource does not exist in the customer account. |
+| `TagsAlreadyExistException` | `structure` | Message | Tags are already registered for the specified application ARN. |
+| `TooManyTagsException` | `structure` | Message, ResourceName | The number of the provided tags is beyond the limit, or the number of total tags you are trying to attach to the specified resource exceeds the limit. |
+| `ValidationException` | `structure` | Message | The parameter is not valid. |
+| `AddWorkloadRequest` | `structure` | ResourceGroupName, ComponentName, WorkloadConfiguration | - |
+| `AddWorkloadResponse` | `structure` | WorkloadId, WorkloadConfiguration | - |
+| `CreateApplicationRequest` | `structure` | ResourceGroupName, OpsCenterEnabled, CWEMonitorEnabled, OpsItemSNSTopicArn, SNSNotificationArn, Tags, AutoConfigEnabled, AutoCreate, GroupingType, AttachMissingPermission | - |
+| `CreateApplicationResponse` | `structure` | ApplicationInfo | - |
+| `CreateComponentRequest` | `structure` | ResourceGroupName, ComponentName, ResourceList | - |
+| `CreateComponentResponse` | `structure` | **empty (no members)** | - |
+| `CreateLogPatternRequest` | `structure` | ResourceGroupName, PatternSetName, PatternName, Pattern, Rank | - |
+| `CreateLogPatternResponse` | `structure` | LogPattern, ResourceGroupName | - |
+| `DeleteApplicationRequest` | `structure` | ResourceGroupName | - |
+| `DeleteApplicationResponse` | `structure` | **empty (no members)** | - |
+| `DeleteComponentRequest` | `structure` | ResourceGroupName, ComponentName | - |
+| `DeleteComponentResponse` | `structure` | **empty (no members)** | - |
+| `DeleteLogPatternRequest` | `structure` | ResourceGroupName, PatternSetName, PatternName | - |
+| `DeleteLogPatternResponse` | `structure` | **empty (no members)** | - |
+| `DescribeApplicationRequest` | `structure` | ResourceGroupName, AccountId | - |
+| `DescribeApplicationResponse` | `structure` | ApplicationInfo | - |
+| `DescribeComponentRequest` | `structure` | ResourceGroupName, ComponentName, AccountId | - |
+| `DescribeComponentResponse` | `structure` | ApplicationComponent, ResourceList | - |
+| `DescribeComponentConfigurationRequest` | `structure` | ResourceGroupName, ComponentName, AccountId | - |
+| `DescribeComponentConfigurationResponse` | `structure` | Monitor, Tier, ComponentConfiguration | - |
+| `DescribeComponentConfigurationRecommendationRequest` | `structure` | ResourceGroupName, ComponentName, Tier, WorkloadName, RecommendationType | - |
+| `DescribeComponentConfigurationRecommendationResponse` | `structure` | ComponentConfiguration | - |
+| `DescribeLogPatternRequest` | `structure` | ResourceGroupName, PatternSetName, PatternName, AccountId | - |
+| `DescribeLogPatternResponse` | `structure` | ResourceGroupName, AccountId, LogPattern | - |
+| `DescribeObservationRequest` | `structure` | ObservationId, AccountId | - |
+| `DescribeObservationResponse` | `structure` | Observation | - |
+| `DescribeProblemRequest` | `structure` | ProblemId, AccountId | - |
+| `DescribeProblemResponse` | `structure` | Problem, SNSNotificationArn | - |
+| `DescribeProblemObservationsRequest` | `structure` | ProblemId, AccountId | - |
+| `DescribeProblemObservationsResponse` | `structure` | RelatedObservations | - |
+| `DescribeWorkloadRequest` | `structure` | ResourceGroupName, ComponentName, WorkloadId, AccountId | - |
+| `DescribeWorkloadResponse` | `structure` | WorkloadId, WorkloadRemarks, WorkloadConfiguration | - |
+| `CloudWatchEventSource` | `enum` | EC2, CODE_DEPLOY, HEALTH, RDS | - |
+| `ConfigurationEventResourceType` | `enum` | CLOUDWATCH_ALARM, CLOUDWATCH_LOG, CLOUDFORMATION, SSM_ASSOCIATION | - |
+| `ConfigurationEventStatus` | `enum` | INFO, WARN, ERROR | - |
+| `DiscoveryType` | `enum` | RESOURCE_GROUP_BASED, ACCOUNT_BASED | - |
+| `FeedbackKey` | `enum` | INSIGHTS_FEEDBACK | - |
+| `FeedbackValue` | `enum` | NOT_SPECIFIED, USEFUL, NOT_USEFUL | - |
+| `GroupingType` | `enum` | ACCOUNT_BASED | - |
+| `LogFilter` | `enum` | ERROR, WARN, INFO | - |
+| `OsType` | `enum` | WINDOWS, LINUX | - |
+| `RecommendationType` | `enum` | INFRA_ONLY, WORKLOAD_ONLY, ALL | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

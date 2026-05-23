@@ -41,22 +41,22 @@ Amazon Transcribe streaming offers four main types of real-time transcription: S
 ### Start
 
 - Operations: `StartCallAnalyticsStreamTranscription`, `StartMedicalScribeStream`, `StartMedicalStreamTranscription`, `StartStreamTranscription`
-- Common required input members in this group: `AudioStream`, `InputStream`, `LanguageCode`, `MediaEncoding`, `MediaSampleRateHertz`, `Specialty`, `Type`
+- Common required input members in this group: `MediaSampleRateHertz`, `MediaEncoding`, `AudioStream`, `LanguageCode`
 
 ### Get
 
 - Operations: `GetMedicalScribeStream`
-- Common required input members in this group: `SessionId`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `GetMedicalScribeStream` | `GET /medical-scribe-stream/{SessionId}` | - | `SessionId` | - | `GetMedicalScribeStreamResponse` | `BadRequestException`, `InternalFailureException`, `LimitExceededException`, `ResourceNotFoundException` | Provides details about the specified Amazon Web Services HealthScribe streaming session. To view the status of the streaming session, check the `StreamStatus` field in the response. |
-| `StartCallAnalyticsStreamTranscription` | `POST /call-analytics-stream-transcription` | - | `AudioStream`, `MediaEncoding`, `MediaSampleRateHertz` | - | `StartCallAnalyticsStreamTranscriptionResponse` | `BadRequestException`, `ConflictException`, `InternalFailureException`, `LimitExceededException`, `ServiceUnavailableException` | Starts a bidirectional HTTP/2 or WebSocket stream where audio is streamed to Amazon Transcribe and the transcription results are streamed to your application. Use this operation for Call Analytics transcriptions. |
-| `StartMedicalScribeStream` | `POST /medical-scribe-stream` | - | `InputStream`, `LanguageCode`, `MediaEncoding`, `MediaSampleRateHertz` | - | `StartMedicalScribeStreamResponse` | `BadRequestException`, `ConflictException`, `InternalFailureException`, `LimitExceededException`, `ServiceUnavailableException` | Starts a bidirectional HTTP/2 stream, where audio is streamed to Amazon Web Services HealthScribe and the transcription results are streamed to your application. When you start a stream, you first specify the stream configuration in a... |
-| `StartMedicalStreamTranscription` | `POST /medical-stream-transcription` | - | `AudioStream`, `LanguageCode`, `MediaEncoding`, `MediaSampleRateHertz`, `Specialty`, `Type` | - | `StartMedicalStreamTranscriptionResponse` | `BadRequestException`, `ConflictException`, `InternalFailureException`, `LimitExceededException`, `ServiceUnavailableException` | Starts a bidirectional HTTP/2 or WebSocket stream where audio is streamed to Amazon Transcribe Medical and the transcription results are streamed to your application. The following parameters are required: `language-code` `media-encoding` `sample-rate` For... |
-| `StartStreamTranscription` | `POST /stream-transcription` | - | `AudioStream`, `MediaEncoding`, `MediaSampleRateHertz` | - | `StartStreamTranscriptionResponse` | `BadRequestException`, `ConflictException`, `InternalFailureException`, `LimitExceededException`, `ServiceUnavailableException` | Starts a bidirectional HTTP/2 or WebSocket stream where audio is streamed to Amazon Transcribe and the transcription results are streamed to your application. The following parameters are required: `language-code` or `identify-language` or... |
+| `GetMedicalScribeStream` | `GET /medical-scribe-stream/{SessionId}` | - | `SessionId` | - | `GetMedicalScribeStreamResponse` | `BadRequestException`, `InternalFailureException`, `LimitExceededException`, `ResourceNotFoundException` | Provides details about the specified Amazon Web Services HealthScribe streaming session. To view the status of the streaming session, check the StreamStatus field in the response. To get the details of post-stream an ... |
+| `StartCallAnalyticsStreamTranscription` | `POST /call-analytics-stream-transcription` | - | `MediaSampleRateHertz`, `MediaEncoding`, `AudioStream` | - | `StartCallAnalyticsStreamTranscriptionResponse` | `BadRequestException`, `ConflictException`, `InternalFailureException`, `LimitExceededException`, `ServiceUnavailableException` | Starts a bidirectional HTTP/2 or WebSocket stream where audio is streamed to Amazon Transcribe and the transcription results are streamed to your application. Use this operation for Call Analytics transcriptions. The ... |
+| `StartMedicalScribeStream` | `POST /medical-scribe-stream` | - | `LanguageCode`, `MediaSampleRateHertz`, `MediaEncoding`, `InputStream` | - | `StartMedicalScribeStreamResponse` | `BadRequestException`, `ConflictException`, `InternalFailureException`, `LimitExceededException`, `ServiceUnavailableException` | Starts a bidirectional HTTP/2 stream, where audio is streamed to Amazon Web Services HealthScribe and the transcription results are streamed to your application. When you start a stream, you first specify the stream ... |
+| `StartMedicalStreamTranscription` | `POST /medical-stream-transcription` | - | `LanguageCode`, `MediaSampleRateHertz`, `MediaEncoding`, `Specialty`, `Type`, `AudioStream` | - | `StartMedicalStreamTranscriptionResponse` | `BadRequestException`, `ConflictException`, `InternalFailureException`, `LimitExceededException`, `ServiceUnavailableException` | Starts a bidirectional HTTP/2 or WebSocket stream where audio is streamed to Amazon Transcribe Medical and the transcription results are streamed to your application. The following parameters are required: language-c ... |
+| `StartStreamTranscription` | `POST /stream-transcription` | - | `MediaSampleRateHertz`, `MediaEncoding`, `AudioStream` | - | `StartStreamTranscriptionResponse` | `BadRequestException`, `ConflictException`, `InternalFailureException`, `LimitExceededException`, `ServiceUnavailableException` | Starts a bidirectional HTTP/2 or WebSocket stream where audio is streamed to Amazon Transcribe and the transcription results are streamed to your application. The following parameters are required: language-code or i ... |
 
 ## HTTP Bindings
 
@@ -73,23 +73,46 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `BadRequestException` | `structure` | `Message` | One or more arguments to the `StartStreamTranscription`, `StartMedicalStreamTranscription`, or `StartCallAnalyticsStreamTranscription` operation was not valid. |
-| `InternalFailureException` | `structure` | `Message` | A problem occurred while processing the audio. |
-| `LimitExceededException` | `structure` | `Message` | Your client has exceeded one of the Amazon Transcribe limits. |
-| `ConflictException` | `structure` | `Message` | A new stream started with the same session ID. |
-| `ServiceUnavailableException` | `structure` | `Message` | The service is currently unavailable. |
-| `GetMedicalScribeStreamRequest` | `structure` | `SessionId` | - |
-| `GetMedicalScribeStreamResponse` | `structure` | `MedicalScribeStreamDetails` | - |
-| `ResourceNotFoundException` | `structure` | `Message` | The request references a resource which doesn't exist. |
-| `StartCallAnalyticsStreamTranscriptionRequest` | `structure` | `AudioStream`, `ContentIdentificationType`, `ContentRedactionType`, `EnablePartialResultsStabilization`, `IdentifyLanguage`, `LanguageCode`, `LanguageModelName`, `LanguageOptions`, `MediaEncoding`, `MediaSampleRateHertz`, `PartialResultsStability`, `PiiEntityTypes`, ... (+7) | - |
-| `StartCallAnalyticsStreamTranscriptionResponse` | `structure` | `CallAnalyticsTranscriptResultStream`, `ContentIdentificationType`, `ContentRedactionType`, `EnablePartialResultsStabilization`, `IdentifyLanguage`, `LanguageCode`, `LanguageModelName`, `LanguageOptions`, `MediaEncoding`, `MediaSampleRateHertz`, `PartialResultsStability`, `PiiEntityTypes`, ... (+8) | - |
-| `StartMedicalScribeStreamRequest` | `structure` | `InputStream`, `LanguageCode`, `MediaEncoding`, `MediaSampleRateHertz`, `SessionId` | - |
-| `StartMedicalScribeStreamResponse` | `structure` | `LanguageCode`, `MediaEncoding`, `MediaSampleRateHertz`, `RequestId`, `ResultStream`, `SessionId` | - |
-| `StartMedicalStreamTranscriptionRequest` | `structure` | `AudioStream`, `ContentIdentificationType`, `EnableChannelIdentification`, `LanguageCode`, `MediaEncoding`, `MediaSampleRateHertz`, `NumberOfChannels`, `SessionId`, `ShowSpeakerLabel`, `Specialty`, `Type`, `VocabularyName` | - |
-| `StartMedicalStreamTranscriptionResponse` | `structure` | `ContentIdentificationType`, `EnableChannelIdentification`, `LanguageCode`, `MediaEncoding`, `MediaSampleRateHertz`, `NumberOfChannels`, `RequestId`, `SessionId`, `ShowSpeakerLabel`, `Specialty`, `TranscriptResultStream`, `Type`, ... (+1) | - |
-| `StartStreamTranscriptionRequest` | `structure` | `AudioStream`, `ContentIdentificationType`, `ContentRedactionType`, `EnableChannelIdentification`, `EnablePartialResultsStabilization`, `IdentifyLanguage`, `IdentifyMultipleLanguages`, `LanguageCode`, `LanguageModelName`, `LanguageOptions`, `MediaEncoding`, `MediaSampleRateHertz`, ... (+12) | - |
-| `StartStreamTranscriptionResponse` | `structure` | `ContentIdentificationType`, `ContentRedactionType`, `EnableChannelIdentification`, `EnablePartialResultsStabilization`, `IdentifyLanguage`, `IdentifyMultipleLanguages`, `LanguageCode`, `LanguageModelName`, `LanguageOptions`, `MediaEncoding`, `MediaSampleRateHertz`, `NumberOfChannels`, ... (+13) | - |
-
+| `BadRequestException` | `structure` | Message | One or more arguments to the StartStreamTranscription , StartMedicalStreamTranscription , or StartCallAnalyticsStreamTranscription operation was not valid. ... |
+| `ConflictException` | `structure` | Message | A new stream started with the same session ID. The current stream has been terminated. |
+| `InternalFailureException` | `structure` | Message | A problem occurred while processing the audio. Amazon Transcribe terminated processing. |
+| `LimitExceededException` | `structure` | Message | Your client has exceeded one of the Amazon Transcribe limits. This is typically the audio length limit. Break your audio stream into smaller chunks and try ... |
+| `ResourceNotFoundException` | `structure` | Message | The request references a resource which doesn't exist. |
+| `ServiceUnavailableException` | `structure` | Message | The service is currently unavailable. Try your request later. |
+| `GetMedicalScribeStreamRequest` | `structure` | SessionId | - |
+| `GetMedicalScribeStreamResponse` | `structure` | MedicalScribeStreamDetails | - |
+| `StartCallAnalyticsStreamTranscriptionRequest` | `structure` | LanguageCode, MediaSampleRateHertz, MediaEncoding, VocabularyName, SessionId, AudioStream, VocabularyFilterName, VocabularyFilterMethod, LanguageModelName, IdentifyLanguage, LanguageOptions, PreferredLanguage, ... (+7) | - |
+| `StartCallAnalyticsStreamTranscriptionResponse` | `structure` | RequestId, LanguageCode, MediaSampleRateHertz, MediaEncoding, VocabularyName, SessionId, CallAnalyticsTranscriptResultStream, VocabularyFilterName, VocabularyFilterMethod, LanguageModelName, IdentifyLanguage, LanguageOptions, ... (+8) | - |
+| `StartMedicalScribeStreamRequest` | `structure` | SessionId, LanguageCode, MediaSampleRateHertz, MediaEncoding, InputStream | - |
+| `StartMedicalScribeStreamResponse` | `structure` | SessionId, RequestId, LanguageCode, MediaSampleRateHertz, MediaEncoding, ResultStream | - |
+| `StartMedicalStreamTranscriptionRequest` | `structure` | LanguageCode, MediaSampleRateHertz, MediaEncoding, VocabularyName, Specialty, Type, ShowSpeakerLabel, SessionId, AudioStream, EnableChannelIdentification, NumberOfChannels, ContentIdentificationType | - |
+| `StartMedicalStreamTranscriptionResponse` | `structure` | RequestId, LanguageCode, MediaSampleRateHertz, MediaEncoding, VocabularyName, Specialty, Type, ShowSpeakerLabel, SessionId, TranscriptResultStream, EnableChannelIdentification, NumberOfChannels, ... (+1) | - |
+| `StartStreamTranscriptionRequest` | `structure` | LanguageCode, MediaSampleRateHertz, MediaEncoding, VocabularyName, SessionId, AudioStream, VocabularyFilterName, VocabularyFilterMethod, ShowSpeakerLabel, EnableChannelIdentification, NumberOfChannels, EnablePartialResultsStabilization, ... (+12) | - |
+| `StartStreamTranscriptionResponse` | `structure` | RequestId, LanguageCode, MediaSampleRateHertz, MediaEncoding, VocabularyName, SessionId, TranscriptResultStream, VocabularyFilterName, VocabularyFilterMethod, ShowSpeakerLabel, EnableChannelIdentification, NumberOfChannels, ... (+13) | - |
+| `CallAnalyticsLanguageCode` | `enum` | EN_US, EN_GB, ES_US, FR_CA, FR_FR, EN_AU, IT_IT, DE_DE, PT_BR | - |
+| `ClinicalNoteGenerationStatus` | `enum` | IN_PROGRESS, FAILED, COMPLETED | - |
+| `ContentIdentificationType` | `enum` | PII | - |
+| `ContentRedactionOutput` | `enum` | REDACTED, REDACTED_AND_UNREDACTED | - |
+| `ContentRedactionType` | `enum` | PII | - |
+| `ItemType` | `enum` | PRONUNCIATION, PUNCTUATION | - |
+| `LanguageCode` | `enum` | EN_US, EN_GB, ES_US, FR_CA, FR_FR, EN_AU, IT_IT, DE_DE, PT_BR, JA_JP, KO_KR, ZH_CN, ... (+87) | - |
+| `MediaEncoding` | `enum` | PCM, OGG_OPUS, FLAC | - |
+| `MedicalContentIdentificationType` | `enum` | PHI | - |
+| `MedicalScribeLanguageCode` | `enum` | EN_US | - |
+| `MedicalScribeMediaEncoding` | `enum` | PCM, OGG_OPUS, FLAC | - |
+| `MedicalScribeNoteTemplate` | `enum` | HISTORY_AND_PHYSICAL, GIRPP, DAP, SIRP, BIRP, BEHAVIORAL_SOAP, PHYSICAL_SOAP | - |
+| `MedicalScribeParticipantRole` | `enum` | PATIENT, CLINICIAN | - |
+| `MedicalScribeSessionControlEventType` | `enum` | END_OF_SESSION | - |
+| `MedicalScribeStreamStatus` | `enum` | IN_PROGRESS, PAUSED, FAILED, COMPLETED | - |
+| `MedicalScribeTranscriptItemType` | `enum` | PRONUNCIATION, PUNCTUATION | - |
+| `MedicalScribeVocabularyFilterMethod` | `enum` | REMOVE, MASK, TAG | - |
+| `PartialResultsStability` | `enum` | HIGH, MEDIUM, LOW | - |
+| `ParticipantRole` | `enum` | AGENT, CUSTOMER | - |
+| `Pronouns` | `enum` | HE_HIM, SHE_HER, THEY_THEM | - |
+| `Sentiment` | `enum` | POSITIVE, NEGATIVE, MIXED, NEUTRAL | - |
+| `Specialty` | `enum` | PRIMARYCARE, CARDIOLOGY, NEUROLOGY, ONCOLOGY, RADIOLOGY, UROLOGY | - |
+| `Type` | `enum` | CONVERSATION, DICTATION | - |
+| `VocabularyFilterMethod` | `enum` | REMOVE, MASK, TAG | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

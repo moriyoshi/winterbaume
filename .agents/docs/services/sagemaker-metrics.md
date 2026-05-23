@@ -43,14 +43,14 @@ Contains all data plane API operations and data types for Amazon SageMaker Metri
 ### Batch
 
 - Operations: `BatchGetMetrics`, `BatchPutMetrics`
-- Common required input members in this group: `MetricData`, `MetricQueries`, `TrialComponentName`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
 | `BatchGetMetrics` | `POST /BatchGetMetrics` | - | `MetricQueries` | - | `BatchGetMetricsResponse` | - | Used to retrieve training metrics from SageMaker. |
-| `BatchPutMetrics` | `PUT /BatchPutMetrics` | - | `MetricData`, `TrialComponentName` | - | `BatchPutMetricsResponse` | - | Used to ingest training metrics into SageMaker. These metrics can be visualized in SageMaker Studio. |
+| `BatchPutMetrics` | `PUT /BatchPutMetrics` | - | `TrialComponentName`, `MetricData` | - | `BatchPutMetricsResponse` | - | Used to ingest training metrics into SageMaker. These metrics can be visualized in SageMaker Studio. |
 
 ## HTTP Bindings
 
@@ -62,11 +62,15 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `BatchGetMetricsRequest` | `structure` | `MetricQueries` | - |
-| `BatchGetMetricsResponse` | `structure` | `MetricQueryResults` | - |
-| `BatchPutMetricsRequest` | `structure` | `MetricData`, `TrialComponentName` | - |
-| `BatchPutMetricsResponse` | `structure` | `Errors` | - |
-
+| `BatchGetMetricsRequest` | `structure` | MetricQueries | - |
+| `BatchGetMetricsResponse` | `structure` | MetricQueryResults | - |
+| `BatchPutMetricsRequest` | `structure` | TrialComponentName, MetricData | - |
+| `BatchPutMetricsResponse` | `structure` | Errors | - |
+| `MetricQueryResultStatus` | `enum` | COMPLETE, TRUNCATED, INTERNAL_ERROR, VALIDATION_ERROR | - |
+| `MetricStatistic` | `enum` | MIN, MAX, AVG, COUNT, STD_DEV, LAST | - |
+| `Period` | `enum` | ONE_MINUTE, FIVE_MINUTE, ONE_HOUR, ITERATION_NUMBER | - |
+| `PutMetricsErrorCode` | `enum` | METRIC_LIMIT_EXCEEDED, INTERNAL_ERROR, VALIDATION_ERROR, CONFLICT_ERROR | - |
+| `XAxisType` | `enum` | ITERATION_NUMBER, TIMESTAMP | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

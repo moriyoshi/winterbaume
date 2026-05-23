@@ -42,78 +42,78 @@ Amazon Web Services Migration Hub Refactor Spaces This API reference provides de
 
 ### List
 
-- Operations: `ListApplications`, `ListEnvironmentVpcs`, `ListEnvironments`, `ListRoutes`, `ListServices`, `ListTagsForResource`
-- Traits: `paginated` (5), `readonly` (6)
-- Common required input members in this group: `ApplicationIdentifier`, `EnvironmentIdentifier`, `ResourceArn`
+- Operations: `ListApplications`, `ListEnvironments`, `ListEnvironmentVpcs`, `ListRoutes`, `ListServices`, `ListTagsForResource`
+- Traits: `readonly` (6), `paginated` (5)
+- Common required input members in this group: `EnvironmentIdentifier`, `ApplicationIdentifier`
 
 ### Delete
 
 - Operations: `DeleteApplication`, `DeleteEnvironment`, `DeleteResourcePolicy`, `DeleteRoute`, `DeleteService`
 - Traits: `idempotent` (5)
-- Common required input members in this group: `ApplicationIdentifier`, `EnvironmentIdentifier`, `Identifier`, `RouteIdentifier`, `ServiceIdentifier`
+- Common required input members in this group: `EnvironmentIdentifier`, `ApplicationIdentifier`
 
 ### Get
 
 - Operations: `GetApplication`, `GetEnvironment`, `GetResourcePolicy`, `GetRoute`, `GetService`
 - Traits: `readonly` (5)
-- Common required input members in this group: `ApplicationIdentifier`, `EnvironmentIdentifier`, `Identifier`, `RouteIdentifier`, `ServiceIdentifier`
+- Common required input members in this group: `EnvironmentIdentifier`, `ApplicationIdentifier`
 
 ### Create
 
 - Operations: `CreateApplication`, `CreateEnvironment`, `CreateRoute`, `CreateService`
 - Traits: `idempotency-token` (4)
-- Common required input members in this group: `ApplicationIdentifier`, `EndpointType`, `EnvironmentIdentifier`, `Name`, `NetworkFabricType`, `ProxyType`, `RouteType`, `ServiceIdentifier`, `VpcId`
+- Common required input members in this group: `Name`, `EnvironmentIdentifier`, `ApplicationIdentifier`
 
 ### Put
 
 - Operations: `PutResourcePolicy`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `Policy`, `ResourceArn`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateRoute`
-- Common required input members in this group: `ActivationState`, `ApplicationIdentifier`, `EnvironmentIdentifier`, `RouteIdentifier`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateApplication` | `POST /environments/{EnvironmentIdentifier}/applications` | `idempotency-token` | `EnvironmentIdentifier`, `Name`, `ProxyType`, `VpcId` | `ClientToken` | `CreateApplicationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates an Amazon Web Services Migration Hub Refactor Spaces application. The account that owns the environment also owns the applications created inside the environment, regardless of the account that creates the application. |
-| `CreateEnvironment` | `POST /environments` | `idempotency-token` | `Name`, `NetworkFabricType` | `ClientToken` | `CreateEnvironmentResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates an Amazon Web Services Migration Hub Refactor Spaces environment. The caller owns the environment resource, and all Refactor Spaces applications, services, and routes created within the environment. |
-| `CreateRoute` | `POST /environments/{EnvironmentIdentifier}/applications/{ApplicationIdentifier}/routes` | `idempotency-token` | `ApplicationIdentifier`, `EnvironmentIdentifier`, `RouteType`, `ServiceIdentifier` | `ClientToken` | `CreateRouteResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates an Amazon Web Services Migration Hub Refactor Spaces route. The account owner of the service resource is always the environment owner, regardless of which account creates the route. |
-| `CreateService` | `POST /environments/{EnvironmentIdentifier}/applications/{ApplicationIdentifier}/services` | `idempotency-token` | `ApplicationIdentifier`, `EndpointType`, `EnvironmentIdentifier`, `Name` | `ClientToken` | `CreateServiceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates an Amazon Web Services Migration Hub Refactor Spaces service. The account owner of the service is always the environment owner, regardless of which account in the environment creates the service. |
-| `DeleteApplication` | `DELETE /environments/{EnvironmentIdentifier}/applications/{ApplicationIdentifier}` | `idempotent` | `ApplicationIdentifier`, `EnvironmentIdentifier` | - | `DeleteApplicationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an Amazon Web Services Migration Hub Refactor Spaces application. Before you can delete an application, you must first delete any services or routes within the application. |
+| `CreateApplication` | `POST /environments/{EnvironmentIdentifier}/applications` | `idempotency-token` | `Name`, `EnvironmentIdentifier`, `VpcId`, `ProxyType` | `ClientToken` | `CreateApplicationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates an Amazon Web Services Migration Hub Refactor Spaces application. The account that owns the environment also owns the applications created inside the environment, regardless of the account that creates the ap ... |
+| `CreateEnvironment` | `POST /environments` | `idempotency-token` | `Name`, `NetworkFabricType` | `ClientToken` | `CreateEnvironmentResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates an Amazon Web Services Migration Hub Refactor Spaces environment. The caller owns the environment resource, and all Refactor Spaces applications, services, and routes created within the environment. They are ... |
+| `CreateRoute` | `POST /environments/{EnvironmentIdentifier}/applications/{ApplicationIdentifier}/routes` | `idempotency-token` | `EnvironmentIdentifier`, `ApplicationIdentifier`, `ServiceIdentifier`, `RouteType` | `ClientToken` | `CreateRouteResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates an Amazon Web Services Migration Hub Refactor Spaces route. The account owner of the service resource is always the environment owner, regardless of which account creates the route. Routes target a service in ... |
+| `CreateService` | `POST /environments/{EnvironmentIdentifier}/applications/{ApplicationIdentifier}/services` | `idempotency-token` | `Name`, `EnvironmentIdentifier`, `ApplicationIdentifier`, `EndpointType` | `ClientToken` | `CreateServiceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates an Amazon Web Services Migration Hub Refactor Spaces service. The account owner of the service is always the environment owner, regardless of which account in the environment creates the service. Services hav ... |
+| `DeleteApplication` | `DELETE /environments/{EnvironmentIdentifier}/applications/{ApplicationIdentifier}` | `idempotent` | `EnvironmentIdentifier`, `ApplicationIdentifier` | - | `DeleteApplicationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an Amazon Web Services Migration Hub Refactor Spaces application. Before you can delete an application, you must first delete any services or routes within the application. |
 | `DeleteEnvironment` | `DELETE /environments/{EnvironmentIdentifier}` | `idempotent` | `EnvironmentIdentifier` | - | `DeleteEnvironmentResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an Amazon Web Services Migration Hub Refactor Spaces environment. Before you can delete an environment, you must first delete any applications and services within the environment. |
 | `DeleteResourcePolicy` | `DELETE /resourcepolicy/{Identifier}` | `idempotent` | `Identifier` | - | `DeleteResourcePolicyResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the resource policy set for the environment. |
-| `DeleteRoute` | `DELETE /environments/{EnvironmentIdentifier}/applications/{ApplicationIdentifier}/routes/{RouteIdentifier}` | `idempotent` | `ApplicationIdentifier`, `EnvironmentIdentifier`, `RouteIdentifier` | - | `DeleteRouteResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an Amazon Web Services Migration Hub Refactor Spaces route. |
-| `DeleteService` | `DELETE /environments/{EnvironmentIdentifier}/applications/{ApplicationIdentifier}/services/{ServiceIdentifier}` | `idempotent` | `ApplicationIdentifier`, `EnvironmentIdentifier`, `ServiceIdentifier` | - | `DeleteServiceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an Amazon Web Services Migration Hub Refactor Spaces service. |
-| `GetApplication` | `GET /environments/{EnvironmentIdentifier}/applications/{ApplicationIdentifier}` | `readonly` | `ApplicationIdentifier`, `EnvironmentIdentifier` | - | `GetApplicationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets an Amazon Web Services Migration Hub Refactor Spaces application. |
+| `DeleteRoute` | `DELETE /environments/{EnvironmentIdentifier}/applications/{ApplicationIdentifier}/routes/{RouteIdentifier}` | `idempotent` | `EnvironmentIdentifier`, `ApplicationIdentifier`, `RouteIdentifier` | - | `DeleteRouteResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an Amazon Web Services Migration Hub Refactor Spaces route. |
+| `DeleteService` | `DELETE /environments/{EnvironmentIdentifier}/applications/{ApplicationIdentifier}/services/{ServiceIdentifier}` | `idempotent` | `EnvironmentIdentifier`, `ApplicationIdentifier`, `ServiceIdentifier` | - | `DeleteServiceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an Amazon Web Services Migration Hub Refactor Spaces service. |
+| `GetApplication` | `GET /environments/{EnvironmentIdentifier}/applications/{ApplicationIdentifier}` | `readonly` | `EnvironmentIdentifier`, `ApplicationIdentifier` | - | `GetApplicationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets an Amazon Web Services Migration Hub Refactor Spaces application. |
 | `GetEnvironment` | `GET /environments/{EnvironmentIdentifier}` | `readonly` | `EnvironmentIdentifier` | - | `GetEnvironmentResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets an Amazon Web Services Migration Hub Refactor Spaces environment. |
 | `GetResourcePolicy` | `GET /resourcepolicy/{Identifier}` | `readonly` | `Identifier` | - | `GetResourcePolicyResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets the resource-based permission policy that is set for the given environment. |
-| `GetRoute` | `GET /environments/{EnvironmentIdentifier}/applications/{ApplicationIdentifier}/routes/{RouteIdentifier}` | `readonly` | `ApplicationIdentifier`, `EnvironmentIdentifier`, `RouteIdentifier` | - | `GetRouteResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets an Amazon Web Services Migration Hub Refactor Spaces route. |
-| `GetService` | `GET /environments/{EnvironmentIdentifier}/applications/{ApplicationIdentifier}/services/{ServiceIdentifier}` | `readonly` | `ApplicationIdentifier`, `EnvironmentIdentifier`, `ServiceIdentifier` | - | `GetServiceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets an Amazon Web Services Migration Hub Refactor Spaces service. |
+| `GetRoute` | `GET /environments/{EnvironmentIdentifier}/applications/{ApplicationIdentifier}/routes/{RouteIdentifier}` | `readonly` | `EnvironmentIdentifier`, `ApplicationIdentifier`, `RouteIdentifier` | - | `GetRouteResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets an Amazon Web Services Migration Hub Refactor Spaces route. |
+| `GetService` | `GET /environments/{EnvironmentIdentifier}/applications/{ApplicationIdentifier}/services/{ServiceIdentifier}` | `readonly` | `EnvironmentIdentifier`, `ApplicationIdentifier`, `ServiceIdentifier` | - | `GetServiceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets an Amazon Web Services Migration Hub Refactor Spaces service. |
 | `ListApplications` | `GET /environments/{EnvironmentIdentifier}/applications` | `readonly`, `paginated` | `EnvironmentIdentifier` | - | `ListApplicationsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Lists all the Amazon Web Services Migration Hub Refactor Spaces applications within an environment. |
-| `ListEnvironmentVpcs` | `GET /environments/{EnvironmentIdentifier}/vpcs` | `readonly`, `paginated` | `EnvironmentIdentifier` | - | `ListEnvironmentVpcsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all Amazon Web Services Migration Hub Refactor Spaces service virtual private clouds (VPCs) that are part of the environment. |
 | `ListEnvironments` | `GET /environments` | `readonly`, `paginated` | - | - | `ListEnvironmentsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists Amazon Web Services Migration Hub Refactor Spaces environments owned by a caller account or shared with the caller account. |
-| `ListRoutes` | `GET /environments/{EnvironmentIdentifier}/applications/{ApplicationIdentifier}/routes` | `readonly`, `paginated` | `ApplicationIdentifier`, `EnvironmentIdentifier` | - | `ListRoutesResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Lists all the Amazon Web Services Migration Hub Refactor Spaces routes within an application. |
-| `ListServices` | `GET /environments/{EnvironmentIdentifier}/applications/{ApplicationIdentifier}/services` | `readonly`, `paginated` | `ApplicationIdentifier`, `EnvironmentIdentifier` | - | `ListServicesResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Lists all the Amazon Web Services Migration Hub Refactor Spaces services within an application. |
-| `ListTagsForResource` | `GET /tags/{ResourceArn}` | `readonly` | `ResourceArn` | - | `ListTagsForResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Lists the tags of a resource. The caller account must be the same as the resource’s `OwnerAccountId`. |
-| `PutResourcePolicy` | `PUT /resourcepolicy` | `idempotent` | `Policy`, `ResourceArn` | - | `PutResourcePolicyResponse` | `AccessDeniedException`, `InternalServerException`, `InvalidResourcePolicyException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Attaches a resource-based permission policy to the Amazon Web Services Migration Hub Refactor Spaces environment. The policy must contain the same actions and condition statements as the... |
-| `TagResource` | `POST /tags/{ResourceArn}` | - | `ResourceArn`, `Tags` | - | `TagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Removes the tags of a given resource. Tags are metadata which can be used to manage a resource. |
-| `UntagResource` | `DELETE /tags/{ResourceArn}` | `idempotent` | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Adds to or modifies the tags of the given resource. Tags are metadata which can be used to manage a resource. |
-| `UpdateRoute` | `PATCH /environments/{EnvironmentIdentifier}/applications/{ApplicationIdentifier}/routes/{RouteIdentifier}` | - | `ActivationState`, `ApplicationIdentifier`, `EnvironmentIdentifier`, `RouteIdentifier` | - | `UpdateRouteResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates an Amazon Web Services Migration Hub Refactor Spaces route. |
+| `ListEnvironmentVpcs` | `GET /environments/{EnvironmentIdentifier}/vpcs` | `readonly`, `paginated` | `EnvironmentIdentifier` | - | `ListEnvironmentVpcsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all Amazon Web Services Migration Hub Refactor Spaces service virtual private clouds (VPCs) that are part of the environment. |
+| `ListRoutes` | `GET /environments/{EnvironmentIdentifier}/applications/{ApplicationIdentifier}/routes` | `readonly`, `paginated` | `EnvironmentIdentifier`, `ApplicationIdentifier` | - | `ListRoutesResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Lists all the Amazon Web Services Migration Hub Refactor Spaces routes within an application. |
+| `ListServices` | `GET /environments/{EnvironmentIdentifier}/applications/{ApplicationIdentifier}/services` | `readonly`, `paginated` | `EnvironmentIdentifier`, `ApplicationIdentifier` | - | `ListServicesResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Lists all the Amazon Web Services Migration Hub Refactor Spaces services within an application. |
+| `ListTagsForResource` | `GET /tags/{ResourceArn}` | `readonly` | `ResourceArn` | - | `ListTagsForResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Lists the tags of a resource. The caller account must be the same as the resource’s OwnerAccountId . Listing tags in other accounts is not supported. |
+| `PutResourcePolicy` | `PUT /resourcepolicy` | `idempotent` | `ResourceArn`, `Policy` | - | `PutResourcePolicyResponse` | `AccessDeniedException`, `InternalServerException`, `InvalidResourcePolicyException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Attaches a resource-based permission policy to the Amazon Web Services Migration Hub Refactor Spaces environment. The policy must contain the same actions and condition statements as the arn:aws:ram::aws:permission/A ... |
+| `TagResource` | `POST /tags/{ResourceArn}` | - | `ResourceArn`, `Tags` | - | `TagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Removes the tags of a given resource. Tags are metadata which can be used to manage a resource. To tag a resource, the caller account must be the same as the resource’s OwnerAccountId . Tagging resources in other acc ... |
+| `UntagResource` | `DELETE /tags/{ResourceArn}` | `idempotent` | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Adds to or modifies the tags of the given resource. Tags are metadata which can be used to manage a resource. To untag a resource, the caller account must be the same as the resource’s OwnerAccountId . Untagging reso ... |
+| `UpdateRoute` | `PATCH /environments/{EnvironmentIdentifier}/applications/{ApplicationIdentifier}/routes/{RouteIdentifier}` | - | `EnvironmentIdentifier`, `ApplicationIdentifier`, `RouteIdentifier`, `ActivationState` | - | `UpdateRouteResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates an Amazon Web Services Migration Hub Refactor Spaces route. |
 
 ## HTTP Bindings
 
@@ -132,31 +132,46 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `Message` | An unexpected error occurred while processing the request. |
-| `ResourceNotFoundException` | `structure` | `Message`, `ResourceId`, `ResourceType` | The request references a resource that does not exist. |
-| `ValidationException` | `structure` | `Message` | The input does not satisfy the constraints specified by an Amazon Web Service. |
-| `AccessDeniedException` | `structure` | `Message` | The user does not have sufficient access to perform this action. |
-| `ThrottlingException` | `structure` | `Message`, `QuotaCode`, `RetryAfterSeconds`, `ServiceCode` | Request was denied because the request was throttled. |
-| `ConflictException` | `structure` | `Message`, `ResourceId`, `ResourceType` | Updating or deleting a resource can cause an inconsistent state. |
-| `ServiceQuotaExceededException` | `structure` | `Message`, `QuotaCode`, `ResourceId`, `ResourceType`, `ServiceCode` | The request would cause a service quota to be exceeded. |
-| `CreateApplicationRequest` | `structure` | `ApiGatewayProxy`, `ClientToken`, `EnvironmentIdentifier`, `Name`, `ProxyType`, `Tags`, `VpcId` | - |
-| `CreateApplicationResponse` | `structure` | `ApiGatewayProxy`, `ApplicationId`, `Arn`, `CreatedByAccountId`, `CreatedTime`, `EnvironmentId`, `LastUpdatedTime`, `Name`, `OwnerAccountId`, `ProxyType`, `State`, `Tags`, ... (+1) | - |
-| `CreateEnvironmentRequest` | `structure` | `ClientToken`, `Description`, `Name`, `NetworkFabricType`, `Tags` | - |
-| `CreateEnvironmentResponse` | `structure` | `Arn`, `CreatedTime`, `Description`, `EnvironmentId`, `LastUpdatedTime`, `Name`, `NetworkFabricType`, `OwnerAccountId`, `State`, `Tags` | - |
-| `CreateRouteRequest` | `structure` | `ApplicationIdentifier`, `ClientToken`, `DefaultRoute`, `EnvironmentIdentifier`, `RouteType`, `ServiceIdentifier`, `Tags`, `UriPathRoute` | - |
-| `CreateRouteResponse` | `structure` | `ApplicationId`, `Arn`, `CreatedByAccountId`, `CreatedTime`, `LastUpdatedTime`, `OwnerAccountId`, `RouteId`, `RouteType`, `ServiceId`, `State`, `Tags`, `UriPathRoute` | - |
-| `CreateServiceRequest` | `structure` | `ApplicationIdentifier`, `ClientToken`, `Description`, `EndpointType`, `EnvironmentIdentifier`, `LambdaEndpoint`, `Name`, `Tags`, `UrlEndpoint`, `VpcId` | - |
-| `CreateServiceResponse` | `structure` | `ApplicationId`, `Arn`, `CreatedByAccountId`, `CreatedTime`, `Description`, `EndpointType`, `EnvironmentId`, `LambdaEndpoint`, `LastUpdatedTime`, `Name`, `OwnerAccountId`, `ServiceId`, ... (+4) | - |
-| `DeleteApplicationRequest` | `structure` | `ApplicationIdentifier`, `EnvironmentIdentifier` | - |
-| `DeleteApplicationResponse` | `structure` | `ApplicationId`, `Arn`, `EnvironmentId`, `LastUpdatedTime`, `Name`, `State` | - |
-| `DeleteEnvironmentRequest` | `structure` | `EnvironmentIdentifier` | - |
-| `DeleteEnvironmentResponse` | `structure` | `Arn`, `EnvironmentId`, `LastUpdatedTime`, `Name`, `State` | - |
-| `DeleteResourcePolicyRequest` | `structure` | `Identifier` | - |
-| `DeleteResourcePolicyResponse` | `structure` | - | - |
-| `DeleteRouteRequest` | `structure` | `ApplicationIdentifier`, `EnvironmentIdentifier`, `RouteIdentifier` | - |
-| `DeleteRouteResponse` | `structure` | `ApplicationId`, `Arn`, `LastUpdatedTime`, `RouteId`, `ServiceId`, `State` | - |
-| `DeleteServiceRequest` | `structure` | `ApplicationIdentifier`, `EnvironmentIdentifier`, `ServiceIdentifier` | - |
-
+| `AccessDeniedException` | `structure` | Message | The user does not have sufficient access to perform this action. |
+| `ConflictException` | `structure` | Message, ResourceId, ResourceType | Updating or deleting a resource can cause an inconsistent state. |
+| `InternalServerException` | `structure` | Message | An unexpected error occurred while processing the request. |
+| `InvalidResourcePolicyException` | `structure` | Message | The resource policy is not valid. |
+| `ResourceNotFoundException` | `structure` | Message, ResourceId, ResourceType | The request references a resource that does not exist. |
+| `ServiceQuotaExceededException` | `structure` | Message, ResourceId, ResourceType, QuotaCode, ServiceCode | The request would cause a service quota to be exceeded. |
+| `ThrottlingException` | `structure` | Message, QuotaCode, ServiceCode, RetryAfterSeconds | Request was denied because the request was throttled. |
+| `ValidationException` | `structure` | Message | The input does not satisfy the constraints specified by an Amazon Web Service. |
+| `CreateApplicationRequest` | `structure` | Name, EnvironmentIdentifier, VpcId, ProxyType, ApiGatewayProxy, Tags, ClientToken | - |
+| `CreateApplicationResponse` | `structure` | Name, Arn, OwnerAccountId, CreatedByAccountId, ApplicationId, EnvironmentId, VpcId, ProxyType, ApiGatewayProxy, State, Tags, LastUpdatedTime, ... (+1) | - |
+| `CreateEnvironmentRequest` | `structure` | Name, Description, NetworkFabricType, Tags, ClientToken | - |
+| `CreateEnvironmentResponse` | `structure` | Name, Arn, Description, EnvironmentId, NetworkFabricType, OwnerAccountId, State, Tags, LastUpdatedTime, CreatedTime | - |
+| `CreateRouteRequest` | `structure` | EnvironmentIdentifier, ApplicationIdentifier, ServiceIdentifier, RouteType, DefaultRoute, UriPathRoute, Tags, ClientToken | - |
+| `CreateRouteResponse` | `structure` | RouteId, Arn, OwnerAccountId, CreatedByAccountId, RouteType, ServiceId, ApplicationId, UriPathRoute, State, Tags, LastUpdatedTime, CreatedTime | - |
+| `CreateServiceRequest` | `structure` | Name, Description, EnvironmentIdentifier, ApplicationIdentifier, VpcId, EndpointType, UrlEndpoint, LambdaEndpoint, Tags, ClientToken | - |
+| `CreateServiceResponse` | `structure` | ServiceId, Name, Arn, OwnerAccountId, CreatedByAccountId, Description, EnvironmentId, ApplicationId, VpcId, EndpointType, UrlEndpoint, LambdaEndpoint, ... (+4) | - |
+| `DeleteApplicationRequest` | `structure` | EnvironmentIdentifier, ApplicationIdentifier | - |
+| `DeleteApplicationResponse` | `structure` | Name, Arn, ApplicationId, EnvironmentId, State, LastUpdatedTime | - |
+| `DeleteEnvironmentRequest` | `structure` | EnvironmentIdentifier | - |
+| `DeleteEnvironmentResponse` | `structure` | Name, Arn, EnvironmentId, State, LastUpdatedTime | - |
+| `DeleteResourcePolicyRequest` | `structure` | Identifier | - |
+| `DeleteResourcePolicyResponse` | `structure` | **empty (no members)** | - |
+| `DeleteRouteRequest` | `structure` | EnvironmentIdentifier, ApplicationIdentifier, RouteIdentifier | - |
+| `DeleteRouteResponse` | `structure` | RouteId, Arn, ServiceId, ApplicationId, State, LastUpdatedTime | - |
+| `DeleteServiceRequest` | `structure` | EnvironmentIdentifier, ApplicationIdentifier, ServiceIdentifier | - |
+| `DeleteServiceResponse` | `structure` | ServiceId, Name, Arn, EnvironmentId, ApplicationId, State, LastUpdatedTime | - |
+| `GetApplicationRequest` | `structure` | EnvironmentIdentifier, ApplicationIdentifier | - |
+| `GetApplicationResponse` | `structure` | Name, Arn, OwnerAccountId, CreatedByAccountId, ApplicationId, EnvironmentId, VpcId, ProxyType, ApiGatewayProxy, State, Tags, Error, ... (+2) | - |
+| `GetEnvironmentRequest` | `structure` | EnvironmentIdentifier | - |
+| `GetEnvironmentResponse` | `structure` | Name, Arn, Description, EnvironmentId, NetworkFabricType, OwnerAccountId, TransitGatewayId, State, Tags, Error, LastUpdatedTime, CreatedTime | - |
+| `GetResourcePolicyRequest` | `structure` | Identifier | - |
+| `GetResourcePolicyResponse` | `structure` | Policy | - |
+| `GetRouteRequest` | `structure` | EnvironmentIdentifier, ApplicationIdentifier, RouteIdentifier | - |
+| `GetRouteResponse` | `structure` | RouteId, Arn, OwnerAccountId, CreatedByAccountId, RouteType, ServiceId, ApplicationId, EnvironmentId, SourcePath, Methods, IncludeChildPaths, PathResourceToId, ... (+6) | - |
+| `GetServiceRequest` | `structure` | EnvironmentIdentifier, ApplicationIdentifier, ServiceIdentifier | - |
+| `GetServiceResponse` | `structure` | ServiceId, Name, Arn, OwnerAccountId, CreatedByAccountId, Description, EnvironmentId, ApplicationId, VpcId, EndpointType, UrlEndpoint, LambdaEndpoint, ... (+5) | - |
+| `ListApplicationsRequest` | `structure` | EnvironmentIdentifier, NextToken, MaxResults | - |
+| `ListApplicationsResponse` | `structure` | ApplicationSummaryList, NextToken | - |
+| `ListEnvironmentsRequest` | `structure` | NextToken, MaxResults | - |
+| `ListEnvironmentsResponse` | `structure` | EnvironmentSummaryList, NextToken | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

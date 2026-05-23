@@ -48,85 +48,29 @@ AWS Partner Central Channel service for managing partner relationships, handshak
 
 ### List
 
-- Operations: `ListChannelHandshakes`, `ListProgramManagementAccounts`, `ListRelationships`, `ListTagsForResource`
-- Traits: `paginated` (3), `readonly` (4)
-- Common required input members in this group: `catalog`, `handshakeType`, `participantType`, `resourceArn`
-
-### Create
-
-- Operations: `CreateChannelHandshake`, `CreateProgramManagementAccount`, `CreateRelationship`
-- Traits: `idempotency-token` (3), `idempotent` (3)
-- Common required input members in this group: `accountId`, `associatedAccountId`, `associatedResourceIdentifier`, `associationType`, `catalog`, `displayName`, `handshakeType`, `program`, `programManagementAccountIdentifier`, `sector`
-
-### Delete
-
-- Operations: `DeleteProgramManagementAccount`, `DeleteRelationship`
-- Traits: `idempotency-token` (2), `idempotent` (2)
-- Common required input members in this group: `catalog`, `identifier`, `programManagementAccountIdentifier`
-
-### Update
-
-- Operations: `UpdateProgramManagementAccount`, `UpdateRelationship`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `catalog`, `identifier`, `programManagementAccountIdentifier`
-
-### Accept
-
-- Operations: `AcceptChannelHandshake`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `catalog`, `identifier`
-
-### Cancel
-
-- Operations: `CancelChannelHandshake`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `catalog`, `identifier`
-
-### Get
-
-- Operations: `GetRelationship`
+- Operations: `ListTagsForResource`
 - Traits: `readonly` (1)
-- Common required input members in this group: `catalog`, `identifier`, `programManagementAccountIdentifier`
-
-### Reject
-
-- Operations: `RejectChannelHandshake`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `catalog`, `identifier`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AcceptChannelHandshake` | `POST /AcceptChannelHandshake` | `idempotent` | `catalog`, `identifier` | - | `AcceptChannelHandshakeResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Accepts a pending channel handshake request from another AWS account. |
-| `CancelChannelHandshake` | `POST /CancelChannelHandshake` | `idempotent` | `catalog`, `identifier` | - | `CancelChannelHandshakeResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Cancels a pending channel handshake request. |
-| `CreateChannelHandshake` | `POST /CreateChannelHandshake` | `idempotent`, `idempotency-token` | `associatedResourceIdentifier`, `catalog`, `handshakeType` | `clientToken` | `CreateChannelHandshakeResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a new channel handshake request to establish a partnership with another AWS account. |
-| `CreateProgramManagementAccount` | `POST /CreateProgramManagementAccount` | `idempotent`, `idempotency-token` | `accountId`, `catalog`, `displayName`, `program` | `clientToken` | `CreateProgramManagementAccountResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a new program management account for managing partner relationships. |
-| `CreateRelationship` | `POST /CreateRelationship` | `idempotent`, `idempotency-token` | `associatedAccountId`, `associationType`, `catalog`, `displayName`, `programManagementAccountIdentifier`, `sector` | `clientToken` | `CreateRelationshipResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a new partner relationship between accounts. |
-| `DeleteProgramManagementAccount` | `POST /DeleteProgramManagementAccount` | `idempotent`, `idempotency-token` | `catalog`, `identifier` | `clientToken` | `DeleteProgramManagementAccountResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a program management account. |
-| `DeleteRelationship` | `POST /DeleteRelationship` | `idempotent`, `idempotency-token` | `catalog`, `identifier`, `programManagementAccountIdentifier` | `clientToken` | `DeleteRelationshipResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a partner relationship. |
-| `GetRelationship` | `POST /GetRelationship` | `readonly` | `catalog`, `identifier`, `programManagementAccountIdentifier` | - | `GetRelationshipResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves details of a specific partner relationship. |
-| `ListChannelHandshakes` | `POST /ListChannelHandshakes` | `readonly`, `paginated` | `catalog`, `handshakeType`, `participantType` | - | `ListChannelHandshakesResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists channel handshakes based on specified criteria. |
-| `ListProgramManagementAccounts` | `POST /ListProgramManagementAccounts` | `readonly`, `paginated` | `catalog` | - | `ListProgramManagementAccountsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists program management accounts based on specified criteria. |
-| `ListRelationships` | `POST /ListRelationships` | `readonly`, `paginated` | `catalog` | - | `ListRelationshipsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists partner relationships based on specified criteria. |
 | `ListTagsForResource` | `POST /ListTagsForResource` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists tags associated with a specific resource. |
-| `RejectChannelHandshake` | `POST /RejectChannelHandshake` | `idempotent` | `catalog`, `identifier` | - | `RejectChannelHandshakeResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Rejects a pending channel handshake request. |
 | `TagResource` | `POST /TagResource` | `idempotent` | `resourceArn`, `tags` | - | `TagResourceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Adds or updates tags for a specified resource. |
 | `UntagResource` | `POST /UntagResource` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes tags from a specified resource. |
-| `UpdateProgramManagementAccount` | `POST /UpdateProgramManagementAccount` | `idempotent` | `catalog`, `identifier` | - | `UpdateProgramManagementAccountResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the properties of a program management account. |
-| `UpdateRelationship` | `POST /UpdateRelationship` | - | `catalog`, `identifier`, `programManagementAccountIdentifier` | - | `UpdateRelationshipResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the properties of a partner relationship. |
 
 ## HTTP Bindings
 
@@ -138,31 +82,37 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message`, `reason` | The request was denied due to insufficient permissions. |
-| `InternalServerException` | `structure` | `message` | An internal server error occurred while processing the request. |
-| `ResourceNotFoundException` | `structure` | `message`, `resourceId`, `resourceType` | The specified resource was not found. |
-| `ThrottlingException` | `structure` | `message`, `quotaCode`, `serviceCode` | The request was throttled due to too many requests being sent in a short period. |
-| `ValidationException` | `structure` | `fieldList`, `message`, `reason` | The request failed validation due to invalid input parameters. |
-| `ConflictException` | `structure` | `message`, `resourceId`, `resourceType` | The request could not be completed due to a conflict with the current state of the resource. |
-| `ServiceQuotaExceededException` | `structure` | `message`, `quotaCode`, `resourceId`, `resourceType` | The request would exceed a service quota limit. |
-| `AcceptChannelHandshakeRequest` | `structure` | `catalog`, `identifier` | - |
-| `AcceptChannelHandshakeResponse` | `structure` | `channelHandshakeDetail` | - |
-| `CancelChannelHandshakeRequest` | `structure` | `catalog`, `identifier` | - |
-| `CancelChannelHandshakeResponse` | `structure` | `channelHandshakeDetail` | - |
-| `CreateChannelHandshakeRequest` | `structure` | `associatedResourceIdentifier`, `catalog`, `clientToken`, `handshakeType`, `payload`, `tags` | - |
-| `CreateChannelHandshakeResponse` | `structure` | `channelHandshakeDetail` | - |
-| `CreateProgramManagementAccountRequest` | `structure` | `accountId`, `catalog`, `clientToken`, `displayName`, `program`, `tags` | - |
-| `CreateProgramManagementAccountResponse` | `structure` | `programManagementAccountDetail` | - |
-| `CreateRelationshipRequest` | `structure` | `associatedAccountId`, `associationType`, `catalog`, `clientToken`, `displayName`, `programManagementAccountIdentifier`, `requestedSupportPlan`, `resaleAccountModel`, `sector`, `tags` | - |
-| `CreateRelationshipResponse` | `structure` | `relationshipDetail` | - |
-| `DeleteProgramManagementAccountRequest` | `structure` | `catalog`, `clientToken`, `identifier` | - |
-| `DeleteProgramManagementAccountResponse` | `structure` | - | - |
-| `DeleteRelationshipRequest` | `structure` | `catalog`, `clientToken`, `identifier`, `programManagementAccountIdentifier` | - |
-| `DeleteRelationshipResponse` | `structure` | - | - |
-| `GetRelationshipRequest` | `structure` | `catalog`, `identifier`, `programManagementAccountIdentifier` | - |
-| `GetRelationshipResponse` | `structure` | `relationshipDetail` | - |
-| `ListChannelHandshakesRequest` | `structure` | `associatedResourceIdentifiers`, `catalog`, `handshakeType`, `handshakeTypeFilters`, `handshakeTypeSort`, `maxResults`, `nextToken`, `participantType`, `statuses` | - |
-
+| `AccessDeniedException` | `structure` | message, reason | The request was denied due to insufficient permissions. |
+| `ConflictException` | `structure` | message, resourceId, resourceType | The request could not be completed due to a conflict with the current state of the resource. |
+| `InternalServerException` | `structure` | message | An internal server error occurred while processing the request. |
+| `ResourceNotFoundException` | `structure` | message, resourceId, resourceType | The specified resource was not found. |
+| `ServiceQuotaExceededException` | `structure` | message, resourceId, resourceType, quotaCode | The request would exceed a service quota limit. |
+| `ThrottlingException` | `structure` | message, serviceCode, quotaCode | The request was throttled due to too many requests being sent in a short period. |
+| `ValidationException` | `structure` | message, reason, fieldList | The request failed validation due to invalid input parameters. |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `TagResourceRequest` | `structure` | resourceArn, tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | resourceArn, tagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `AssociationType` | `enum` | DOWNSTREAM_SELLER, END_CUSTOMER, INTERNAL | - |
+| `Coverage` | `enum` | ENTIRE_ORGANIZATION, MANAGEMENT_ACCOUNT_ONLY | - |
+| `HandshakeStatus` | `enum` | PENDING, ACCEPTED, REJECTED, CANCELED, EXPIRED | - |
+| `HandshakeType` | `enum` | START_SERVICE_PERIOD, REVOKE_SERVICE_PERIOD, PROGRAM_MANAGEMENT_ACCOUNT | - |
+| `ListProgramManagementAccountsSortName` | `enum` | UPDATED_AT | - |
+| `ListRelationshipsSortName` | `enum` | UPDATED_AT | - |
+| `ParticipantType` | `enum` | SENDER, RECEIVER | - |
+| `Program` | `enum` | SOLUTION_PROVIDER, DISTRIBUTION, DISTRIBUTION_SELLER | - |
+| `ProgramManagementAccountStatus` | `enum` | PENDING, ACTIVE, INACTIVE | - |
+| `ProgramManagementAccountTypeSortName` | `enum` | UPDATED_AT | - |
+| `Provider` | `enum` | DISTRIBUTOR, DISTRIBUTION_SELLER | - |
+| `ResaleAccountModel` | `enum` | DISTRIBUTOR, END_CUSTOMER, SOLUTION_PROVIDER | - |
+| `RevokeServicePeriodTypeSortName` | `enum` | UPDATED_AT | - |
+| `Sector` | `enum` | COMMERCIAL, GOVERNMENT, GOVERNMENT_EXCEPTION | - |
+| `ServicePeriodType` | `enum` | MINIMUM_NOTICE_PERIOD, FIXED_COMMITMENT_PERIOD | - |
+| `SortOrder` | `enum` | ASCENDING, DESCENDING | - |
+| `StartServicePeriodTypeSortName` | `enum` | UPDATED_AT | - |
+| `ValidationExceptionReason` | `enum` | REQUEST_VALIDATION_FAILED, BUSINESS_VALIDATION_FAILED | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

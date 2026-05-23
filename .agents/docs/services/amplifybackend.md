@@ -39,32 +39,32 @@ AWS Amplify Admin API
 ### Get
 
 - Operations: `GetBackend`, `GetBackendAPI`, `GetBackendAPIModels`, `GetBackendAuth`, `GetBackendJob`, `GetBackendStorage`, `GetToken`
-- Common required input members in this group: `AppId`, `BackendEnvironmentName`, `JobId`, `ResourceName`, `SessionId`
+- Common required input members in this group: `AppId`, `BackendEnvironmentName`, `ResourceName`
 
 ### Create
 
 - Operations: `CreateBackend`, `CreateBackendAPI`, `CreateBackendAuth`, `CreateBackendConfig`, `CreateBackendStorage`, `CreateToken`
-- Common required input members in this group: `AppId`, `AppName`, `BackendEnvironmentName`, `ResourceConfig`, `ResourceName`
+- Common required input members in this group: `AppId`, `BackendEnvironmentName`, `ResourceConfig`, `ResourceName`
 
 ### Delete
 
 - Operations: `DeleteBackend`, `DeleteBackendAPI`, `DeleteBackendAuth`, `DeleteBackendStorage`, `DeleteToken`
-- Common required input members in this group: `AppId`, `BackendEnvironmentName`, `ResourceName`, `ServiceName`, `SessionId`
+- Common required input members in this group: `AppId`, `BackendEnvironmentName`, `ResourceName`
 
 ### Update
 
 - Operations: `UpdateBackendAPI`, `UpdateBackendAuth`, `UpdateBackendConfig`, `UpdateBackendJob`, `UpdateBackendStorage`
-- Common required input members in this group: `AppId`, `BackendEnvironmentName`, `JobId`, `ResourceConfig`, `ResourceName`
+- Common required input members in this group: `AppId`, `BackendEnvironmentName`, `ResourceName`, `ResourceConfig`
 
 ### Import
 
 - Operations: `ImportBackendAuth`, `ImportBackendStorage`
-- Common required input members in this group: `AppId`, `BackendEnvironmentName`, `NativeClientId`, `ServiceName`, `UserPoolId`, `WebClientId`
+- Common required input members in this group: `AppId`, `BackendEnvironmentName`
 
 ### List
 
 - Operations: `ListBackendJobs`, `ListS3Buckets`
-- Common required input members in this group: `AppId`, `BackendEnvironmentName`
+- Common required input members in this group: -
 
 ### Remove
 
@@ -74,12 +74,12 @@ AWS Amplify Admin API
 ### Clone
 
 - Operations: `CloneBackend`
-- Common required input members in this group: `AppId`, `BackendEnvironmentName`, `TargetEnvironmentName`
+- Common required input members in this group: -
 
 ### Generate
 
 - Operations: `GenerateBackendAPIModels`
-- Common required input members in this group: `AppId`, `BackendEnvironmentName`, `ResourceName`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
@@ -127,31 +127,56 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `BadRequestException` | `structure` | `Message` | An error returned if a request is not formed properly. |
-| `GatewayTimeoutException` | `structure` | `Message` | An error returned if there's a temporary issue with the service. |
-| `NotFoundException` | `structure` | `Message`, `ResourceType` | An error returned when a specific resource type is not found. |
-| `TooManyRequestsException` | `structure` | `LimitType`, `Message` | An error that is returned when a limit of a specific type has been exceeded. |
-| `CloneBackendRequest` | `structure` | `AppId`, `BackendEnvironmentName`, `TargetEnvironmentName` | The request body for CloneBackend. |
-| `CloneBackendResponse` | `structure` | `AppId`, `BackendEnvironmentName`, `Error`, `JobId`, `Operation`, `Status` | - |
-| `CreateBackendRequest` | `structure` | `AppId`, `AppName`, `BackendEnvironmentName`, `ResourceConfig`, `ResourceName` | The request body for CreateBackend. |
-| `CreateBackendResponse` | `structure` | `AppId`, `BackendEnvironmentName`, `Error`, `JobId`, `Operation`, `Status` | - |
-| `CreateBackendAPIRequest` | `structure` | `AppId`, `BackendEnvironmentName`, `ResourceConfig`, `ResourceName` | The request body for CreateBackendAPI. |
-| `CreateBackendAPIResponse` | `structure` | `AppId`, `BackendEnvironmentName`, `Error`, `JobId`, `Operation`, `Status` | - |
-| `CreateBackendAuthRequest` | `structure` | `AppId`, `BackendEnvironmentName`, `ResourceConfig`, `ResourceName` | The request body for CreateBackendAuth. |
-| `CreateBackendAuthResponse` | `structure` | `AppId`, `BackendEnvironmentName`, `Error`, `JobId`, `Operation`, `Status` | - |
-| `CreateBackendConfigRequest` | `structure` | `AppId`, `BackendManagerAppId` | The request body for CreateBackendConfig. |
-| `CreateBackendConfigResponse` | `structure` | `AppId`, `BackendEnvironmentName`, `JobId`, `Status` | - |
-| `CreateBackendStorageRequest` | `structure` | `AppId`, `BackendEnvironmentName`, `ResourceConfig`, `ResourceName` | The request body for CreateBackendStorage. |
-| `CreateBackendStorageResponse` | `structure` | `AppId`, `BackendEnvironmentName`, `JobId`, `Status` | - |
-| `CreateTokenRequest` | `structure` | `AppId` | - |
-| `CreateTokenResponse` | `structure` | `AppId`, `ChallengeCode`, `SessionId`, `Ttl` | - |
-| `DeleteBackendRequest` | `structure` | `AppId`, `BackendEnvironmentName` | - |
-| `DeleteBackendResponse` | `structure` | `AppId`, `BackendEnvironmentName`, `Error`, `JobId`, `Operation`, `Status` | - |
-| `DeleteBackendAPIRequest` | `structure` | `AppId`, `BackendEnvironmentName`, `ResourceConfig`, `ResourceName` | The request body for DeleteBackendAPI. |
-| `DeleteBackendAPIResponse` | `structure` | `AppId`, `BackendEnvironmentName`, `Error`, `JobId`, `Operation`, `Status` | - |
-| `DeleteBackendAuthRequest` | `structure` | `AppId`, `BackendEnvironmentName`, `ResourceName` | The request body for DeleteBackendAuth. |
-| `DeleteBackendAuthResponse` | `structure` | `AppId`, `BackendEnvironmentName`, `Error`, `JobId`, `Operation`, `Status` | - |
-
+| `BadRequestException` | `structure` | Message | An error returned if a request is not formed properly. |
+| `GatewayTimeoutException` | `structure` | Message | An error returned if there's a temporary issue with the service. |
+| `NotFoundException` | `structure` | Message, ResourceType | An error returned when a specific resource type is not found. |
+| `TooManyRequestsException` | `structure` | LimitType, Message | An error that is returned when a limit of a specific type has been exceeded. |
+| `CloneBackendRequest` | `structure` | AppId, BackendEnvironmentName, TargetEnvironmentName | The request body for CloneBackend. |
+| `CloneBackendResponse` | `structure` | AppId, BackendEnvironmentName, Error, JobId, Operation, Status | - |
+| `CreateBackendRequest` | `structure` | AppId, AppName, BackendEnvironmentName, ResourceConfig, ResourceName | The request body for CreateBackend. |
+| `CreateBackendResponse` | `structure` | AppId, BackendEnvironmentName, Error, JobId, Operation, Status | - |
+| `CreateBackendAPIRequest` | `structure` | AppId, BackendEnvironmentName, ResourceConfig, ResourceName | The request body for CreateBackendAPI. |
+| `CreateBackendAPIResponse` | `structure` | AppId, BackendEnvironmentName, Error, JobId, Operation, Status | - |
+| `CreateBackendAuthRequest` | `structure` | AppId, BackendEnvironmentName, ResourceConfig, ResourceName | The request body for CreateBackendAuth. |
+| `CreateBackendAuthResponse` | `structure` | AppId, BackendEnvironmentName, Error, JobId, Operation, Status | - |
+| `CreateBackendConfigRequest` | `structure` | AppId, BackendManagerAppId | The request body for CreateBackendConfig. |
+| `CreateBackendConfigResponse` | `structure` | AppId, BackendEnvironmentName, JobId, Status | - |
+| `CreateBackendStorageRequest` | `structure` | AppId, BackendEnvironmentName, ResourceConfig, ResourceName | The request body for CreateBackendStorage. |
+| `CreateBackendStorageResponse` | `structure` | AppId, BackendEnvironmentName, JobId, Status | - |
+| `CreateTokenRequest` | `structure` | AppId | - |
+| `CreateTokenResponse` | `structure` | AppId, ChallengeCode, SessionId, Ttl | - |
+| `DeleteBackendRequest` | `structure` | AppId, BackendEnvironmentName | - |
+| `DeleteBackendResponse` | `structure` | AppId, BackendEnvironmentName, Error, JobId, Operation, Status | - |
+| `DeleteBackendAPIRequest` | `structure` | AppId, BackendEnvironmentName, ResourceConfig, ResourceName | The request body for DeleteBackendAPI. |
+| `DeleteBackendAPIResponse` | `structure` | AppId, BackendEnvironmentName, Error, JobId, Operation, Status | - |
+| `DeleteBackendAuthRequest` | `structure` | AppId, BackendEnvironmentName, ResourceName | The request body for DeleteBackendAuth. |
+| `DeleteBackendAuthResponse` | `structure` | AppId, BackendEnvironmentName, Error, JobId, Operation, Status | - |
+| `DeleteBackendStorageRequest` | `structure` | AppId, BackendEnvironmentName, ResourceName, ServiceName | The request body for DeleteBackendStorage. |
+| `DeleteBackendStorageResponse` | `structure` | AppId, BackendEnvironmentName, JobId, Status | - |
+| `DeleteTokenRequest` | `structure` | AppId, SessionId | - |
+| `DeleteTokenResponse` | `structure` | IsSuccess | - |
+| `GenerateBackendAPIModelsRequest` | `structure` | AppId, BackendEnvironmentName, ResourceName | The request body for GenerateBackendAPIModels. |
+| `GenerateBackendAPIModelsResponse` | `structure` | AppId, BackendEnvironmentName, Error, JobId, Operation, Status | - |
+| `GetBackendRequest` | `structure` | AppId, BackendEnvironmentName | The request body for GetBackend. |
+| `GetBackendResponse` | `structure` | AmplifyFeatureFlags, AmplifyMetaConfig, AppId, AppName, BackendEnvironmentList, BackendEnvironmentName, Error | - |
+| `GetBackendAPIRequest` | `structure` | AppId, BackendEnvironmentName, ResourceConfig, ResourceName | The request body for GetBackendAPI. |
+| `GetBackendAPIResponse` | `structure` | AppId, BackendEnvironmentName, Error, ResourceConfig, ResourceName | - |
+| `GetBackendAPIModelsRequest` | `structure` | AppId, BackendEnvironmentName, ResourceName | The request body for GetBackendAPIModels. |
+| `GetBackendAPIModelsResponse` | `structure` | Models, Status, ModelIntrospectionSchema | - |
+| `GetBackendAuthRequest` | `structure` | AppId, BackendEnvironmentName, ResourceName | The request body for GetBackendAuth. |
+| `GetBackendAuthResponse` | `structure` | AppId, BackendEnvironmentName, Error, ResourceConfig, ResourceName | - |
+| `GetBackendJobRequest` | `structure` | AppId, BackendEnvironmentName, JobId | - |
+| `GetBackendJobResponse` | `structure` | AppId, BackendEnvironmentName, CreateTime, Error, JobId, Operation, Status, UpdateTime | - |
+| `AdditionalConstraintsElement` | `enum` | REQUIRE_DIGIT, REQUIRE_LOWERCASE, REQUIRE_SYMBOL, REQUIRE_UPPERCASE | - |
+| `AuthResources` | `enum` | USER_POOL_ONLY, IDENTITY_POOL_AND_USER_POOL | - |
+| `AuthenticatedElement` | `enum` | READ, CREATE_AND_UPDATE, DELETE | - |
+| `DeliveryMethod` | `enum` | EMAIL, SMS | The type of verification message to send. |
+| `MFAMode` | `enum` | ON, OFF, OPTIONAL | - |
+| `MfaTypesElement` | `enum` | SMS, TOTP | - |
+| `Mode` | `enum` | API_KEY, AWS_IAM, AMAZON_COGNITO_USER_POOLS, OPENID_CONNECT | - |
+| `OAuthGrantType` | `enum` | CODE, IMPLICIT | - |
+| `OAuthScopesElement` | `enum` | PHONE, EMAIL, OPENID, PROFILE, AWS_COGNITO_SIGNIN_USER_ADMIN | - |
+| `RequiredSignUpAttributesElement` | `enum` | ADDRESS, BIRTHDATE, EMAIL, FAMILY_NAME, GENDER, GIVEN_NAME, LOCALE, MIDDLE_NAME, NAME, NICKNAME, PHONE_NUMBER, PICTURE, ... (+5) | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

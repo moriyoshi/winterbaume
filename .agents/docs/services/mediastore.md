@@ -60,68 +60,69 @@ An AWS Elemental MediaStore container is a namespace that holds folders and obje
 ### Put
 
 - Operations: `PutContainerPolicy`, `PutCorsPolicy`, `PutLifecyclePolicy`, `PutMetricPolicy`
-- Common required input members in this group: `ContainerName`, `CorsPolicy`, `LifecyclePolicy`, `MetricPolicy`, `Policy`
+- Common required input members in this group: `ContainerName`
 
 ### List
 
 - Operations: `ListContainers`, `ListTagsForResource`
 - Traits: `paginated` (1)
-- Common required input members in this group: `Resource`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateContainer`
-- Common required input members in this group: `ContainerName`
+- Common required input members in this group: -
 
 ### Describe
 
 - Operations: `DescribeContainer`
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartAccessLogging`
-- Common required input members in this group: `ContainerName`
+- Common required input members in this group: -
 
 ### Stop
 
 - Operations: `StopAccessLogging`
-- Common required input members in this group: `ContainerName`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `Resource`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `Resource`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateContainer` | - | - | `ContainerName` | - | `CreateContainerOutput` | `ContainerInUseException`, `InternalServerError`, `LimitExceededException` | Creates a storage container to hold objects. A container is similar to a bucket in the Amazon S3 service. |
-| `DeleteContainer` | - | - | `ContainerName` | - | `DeleteContainerOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `InternalServerError` | Deletes the specified container. Before you make a `DeleteContainer` request, delete any objects in the container or in any folders in the container. |
-| `DeleteContainerPolicy` | - | - | `ContainerName` | - | `DeleteContainerPolicyOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `InternalServerError`, `PolicyNotFoundException` | Deletes the access policy that is associated with the specified container. |
-| `DeleteCorsPolicy` | - | - | `ContainerName` | - | `DeleteCorsPolicyOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `CorsPolicyNotFoundException`, `InternalServerError` | Deletes the cross-origin resource sharing (CORS) configuration information that is set for the container. To use this operation, you must have permission to perform the `MediaStore:DeleteCorsPolicy` action. |
-| `DeleteLifecyclePolicy` | - | - | `ContainerName` | - | `DeleteLifecyclePolicyOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `InternalServerError`, `PolicyNotFoundException` | Removes an object lifecycle policy from a container. It takes up to 20 minutes for the change to take effect. |
-| `DeleteMetricPolicy` | - | - | `ContainerName` | - | `DeleteMetricPolicyOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `InternalServerError`, `PolicyNotFoundException` | Deletes the metric policy that is associated with the specified container. If there is no metric policy associated with the container, MediaStore doesn't send metrics to CloudWatch. |
-| `DescribeContainer` | - | - | - | - | `DescribeContainerOutput` | `ContainerNotFoundException`, `InternalServerError` | Retrieves the properties of the requested container. This request is commonly used to retrieve the endpoint of a container. |
-| `GetContainerPolicy` | - | - | `ContainerName` | - | `GetContainerPolicyOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `InternalServerError`, `PolicyNotFoundException` | Retrieves the access policy for the specified container. For information about the data that is included in an access policy, see the AWS Identity and Access Management User Guide. |
-| `GetCorsPolicy` | - | - | `ContainerName` | - | `GetCorsPolicyOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `CorsPolicyNotFoundException`, `InternalServerError` | Returns the cross-origin resource sharing (CORS) configuration information that is set for the container. To use this operation, you must have permission to perform the `MediaStore:GetCorsPolicy` action. |
-| `GetLifecyclePolicy` | - | - | `ContainerName` | - | `GetLifecyclePolicyOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `InternalServerError`, `PolicyNotFoundException` | Retrieves the object lifecycle policy that is assigned to a container. |
-| `GetMetricPolicy` | - | - | `ContainerName` | - | `GetMetricPolicyOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `InternalServerError`, `PolicyNotFoundException` | Returns the metric policy for the specified container. |
-| `ListContainers` | - | `paginated` | - | - | `ListContainersOutput` | `InternalServerError` | Lists the properties of all containers in AWS Elemental MediaStore. You can query to receive all the containers in one response. |
-| `ListTagsForResource` | - | - | `Resource` | - | `ListTagsForResourceOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `InternalServerError` | Returns a list of the tags assigned to the specified container. |
-| `PutContainerPolicy` | - | - | `ContainerName`, `Policy` | - | `PutContainerPolicyOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `InternalServerError` | Creates an access policy for the specified container to restrict the users and clients that can access it. For information about the data that is included in an access policy, see the AWS Identity and Access Management User Guide. |
-| `PutCorsPolicy` | - | - | `ContainerName`, `CorsPolicy` | - | `PutCorsPolicyOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `InternalServerError` | Sets the cross-origin resource sharing (CORS) configuration on a container so that the container can service cross-origin requests. For example, you might want to enable a request whose origin is http://www.example.com to access your AWS Elemental MediaStore... |
-| `PutLifecyclePolicy` | - | - | `ContainerName`, `LifecyclePolicy` | - | `PutLifecyclePolicyOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `InternalServerError` | Writes an object lifecycle policy to a container. If the container already has an object lifecycle policy, the service replaces the existing policy with the new policy. |
-| `PutMetricPolicy` | - | - | `ContainerName`, `MetricPolicy` | - | `PutMetricPolicyOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `InternalServerError` | The metric policy that you want to add to the container. A metric policy allows AWS Elemental MediaStore to send metrics to Amazon CloudWatch. |
-| `StartAccessLogging` | - | - | `ContainerName` | - | `StartAccessLoggingOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `InternalServerError` | Starts access logging on the specified container. When you enable access logging on a container, MediaStore delivers access logs for objects stored in that container to Amazon CloudWatch Logs. |
-| `StopAccessLogging` | - | - | `ContainerName` | - | `StopAccessLoggingOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `InternalServerError` | Stops access logging on the specified container. When you stop access logging on a container, MediaStore stops sending access logs to Amazon CloudWatch Logs. |
-| `TagResource` | - | - | `Resource`, `Tags` | - | `TagResourceOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `InternalServerError` | Adds tags to the specified AWS Elemental MediaStore container. Tags are key:value pairs that you can associate with AWS resources. |
-| `UntagResource` | - | - | `Resource`, `TagKeys` | - | `UntagResourceOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `InternalServerError` | Removes tags from the specified container. You can specify one or more tags to remove. |
+| `CreateContainer` | `-` | - | `ContainerName` | - | `CreateContainerOutput` | `ContainerInUseException`, `InternalServerError`, `LimitExceededException` | Creates a storage container to hold objects. A container is similar to a bucket in the Amazon S3 service. |
+| `DeleteContainer` | `-` | - | `ContainerName` | - | `DeleteContainerOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `InternalServerError` | Deletes the specified container. Before you make a DeleteContainer request, delete any objects in the container or in any folders in the container. You can delete only empty containers. |
+| `DeleteContainerPolicy` | `-` | - | `ContainerName` | - | `DeleteContainerPolicyOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `InternalServerError`, `PolicyNotFoundException` | Deletes the access policy that is associated with the specified container. |
+| `DeleteCorsPolicy` | `-` | - | `ContainerName` | - | `DeleteCorsPolicyOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `CorsPolicyNotFoundException`, `InternalServerError` | Deletes the cross-origin resource sharing (CORS) configuration information that is set for the container. To use this operation, you must have permission to perform the MediaStore:DeleteCorsPolicy action. The contain ... |
+| `DeleteLifecyclePolicy` | `-` | - | `ContainerName` | - | `DeleteLifecyclePolicyOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `InternalServerError`, `PolicyNotFoundException` | Removes an object lifecycle policy from a container. It takes up to 20 minutes for the change to take effect. |
+| `DeleteMetricPolicy` | `-` | - | `ContainerName` | - | `DeleteMetricPolicyOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `InternalServerError`, `PolicyNotFoundException` | Deletes the metric policy that is associated with the specified container. If there is no metric policy associated with the container, MediaStore doesn't send metrics to CloudWatch. |
+| `DescribeContainer` | `-` | - | - | - | `DescribeContainerOutput` | `ContainerNotFoundException`, `InternalServerError` | Retrieves the properties of the requested container. This request is commonly used to retrieve the endpoint of a container. An endpoint is a value assigned by the service when a new container is created. A container' ... |
+| `GetContainerPolicy` | `-` | - | `ContainerName` | - | `GetContainerPolicyOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `InternalServerError`, `PolicyNotFoundException` | Retrieves the access policy for the specified container. For information about the data that is included in an access policy, see the AWS Identity and Access Management User Guide . |
+| `GetCorsPolicy` | `-` | - | `ContainerName` | - | `GetCorsPolicyOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `CorsPolicyNotFoundException`, `InternalServerError` | Returns the cross-origin resource sharing (CORS) configuration information that is set for the container. To use this operation, you must have permission to perform the MediaStore:GetCorsPolicy action. By default, th ... |
+| `GetLifecyclePolicy` | `-` | - | `ContainerName` | - | `GetLifecyclePolicyOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `InternalServerError`, `PolicyNotFoundException` | Retrieves the object lifecycle policy that is assigned to a container. |
+| `GetMetricPolicy` | `-` | - | `ContainerName` | - | `GetMetricPolicyOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `InternalServerError`, `PolicyNotFoundException` | Returns the metric policy for the specified container. |
+| `ListContainers` | `-` | `paginated` | - | - | `ListContainersOutput` | `InternalServerError` | Lists the properties of all containers in AWS Elemental MediaStore. You can query to receive all the containers in one response. Or you can include the MaxResults parameter to receive a limited number of containers i ... |
+| `ListTagsForResource` | `-` | - | `Resource` | - | `ListTagsForResourceOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `InternalServerError` | Returns a list of the tags assigned to the specified container. |
+| `PutContainerPolicy` | `-` | - | `ContainerName`, `Policy` | - | `PutContainerPolicyOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `InternalServerError` | Creates an access policy for the specified container to restrict the users and clients that can access it. For information about the data that is included in an access policy, see the AWS Identity and Access Manageme ... |
+| `PutCorsPolicy` | `-` | - | `ContainerName`, `CorsPolicy` | - | `PutCorsPolicyOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `InternalServerError` | Sets the cross-origin resource sharing (CORS) configuration on a container so that the container can service cross-origin requests. For example, you might want to enable a request whose origin is http://www.example.c ... |
+| `PutLifecyclePolicy` | `-` | - | `ContainerName`, `LifecyclePolicy` | - | `PutLifecyclePolicyOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `InternalServerError` | Writes an object lifecycle policy to a container. If the container already has an object lifecycle policy, the service replaces the existing policy with the new policy. It takes up to 20 minutes for the change to tak ... |
+| `PutMetricPolicy` | `-` | - | `ContainerName`, `MetricPolicy` | - | `PutMetricPolicyOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `InternalServerError` | The metric policy that you want to add to the container. A metric policy allows AWS Elemental MediaStore to send metrics to Amazon CloudWatch. It takes up to 20 minutes for the new policy to take effect. |
+| `StartAccessLogging` | `-` | - | `ContainerName` | - | `StartAccessLoggingOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `InternalServerError` | Starts access logging on the specified container. When you enable access logging on a container, MediaStore delivers access logs for objects stored in that container to Amazon CloudWatch Logs. |
+| `StopAccessLogging` | `-` | - | `ContainerName` | - | `StopAccessLoggingOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `InternalServerError` | Stops access logging on the specified container. When you stop access logging on a container, MediaStore stops sending access logs to Amazon CloudWatch Logs. These access logs are not saved and are not retrievable. |
+| `TagResource` | `-` | - | `Resource`, `Tags` | - | `TagResourceOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `InternalServerError` | Adds tags to the specified AWS Elemental MediaStore container. Tags are key:value pairs that you can associate with AWS resources. For example, the tag key might be "customer" and the tag value might be "companyA." Y ... |
+| `UntagResource` | `-` | - | `Resource`, `TagKeys` | - | `UntagResourceOutput` | `ContainerInUseException`, `ContainerNotFoundException`, `InternalServerError` | Removes tags from the specified container. You can specify one or more tags to remove. |
 
 ## HTTP Bindings
 
@@ -133,31 +134,49 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerError` | `structure` | `Message` | The service is temporarily unavailable. |
-| `ContainerInUseException` | `structure` | `Message` | The container that you specified in the request already exists or is being updated. |
-| `ContainerNotFoundException` | `structure` | `Message` | The container that you specified in the request does not exist. |
-| `PolicyNotFoundException` | `structure` | `Message` | The policy that you specified in the request does not exist. |
-| `CorsPolicyNotFoundException` | `structure` | `Message` | The CORS policy that you specified in the request does not exist. |
-| `CreateContainerInput` | `structure` | `ContainerName`, `Tags` | - |
-| `CreateContainerOutput` | `structure` | `Container` | - |
-| `LimitExceededException` | `structure` | `Message` | A service limit has been exceeded. |
-| `DeleteContainerInput` | `structure` | `ContainerName` | - |
-| `DeleteContainerOutput` | `structure` | - | - |
-| `DeleteContainerPolicyInput` | `structure` | `ContainerName` | - |
-| `DeleteContainerPolicyOutput` | `structure` | - | - |
-| `DeleteCorsPolicyInput` | `structure` | `ContainerName` | - |
-| `DeleteCorsPolicyOutput` | `structure` | - | - |
-| `DeleteLifecyclePolicyInput` | `structure` | `ContainerName` | - |
-| `DeleteLifecyclePolicyOutput` | `structure` | - | - |
-| `DeleteMetricPolicyInput` | `structure` | `ContainerName` | - |
-| `DeleteMetricPolicyOutput` | `structure` | - | - |
-| `DescribeContainerInput` | `structure` | `ContainerName` | - |
-| `DescribeContainerOutput` | `structure` | `Container` | - |
-| `GetContainerPolicyInput` | `structure` | `ContainerName` | - |
-| `GetContainerPolicyOutput` | `structure` | `Policy` | - |
-| `GetCorsPolicyInput` | `structure` | `ContainerName` | - |
-| `GetCorsPolicyOutput` | `structure` | `CorsPolicy` | - |
-
+| `ContainerInUseException` | `structure` | Message | The container that you specified in the request already exists or is being updated. |
+| `ContainerNotFoundException` | `structure` | Message | The container that you specified in the request does not exist. |
+| `CorsPolicyNotFoundException` | `structure` | Message | The CORS policy that you specified in the request does not exist. |
+| `InternalServerError` | `structure` | Message | The service is temporarily unavailable. |
+| `LimitExceededException` | `structure` | Message | A service limit has been exceeded. |
+| `PolicyNotFoundException` | `structure` | Message | The policy that you specified in the request does not exist. |
+| `CreateContainerInput` | `structure` | ContainerName, Tags | - |
+| `CreateContainerOutput` | `structure` | Container | - |
+| `DeleteContainerInput` | `structure` | ContainerName | - |
+| `DeleteContainerOutput` | `structure` | **empty (no members)** | - |
+| `DeleteContainerPolicyInput` | `structure` | ContainerName | - |
+| `DeleteContainerPolicyOutput` | `structure` | **empty (no members)** | - |
+| `DeleteCorsPolicyInput` | `structure` | ContainerName | - |
+| `DeleteCorsPolicyOutput` | `structure` | **empty (no members)** | - |
+| `DeleteLifecyclePolicyInput` | `structure` | ContainerName | - |
+| `DeleteLifecyclePolicyOutput` | `structure` | **empty (no members)** | - |
+| `DeleteMetricPolicyInput` | `structure` | ContainerName | - |
+| `DeleteMetricPolicyOutput` | `structure` | **empty (no members)** | - |
+| `DescribeContainerInput` | `structure` | ContainerName | - |
+| `DescribeContainerOutput` | `structure` | Container | - |
+| `GetContainerPolicyInput` | `structure` | ContainerName | - |
+| `GetContainerPolicyOutput` | `structure` | Policy | - |
+| `GetCorsPolicyInput` | `structure` | ContainerName | - |
+| `GetCorsPolicyOutput` | `structure` | CorsPolicy | - |
+| `GetLifecyclePolicyInput` | `structure` | ContainerName | - |
+| `GetLifecyclePolicyOutput` | `structure` | LifecyclePolicy | - |
+| `GetMetricPolicyInput` | `structure` | ContainerName | - |
+| `GetMetricPolicyOutput` | `structure` | MetricPolicy | - |
+| `ListContainersInput` | `structure` | NextToken, MaxResults | - |
+| `ListContainersOutput` | `structure` | Containers, NextToken | - |
+| `ListTagsForResourceInput` | `structure` | Resource | - |
+| `ListTagsForResourceOutput` | `structure` | Tags | - |
+| `PutContainerPolicyInput` | `structure` | ContainerName, Policy | - |
+| `PutContainerPolicyOutput` | `structure` | **empty (no members)** | - |
+| `PutCorsPolicyInput` | `structure` | ContainerName, CorsPolicy | - |
+| `PutCorsPolicyOutput` | `structure` | **empty (no members)** | - |
+| `PutLifecyclePolicyInput` | `structure` | ContainerName, LifecyclePolicy | - |
+| `PutLifecyclePolicyOutput` | `structure` | **empty (no members)** | - |
+| `PutMetricPolicyInput` | `structure` | ContainerName, MetricPolicy | - |
+| `PutMetricPolicyOutput` | `structure` | **empty (no members)** | - |
+| `ContainerLevelMetrics` | `enum` | ENABLED, DISABLED | - |
+| `ContainerStatus` | `enum` | ACTIVE, CREATING, DELETING | - |
+| `MethodName` | `enum` | PUT, GET, DELETE, HEAD | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

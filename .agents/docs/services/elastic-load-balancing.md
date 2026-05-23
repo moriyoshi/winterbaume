@@ -82,111 +82,111 @@ Classic ELB currently stores subnet and security group attachments on the load b
 
 - Operations: `DescribeAccountLimits`, `DescribeInstanceHealth`, `DescribeLoadBalancerAttributes`, `DescribeLoadBalancerPolicies`, `DescribeLoadBalancerPolicyTypes`, `DescribeLoadBalancers`, `DescribeTags`
 - Traits: `paginated` (1)
-- Common required input members in this group: `LoadBalancerName`, `LoadBalancerNames`
+- Common required input members in this group: `LoadBalancerName`
 
 ### Create
 
 - Operations: `CreateAppCookieStickinessPolicy`, `CreateLBCookieStickinessPolicy`, `CreateLoadBalancer`, `CreateLoadBalancerListeners`, `CreateLoadBalancerPolicy`
-- Common required input members in this group: `CookieName`, `Listeners`, `LoadBalancerName`, `PolicyName`, `PolicyTypeName`
+- Common required input members in this group: `LoadBalancerName`, `PolicyName`, `Listeners`
 
 ### Delete
 
 - Operations: `DeleteLoadBalancer`, `DeleteLoadBalancerListeners`, `DeleteLoadBalancerPolicy`
-- Common required input members in this group: `LoadBalancerName`, `LoadBalancerPorts`, `PolicyName`
+- Common required input members in this group: `LoadBalancerName`
 
 ### Set
 
 - Operations: `SetLoadBalancerListenerSSLCertificate`, `SetLoadBalancerPoliciesForBackendServer`, `SetLoadBalancerPoliciesOfListener`
-- Common required input members in this group: `InstancePort`, `LoadBalancerName`, `LoadBalancerPort`, `PolicyNames`, `SSLCertificateId`
+- Common required input members in this group: `LoadBalancerName`, `LoadBalancerPort`, `PolicyNames`
 
 ### Add
 
 - Operations: `AddTags`
-- Common required input members in this group: `LoadBalancerNames`, `Tags`
+- Common required input members in this group: -
 
 ### Apply
 
 - Operations: `ApplySecurityGroupsToLoadBalancer`
-- Common required input members in this group: `LoadBalancerName`, `SecurityGroups`
+- Common required input members in this group: -
 
 ### Attach
 
 - Operations: `AttachLoadBalancerToSubnets`
-- Common required input members in this group: `LoadBalancerName`, `Subnets`
+- Common required input members in this group: -
 
 ### Configure
 
 - Operations: `ConfigureHealthCheck`
-- Common required input members in this group: `HealthCheck`, `LoadBalancerName`
+- Common required input members in this group: -
 
 ### Deregister
 
 - Operations: `DeregisterInstancesFromLoadBalancer`
-- Common required input members in this group: `Instances`, `LoadBalancerName`
+- Common required input members in this group: -
 
 ### Detach
 
 - Operations: `DetachLoadBalancerFromSubnets`
-- Common required input members in this group: `LoadBalancerName`, `Subnets`
+- Common required input members in this group: -
 
 ### Disable
 
 - Operations: `DisableAvailabilityZonesForLoadBalancer`
-- Common required input members in this group: `AvailabilityZones`, `LoadBalancerName`
+- Common required input members in this group: -
 
 ### Enable
 
 - Operations: `EnableAvailabilityZonesForLoadBalancer`
-- Common required input members in this group: `AvailabilityZones`, `LoadBalancerName`
+- Common required input members in this group: -
 
 ### Modify
 
 - Operations: `ModifyLoadBalancerAttributes`
-- Common required input members in this group: `LoadBalancerAttributes`, `LoadBalancerName`
+- Common required input members in this group: -
 
 ### Register
 
 - Operations: `RegisterInstancesWithLoadBalancer`
-- Common required input members in this group: `Instances`, `LoadBalancerName`
+- Common required input members in this group: -
 
 ### Remove
 
 - Operations: `RemoveTags`
-- Common required input members in this group: `LoadBalancerNames`, `Tags`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AddTags` | - | - | `LoadBalancerNames`, `Tags` | - | `AddTagsOutput` | `AccessPointNotFoundException`, `DuplicateTagKeysException`, `TooManyTagsException` | Adds the specified tags to the specified load balancer. Each load balancer can have a maximum of 10 tags. |
-| `ApplySecurityGroupsToLoadBalancer` | - | - | `LoadBalancerName`, `SecurityGroups` | - | `ApplySecurityGroupsToLoadBalancerOutput` | `AccessPointNotFoundException`, `InvalidConfigurationRequestException`, `InvalidSecurityGroupException` | Associates one or more security groups with your load balancer in a virtual private cloud (VPC). The specified security groups override the previously associated security groups. |
-| `AttachLoadBalancerToSubnets` | - | - | `LoadBalancerName`, `Subnets` | - | `AttachLoadBalancerToSubnetsOutput` | `AccessPointNotFoundException`, `InvalidConfigurationRequestException`, `InvalidSubnetException`, `SubnetNotFoundException` | Adds one or more subnets to the set of configured subnets for the specified load balancer. The load balancer evenly distributes requests across all registered subnets. |
-| `ConfigureHealthCheck` | - | - | `HealthCheck`, `LoadBalancerName` | - | `ConfigureHealthCheckOutput` | `AccessPointNotFoundException` | Specifies the health check settings to use when evaluating the health state of your EC2 instances. For more information, see Configure Health Checks for Your Load Balancer in the Classic Load Balancers Guide . |
-| `CreateAppCookieStickinessPolicy` | - | - | `CookieName`, `LoadBalancerName`, `PolicyName` | - | `CreateAppCookieStickinessPolicyOutput` | `AccessPointNotFoundException`, `DuplicatePolicyNameException`, `InvalidConfigurationRequestException`, `TooManyPoliciesException` | Generates a stickiness policy with sticky session lifetimes that follow that of an application-generated cookie. This policy can be associated only with HTTP/HTTPS listeners. |
-| `CreateLBCookieStickinessPolicy` | - | - | `LoadBalancerName`, `PolicyName` | - | `CreateLBCookieStickinessPolicyOutput` | `AccessPointNotFoundException`, `DuplicatePolicyNameException`, `InvalidConfigurationRequestException`, `TooManyPoliciesException` | Generates a stickiness policy with sticky session lifetimes controlled by the lifetime of the browser (user-agent) or a specified expiration period. This policy can be associated only with HTTP/HTTPS listeners. |
-| `CreateLoadBalancer` | - | - | `Listeners`, `LoadBalancerName` | - | `CreateAccessPointOutput` | `CertificateNotFoundException`, `DuplicateAccessPointNameException`, `DuplicateTagKeysException`, `InvalidConfigurationRequestException`, `InvalidSchemeException`, `InvalidSecurityGroupException`, `InvalidSubnetException`, `OperationNotPermittedException`, ... (+4) | Creates a Classic Load Balancer. You can add listeners, security groups, subnets, and tags when you create your load balancer, or you can add them later using CreateLoadBalancerListeners, ApplySecurityGroupsToLoadBalancer, AttachLoadBalancerToSubnets, and... |
-| `CreateLoadBalancerListeners` | - | - | `Listeners`, `LoadBalancerName` | - | `CreateLoadBalancerListenerOutput` | `AccessPointNotFoundException`, `CertificateNotFoundException`, `DuplicateListenerException`, `InvalidConfigurationRequestException`, `UnsupportedProtocolException` | Creates one or more listeners for the specified load balancer. If a listener with the specified port does not already exist, it is created; otherwise, the properties of the new listener must match the properties of the existing listener. |
-| `CreateLoadBalancerPolicy` | - | - | `LoadBalancerName`, `PolicyName`, `PolicyTypeName` | - | `CreateLoadBalancerPolicyOutput` | `AccessPointNotFoundException`, `DuplicatePolicyNameException`, `InvalidConfigurationRequestException`, `PolicyTypeNotFoundException`, `TooManyPoliciesException` | Creates a policy with the specified attributes for the specified load balancer. Policies are settings that are saved for your load balancer and that can be applied to the listener or the application server, depending on the policy type. |
-| `DeleteLoadBalancer` | - | - | `LoadBalancerName` | - | `DeleteAccessPointOutput` | - | Deletes the specified load balancer. If you are attempting to recreate a load balancer, you must reconfigure all settings. |
-| `DeleteLoadBalancerListeners` | - | - | `LoadBalancerName`, `LoadBalancerPorts` | - | `DeleteLoadBalancerListenerOutput` | `AccessPointNotFoundException` | Deletes the specified listeners from the specified load balancer. |
-| `DeleteLoadBalancerPolicy` | - | - | `LoadBalancerName`, `PolicyName` | - | `DeleteLoadBalancerPolicyOutput` | `AccessPointNotFoundException`, `InvalidConfigurationRequestException` | Deletes the specified policy from the specified load balancer. This policy must not be enabled for any listeners. |
-| `DeregisterInstancesFromLoadBalancer` | - | - | `Instances`, `LoadBalancerName` | - | `DeregisterEndPointsOutput` | `AccessPointNotFoundException`, `InvalidEndPointException` | Deregisters the specified instances from the specified load balancer. After the instance is deregistered, it no longer receives traffic from the load balancer. |
-| `DescribeAccountLimits` | - | - | - | - | `DescribeAccountLimitsOutput` | - | Describes the current Elastic Load Balancing resource limits for your AWS account. For more information, see Limits for Your Classic Load Balancer in the Classic Load Balancers Guide . |
-| `DescribeInstanceHealth` | - | - | `LoadBalancerName` | - | `DescribeEndPointStateOutput` | `AccessPointNotFoundException`, `InvalidEndPointException` | Describes the state of the specified instances with respect to the specified load balancer. If no instances are specified, the call describes the state of all instances that are currently registered with the load balancer. |
-| `DescribeLoadBalancerAttributes` | - | - | `LoadBalancerName` | - | `DescribeLoadBalancerAttributesOutput` | `AccessPointNotFoundException`, `LoadBalancerAttributeNotFoundException` | Describes the attributes for the specified load balancer. |
-| `DescribeLoadBalancerPolicies` | - | - | - | - | `DescribeLoadBalancerPoliciesOutput` | `AccessPointNotFoundException`, `PolicyNotFoundException` | Describes the specified policies. If you specify a load balancer name, the action returns the descriptions of all policies created for the load balancer. |
-| `DescribeLoadBalancerPolicyTypes` | - | - | - | - | `DescribeLoadBalancerPolicyTypesOutput` | `PolicyTypeNotFoundException` | Describes the specified load balancer policy types or all load balancer policy types. The description of each type indicates how it can be used. |
-| `DescribeLoadBalancers` | - | `paginated` | - | - | `DescribeAccessPointsOutput` | `AccessPointNotFoundException`, `DependencyThrottleException` | Describes the specified the load balancers. If no load balancers are specified, the call describes all of your load balancers. |
-| `DescribeTags` | - | - | `LoadBalancerNames` | - | `DescribeTagsOutput` | `AccessPointNotFoundException` | Describes the tags associated with the specified load balancers. |
-| `DetachLoadBalancerFromSubnets` | - | - | `LoadBalancerName`, `Subnets` | - | `DetachLoadBalancerFromSubnetsOutput` | `AccessPointNotFoundException`, `InvalidConfigurationRequestException` | Removes the specified subnets from the set of configured subnets for the load balancer. After a subnet is removed, all EC2 instances registered with the load balancer in the removed subnet go into the `OutOfService` state. |
-| `DisableAvailabilityZonesForLoadBalancer` | - | - | `AvailabilityZones`, `LoadBalancerName` | - | `RemoveAvailabilityZonesOutput` | `AccessPointNotFoundException`, `InvalidConfigurationRequestException` | Removes the specified Availability Zones from the set of Availability Zones for the specified load balancer in EC2-Classic or a default VPC. For load balancers in a non-default VPC, use DetachLoadBalancerFromSubnets. |
-| `EnableAvailabilityZonesForLoadBalancer` | - | - | `AvailabilityZones`, `LoadBalancerName` | - | `AddAvailabilityZonesOutput` | `AccessPointNotFoundException` | Adds the specified Availability Zones to the set of Availability Zones for the specified load balancer in EC2-Classic or a default VPC. For load balancers in a non-default VPC, use AttachLoadBalancerToSubnets. |
-| `ModifyLoadBalancerAttributes` | - | - | `LoadBalancerAttributes`, `LoadBalancerName` | - | `ModifyLoadBalancerAttributesOutput` | `AccessPointNotFoundException`, `InvalidConfigurationRequestException`, `LoadBalancerAttributeNotFoundException` | Modifies the attributes of the specified load balancer. You can modify the load balancer attributes, such as `AccessLogs`, `ConnectionDraining`, and `CrossZoneLoadBalancing` by either enabling or disabling them. |
-| `RegisterInstancesWithLoadBalancer` | - | - | `Instances`, `LoadBalancerName` | - | `RegisterEndPointsOutput` | `AccessPointNotFoundException`, `InvalidEndPointException` | Adds the specified instances to the specified load balancer. The instance must be a running instance in the same network as the load balancer (EC2-Classic or the same VPC). |
-| `RemoveTags` | - | - | `LoadBalancerNames`, `Tags` | - | `RemoveTagsOutput` | `AccessPointNotFoundException` | Removes one or more tags from the specified load balancer. |
-| `SetLoadBalancerListenerSSLCertificate` | - | - | `LoadBalancerName`, `LoadBalancerPort`, `SSLCertificateId` | - | `SetLoadBalancerListenerSSLCertificateOutput` | `AccessPointNotFoundException`, `CertificateNotFoundException`, `InvalidConfigurationRequestException`, `ListenerNotFoundException`, `UnsupportedProtocolException` | Sets the certificate that terminates the specified listener's SSL connections. The specified certificate replaces any prior certificate that was used on the same load balancer and port. |
-| `SetLoadBalancerPoliciesForBackendServer` | - | - | `InstancePort`, `LoadBalancerName`, `PolicyNames` | - | `SetLoadBalancerPoliciesForBackendServerOutput` | `AccessPointNotFoundException`, `InvalidConfigurationRequestException`, `PolicyNotFoundException` | Replaces the set of policies associated with the specified port on which the EC2 instance is listening with a new set of policies. At this time, only the back-end server authentication policy type can be applied to the instance ports; this policy type is... |
-| `SetLoadBalancerPoliciesOfListener` | - | - | `LoadBalancerName`, `LoadBalancerPort`, `PolicyNames` | - | `SetLoadBalancerPoliciesOfListenerOutput` | `AccessPointNotFoundException`, `InvalidConfigurationRequestException`, `ListenerNotFoundException`, `PolicyNotFoundException` | Replaces the current set of policies for the specified load balancer port with the specified set of policies. To enable back-end server authentication, use SetLoadBalancerPoliciesForBackendServer. |
+| `AddTags` | `-` | - | `LoadBalancerNames`, `Tags` | - | `AddTagsOutput` | `AccessPointNotFoundException`, `DuplicateTagKeysException`, `TooManyTagsException` | Adds the specified tags to the specified load balancer. Each load balancer can have a maximum of 10 tags. Each tag consists of a key and an optional value. If a tag with the same key is already associated with the lo ... |
+| `ApplySecurityGroupsToLoadBalancer` | `-` | - | `LoadBalancerName`, `SecurityGroups` | - | `ApplySecurityGroupsToLoadBalancerOutput` | `AccessPointNotFoundException`, `InvalidConfigurationRequestException`, `InvalidSecurityGroupException` | Associates one or more security groups with your load balancer in a virtual private cloud (VPC). The specified security groups override the previously associated security groups. For more information, see Security Gr ... |
+| `AttachLoadBalancerToSubnets` | `-` | - | `LoadBalancerName`, `Subnets` | - | `AttachLoadBalancerToSubnetsOutput` | `AccessPointNotFoundException`, `InvalidConfigurationRequestException`, `InvalidSubnetException`, `SubnetNotFoundException` | Adds one or more subnets to the set of configured subnets for the specified load balancer. The load balancer evenly distributes requests across all registered subnets. For more information, see Add or Remove Subnets ... |
+| `ConfigureHealthCheck` | `-` | - | `LoadBalancerName`, `HealthCheck` | - | `ConfigureHealthCheckOutput` | `AccessPointNotFoundException` | Specifies the health check settings to use when evaluating the health state of your EC2 instances. For more information, see Configure Health Checks for Your Load Balancer in the Classic Load Balancers Guide . |
+| `CreateAppCookieStickinessPolicy` | `-` | - | `LoadBalancerName`, `PolicyName`, `CookieName` | - | `CreateAppCookieStickinessPolicyOutput` | `AccessPointNotFoundException`, `DuplicatePolicyNameException`, `InvalidConfigurationRequestException`, `TooManyPoliciesException` | Generates a stickiness policy with sticky session lifetimes that follow that of an application-generated cookie. This policy can be associated only with HTTP/HTTPS listeners. This policy is similar to the policy crea ... |
+| `CreateLBCookieStickinessPolicy` | `-` | - | `LoadBalancerName`, `PolicyName` | - | `CreateLBCookieStickinessPolicyOutput` | `AccessPointNotFoundException`, `DuplicatePolicyNameException`, `InvalidConfigurationRequestException`, `TooManyPoliciesException` | Generates a stickiness policy with sticky session lifetimes controlled by the lifetime of the browser (user-agent) or a specified expiration period. This policy can be associated only with HTTP/HTTPS listeners. When ... |
+| `CreateLoadBalancer` | `-` | - | `LoadBalancerName`, `Listeners` | - | `CreateAccessPointOutput` | `CertificateNotFoundException`, `DuplicateAccessPointNameException`, `DuplicateTagKeysException`, `InvalidConfigurationRequestException`, `InvalidSchemeException`, `InvalidSecurityGroupException`, `InvalidSubnetException`, `OperationNotPermittedException`, `SubnetNotFoundException`, `TooManyAccessPointsException`, `TooManyTagsException`, `UnsupportedProtocolException` | Creates a Classic Load Balancer. You can add listeners, security groups, subnets, and tags when you create your load balancer, or you can add them later using CreateLoadBalancerListeners , ApplySecurityGroupsToLoadBa ... |
+| `CreateLoadBalancerListeners` | `-` | - | `LoadBalancerName`, `Listeners` | - | `CreateLoadBalancerListenerOutput` | `AccessPointNotFoundException`, `CertificateNotFoundException`, `DuplicateListenerException`, `InvalidConfigurationRequestException`, `UnsupportedProtocolException` | Creates one or more listeners for the specified load balancer. If a listener with the specified port does not already exist, it is created; otherwise, the properties of the new listener must match the properties of t ... |
+| `CreateLoadBalancerPolicy` | `-` | - | `LoadBalancerName`, `PolicyName`, `PolicyTypeName` | - | `CreateLoadBalancerPolicyOutput` | `AccessPointNotFoundException`, `DuplicatePolicyNameException`, `InvalidConfigurationRequestException`, `PolicyTypeNotFoundException`, `TooManyPoliciesException` | Creates a policy with the specified attributes for the specified load balancer. Policies are settings that are saved for your load balancer and that can be applied to the listener or the application server, depending ... |
+| `DeleteLoadBalancer` | `-` | - | `LoadBalancerName` | - | `DeleteAccessPointOutput` | - | Deletes the specified load balancer. If you are attempting to recreate a load balancer, you must reconfigure all settings. The DNS name associated with a deleted load balancer are no longer usable. The name and assoc ... |
+| `DeleteLoadBalancerListeners` | `-` | - | `LoadBalancerName`, `LoadBalancerPorts` | - | `DeleteLoadBalancerListenerOutput` | `AccessPointNotFoundException` | Deletes the specified listeners from the specified load balancer. |
+| `DeleteLoadBalancerPolicy` | `-` | - | `LoadBalancerName`, `PolicyName` | - | `DeleteLoadBalancerPolicyOutput` | `AccessPointNotFoundException`, `InvalidConfigurationRequestException` | Deletes the specified policy from the specified load balancer. This policy must not be enabled for any listeners. |
+| `DeregisterInstancesFromLoadBalancer` | `-` | - | `LoadBalancerName`, `Instances` | - | `DeregisterEndPointsOutput` | `AccessPointNotFoundException`, `InvalidEndPointException` | Deregisters the specified instances from the specified load balancer. After the instance is deregistered, it no longer receives traffic from the load balancer. You can use DescribeLoadBalancers to verify that the ins ... |
+| `DescribeAccountLimits` | `-` | - | - | - | `DescribeAccountLimitsOutput` | - | Describes the current Elastic Load Balancing resource limits for your AWS account. For more information, see Limits for Your Classic Load Balancer in the Classic Load Balancers Guide . |
+| `DescribeInstanceHealth` | `-` | - | `LoadBalancerName` | - | `DescribeEndPointStateOutput` | `AccessPointNotFoundException`, `InvalidEndPointException` | Describes the state of the specified instances with respect to the specified load balancer. If no instances are specified, the call describes the state of all instances that are currently registered with the load bal ... |
+| `DescribeLoadBalancerAttributes` | `-` | - | `LoadBalancerName` | - | `DescribeLoadBalancerAttributesOutput` | `AccessPointNotFoundException`, `LoadBalancerAttributeNotFoundException` | Describes the attributes for the specified load balancer. |
+| `DescribeLoadBalancerPolicies` | `-` | - | - | - | `DescribeLoadBalancerPoliciesOutput` | `AccessPointNotFoundException`, `PolicyNotFoundException` | Describes the specified policies. If you specify a load balancer name, the action returns the descriptions of all policies created for the load balancer. If you specify a policy name associated with your load balance ... |
+| `DescribeLoadBalancerPolicyTypes` | `-` | - | - | - | `DescribeLoadBalancerPolicyTypesOutput` | `PolicyTypeNotFoundException` | Describes the specified load balancer policy types or all load balancer policy types. The description of each type indicates how it can be used. For example, some policies can be used only with layer 7 listeners, som ... |
+| `DescribeLoadBalancers` | `-` | `paginated` | - | - | `DescribeAccessPointsOutput` | `AccessPointNotFoundException`, `DependencyThrottleException` | Describes the specified the load balancers. If no load balancers are specified, the call describes all of your load balancers. |
+| `DescribeTags` | `-` | - | `LoadBalancerNames` | - | `DescribeTagsOutput` | `AccessPointNotFoundException` | Describes the tags associated with the specified load balancers. |
+| `DetachLoadBalancerFromSubnets` | `-` | - | `LoadBalancerName`, `Subnets` | - | `DetachLoadBalancerFromSubnetsOutput` | `AccessPointNotFoundException`, `InvalidConfigurationRequestException` | Removes the specified subnets from the set of configured subnets for the load balancer. After a subnet is removed, all EC2 instances registered with the load balancer in the removed subnet go into the OutOfService st ... |
+| `DisableAvailabilityZonesForLoadBalancer` | `-` | - | `LoadBalancerName`, `AvailabilityZones` | - | `RemoveAvailabilityZonesOutput` | `AccessPointNotFoundException`, `InvalidConfigurationRequestException` | Removes the specified Availability Zones from the set of Availability Zones for the specified load balancer in EC2-Classic or a default VPC. For load balancers in a non-default VPC, use DetachLoadBalancerFromSubnets ... |
+| `EnableAvailabilityZonesForLoadBalancer` | `-` | - | `LoadBalancerName`, `AvailabilityZones` | - | `AddAvailabilityZonesOutput` | `AccessPointNotFoundException` | Adds the specified Availability Zones to the set of Availability Zones for the specified load balancer in EC2-Classic or a default VPC. For load balancers in a non-default VPC, use AttachLoadBalancerToSubnets . The l ... |
+| `ModifyLoadBalancerAttributes` | `-` | - | `LoadBalancerName`, `LoadBalancerAttributes` | - | `ModifyLoadBalancerAttributesOutput` | `AccessPointNotFoundException`, `InvalidConfigurationRequestException`, `LoadBalancerAttributeNotFoundException` | Modifies the attributes of the specified load balancer. You can modify the load balancer attributes, such as AccessLogs , ConnectionDraining , and CrossZoneLoadBalancing by either enabling or disabling them. Or, you ... |
+| `RegisterInstancesWithLoadBalancer` | `-` | - | `LoadBalancerName`, `Instances` | - | `RegisterEndPointsOutput` | `AccessPointNotFoundException`, `InvalidEndPointException` | Adds the specified instances to the specified load balancer. The instance must be a running instance in the same network as the load balancer (EC2-Classic or the same VPC). If you have EC2-Classic instances and a loa ... |
+| `RemoveTags` | `-` | - | `LoadBalancerNames`, `Tags` | - | `RemoveTagsOutput` | `AccessPointNotFoundException` | Removes one or more tags from the specified load balancer. |
+| `SetLoadBalancerListenerSSLCertificate` | `-` | - | `LoadBalancerName`, `LoadBalancerPort`, `SSLCertificateId` | - | `SetLoadBalancerListenerSSLCertificateOutput` | `AccessPointNotFoundException`, `CertificateNotFoundException`, `InvalidConfigurationRequestException`, `ListenerNotFoundException`, `UnsupportedProtocolException` | Sets the certificate that terminates the specified listener's SSL connections. The specified certificate replaces any prior certificate that was used on the same load balancer and port. For more information about upd ... |
+| `SetLoadBalancerPoliciesForBackendServer` | `-` | - | `LoadBalancerName`, `InstancePort`, `PolicyNames` | - | `SetLoadBalancerPoliciesForBackendServerOutput` | `AccessPointNotFoundException`, `InvalidConfigurationRequestException`, `PolicyNotFoundException` | Replaces the set of policies associated with the specified port on which the EC2 instance is listening with a new set of policies. At this time, only the back-end server authentication policy type can be applied to t ... |
+| `SetLoadBalancerPoliciesOfListener` | `-` | - | `LoadBalancerName`, `LoadBalancerPort`, `PolicyNames` | - | `SetLoadBalancerPoliciesOfListenerOutput` | `AccessPointNotFoundException`, `InvalidConfigurationRequestException`, `ListenerNotFoundException`, `PolicyNotFoundException` | Replaces the current set of policies for the specified load balancer port with the specified set of policies. To enable back-end server authentication, use SetLoadBalancerPoliciesForBackendServer . For more informati ... |
 
 ## HTTP Bindings
 
@@ -198,31 +198,46 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessPointNotFoundException` | `structure` | `Message` | The specified load balancer does not exist. |
-| `InvalidConfigurationRequestException` | `structure` | `Message` | The requested configuration change is not valid. |
-| `DuplicatePolicyNameException` | `structure` | `Message` | A policy with the specified name already exists for this load balancer. |
-| `TooManyPoliciesException` | `structure` | `Message` | The quota for the number of policies for this load balancer has been reached. |
-| `CertificateNotFoundException` | `structure` | `Message` | The specified ARN does not refer to a valid SSL certificate in AWS Identity and Access Management (IAM) or AWS Certificate Manager (ACM). |
-| `UnsupportedProtocolException` | `structure` | `Message` | The specified protocol or signature version is not supported. |
-| `InvalidEndPointException` | `structure` | `Message` | The specified endpoint is not valid. |
-| `PolicyNotFoundException` | `structure` | `Message` | One or more of the specified policies do not exist. |
-| `DuplicateTagKeysException` | `structure` | `Message` | A tag key was specified more than once. |
-| `TooManyTagsException` | `structure` | `Message` | The quota for the number of tags that can be assigned to a load balancer has been reached. |
-| `InvalidSecurityGroupException` | `structure` | `Message` | One or more of the specified security groups do not exist. |
-| `InvalidSubnetException` | `structure` | `Message` | The specified VPC has no associated Internet gateway. |
-| `SubnetNotFoundException` | `structure` | `Message` | One or more of the specified subnets do not exist. |
-| `PolicyTypeNotFoundException` | `structure` | `Message` | One or more of the specified policy types do not exist. |
-| `LoadBalancerAttributeNotFoundException` | `structure` | `Message` | The specified load balancer attribute does not exist. |
-| `ListenerNotFoundException` | `structure` | `Message` | The load balancer does not have a listener configured at the specified port. |
-| `AddTagsInput` | `structure` | `LoadBalancerNames`, `Tags` | Contains the parameters for AddTags. |
-| `AddTagsOutput` | `structure` | - | Contains the output of AddTags. |
-| `ApplySecurityGroupsToLoadBalancerInput` | `structure` | `LoadBalancerName`, `SecurityGroups` | Contains the parameters for ApplySecurityGroupsToLoadBalancer. |
-| `ApplySecurityGroupsToLoadBalancerOutput` | `structure` | `SecurityGroups` | Contains the output of ApplySecurityGroupsToLoadBalancer. |
-| `AttachLoadBalancerToSubnetsInput` | `structure` | `LoadBalancerName`, `Subnets` | Contains the parameters for AttachLoaBalancerToSubnets. |
-| `AttachLoadBalancerToSubnetsOutput` | `structure` | `Subnets` | Contains the output of AttachLoadBalancerToSubnets. |
-| `ConfigureHealthCheckInput` | `structure` | `HealthCheck`, `LoadBalancerName` | Contains the parameters for ConfigureHealthCheck. |
-| `ConfigureHealthCheckOutput` | `structure` | `HealthCheck` | Contains the output of ConfigureHealthCheck. |
-
+| `AccessPointNotFoundException` | `structure` | Message | The specified load balancer does not exist. |
+| `CertificateNotFoundException` | `structure` | Message | The specified ARN does not refer to a valid SSL certificate in AWS Identity and Access Management (IAM) or AWS Certificate Manager (ACM). Note that if you r ... |
+| `DependencyThrottleException` | `structure` | Message | A request made by Elastic Load Balancing to another service exceeds the maximum request rate permitted for your account. |
+| `DuplicateAccessPointNameException` | `structure` | Message | The specified load balancer name already exists for this account. |
+| `DuplicateListenerException` | `structure` | Message | A listener already exists for the specified load balancer name and port, but with a different instance port, protocol, or SSL certificate. |
+| `DuplicatePolicyNameException` | `structure` | Message | A policy with the specified name already exists for this load balancer. |
+| `DuplicateTagKeysException` | `structure` | Message | A tag key was specified more than once. |
+| `InvalidConfigurationRequestException` | `structure` | Message | The requested configuration change is not valid. |
+| `InvalidEndPointException` | `structure` | Message | The specified endpoint is not valid. |
+| `InvalidSchemeException` | `structure` | Message | The specified value for the schema is not valid. You can only specify a scheme for load balancers in a VPC. |
+| `InvalidSecurityGroupException` | `structure` | Message | One or more of the specified security groups do not exist. |
+| `InvalidSubnetException` | `structure` | Message | The specified VPC has no associated Internet gateway. |
+| `ListenerNotFoundException` | `structure` | Message | The load balancer does not have a listener configured at the specified port. |
+| `LoadBalancerAttributeNotFoundException` | `structure` | Message | The specified load balancer attribute does not exist. |
+| `OperationNotPermittedException` | `structure` | Message | This operation is not allowed. |
+| `PolicyNotFoundException` | `structure` | Message | One or more of the specified policies do not exist. |
+| `PolicyTypeNotFoundException` | `structure` | Message | One or more of the specified policy types do not exist. |
+| `SubnetNotFoundException` | `structure` | Message | One or more of the specified subnets do not exist. |
+| `TooManyAccessPointsException` | `structure` | Message | The quota for the number of load balancers has been reached. |
+| `TooManyPoliciesException` | `structure` | Message | The quota for the number of policies for this load balancer has been reached. |
+| `TooManyTagsException` | `structure` | Message | The quota for the number of tags that can be assigned to a load balancer has been reached. |
+| `UnsupportedProtocolException` | `structure` | Message | The specified protocol or signature version is not supported. |
+| `AddTagsInput` | `structure` | LoadBalancerNames, Tags | Contains the parameters for AddTags. |
+| `AddTagsOutput` | `structure` | **empty (no members)** | Contains the output of AddTags. |
+| `ApplySecurityGroupsToLoadBalancerInput` | `structure` | LoadBalancerName, SecurityGroups | Contains the parameters for ApplySecurityGroupsToLoadBalancer. |
+| `ApplySecurityGroupsToLoadBalancerOutput` | `structure` | SecurityGroups | Contains the output of ApplySecurityGroupsToLoadBalancer. |
+| `AttachLoadBalancerToSubnetsInput` | `structure` | LoadBalancerName, Subnets | Contains the parameters for AttachLoaBalancerToSubnets. |
+| `AttachLoadBalancerToSubnetsOutput` | `structure` | Subnets | Contains the output of AttachLoadBalancerToSubnets. |
+| `ConfigureHealthCheckInput` | `structure` | LoadBalancerName, HealthCheck | Contains the parameters for ConfigureHealthCheck. |
+| `ConfigureHealthCheckOutput` | `structure` | HealthCheck | Contains the output of ConfigureHealthCheck. |
+| `CreateAppCookieStickinessPolicyInput` | `structure` | LoadBalancerName, PolicyName, CookieName | Contains the parameters for CreateAppCookieStickinessPolicy. |
+| `CreateAppCookieStickinessPolicyOutput` | `structure` | **empty (no members)** | Contains the output for CreateAppCookieStickinessPolicy. |
+| `CreateLBCookieStickinessPolicyInput` | `structure` | LoadBalancerName, PolicyName, CookieExpirationPeriod | Contains the parameters for CreateLBCookieStickinessPolicy. |
+| `CreateLBCookieStickinessPolicyOutput` | `structure` | **empty (no members)** | Contains the output for CreateLBCookieStickinessPolicy. |
+| `CreateAccessPointInput` | `structure` | LoadBalancerName, Listeners, AvailabilityZones, Subnets, SecurityGroups, Scheme, Tags | Contains the parameters for CreateLoadBalancer. |
+| `CreateAccessPointOutput` | `structure` | DNSName | Contains the output for CreateLoadBalancer. |
+| `CreateLoadBalancerListenerInput` | `structure` | LoadBalancerName, Listeners | Contains the parameters for CreateLoadBalancerListeners. |
+| `CreateLoadBalancerListenerOutput` | `structure` | **empty (no members)** | Contains the parameters for CreateLoadBalancerListener. |
+| `CreateLoadBalancerPolicyInput` | `structure` | LoadBalancerName, PolicyName, PolicyTypeName, PolicyAttributes | Contains the parameters for CreateLoadBalancerPolicy. |
+| `CreateLoadBalancerPolicyOutput` | `structure` | **empty (no members)** | Contains the output of CreateLoadBalancerPolicy. |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

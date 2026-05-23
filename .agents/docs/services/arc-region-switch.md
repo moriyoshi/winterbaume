@@ -49,82 +49,53 @@ Amazon Application Recovery Controller (ARC) Region switch helps you to quickly 
 
 ### List
 
-- Operations: `ListPlanExecutionEvents`, `ListPlanExecutions`, `ListPlans`, `ListPlansInRegion`, `ListRoute53HealthChecks`, `ListRoute53HealthChecksInRegion`, `ListTagsForResource`
-- Traits: `paginated` (6), `readonly` (7)
-- Common required input members in this group: `arn`, `executionId`, `planArn`
+- Operations: `ListPlanExecutionEvents`, `ListPlanExecutions`, `ListPlansInRegion`, `ListRoute53HealthChecks`, `ListRoute53HealthChecksInRegion`
+- Traits: `readonly` (5), `paginated` (5)
+- Common required input members in this group: `planArn`, `arn`
 
 ### Get
 
-- Operations: `GetPlan`, `GetPlanEvaluationStatus`, `GetPlanExecution`, `GetPlanInRegion`
-- Traits: `paginated` (2), `readonly` (4)
-- Common required input members in this group: `arn`, `executionId`, `planArn`
+- Operations: `GetPlanEvaluationStatus`, `GetPlanExecution`, `GetPlanInRegion`
+- Traits: `readonly` (3), `paginated` (2)
+- Common required input members in this group: `planArn`
 
 ### Update
 
-- Operations: `UpdatePlan`, `UpdatePlanExecution`, `UpdatePlanExecutionStep`
-- Common required input members in this group: `action`, `actionToTake`, `arn`, `comment`, `executionId`, `executionRole`, `planArn`, `stepName`, `workflows`
+- Operations: `UpdatePlanExecution`, `UpdatePlanExecutionStep`
+- Common required input members in this group: `planArn`, `executionId`
 
 ### Approve
 
 - Operations: `ApprovePlanExecutionStep`
-- Common required input members in this group: `approval`, `executionId`, `planArn`, `stepName`
+- Common required input members in this group: -
 
 ### Cancel
 
 - Operations: `CancelPlanExecution`
-- Common required input members in this group: `executionId`, `planArn`
-
-### Create
-
-- Operations: `CreatePlan`
-- Common required input members in this group: `executionRole`, `name`, `recoveryApproach`, `regions`, `workflows`
-
-### Delete
-
-- Operations: `DeletePlan`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `arn`
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartPlanExecution`
-- Common required input members in this group: `action`, `planArn`, `targetRegion`
-
-### Tag
-
-- Operations: `TagResource`
-- Common required input members in this group: `arn`, `tags`
-
-### Untag
-
-- Operations: `UntagResource`
-- Common required input members in this group: `arn`, `resourceTagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `ApprovePlanExecutionStep` | - | - | `approval`, `executionId`, `planArn`, `stepName` | - | `ApprovePlanExecutionStepResponse` | `AccessDeniedException`, `ResourceNotFoundException` | Approves a step in a plan execution that requires manual approval. When you create a plan, you can include approval steps that require manual intervention before the execution can proceed. |
-| `CancelPlanExecution` | - | - | `executionId`, `planArn` | - | `CancelPlanExecutionResponse` | `AccessDeniedException`, `ResourceNotFoundException` | Cancels an in-progress plan execution. This operation stops the execution of the plan and prevents any further steps from being processed. |
-| `CreatePlan` | - | - | `executionRole`, `name`, `recoveryApproach`, `regions`, `workflows` | - | `CreatePlanResponse` | - | Creates a new Region switch plan. A plan defines the steps required to shift traffic from one Amazon Web Services Region to another. |
-| `DeletePlan` | - | `idempotent` | `arn` | - | `DeletePlanResponse` | `IllegalStateException`, `ResourceNotFoundException` | Deletes a Region switch plan. You must specify the ARN of the plan to delete. |
-| `GetPlan` | - | `readonly` | `arn` | - | `GetPlanResponse` | `ResourceNotFoundException` | Retrieves detailed information about a Region switch plan. You must specify the ARN of the plan. |
-| `GetPlanEvaluationStatus` | - | `readonly`, `paginated` | `planArn` | - | `GetPlanEvaluationStatusResponse` | `AccessDeniedException`, `ResourceNotFoundException` | Retrieves the evaluation status of a Region switch plan. The evaluation status provides information about the last time the plan was evaluated and any warnings or issues detected. |
-| `GetPlanExecution` | - | `readonly`, `paginated` | `executionId`, `planArn` | - | `GetPlanExecutionResponse` | `AccessDeniedException`, `ResourceNotFoundException` | Retrieves detailed information about a specific plan execution. You must specify the plan ARN and execution ID. |
-| `GetPlanInRegion` | - | `readonly` | `arn` | - | `GetPlanInRegionResponse` | `AccessDeniedException`, `ResourceNotFoundException` | Retrieves information about a Region switch plan in a specific Amazon Web Services Region. This operation is useful for getting Region-specific information about a plan. |
-| `ListPlanExecutionEvents` | - | `readonly`, `paginated` | `executionId`, `planArn` | - | `ListPlanExecutionEventsResponse` | `AccessDeniedException`, `ResourceNotFoundException` | Lists the events that occurred during a plan execution. These events provide a detailed timeline of the execution process. |
-| `ListPlanExecutions` | - | `readonly`, `paginated` | `planArn` | - | `ListPlanExecutionsResponse` | `AccessDeniedException`, `ResourceNotFoundException` | Lists the executions of a Region switch plan. This operation returns information about both current and historical executions. |
-| `ListPlans` | - | `readonly`, `paginated` | - | - | `ListPlansResponse` | - | Lists all Region switch plans in your Amazon Web Services account. |
-| `ListPlansInRegion` | - | `readonly`, `paginated` | - | - | `ListPlansInRegionResponse` | `AccessDeniedException` | Lists all Region switch plans in your Amazon Web Services account that are available in the current Amazon Web Services Region. |
-| `ListRoute53HealthChecks` | - | `readonly`, `paginated` | `arn` | - | `ListRoute53HealthChecksResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException` | List the Amazon Route 53 health checks. |
-| `ListRoute53HealthChecksInRegion` | - | `readonly`, `paginated` | `arn` | - | `ListRoute53HealthChecksInRegionResponse` | `AccessDeniedException`, `IllegalArgumentException`, `InternalServerException`, `ResourceNotFoundException` | List the Amazon Route 53 health checks in a specific Amazon Web Services Region. |
-| `ListTagsForResource` | - | `readonly` | `arn` | - | `ListTagsForResourceResponse` | `InternalServerException`, `ResourceNotFoundException` | Lists the tags attached to a Region switch resource. |
-| `StartPlanExecution` | - | - | `action`, `planArn`, `targetRegion` | - | `StartPlanExecutionResponse` | `AccessDeniedException`, `IllegalArgumentException`, `IllegalStateException`, `ResourceNotFoundException` | Starts the execution of a Region switch plan. You can execute a plan in either `graceful` or `ungraceful` mode. |
-| `TagResource` | - | - | `arn`, `tags` | - | `TagResourceResponse` | `InternalServerException`, `ResourceNotFoundException` | Adds or updates tags for a Region switch resource. You can assign metadata to your resources in the form of tags, which are key-value pairs. |
-| `UntagResource` | - | - | `arn`, `resourceTagKeys` | - | `UntagResourceResponse` | `InternalServerException`, `ResourceNotFoundException` | Removes tags from a Region switch resource. |
-| `UpdatePlan` | - | - | `arn`, `executionRole`, `workflows` | - | `UpdatePlanResponse` | `ResourceNotFoundException` | Updates an existing Region switch plan. You can modify the plan's description, workflows, execution role, recovery time objective, associated alarms, and triggers. |
-| `UpdatePlanExecution` | - | - | `action`, `executionId`, `planArn` | - | `UpdatePlanExecutionResponse` | `AccessDeniedException`, `IllegalStateException`, `ResourceNotFoundException` | Updates an in-progress plan execution. This operation allows you to modify certain aspects of the execution, such as adding a comment or changing the action. |
-| `UpdatePlanExecutionStep` | - | - | `actionToTake`, `comment`, `executionId`, `planArn`, `stepName` | - | `UpdatePlanExecutionStepResponse` | `AccessDeniedException`, `ResourceNotFoundException` | Updates a specific step in an in-progress plan execution. This operation allows you to modify the step's comment or action. |
+| `ApprovePlanExecutionStep` | `-` | - | `planArn`, `executionId`, `stepName`, `approval` | - | `ApprovePlanExecutionStepResponse` | `AccessDeniedException`, `ResourceNotFoundException` | Approves a step in a plan execution that requires manual approval. When you create a plan, you can include approval steps that require manual intervention before the execution can proceed. This operation allows you t ... |
+| `CancelPlanExecution` | `-` | - | `planArn`, `executionId` | - | `CancelPlanExecutionResponse` | `AccessDeniedException`, `ResourceNotFoundException` | Cancels an in-progress plan execution. This operation stops the execution of the plan and prevents any further steps from being processed. You must specify the plan ARN and execution ID. You can also provide an optio ... |
+| `GetPlanEvaluationStatus` | `-` | `readonly`, `paginated` | `planArn` | - | `GetPlanEvaluationStatusResponse` | `AccessDeniedException`, `ResourceNotFoundException` | Retrieves the evaluation status of a Region switch plan. The evaluation status provides information about the last time the plan was evaluated and any warnings or issues detected. |
+| `GetPlanExecution` | `-` | `readonly`, `paginated` | `planArn`, `executionId` | - | `GetPlanExecutionResponse` | `AccessDeniedException`, `ResourceNotFoundException` | Retrieves detailed information about a specific plan execution. You must specify the plan ARN and execution ID. |
+| `GetPlanInRegion` | `-` | `readonly` | `arn` | - | `GetPlanInRegionResponse` | `AccessDeniedException`, `ResourceNotFoundException` | Retrieves information about a Region switch plan in a specific Amazon Web Services Region. This operation is useful for getting Region-specific information about a plan. |
+| `ListPlanExecutionEvents` | `-` | `readonly`, `paginated` | `planArn`, `executionId` | - | `ListPlanExecutionEventsResponse` | `AccessDeniedException`, `ResourceNotFoundException` | Lists the events that occurred during a plan execution. These events provide a detailed timeline of the execution process. |
+| `ListPlanExecutions` | `-` | `readonly`, `paginated` | `planArn` | - | `ListPlanExecutionsResponse` | `AccessDeniedException`, `ResourceNotFoundException` | Lists the executions of a Region switch plan. This operation returns information about both current and historical executions. |
+| `ListPlansInRegion` | `-` | `readonly`, `paginated` | - | - | `ListPlansInRegionResponse` | `AccessDeniedException` | Lists all Region switch plans in your Amazon Web Services account that are available in the current Amazon Web Services Region. |
+| `ListRoute53HealthChecks` | `-` | `readonly`, `paginated` | `arn` | - | `ListRoute53HealthChecksResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException` | List the Amazon Route 53 health checks. |
+| `ListRoute53HealthChecksInRegion` | `-` | `readonly`, `paginated` | `arn` | - | `ListRoute53HealthChecksInRegionResponse` | `AccessDeniedException`, `IllegalArgumentException`, `InternalServerException`, `ResourceNotFoundException` | List the Amazon Route 53 health checks in a specific Amazon Web Services Region. |
+| `StartPlanExecution` | `-` | - | `planArn`, `targetRegion`, `action` | - | `StartPlanExecutionResponse` | `AccessDeniedException`, `IllegalArgumentException`, `IllegalStateException`, `ResourceNotFoundException` | Starts the execution of a Region switch plan. You can execute a plan in either graceful or ungraceful mode. Specifing ungraceful mode either changes the behavior of the execution blocks in a workflow or skips specifi ... |
+| `UpdatePlanExecution` | `-` | - | `planArn`, `executionId`, `action` | - | `UpdatePlanExecutionResponse` | `AccessDeniedException`, `IllegalStateException`, `ResourceNotFoundException` | Updates an in-progress plan execution. This operation allows you to modify certain aspects of the execution, such as adding a comment or changing the action. |
+| `UpdatePlanExecutionStep` | `-` | - | `planArn`, `executionId`, `comment`, `stepName`, `actionToTake` | - | `UpdatePlanExecutionStepResponse` | `AccessDeniedException`, `ResourceNotFoundException` | Updates a specific step in an in-progress plan execution. This operation allows you to modify the step's comment or action. |
 
 ## HTTP Bindings
 
@@ -136,31 +107,56 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ResourceNotFoundException` | `structure` | `message` | The specified resource was not found. |
-| `AccessDeniedException` | `structure` | `message` | You do not have sufficient access to perform this action. |
-| `InternalServerException` | `structure` | `message` | The request processing has failed because of an unknown error, exception, or failure. |
-| `IllegalStateException` | `structure` | `message` | The operation failed because the current state of the resource doesn't allow the operation to proceed. |
-| `IllegalArgumentException` | `structure` | `message` | The request processing has an invalid argument. |
-| `ApprovePlanExecutionStepRequest` | `structure` | `approval`, `comment`, `executionId`, `planArn`, `stepName` | - |
-| `ApprovePlanExecutionStepResponse` | `structure` | - | - |
-| `CancelPlanExecutionRequest` | `structure` | `comment`, `executionId`, `planArn` | - |
-| `CancelPlanExecutionResponse` | `structure` | - | - |
-| `CreatePlanRequest` | `structure` | `associatedAlarms`, `description`, `executionRole`, `name`, `primaryRegion`, `recoveryApproach`, `recoveryTimeObjectiveMinutes`, `regions`, `reportConfiguration`, `tags`, `triggers`, `workflows` | - |
-| `CreatePlanResponse` | `structure` | `plan` | - |
-| `DeletePlanRequest` | `structure` | `arn` | - |
-| `DeletePlanResponse` | `structure` | - | - |
-| `GetPlanRequest` | `structure` | `arn` | - |
-| `GetPlanResponse` | `structure` | `plan` | - |
-| `GetPlanEvaluationStatusRequest` | `structure` | `maxResults`, `nextToken`, `planArn` | - |
-| `GetPlanEvaluationStatusResponse` | `structure` | `evaluationState`, `lastEvaluatedVersion`, `lastEvaluationTime`, `nextToken`, `planArn`, `region`, `warnings` | - |
-| `GetPlanExecutionRequest` | `structure` | `executionId`, `maxResults`, `nextToken`, `planArn` | - |
-| `GetPlanExecutionResponse` | `structure` | `actualRecoveryTime`, `comment`, `endTime`, `executionAction`, `executionId`, `executionRegion`, `executionState`, `generatedReportDetails`, `mode`, `nextToken`, `plan`, `planArn`, ... (+5) | - |
-| `GetPlanInRegionRequest` | `structure` | `arn` | - |
-| `GetPlanInRegionResponse` | `structure` | `plan` | - |
-| `ListPlanExecutionEventsRequest` | `structure` | `executionId`, `maxResults`, `name`, `nextToken`, `planArn` | - |
-| `ListPlanExecutionEventsResponse` | `structure` | `items`, `nextToken` | - |
-| `ListPlanExecutionsRequest` | `structure` | `maxResults`, `nextToken`, `planArn`, `state` | - |
-
+| `AccessDeniedException` | `structure` | message | You do not have sufficient access to perform this action. HTTP Status Code: 403 |
+| `IllegalArgumentException` | `structure` | message | The request processing has an invalid argument. |
+| `IllegalStateException` | `structure` | message | The operation failed because the current state of the resource doesn't allow the operation to proceed. HTTP Status Code: 400 |
+| `InternalServerException` | `structure` | message | The request processing has failed because of an unknown error, exception, or failure. HTTP Status Code: 500 |
+| `ResourceNotFoundException` | `structure` | message | The specified resource was not found. HTTP Status Code: 404 |
+| `ApprovePlanExecutionStepRequest` | `structure` | planArn, executionId, stepName, approval, comment | - |
+| `ApprovePlanExecutionStepResponse` | `structure` | **empty (no members)** | - |
+| `CancelPlanExecutionRequest` | `structure` | planArn, executionId, comment | - |
+| `CancelPlanExecutionResponse` | `structure` | **empty (no members)** | - |
+| `GetPlanEvaluationStatusRequest` | `structure` | planArn, maxResults, nextToken | - |
+| `GetPlanEvaluationStatusResponse` | `structure` | planArn, lastEvaluationTime, lastEvaluatedVersion, region, evaluationState, warnings, nextToken | - |
+| `GetPlanExecutionRequest` | `structure` | planArn, executionId, maxResults, nextToken | - |
+| `GetPlanExecutionResponse` | `structure` | planArn, executionId, version, updatedAt, comment, startTime, endTime, mode, executionState, executionAction, executionRegion, recoveryExecutionId, ... (+5) | - |
+| `GetPlanInRegionRequest` | `structure` | arn | - |
+| `GetPlanInRegionResponse` | `structure` | plan | - |
+| `ListPlanExecutionEventsRequest` | `structure` | planArn, executionId, maxResults, nextToken, name | - |
+| `ListPlanExecutionEventsResponse` | `structure` | items, nextToken | - |
+| `ListPlanExecutionsRequest` | `structure` | planArn, maxResults, nextToken, state | - |
+| `ListPlanExecutionsResponse` | `structure` | items, nextToken | - |
+| `ListPlansInRegionRequest` | `structure` | maxResults, nextToken | - |
+| `ListPlansInRegionResponse` | `structure` | plans, nextToken | - |
+| `ListRoute53HealthChecksRequest` | `structure` | arn, hostedZoneId, recordName, maxResults, nextToken | - |
+| `ListRoute53HealthChecksResponse` | `structure` | healthChecks, nextToken | - |
+| `ListRoute53HealthChecksInRegionRequest` | `structure` | arn, hostedZoneId, recordName, maxResults, nextToken | - |
+| `ListRoute53HealthChecksInRegionResponse` | `structure` | healthChecks, nextToken | - |
+| `StartPlanExecutionRequest` | `structure` | planArn, targetRegion, action, mode, comment, latestVersion, recoveryExecutionId | - |
+| `StartPlanExecutionResponse` | `structure` | executionId, plan, planVersion, activateRegion, deactivateRegion | - |
+| `UpdatePlanExecutionRequest` | `structure` | planArn, executionId, action, comment | - |
+| `UpdatePlanExecutionResponse` | `structure` | **empty (no members)** | - |
+| `UpdatePlanExecutionStepRequest` | `structure` | planArn, executionId, comment, stepName, actionToTake | - |
+| `UpdatePlanExecutionStepResponse` | `structure` | **empty (no members)** | - |
+| `AlarmCondition` | `enum` | RED, GREEN | - |
+| `AlarmType` | `enum` | APPLICATION_HEALTH, TRIGGER | - |
+| `Approval` | `enum` | APPROVE, DECLINE | - |
+| `DocumentDbDefaultBehavior` | `enum` | SWITCHOVER_ONLY, FAILOVER | - |
+| `DocumentDbUngracefulBehavior` | `enum` | FAILOVER | - |
+| `Ec2AsgCapacityMonitoringApproach` | `enum` | SAMPLED_MAX_IN_LAST_24_HOURS, AUTOSCALING_MAX_IN_LAST_24_HOURS | - |
+| `EcsCapacityMonitoringApproach` | `enum` | SAMPLED_MAX_IN_LAST_24_HOURS, CONTAINER_INSIGHTS_MAX_IN_LAST_24_HOURS | - |
+| `EksCapacityMonitoringApproach` | `enum` | SAMPLED_MAX_IN_LAST_24_HOURS | - |
+| `EvaluationStatus` | `enum` | PASSED, ACTION_REQUIRED, PENDING_EVALUATION, UNKNOWN | - |
+| `ExecutionAction` | `enum` | ACTIVATE, DEACTIVATE, POST_RECOVERY | - |
+| `ExecutionBlockType` | `enum` | CUSTOM_ACTION_LAMBDA, EXECUTION_APPROVAL, AURORA, EC2_ASG, ROUTING_CONTROL, REGION_SWITCH, PARALLEL, ECS, EKS_RESOURCE_SCALING, ROUTE53_HEALTH_CHECK, DOCUMENTDB, RDS_PROMOTE_READ_REPLICA, ... (+1) | - |
+| `ExecutionEventType` | `enum` | UNKNOWN, EXECUTION_PENDING, EXECUTION_STARTED, EXECUTION_SUCCEEDED, EXECUTION_FAILED, EXECUTION_PAUSING, EXECUTION_PAUSED, EXECUTION_CANCELING, EXECUTION_CANCELED, EXECUTION_PENDING_APPROVAL, EXECUTION_BEHAVIOR_CHANGED_TO_UNGRACEFUL, EXECUTION_BEHAVIOR_CHANGED_TO_GRACEFUL, ... (+14) | - |
+| `ExecutionMode` | `enum` | GRACEFUL, UNGRACEFUL | - |
+| `ExecutionState` | `enum` | IN_PROGRESS, PAUSED_BY_FAILED_STEP, PAUSED_BY_OPERATOR, COMPLETED, COMPLETED_WITH_EXCEPTIONS, CANCELLED, PLAN_EXECUTION_TIMED_OUT, PENDING_MANUAL_APPROVAL, FAILED, PENDING, COMPLETED_MONITORING_APPLICATION_HEALTH | - |
+| `FailedReportErrorCode` | `enum` | INSUFFICIENT_PERMISSIONS, INVALID_RESOURCE, CONFIGURATION_ERROR | - |
+| `GlobalAuroraDefaultBehavior` | `enum` | SWITCHOVER_ONLY, FAILOVER | - |
+| `GlobalAuroraUngracefulBehavior` | `enum` | FAILOVER | - |
+| `LambdaUngracefulBehavior` | `enum` | SKIP | - |
+| `RecoveryApproach` | `enum` | ACTIVE_ACTIVE, ACTIVE_PASSIVE | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

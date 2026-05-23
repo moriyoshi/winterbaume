@@ -74,98 +74,36 @@ Parity implications:
 
 ### List
 
-- Operations: `ListAccountAssociations`, `ListBillingGroupCostReports`, `ListBillingGroups`, `ListCustomLineItemVersions`, `ListCustomLineItems`, `ListPricingPlans`, `ListPricingPlansAssociatedWithPricingRule`, `ListPricingRules`, `ListPricingRulesAssociatedToPricingPlan`, `ListResourcesAssociatedToCustomLineItem`, `ListTagsForResource`
-- Traits: `paginated` (10), `readonly` (10)
-- Common required input members in this group: `Arn`, `PricingPlanArn`, `PricingRuleArn`, `ResourceArn`
-
-### Create
-
-- Operations: `CreateBillingGroup`, `CreateCustomLineItem`, `CreatePricingPlan`, `CreatePricingRule`
-- Traits: `idempotency-token` (4), `idempotent` (3)
-- Common required input members in this group: `AccountGrouping`, `BillingGroupArn`, `ChargeDetails`, `ComputationPreference`, `Description`, `Name`, `Scope`, `Type`
-
-### Delete
-
-- Operations: `DeleteBillingGroup`, `DeleteCustomLineItem`, `DeletePricingPlan`, `DeletePricingRule`
-- Traits: `idempotent` (4)
-- Common required input members in this group: `Arn`
-
-### Update
-
-- Operations: `UpdateBillingGroup`, `UpdateCustomLineItem`, `UpdatePricingPlan`, `UpdatePricingRule`
-- Traits: `idempotent` (4)
-- Common required input members in this group: `Arn`
-
-### Associate
-
-- Operations: `AssociateAccounts`, `AssociatePricingRules`
-- Traits: `idempotent` (2)
-- Common required input members in this group: `AccountIds`, `Arn`, `PricingRuleArns`
-
-### Batch
-
-- Operations: `BatchAssociateResourcesToCustomLineItem`, `BatchDisassociateResourcesFromCustomLineItem`
-- Traits: `idempotent` (2)
-- Common required input members in this group: `ResourceArns`, `TargetArn`
-
-### Disassociate
-
-- Operations: `DisassociateAccounts`, `DisassociatePricingRules`
-- Traits: `idempotent` (2)
-- Common required input members in this group: `AccountIds`, `Arn`, `PricingRuleArns`
+- Operations: `ListAccountAssociations`, `ListBillingGroupCostReports`, `ListTagsForResource`
+- Traits: `readonly` (2), `paginated` (2)
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetBillingGroupCostReport`
-- Traits: `paginated` (1), `readonly` (1)
-- Common required input members in this group: `Arn`
+- Traits: `readonly` (1), `paginated` (1)
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AssociateAccounts` | `POST /associate-accounts` | `idempotent` | `AccountIds`, `Arn` | - | `AssociateAccountsOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceLimitExceededException`, `ThrottlingException`, `ValidationException` | Connects an array of account IDs in a consolidated billing family to a predefined billing group. The account IDs must be a part of the consolidated billing family during the current month, and not already associated with another billing group. |
-| `AssociatePricingRules` | `PUT /associate-pricing-rules` | `idempotent` | `Arn`, `PricingRuleArns` | - | `AssociatePricingRulesOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceLimitExceededException`, `ThrottlingException`, `ValidationException` | Connects an array of `PricingRuleArns` to a defined `PricingPlan`. The maximum number `PricingRuleArn` that can be associated in one call is 30. |
-| `BatchAssociateResourcesToCustomLineItem` | `PUT /batch-associate-resources-to-custom-line-item` | `idempotent` | `ResourceArns`, `TargetArn` | - | `BatchAssociateResourcesToCustomLineItemOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceLimitExceededException`, `ThrottlingException`, `ValidationException` | Associates a batch of resources to a percentage custom line item. |
-| `BatchDisassociateResourcesFromCustomLineItem` | `PUT /batch-disassociate-resources-from-custom-line-item` | `idempotent` | `ResourceArns`, `TargetArn` | - | `BatchDisassociateResourcesFromCustomLineItemOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Disassociates a batch of resources from a percentage custom line item. |
-| `CreateBillingGroup` | `POST /create-billing-group` | `idempotent`, `idempotency-token` | `AccountGrouping`, `ComputationPreference`, `Name` | `ClientToken` | `CreateBillingGroupOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceLimitExceededException`, `ThrottlingException`, `ValidationException` | Creates a billing group that resembles a consolidated billing family that Amazon Web Services charges, based off of the predefined pricing plan computation. |
-| `CreateCustomLineItem` | `POST /create-custom-line-item` | `idempotency-token` | `BillingGroupArn`, `ChargeDetails`, `Description`, `Name` | `ClientToken` | `CreateCustomLineItemOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceLimitExceededException`, `ThrottlingException`, `ValidationException` | Creates a custom line item that can be used to create a one-time fixed charge that can be applied to a single billing group for the current or previous billing period. The one-time fixed charge is either a fee or discount. |
-| `CreatePricingPlan` | `POST /create-pricing-plan` | `idempotent`, `idempotency-token` | `Name` | `ClientToken` | `CreatePricingPlanOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceLimitExceededException`, `ThrottlingException`, `ValidationException` | Creates a pricing plan that is used for computing Amazon Web Services charges for billing groups. |
-| `CreatePricingRule` | `POST /create-pricing-rule` | `idempotent`, `idempotency-token` | `Name`, `Scope`, `Type` | `ClientToken` | `CreatePricingRuleOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceLimitExceededException`, `ThrottlingException`, `ValidationException` | Creates a pricing rule can be associated to a pricing plan, or a set of pricing plans. |
-| `DeleteBillingGroup` | `POST /delete-billing-group` | `idempotent` | `Arn` | - | `DeleteBillingGroupOutput` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Deletes a billing group. |
-| `DeleteCustomLineItem` | `POST /delete-custom-line-item` | `idempotent` | `Arn` | - | `DeleteCustomLineItemOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Deletes the custom line item identified by the given ARN in the current, or previous billing period. |
-| `DeletePricingPlan` | `POST /delete-pricing-plan` | `idempotent` | `Arn` | - | `DeletePricingPlanOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Deletes a pricing plan. The pricing plan must not be associated with any billing groups to delete successfully. |
-| `DeletePricingRule` | `POST /delete-pricing-rule` | `idempotent` | `Arn` | - | `DeletePricingRuleOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Deletes the pricing rule that's identified by the input Amazon Resource Name (ARN). |
-| `DisassociateAccounts` | `POST /disassociate-accounts` | `idempotent` | `AccountIds`, `Arn` | - | `DisassociateAccountsOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes the specified list of account IDs from the given billing group. |
-| `DisassociatePricingRules` | `PUT /disassociate-pricing-rules` | `idempotent` | `Arn`, `PricingRuleArns` | - | `DisassociatePricingRulesOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Disassociates a list of pricing rules from a pricing plan. |
 | `GetBillingGroupCostReport` | `POST /get-billing-group-cost-report` | `readonly`, `paginated` | `Arn` | - | `GetBillingGroupCostReportOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves the margin summary report, which includes the Amazon Web Services cost and charged amount (pro forma cost) by Amazon Web Services service for a specific billing group. |
-| `ListAccountAssociations` | `POST /list-account-associations` | `readonly`, `paginated` | - | - | `ListAccountAssociationsOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | This is a paginated call to list linked accounts that are linked to the payer account for the specified time period. If no information is provided, the current billing period is used. |
+| `ListAccountAssociations` | `POST /list-account-associations` | `readonly`, `paginated` | - | - | `ListAccountAssociationsOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | This is a paginated call to list linked accounts that are linked to the payer account for the specified time period. If no information is provided, the current billing period is used. The response will optionally inc ... |
 | `ListBillingGroupCostReports` | `POST /list-billing-group-cost-reports` | `readonly`, `paginated` | - | - | `ListBillingGroupCostReportsOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | A paginated call to retrieve a summary report of actual Amazon Web Services charges and the calculated Amazon Web Services charges based on the associated pricing plan of a billing group. |
-| `ListBillingGroups` | `POST /list-billing-groups` | `readonly`, `paginated` | - | - | `ListBillingGroupsOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | A paginated call to retrieve a list of billing groups for the given billing period. If you don't provide a billing group, the current billing period is used. |
-| `ListCustomLineItemVersions` | `POST /list-custom-line-item-versions` | `readonly`, `paginated` | `Arn` | - | `ListCustomLineItemVersionsOutput` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | A paginated call to get a list of all custom line item versions. |
-| `ListCustomLineItems` | `POST /list-custom-line-items` | `readonly`, `paginated` | - | - | `ListCustomLineItemsOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | A paginated call to get a list of all custom line items (FFLIs) for the given billing period. If you don't provide a billing period, the current billing period is used. |
-| `ListPricingPlans` | `POST /list-pricing-plans` | `readonly`, `paginated` | - | - | `ListPricingPlansOutput` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | A paginated call to get pricing plans for the given billing period. If you don't provide a billing period, the current billing period is used. |
-| `ListPricingPlansAssociatedWithPricingRule` | `POST /list-pricing-plans-associated-with-pricing-rule` | `readonly`, `paginated` | `PricingRuleArn` | - | `ListPricingPlansAssociatedWithPricingRuleOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | A list of the pricing plans that are associated with a pricing rule. |
-| `ListPricingRules` | `POST /list-pricing-rules` | `readonly`, `paginated` | - | - | `ListPricingRulesOutput` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Describes a pricing rule that can be associated to a pricing plan, or set of pricing plans. |
-| `ListPricingRulesAssociatedToPricingPlan` | `POST /list-pricing-rules-associated-to-pricing-plan` | `readonly`, `paginated` | `PricingPlanArn` | - | `ListPricingRulesAssociatedToPricingPlanOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the pricing rules that are associated with a pricing plan. |
-| `ListResourcesAssociatedToCustomLineItem` | `POST /list-resources-associated-to-custom-line-item` | `readonly`, `paginated` | `Arn` | - | `ListResourcesAssociatedToCustomLineItemOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | List the resources that are associated to a custom line item. |
 | `ListTagsForResource` | `GET /tags/{ResourceArn}` | - | `ResourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | A list the tags for a resource. |
-| `TagResource` | `POST /tags/{ResourceArn}` | - | `ResourceArn`, `Tags` | - | `TagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Associates the specified tags to a resource with the specified `resourceArn`. If existing tags on a resource are not specified in the request parameters, they are not changed. |
+| `TagResource` | `POST /tags/{ResourceArn}` | - | `ResourceArn`, `Tags` | - | `TagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Associates the specified tags to a resource with the specified resourceArn . If existing tags on a resource are not specified in the request parameters, they are not changed. |
 | `UntagResource` | `DELETE /tags/{ResourceArn}` | - | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes specified tags from a resource. |
-| `UpdateBillingGroup` | `POST /update-billing-group` | `idempotent` | `Arn` | - | `UpdateBillingGroupOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | This updates an existing billing group. |
-| `UpdateCustomLineItem` | `POST /update-custom-line-item` | `idempotent` | `Arn` | - | `UpdateCustomLineItemOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Update an existing custom line item in the current or previous billing period. |
-| `UpdatePricingPlan` | `PUT /update-pricing-plan` | `idempotent` | `Arn` | - | `UpdatePricingPlanOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | This updates an existing pricing plan. |
-| `UpdatePricingRule` | `PUT /update-pricing-rule` | `idempotent` | `Arn` | - | `UpdatePricingRuleOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates an existing pricing rule. |
 
 ## HTTP Bindings
 
@@ -179,31 +117,41 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `Message` | You do not have sufficient access to perform this action. |
-| `InternalServerException` | `structure` | `Message`, `RetryAfterSeconds` | An unexpected error occurred while processing a request. |
-| `ThrottlingException` | `structure` | `Message`, `RetryAfterSeconds` | The request was denied due to request throttling. |
-| `ValidationException` | `structure` | `Fields`, `Message`, `Reason` | The input doesn't match with the constraints specified by Amazon Web Services services. |
-| `ResourceNotFoundException` | `structure` | `Message`, `ResourceId`, `ResourceType` | The request references a resource that doesn't exist. |
-| `ConflictException` | `structure` | `Message`, `Reason`, `ResourceId`, `ResourceType` | You can cause an inconsistent state by updating or deleting a resource. |
-| `ServiceLimitExceededException` | `structure` | `LimitCode`, `Message`, `ResourceId`, `ResourceType`, `ServiceCode` | The request would cause a service limit to exceed. |
-| `AssociateAccountsInput` | `structure` | `AccountIds`, `Arn` | - |
-| `AssociateAccountsOutput` | `structure` | `Arn` | - |
-| `AssociatePricingRulesInput` | `structure` | `Arn`, `PricingRuleArns` | - |
-| `AssociatePricingRulesOutput` | `structure` | `Arn` | - |
-| `BatchAssociateResourcesToCustomLineItemInput` | `structure` | `BillingPeriodRange`, `ResourceArns`, `TargetArn` | - |
-| `BatchAssociateResourcesToCustomLineItemOutput` | `structure` | `FailedAssociatedResources`, `SuccessfullyAssociatedResources` | - |
-| `BatchDisassociateResourcesFromCustomLineItemInput` | `structure` | `BillingPeriodRange`, `ResourceArns`, `TargetArn` | - |
-| `BatchDisassociateResourcesFromCustomLineItemOutput` | `structure` | `FailedDisassociatedResources`, `SuccessfullyDisassociatedResources` | - |
-| `CreateBillingGroupInput` | `structure` | `AccountGrouping`, `ClientToken`, `ComputationPreference`, `Description`, `Name`, `PrimaryAccountId`, `Tags` | - |
-| `CreateBillingGroupOutput` | `structure` | `Arn` | - |
-| `CreateCustomLineItemInput` | `structure` | `AccountId`, `BillingGroupArn`, `BillingPeriodRange`, `ChargeDetails`, `ClientToken`, `ComputationRule`, `Description`, `Name`, `PresentationDetails`, `Tags` | - |
-| `CreateCustomLineItemOutput` | `structure` | `Arn` | - |
-| `CreatePricingPlanInput` | `structure` | `ClientToken`, `Description`, `Name`, `PricingRuleArns`, `Tags` | - |
-| `CreatePricingPlanOutput` | `structure` | `Arn` | - |
-| `CreatePricingRuleInput` | `structure` | `BillingEntity`, `ClientToken`, `Description`, `ModifierPercentage`, `Name`, `Operation`, `Scope`, `Service`, `Tags`, `Tiering`, `Type`, `UsageType` | - |
-| `CreatePricingRuleOutput` | `structure` | `Arn` | - |
-| `DeleteBillingGroupInput` | `structure` | `Arn` | - |
-
+| `AccessDeniedException` | `structure` | Message | You do not have sufficient access to perform this action. |
+| `ConflictException` | `structure` | Message, ResourceId, ResourceType, Reason | You can cause an inconsistent state by updating or deleting a resource. |
+| `InternalServerException` | `structure` | Message, RetryAfterSeconds | An unexpected error occurred while processing a request. |
+| `ResourceNotFoundException` | `structure` | Message, ResourceId, ResourceType | The request references a resource that doesn't exist. |
+| `ServiceLimitExceededException` | `structure` | Message, ResourceId, ResourceType, LimitCode, ServiceCode | The request would cause a service limit to exceed. |
+| `ThrottlingException` | `structure` | Message, RetryAfterSeconds | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | Message, Reason, Fields | The input doesn't match with the constraints specified by Amazon Web Services services. |
+| `GetBillingGroupCostReportInput` | `structure` | Arn, BillingPeriodRange, GroupBy, MaxResults, NextToken | - |
+| `GetBillingGroupCostReportOutput` | `structure` | BillingGroupCostReportResults, NextToken | - |
+| `ListAccountAssociationsInput` | `structure` | BillingPeriod, Filters, NextToken | - |
+| `ListAccountAssociationsOutput` | `structure` | LinkedAccounts, NextToken | - |
+| `ListBillingGroupCostReportsInput` | `structure` | BillingPeriod, MaxResults, NextToken, Filters | - |
+| `ListBillingGroupCostReportsOutput` | `structure` | BillingGroupCostReports, NextToken | - |
+| `ListTagsForResourceRequest` | `structure` | ResourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | Tags | - |
+| `TagResourceRequest` | `structure` | ResourceArn, Tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | ResourceArn, TagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `AssociateResourceErrorReason` | `enum` | INVALID_ARN, SERVICE_LIMIT_EXCEEDED, ILLEGAL_CUSTOMLINEITEM, INTERNAL_SERVER_EXCEPTION, INVALID_BILLING_PERIOD_RANGE | - |
+| `BillingGroupStatus` | `enum` | ACTIVE, PRIMARY_ACCOUNT_MISSING, PENDING | - |
+| `BillingGroupType` | `enum` | STANDARD, TRANSFER_BILLING | - |
+| `ComputationRuleEnum` | `enum` | ITEMIZED, CONSOLIDATED | The display settings of the custom line item |
+| `ConflictExceptionReason` | `enum` | RESOURCE_NAME_CONFLICT, PRICING_RULE_IN_PRICING_PLAN_CONFLICT, PRICING_PLAN_ATTACHED_TO_BILLING_GROUP_DELETE_CONFLICT, PRICING_RULE_ATTACHED_TO_PRICING_PLAN_DELETE_CONFLICT, WRITE_CONFLICT_RETRY | - |
+| `CurrencyCode` | `enum` | USD, CNY | - |
+| `CustomLineItemRelationship` | `enum` | PARENT, CHILD | - |
+| `CustomLineItemType` | `enum` | CREDIT, FEE | - |
+| `GroupByAttributeName` | `enum` | PRODUCT_NAME, BILLING_PERIOD | - |
+| `LineItemFilterAttributeName` | `enum` | LINE_ITEM_TYPE, SERVICE | - |
+| `LineItemFilterValue` | `enum` | SAVINGS_PLAN_NEGATION | - |
+| `MatchOption` | `enum` | NOT_EQUAL, EQUAL | - |
+| `PricingRuleScope` | `enum` | GLOBAL, SERVICE, BILLING_ENTITY, SKU | - |
+| `PricingRuleType` | `enum` | MARKUP, DISCOUNT, TIERING | - |
+| `SearchOption` | `enum` | STARTS_WITH | - |
+| `ValidationExceptionReason` | `enum` | UNKNOWN_OPERATION, CANNOT_PARSE, FIELD_VALIDATION_FAILED, OTHER, PRIMARY_NOT_ASSOCIATED, PRIMARY_CANNOT_DISASSOCIATE, ACCOUNTS_NOT_ASSOCIATED, ACCOUNTS_ALREADY_ASSOCIATED, ILLEGAL_PRIMARY_ACCOUNT, ILLEGAL_ACCOUNTS, MISMATCHED_BILLINGGROUP_ARN, MISSING_BILLINGGROUP, ... (+54) | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

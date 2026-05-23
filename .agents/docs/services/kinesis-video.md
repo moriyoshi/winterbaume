@@ -72,84 +72,85 @@ Parity implications:
 
 - Operations: `DescribeEdgeConfiguration`, `DescribeImageGenerationConfiguration`, `DescribeMappedResourceConfiguration`, `DescribeMediaStorageConfiguration`, `DescribeNotificationConfiguration`, `DescribeSignalingChannel`, `DescribeStream`, `DescribeStreamStorageConfiguration`
 - Traits: `paginated` (1)
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateDataRetention`, `UpdateImageGenerationConfiguration`, `UpdateMediaStorageConfiguration`, `UpdateNotificationConfiguration`, `UpdateSignalingChannel`, `UpdateStream`, `UpdateStreamStorageConfiguration`
-- Common required input members in this group: `ChannelARN`, `CurrentVersion`, `DataRetentionChangeInHours`, `MediaStorageConfiguration`, `Operation`, `StreamStorageConfiguration`
+- Common required input members in this group: `CurrentVersion`, `ChannelARN`
 
 ### List
 
 - Operations: `ListEdgeAgentConfigurations`, `ListSignalingChannels`, `ListStreams`, `ListTagsForResource`, `ListTagsForStream`
 - Traits: `paginated` (3)
-- Common required input members in this group: `HubDeviceArn`, `ResourceARN`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteEdgeConfiguration`, `DeleteSignalingChannel`, `DeleteStream`
-- Common required input members in this group: `ChannelARN`, `StreamARN`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateSignalingChannel`, `CreateStream`
-- Common required input members in this group: `ChannelName`, `StreamName`
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetDataEndpoint`, `GetSignalingChannelEndpoint`
-- Common required input members in this group: `APIName`, `ChannelARN`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`, `TagStream`
-- Common required input members in this group: `ResourceARN`, `Tags`
+- Common required input members in this group: `Tags`
 
 ### Untag
 
 - Operations: `UntagResource`, `UntagStream`
-- Common required input members in this group: `ResourceARN`, `TagKeyList`
+- Common required input members in this group: `TagKeyList`
 
 ### Start
 
 - Operations: `StartEdgeConfigurationUpdate`
-- Common required input members in this group: `EdgeConfig`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateSignalingChannel` | `POST /createSignalingChannel` | - | `ChannelName` | - | `CreateSignalingChannelOutput` | `AccessDeniedException`, `AccountChannelLimitExceededException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceInUseException`, `TagsPerResourceExceededLimitException` | Creates a signaling channel. `CreateSignalingChannel` is an asynchronous operation. |
-| `CreateStream` | `POST /createStream` | - | `StreamName` | - | `CreateStreamOutput` | `AccountStreamLimitExceededException`, `ClientLimitExceededException`, `DeviceStreamLimitExceededException`, `InvalidArgumentException`, `InvalidDeviceException`, `ResourceInUseException`, `TagsPerResourceExceededLimitException` | Creates a new Kinesis video stream. When you create a new stream, Kinesis Video Streams assigns it a version number. |
-| `DeleteEdgeConfiguration` | `POST /deleteEdgeConfiguration` | - | - | - | `DeleteEdgeConfigurationOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceNotFoundException`, `StreamEdgeConfigurationNotFoundException` | An asynchronous API that deletes a stream’s existing edge configuration, as well as the corresponding media from the Edge Agent. When you invoke this API, the sync status is set to `DELETING`. |
-| `DeleteSignalingChannel` | `POST /deleteSignalingChannel` | - | `ChannelARN` | - | `DeleteSignalingChannelOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceInUseException`, `ResourceNotFoundException`, `VersionMismatchException` | Deletes a specified signaling channel. `DeleteSignalingChannel` is an asynchronous operation. |
-| `DeleteStream` | `POST /deleteStream` | - | `StreamARN` | - | `DeleteStreamOutput` | `ClientLimitExceededException`, `InvalidArgumentException`, `NotAuthorizedException`, `ResourceInUseException`, `ResourceNotFoundException`, `VersionMismatchException` | Deletes a Kinesis video stream and the data contained in the stream. This method marks the stream for deletion, and makes the data in the stream inaccessible immediately. |
-| `DescribeEdgeConfiguration` | `POST /describeEdgeConfiguration` | - | - | - | `DescribeEdgeConfigurationOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceNotFoundException`, `StreamEdgeConfigurationNotFoundException` | Describes a stream’s edge configuration that was set using the `StartEdgeConfigurationUpdate` API and the latest status of the edge agent's recorder and uploader jobs. Use this API to get the status of the configuration to determine if the configuration is in... |
-| `DescribeImageGenerationConfiguration` | `POST /describeImageGenerationConfiguration` | - | - | - | `DescribeImageGenerationConfigurationOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceNotFoundException` | Gets the `ImageGenerationConfiguration` for a given Kinesis video stream. |
-| `DescribeMappedResourceConfiguration` | `POST /describeMappedResourceConfiguration` | `paginated` | - | - | `DescribeMappedResourceConfigurationOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceNotFoundException` | Returns the most current information about the stream. The `streamName` or `streamARN` should be provided in the input. |
-| `DescribeMediaStorageConfiguration` | `POST /describeMediaStorageConfiguration` | - | - | - | `DescribeMediaStorageConfigurationOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceNotFoundException` | Returns the most current information about the channel. Specify the `ChannelName` or `ChannelARN` in the input. |
-| `DescribeNotificationConfiguration` | `POST /describeNotificationConfiguration` | - | - | - | `DescribeNotificationConfigurationOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceNotFoundException` | Gets the `NotificationConfiguration` for a given Kinesis video stream. |
+| `CreateSignalingChannel` | `POST /createSignalingChannel` | - | `ChannelName` | - | `CreateSignalingChannelOutput` | `AccessDeniedException`, `AccountChannelLimitExceededException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceInUseException`, `TagsPerResourceExceededLimitException` | Creates a signaling channel. CreateSignalingChannel is an asynchronous operation. |
+| `CreateStream` | `POST /createStream` | - | `StreamName` | - | `CreateStreamOutput` | `AccountStreamLimitExceededException`, `ClientLimitExceededException`, `DeviceStreamLimitExceededException`, `InvalidArgumentException`, `InvalidDeviceException`, `ResourceInUseException`, `TagsPerResourceExceededLimitException` | Creates a new Kinesis video stream. When you create a new stream, Kinesis Video Streams assigns it a version number. When you change the stream's metadata, Kinesis Video Streams updates the version. CreateStream is a ... |
+| `DeleteEdgeConfiguration` | `POST /deleteEdgeConfiguration` | - | - | - | `DeleteEdgeConfigurationOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceNotFoundException`, `StreamEdgeConfigurationNotFoundException` | An asynchronous API that deletes a stream’s existing edge configuration, as well as the corresponding media from the Edge Agent. When you invoke this API, the sync status is set to DELETING . A deletion process start ... |
+| `DeleteSignalingChannel` | `POST /deleteSignalingChannel` | - | `ChannelARN` | - | `DeleteSignalingChannelOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceInUseException`, `ResourceNotFoundException`, `VersionMismatchException` | Deletes a specified signaling channel. DeleteSignalingChannel is an asynchronous operation. If you don't specify the channel's current version, the most recent version is deleted. |
+| `DeleteStream` | `POST /deleteStream` | - | `StreamARN` | - | `DeleteStreamOutput` | `ClientLimitExceededException`, `InvalidArgumentException`, `NotAuthorizedException`, `ResourceInUseException`, `ResourceNotFoundException`, `VersionMismatchException` | Deletes a Kinesis video stream and the data contained in the stream. This method marks the stream for deletion, and makes the data in the stream inaccessible immediately. To ensure that you have the latest version of ... |
+| `DescribeEdgeConfiguration` | `POST /describeEdgeConfiguration` | - | - | - | `DescribeEdgeConfigurationOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceNotFoundException`, `StreamEdgeConfigurationNotFoundException` | Describes a stream’s edge configuration that was set using the StartEdgeConfigurationUpdate API and the latest status of the edge agent's recorder and uploader jobs. Use this API to get the status of the configuratio ... |
+| `DescribeImageGenerationConfiguration` | `POST /describeImageGenerationConfiguration` | - | - | - | `DescribeImageGenerationConfigurationOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceNotFoundException` | Gets the ImageGenerationConfiguration for a given Kinesis video stream. |
+| `DescribeMappedResourceConfiguration` | `POST /describeMappedResourceConfiguration` | `paginated` | - | - | `DescribeMappedResourceConfigurationOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceNotFoundException` | Returns the most current information about the stream. The streamName or streamARN should be provided in the input. |
+| `DescribeMediaStorageConfiguration` | `POST /describeMediaStorageConfiguration` | - | - | - | `DescribeMediaStorageConfigurationOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceNotFoundException` | Returns the most current information about the channel. Specify the ChannelName or ChannelARN in the input. |
+| `DescribeNotificationConfiguration` | `POST /describeNotificationConfiguration` | - | - | - | `DescribeNotificationConfigurationOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceNotFoundException` | Gets the NotificationConfiguration for a given Kinesis video stream. |
 | `DescribeSignalingChannel` | `POST /describeSignalingChannel` | - | - | - | `DescribeSignalingChannelOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceNotFoundException` | Returns the most current information about the signaling channel. You must specify either the name or the Amazon Resource Name (ARN) of the channel that you want to describe. |
-| `DescribeStream` | `POST /describeStream` | - | - | - | `DescribeStreamOutput` | `ClientLimitExceededException`, `InvalidArgumentException`, `NotAuthorizedException`, `ResourceNotFoundException` | Returns the most current information about the specified stream. You must specify either the `StreamName` or the `StreamARN`. |
-| `DescribeStreamStorageConfiguration` | `POST /describeStreamStorageConfiguration` | - | - | - | `DescribeStreamStorageConfigurationOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceNotFoundException` | Retrieves the current storage configuration for the specified Kinesis video stream. In the request, you must specify either the `StreamName` or the `StreamARN`. |
-| `GetDataEndpoint` | `POST /getDataEndpoint` | - | `APIName` | - | `GetDataEndpointOutput` | `ClientLimitExceededException`, `InvalidArgumentException`, `NotAuthorizedException`, `ResourceNotFoundException` | Gets an endpoint for a specified stream for either reading or writing. Use this endpoint in your application to read from the specified stream (using the `GetMedia` or `GetMediaForFragmentList` operations) or write to it (using the `PutMedia` operation). |
-| `GetSignalingChannelEndpoint` | `POST /getSignalingChannelEndpoint` | - | `ChannelARN` | - | `GetSignalingChannelEndpointOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceInUseException`, `ResourceNotFoundException` | Provides an endpoint for the specified signaling channel to send and receive messages. This API uses the `SingleMasterChannelEndpointConfiguration` input parameter, which consists of the `Protocols` and `Role` properties. |
-| `ListEdgeAgentConfigurations` | `POST /listEdgeAgentConfigurations` | `paginated` | `HubDeviceArn` | - | `ListEdgeAgentConfigurationsOutput` | `ClientLimitExceededException`, `InvalidArgumentException`, `NotAuthorizedException` | Returns an array of edge configurations associated with the specified Edge Agent. In the request, you must specify the Edge Agent `HubDeviceArn`. |
-| `ListSignalingChannels` | `POST /listSignalingChannels` | `paginated` | - | - | `ListSignalingChannelsOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException` | Returns an array of `ChannelInfo` objects. Each object describes a signaling channel. |
-| `ListStreams` | `POST /listStreams` | `paginated` | - | - | `ListStreamsOutput` | `ClientLimitExceededException`, `InvalidArgumentException` | Returns an array of `StreamInfo` objects. Each object describes a stream. |
+| `DescribeStream` | `POST /describeStream` | - | - | - | `DescribeStreamOutput` | `ClientLimitExceededException`, `InvalidArgumentException`, `NotAuthorizedException`, `ResourceNotFoundException` | Returns the most current information about the specified stream. You must specify either the StreamName or the StreamARN . |
+| `DescribeStreamStorageConfiguration` | `POST /describeStreamStorageConfiguration` | - | - | - | `DescribeStreamStorageConfigurationOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceNotFoundException` | Retrieves the current storage configuration for the specified Kinesis video stream. In the request, you must specify either the StreamName or the StreamARN . You must have permissions for the KinesisVideo:DescribeStr ... |
+| `GetDataEndpoint` | `POST /getDataEndpoint` | - | `APIName` | - | `GetDataEndpointOutput` | `ClientLimitExceededException`, `InvalidArgumentException`, `NotAuthorizedException`, `ResourceNotFoundException` | Gets an endpoint for a specified stream for either reading or writing. Use this endpoint in your application to read from the specified stream (using the GetMedia or GetMediaForFragmentList operations) or write to it ... |
+| `GetSignalingChannelEndpoint` | `POST /getSignalingChannelEndpoint` | - | `ChannelARN` | - | `GetSignalingChannelEndpointOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceInUseException`, `ResourceNotFoundException` | Provides an endpoint for the specified signaling channel to send and receive messages. This API uses the SingleMasterChannelEndpointConfiguration input parameter, which consists of the Protocols and Role properties. ... |
+| `ListEdgeAgentConfigurations` | `POST /listEdgeAgentConfigurations` | `paginated` | `HubDeviceArn` | - | `ListEdgeAgentConfigurationsOutput` | `ClientLimitExceededException`, `InvalidArgumentException`, `NotAuthorizedException` | Returns an array of edge configurations associated with the specified Edge Agent. In the request, you must specify the Edge Agent HubDeviceArn . |
+| `ListSignalingChannels` | `POST /listSignalingChannels` | `paginated` | - | - | `ListSignalingChannelsOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException` | Returns an array of ChannelInfo objects. Each object describes a signaling channel. To retrieve only those channels that satisfy a specific condition, you can specify a ChannelNameCondition . |
+| `ListStreams` | `POST /listStreams` | `paginated` | - | - | `ListStreamsOutput` | `ClientLimitExceededException`, `InvalidArgumentException` | Returns an array of StreamInfo objects. Each object describes a stream. To retrieve only streams that satisfy a specific condition, you can specify a StreamNameCondition . |
 | `ListTagsForResource` | `POST /ListTagsForResource` | - | `ResourceARN` | - | `ListTagsForResourceOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceNotFoundException` | Returns a list of tags associated with the specified signaling channel. |
-| `ListTagsForStream` | `POST /listTagsForStream` | - | - | - | `ListTagsForStreamOutput` | `ClientLimitExceededException`, `InvalidArgumentException`, `InvalidResourceFormatException`, `NotAuthorizedException`, `ResourceNotFoundException` | Returns a list of tags associated with the specified stream. In the request, you must specify either the `StreamName` or the `StreamARN`. |
-| `StartEdgeConfigurationUpdate` | `POST /startEdgeConfigurationUpdate` | - | `EdgeConfig` | - | `StartEdgeConfigurationUpdateOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `NoDataRetentionException`, `ResourceInUseException`, `ResourceNotFoundException` | An asynchronous API that updates a stream’s existing edge configuration. The Kinesis Video Stream will sync the stream’s edge configuration with the Edge Agent IoT Greengrass component that runs on an IoT Hub Device, setup at your premise. |
-| `TagResource` | `POST /TagResource` | - | `ResourceARN`, `Tags` | - | `TagResourceOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceNotFoundException`, `TagsPerResourceExceededLimitException` | Adds one or more tags to a signaling channel. A tag is a key-value pair (the value is optional) that you can define and assign to Amazon Web Services resources. |
-| `TagStream` | `POST /tagStream` | - | `Tags` | - | `TagStreamOutput` | `ClientLimitExceededException`, `InvalidArgumentException`, `InvalidResourceFormatException`, `NotAuthorizedException`, `ResourceNotFoundException`, `TagsPerResourceExceededLimitException` | Adds one or more tags to a stream. A tag is a key-value pair (the value is optional) that you can define and assign to Amazon Web Services resources. |
-| `UntagResource` | `POST /UntagResource` | - | `ResourceARN`, `TagKeyList` | - | `UntagResourceOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceNotFoundException` | Removes one or more tags from a signaling channel. In the request, specify only a tag key or keys; don't specify the value. |
-| `UntagStream` | `POST /untagStream` | - | `TagKeyList` | - | `UntagStreamOutput` | `ClientLimitExceededException`, `InvalidArgumentException`, `InvalidResourceFormatException`, `NotAuthorizedException`, `ResourceNotFoundException` | Removes one or more tags from a stream. In the request, specify only a tag key or keys; don't specify the value. |
-| `UpdateDataRetention` | `POST /updateDataRetention` | - | `CurrentVersion`, `DataRetentionChangeInHours`, `Operation` | - | `UpdateDataRetentionOutput` | `ClientLimitExceededException`, `InvalidArgumentException`, `NotAuthorizedException`, `ResourceInUseException`, `ResourceNotFoundException`, `VersionMismatchException` | Increases or decreases the stream's data retention period by the value that you specify. To indicate whether you want to increase or decrease the data retention period, specify the `Operation` parameter in the request body. |
-| `UpdateImageGenerationConfiguration` | `POST /updateImageGenerationConfiguration` | - | - | - | `UpdateImageGenerationConfigurationOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `NoDataRetentionException`, `ResourceInUseException`, `ResourceNotFoundException` | Updates the `StreamInfo` and `ImageProcessingConfiguration` fields. |
-| `UpdateMediaStorageConfiguration` | `POST /updateMediaStorageConfiguration` | - | `ChannelARN`, `MediaStorageConfiguration` | - | `UpdateMediaStorageConfigurationOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `NoDataRetentionException`, `ResourceInUseException`, `ResourceNotFoundException` | Associates a `SignalingChannel` to a stream to store the media. There are two signaling modes that you can specify : If `StorageStatus` is enabled, the data will be stored in the `StreamARN` provided. |
+| `ListTagsForStream` | `POST /listTagsForStream` | - | - | - | `ListTagsForStreamOutput` | `ClientLimitExceededException`, `InvalidArgumentException`, `InvalidResourceFormatException`, `NotAuthorizedException`, `ResourceNotFoundException` | Returns a list of tags associated with the specified stream. In the request, you must specify either the StreamName or the StreamARN . |
+| `StartEdgeConfigurationUpdate` | `POST /startEdgeConfigurationUpdate` | - | `EdgeConfig` | - | `StartEdgeConfigurationUpdateOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `NoDataRetentionException`, `ResourceInUseException`, `ResourceNotFoundException` | An asynchronous API that updates a stream’s existing edge configuration. The Kinesis Video Stream will sync the stream’s edge configuration with the Edge Agent IoT Greengrass component that runs on an IoT Hub Device, ... |
+| `TagResource` | `POST /TagResource` | - | `ResourceARN`, `Tags` | - | `TagResourceOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceNotFoundException`, `TagsPerResourceExceededLimitException` | Adds one or more tags to a signaling channel. A tag is a key-value pair (the value is optional) that you can define and assign to Amazon Web Services resources. If you specify a tag that already exists, the tag value ... |
+| `TagStream` | `POST /tagStream` | - | `Tags` | - | `TagStreamOutput` | `ClientLimitExceededException`, `InvalidArgumentException`, `InvalidResourceFormatException`, `NotAuthorizedException`, `ResourceNotFoundException`, `TagsPerResourceExceededLimitException` | Adds one or more tags to a stream. A tag is a key-value pair (the value is optional) that you can define and assign to Amazon Web Services resources. If you specify a tag that already exists, the tag value is replace ... |
+| `UntagResource` | `POST /UntagResource` | - | `ResourceARN`, `TagKeyList` | - | `UntagResourceOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceNotFoundException` | Removes one or more tags from a signaling channel. In the request, specify only a tag key or keys; don't specify the value. If you specify a tag key that does not exist, it's ignored. |
+| `UntagStream` | `POST /untagStream` | - | `TagKeyList` | - | `UntagStreamOutput` | `ClientLimitExceededException`, `InvalidArgumentException`, `InvalidResourceFormatException`, `NotAuthorizedException`, `ResourceNotFoundException` | Removes one or more tags from a stream. In the request, specify only a tag key or keys; don't specify the value. If you specify a tag key that does not exist, it's ignored. In the request, you must provide the Stream ... |
+| `UpdateDataRetention` | `POST /updateDataRetention` | - | `CurrentVersion`, `Operation`, `DataRetentionChangeInHours` | - | `UpdateDataRetentionOutput` | `ClientLimitExceededException`, `InvalidArgumentException`, `NotAuthorizedException`, `ResourceInUseException`, `ResourceNotFoundException`, `VersionMismatchException` | Increases or decreases the stream's data retention period by the value that you specify. To indicate whether you want to increase or decrease the data retention period, specify the Operation parameter in the request ... |
+| `UpdateImageGenerationConfiguration` | `POST /updateImageGenerationConfiguration` | - | - | - | `UpdateImageGenerationConfigurationOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `NoDataRetentionException`, `ResourceInUseException`, `ResourceNotFoundException` | Updates the StreamInfo and ImageProcessingConfiguration fields. |
+| `UpdateMediaStorageConfiguration` | `POST /updateMediaStorageConfiguration` | - | `ChannelARN`, `MediaStorageConfiguration` | - | `UpdateMediaStorageConfigurationOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `NoDataRetentionException`, `ResourceInUseException`, `ResourceNotFoundException` | Associates a SignalingChannel to a stream to store the media. There are two signaling modes that you can specify : If StorageStatus is enabled, the data will be stored in the StreamARN provided. In order for WebRTC I ... |
 | `UpdateNotificationConfiguration` | `POST /updateNotificationConfiguration` | - | - | - | `UpdateNotificationConfigurationOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `NoDataRetentionException`, `ResourceInUseException`, `ResourceNotFoundException` | Updates the notification information for a stream. |
-| `UpdateSignalingChannel` | `POST /updateSignalingChannel` | - | `ChannelARN`, `CurrentVersion` | - | `UpdateSignalingChannelOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceInUseException`, `ResourceNotFoundException`, `VersionMismatchException` | Updates the existing signaling channel. This is an asynchronous operation and takes time to complete. |
-| `UpdateStream` | `POST /updateStream` | - | `CurrentVersion` | - | `UpdateStreamOutput` | `ClientLimitExceededException`, `InvalidArgumentException`, `NotAuthorizedException`, `ResourceInUseException`, `ResourceNotFoundException`, `VersionMismatchException` | Updates stream metadata, such as the device name and media type. You must provide the stream name or the Amazon Resource Name (ARN) of the stream. |
-| `UpdateStreamStorageConfiguration` | `POST /updateStreamStorageConfiguration` | - | `CurrentVersion`, `StreamStorageConfiguration` | - | `UpdateStreamStorageConfigurationOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceInUseException`, `ResourceNotFoundException`, `VersionMismatchException` | Updates the storage configuration for an existing Kinesis video stream. This operation allows you to modify the storage tier settings for a stream, enabling you to optimize storage costs and performance based on your access patterns. |
+| `UpdateSignalingChannel` | `POST /updateSignalingChannel` | - | `ChannelARN`, `CurrentVersion` | - | `UpdateSignalingChannelOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceInUseException`, `ResourceNotFoundException`, `VersionMismatchException` | Updates the existing signaling channel. This is an asynchronous operation and takes time to complete. If the MessageTtlSeconds value is updated (either increased or reduced), it only applies to new messages sent via ... |
+| `UpdateStream` | `POST /updateStream` | - | `CurrentVersion` | - | `UpdateStreamOutput` | `ClientLimitExceededException`, `InvalidArgumentException`, `NotAuthorizedException`, `ResourceInUseException`, `ResourceNotFoundException`, `VersionMismatchException` | Updates stream metadata, such as the device name and media type. You must provide the stream name or the Amazon Resource Name (ARN) of the stream. To make sure that you have the latest version of the stream before up ... |
+| `UpdateStreamStorageConfiguration` | `POST /updateStreamStorageConfiguration` | - | `CurrentVersion`, `StreamStorageConfiguration` | - | `UpdateStreamStorageConfigurationOutput` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceInUseException`, `ResourceNotFoundException`, `VersionMismatchException` | Updates the storage configuration for an existing Kinesis video stream. This operation allows you to modify the storage tier settings for a stream, enabling you to optimize storage costs and performance based on your ... |
 
 ## HTTP Bindings
 
@@ -161,31 +162,56 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ClientLimitExceededException` | `structure` | `Message` | Kinesis Video Streams has throttled the request because you have exceeded the limit of allowed client calls. |
-| `InvalidArgumentException` | `structure` | `Message` | The value for this input parameter is invalid. |
-| `ResourceNotFoundException` | `structure` | `Message` | Amazon Kinesis Video Streams can't find the stream that you specified. |
-| `AccessDeniedException` | `structure` | `Message` | You do not have required permissions to perform this operation. |
-| `ResourceInUseException` | `structure` | `Message` | When the input `StreamARN` or `ChannelARN` in `CLOUD_STORAGE_MODE` is already mapped to a different Kinesis Video Stream resource, or if the provided input `StreamARN` or... |
-| `NotAuthorizedException` | `structure` | `Message` | The caller is not authorized to perform this operation. |
-| `VersionMismatchException` | `structure` | `Message` | The stream version that you specified is not the latest version. |
-| `TagsPerResourceExceededLimitException` | `structure` | `Message` | You have exceeded the limit of tags that you can associate with the resource. |
-| `NoDataRetentionException` | `structure` | `Message` | The Stream data retention in hours is equal to zero. |
-| `InvalidResourceFormatException` | `structure` | `Message` | The format of the `StreamARN` is invalid. |
-| `StreamEdgeConfigurationNotFoundException` | `structure` | `Message` | The Exception rendered when the Amazon Kinesis Video Stream can't find a stream's edge configuration that you specified. |
-| `CreateSignalingChannelInput` | `structure` | `ChannelName`, `ChannelType`, `SingleMasterConfiguration`, `Tags` | - |
-| `CreateSignalingChannelOutput` | `structure` | `ChannelARN` | - |
-| `AccountChannelLimitExceededException` | `structure` | `Message` | You have reached the maximum limit of active signaling channels for this Amazon Web Services account in this region. |
-| `CreateStreamInput` | `structure` | `DataRetentionInHours`, `DeviceName`, `KmsKeyId`, `MediaType`, `StreamName`, `StreamStorageConfiguration`, `Tags` | - |
-| `CreateStreamOutput` | `structure` | `StreamARN` | - |
-| `AccountStreamLimitExceededException` | `structure` | `Message` | The number of streams created for the account is too high. |
-| `DeviceStreamLimitExceededException` | `structure` | `Message` | Not implemented. |
-| `InvalidDeviceException` | `structure` | `Message` | Not implemented. |
-| `DeleteEdgeConfigurationInput` | `structure` | `StreamARN`, `StreamName` | - |
-| `DeleteEdgeConfigurationOutput` | `structure` | - | - |
-| `DeleteSignalingChannelInput` | `structure` | `ChannelARN`, `CurrentVersion` | - |
-| `DeleteSignalingChannelOutput` | `structure` | - | - |
-| `DeleteStreamInput` | `structure` | `CurrentVersion`, `StreamARN` | - |
-
+| `AccessDeniedException` | `structure` | Message | You do not have required permissions to perform this operation. |
+| `AccountChannelLimitExceededException` | `structure` | Message | You have reached the maximum limit of active signaling channels for this Amazon Web Services account in this region. |
+| `AccountStreamLimitExceededException` | `structure` | Message | The number of streams created for the account is too high. |
+| `ClientLimitExceededException` | `structure` | Message | Kinesis Video Streams has throttled the request because you have exceeded the limit of allowed client calls. Try making the call later. |
+| `DeviceStreamLimitExceededException` | `structure` | Message | Not implemented. |
+| `InvalidArgumentException` | `structure` | Message | The value for this input parameter is invalid. |
+| `InvalidDeviceException` | `structure` | Message | Not implemented. |
+| `InvalidResourceFormatException` | `structure` | Message | The format of the StreamARN is invalid. |
+| `NoDataRetentionException` | `structure` | Message | The Stream data retention in hours is equal to zero. |
+| `NotAuthorizedException` | `structure` | Message | The caller is not authorized to perform this operation. |
+| `ResourceInUseException` | `structure` | Message | When the input StreamARN or ChannelARN in CLOUD_STORAGE_MODE is already mapped to a different Kinesis Video Stream resource, or if the provided input Stream ... |
+| `ResourceNotFoundException` | `structure` | Message | Amazon Kinesis Video Streams can't find the stream that you specified. |
+| `StreamEdgeConfigurationNotFoundException` | `structure` | Message | The Exception rendered when the Amazon Kinesis Video Stream can't find a stream's edge configuration that you specified. |
+| `TagsPerResourceExceededLimitException` | `structure` | Message | You have exceeded the limit of tags that you can associate with the resource. A Kinesis video stream can support up to 50 tags. |
+| `VersionMismatchException` | `structure` | Message | The stream version that you specified is not the latest version. To get the latest version, use the DescribeStream API. |
+| `CreateSignalingChannelInput` | `structure` | ChannelName, ChannelType, SingleMasterConfiguration, Tags | - |
+| `CreateSignalingChannelOutput` | `structure` | ChannelARN | - |
+| `CreateStreamInput` | `structure` | DeviceName, StreamName, MediaType, KmsKeyId, DataRetentionInHours, Tags, StreamStorageConfiguration | - |
+| `CreateStreamOutput` | `structure` | StreamARN | - |
+| `DeleteEdgeConfigurationInput` | `structure` | StreamName, StreamARN | - |
+| `DeleteEdgeConfigurationOutput` | `structure` | **empty (no members)** | - |
+| `DeleteSignalingChannelInput` | `structure` | ChannelARN, CurrentVersion | - |
+| `DeleteSignalingChannelOutput` | `structure` | **empty (no members)** | - |
+| `DeleteStreamInput` | `structure` | StreamARN, CurrentVersion | - |
+| `DeleteStreamOutput` | `structure` | **empty (no members)** | - |
+| `DescribeEdgeConfigurationInput` | `structure` | StreamName, StreamARN | - |
+| `DescribeEdgeConfigurationOutput` | `structure` | StreamName, StreamARN, CreationTime, LastUpdatedTime, SyncStatus, FailedStatusDetails, EdgeConfig, EdgeAgentStatus | - |
+| `DescribeImageGenerationConfigurationInput` | `structure` | StreamName, StreamARN | - |
+| `DescribeImageGenerationConfigurationOutput` | `structure` | ImageGenerationConfiguration | - |
+| `DescribeMappedResourceConfigurationInput` | `structure` | StreamName, StreamARN, MaxResults, NextToken | - |
+| `DescribeMappedResourceConfigurationOutput` | `structure` | MappedResourceConfigurationList, NextToken | - |
+| `DescribeMediaStorageConfigurationInput` | `structure` | ChannelName, ChannelARN | - |
+| `DescribeMediaStorageConfigurationOutput` | `structure` | MediaStorageConfiguration | - |
+| `DescribeNotificationConfigurationInput` | `structure` | StreamName, StreamARN | - |
+| `DescribeNotificationConfigurationOutput` | `structure` | NotificationConfiguration | - |
+| `DescribeSignalingChannelInput` | `structure` | ChannelName, ChannelARN | - |
+| `DescribeSignalingChannelOutput` | `structure` | ChannelInfo | - |
+| `DescribeStreamInput` | `structure` | StreamName, StreamARN | - |
+| `DescribeStreamOutput` | `structure` | StreamInfo | - |
+| `DescribeStreamStorageConfigurationInput` | `structure` | StreamName, StreamARN | - |
+| `APIName` | `enum` | PUT_MEDIA, GET_MEDIA, LIST_FRAGMENTS, GET_MEDIA_FOR_FRAGMENT_LIST, GET_HLS_STREAMING_SESSION_URL, GET_DASH_STREAMING_SESSION_URL, GET_CLIP, GET_IMAGES | - |
+| `ChannelProtocol` | `enum` | WSS, HTTPS, WEBRTC | - |
+| `ChannelRole` | `enum` | MASTER, VIEWER | - |
+| `ChannelType` | `enum` | SINGLE_MASTER, FULL_MESH | - |
+| `ComparisonOperator` | `enum` | BEGINS_WITH | - |
+| `ConfigurationStatus` | `enum` | ENABLED, DISABLED | - |
+| `DefaultStorageTier` | `enum` | HOT, WARM | - |
+| `Format` | `enum` | JPEG, PNG | - |
+| `FormatConfigKey` | `enum` | JPEGQuality | - |
+| `ImageSelectorType` | `enum` | SERVER_TIMESTAMP, PRODUCER_TIMESTAMP | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

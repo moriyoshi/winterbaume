@@ -61,29 +61,29 @@ Parity implications:
 
 ### List
 
-- Operations: `ListDatasets`, `ListJobRuns`, `ListJobs`, `ListProjects`, `ListRecipeVersions`, `ListRecipes`, `ListRulesets`, `ListSchedules`, `ListTagsForResource`
+- Operations: `ListDatasets`, `ListJobRuns`, `ListJobs`, `ListProjects`, `ListRecipes`, `ListRecipeVersions`, `ListRulesets`, `ListSchedules`, `ListTagsForResource`
 - Traits: `paginated` (8)
-- Common required input members in this group: `Name`, `ResourceArn`
+- Common required input members in this group: `Name`
 
 ### Create
 
 - Operations: `CreateDataset`, `CreateProfileJob`, `CreateProject`, `CreateRecipe`, `CreateRecipeJob`, `CreateRuleset`, `CreateSchedule`
-- Common required input members in this group: `CronExpression`, `DatasetName`, `Input`, `Name`, `OutputLocation`, `RecipeName`, `RoleArn`, `Rules`, `Steps`, `TargetArn`
+- Common required input members in this group: `Name`, `DatasetName`, `RoleArn`
 
 ### Describe
 
 - Operations: `DescribeDataset`, `DescribeJob`, `DescribeJobRun`, `DescribeProject`, `DescribeRecipe`, `DescribeRuleset`, `DescribeSchedule`
-- Common required input members in this group: `Name`, `RunId`
+- Common required input members in this group: `Name`
 
 ### Update
 
 - Operations: `UpdateDataset`, `UpdateProfileJob`, `UpdateProject`, `UpdateRecipe`, `UpdateRecipeJob`, `UpdateRuleset`, `UpdateSchedule`
-- Common required input members in this group: `CronExpression`, `Input`, `Name`, `OutputLocation`, `RoleArn`, `Rules`
+- Common required input members in this group: `Name`, `RoleArn`
 
 ### Delete
 
 - Operations: `DeleteDataset`, `DeleteJob`, `DeleteProject`, `DeleteRecipeVersion`, `DeleteRuleset`, `DeleteSchedule`
-- Common required input members in this group: `Name`, `RecipeVersion`
+- Common required input members in this group: `Name`
 
 ### Start
 
@@ -93,44 +93,44 @@ Parity implications:
 ### Batch
 
 - Operations: `BatchDeleteRecipeVersion`
-- Common required input members in this group: `Name`, `RecipeVersions`
+- Common required input members in this group: -
 
 ### Publish
 
 - Operations: `PublishRecipe`
-- Common required input members in this group: `Name`
+- Common required input members in this group: -
 
 ### Send
 
 - Operations: `SendProjectSessionAction`
-- Common required input members in this group: `Name`
+- Common required input members in this group: -
 
 ### Stop
 
 - Operations: `StopJobRun`
-- Common required input members in this group: `Name`, `RunId`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `BatchDeleteRecipeVersion` | `POST /recipes/{Name}/batchDeleteRecipeVersion` | - | `Name`, `RecipeVersions` | - | `BatchDeleteRecipeVersionResponse` | `ConflictException`, `ResourceNotFoundException`, `ValidationException` | Deletes one or more versions of a recipe at a time. The entire request will be rejected if: The recipe does not exist. |
-| `CreateDataset` | `POST /datasets` | - | `Input`, `Name` | - | `CreateDatasetResponse` | `AccessDeniedException`, `ConflictException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a new DataBrew dataset. |
+| `BatchDeleteRecipeVersion` | `POST /recipes/{Name}/batchDeleteRecipeVersion` | - | `Name`, `RecipeVersions` | - | `BatchDeleteRecipeVersionResponse` | `ConflictException`, `ResourceNotFoundException`, `ValidationException` | Deletes one or more versions of a recipe at a time. The entire request will be rejected if: The recipe does not exist. There is an invalid version identifier in the list of versions. The version list is empty. The ve ... |
+| `CreateDataset` | `POST /datasets` | - | `Name`, `Input` | - | `CreateDatasetResponse` | `AccessDeniedException`, `ConflictException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a new DataBrew dataset. |
 | `CreateProfileJob` | `POST /profileJobs` | - | `DatasetName`, `Name`, `OutputLocation`, `RoleArn` | - | `CreateProfileJobResponse` | `AccessDeniedException`, `ConflictException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a new job to analyze a dataset and create its data profile. |
 | `CreateProject` | `POST /projects` | - | `DatasetName`, `Name`, `RecipeName`, `RoleArn` | - | `CreateProjectResponse` | `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a new DataBrew project. |
 | `CreateRecipe` | `POST /recipes` | - | `Name`, `Steps` | - | `CreateRecipeResponse` | `ConflictException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a new DataBrew recipe. |
 | `CreateRecipeJob` | `POST /recipeJobs` | - | `Name`, `RoleArn` | - | `CreateRecipeJobResponse` | `AccessDeniedException`, `ConflictException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a new job to transform input data, using steps defined in an existing Glue DataBrew recipe |
-| `CreateRuleset` | `POST /rulesets` | - | `Name`, `Rules`, `TargetArn` | - | `CreateRulesetResponse` | `ConflictException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a new ruleset that can be used in a profile job to validate the data quality of a dataset. |
+| `CreateRuleset` | `POST /rulesets` | - | `Name`, `TargetArn`, `Rules` | - | `CreateRulesetResponse` | `ConflictException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a new ruleset that can be used in a profile job to validate the data quality of a dataset. |
 | `CreateSchedule` | `POST /schedules` | - | `CronExpression`, `Name` | - | `CreateScheduleResponse` | `ConflictException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a new schedule for one or more DataBrew jobs. Jobs can be run at a specific date and time, or at regular intervals. |
 | `DeleteDataset` | `DELETE /datasets/{Name}` | - | `Name` | - | `DeleteDatasetResponse` | `ConflictException`, `ResourceNotFoundException`, `ValidationException` | Deletes a dataset from DataBrew. |
 | `DeleteJob` | `DELETE /jobs/{Name}` | - | `Name` | - | `DeleteJobResponse` | `ConflictException`, `ResourceNotFoundException`, `ValidationException` | Deletes the specified DataBrew job. |
@@ -149,8 +149,8 @@ Parity implications:
 | `ListJobRuns` | `GET /jobs/{Name}/jobRuns` | `paginated` | `Name` | - | `ListJobRunsResponse` | `ResourceNotFoundException`, `ValidationException` | Lists all of the previous runs of a particular DataBrew job. |
 | `ListJobs` | `GET /jobs` | `paginated` | - | - | `ListJobsResponse` | `ValidationException` | Lists all of the DataBrew jobs that are defined. |
 | `ListProjects` | `GET /projects` | `paginated` | - | - | `ListProjectsResponse` | `ValidationException` | Lists all of the DataBrew projects that are defined. |
-| `ListRecipeVersions` | `GET /recipeVersions` | `paginated` | `Name` | - | `ListRecipeVersionsResponse` | `ValidationException` | Lists the versions of a particular DataBrew recipe, except for `LATEST_WORKING`. |
 | `ListRecipes` | `GET /recipes` | `paginated` | - | - | `ListRecipesResponse` | `ValidationException` | Lists all of the DataBrew recipes that are defined. |
+| `ListRecipeVersions` | `GET /recipeVersions` | `paginated` | `Name` | - | `ListRecipeVersionsResponse` | `ValidationException` | Lists the versions of a particular DataBrew recipe, except for LATEST_WORKING . |
 | `ListRulesets` | `GET /rulesets` | `paginated` | - | - | `ListRulesetsResponse` | `ResourceNotFoundException`, `ValidationException` | List all rulesets available in the current account or rulesets associated with a specific resource (dataset). |
 | `ListSchedules` | `GET /schedules` | `paginated` | - | - | `ListSchedulesResponse` | `ValidationException` | Lists the DataBrew schedules that are defined. |
 | `ListTagsForResource` | `GET /tags/{ResourceArn}` | - | `ResourceArn` | - | `ListTagsForResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Lists all the tags for a DataBrew resource. |
@@ -161,10 +161,10 @@ Parity implications:
 | `StopJobRun` | `POST /jobs/{Name}/jobRun/{RunId}/stopJobRun` | - | `Name`, `RunId` | - | `StopJobRunResponse` | `ResourceNotFoundException`, `ValidationException` | Stops a particular run of a job. |
 | `TagResource` | `POST /tags/{ResourceArn}` | - | `ResourceArn`, `Tags` | - | `TagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Adds metadata tags to a DataBrew resource, such as a dataset, project, recipe, job, or schedule. |
 | `UntagResource` | `DELETE /tags/{ResourceArn}` | - | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Removes metadata tags from a DataBrew resource. |
-| `UpdateDataset` | `PUT /datasets/{Name}` | - | `Input`, `Name` | - | `UpdateDatasetResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Modifies the definition of an existing DataBrew dataset. |
+| `UpdateDataset` | `PUT /datasets/{Name}` | - | `Name`, `Input` | - | `UpdateDatasetResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Modifies the definition of an existing DataBrew dataset. |
 | `UpdateProfileJob` | `PUT /profileJobs/{Name}` | - | `Name`, `OutputLocation`, `RoleArn` | - | `UpdateProfileJobResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Modifies the definition of an existing profile job. |
-| `UpdateProject` | `PUT /projects/{Name}` | - | `Name`, `RoleArn` | - | `UpdateProjectResponse` | `ResourceNotFoundException`, `ValidationException` | Modifies the definition of an existing DataBrew project. |
-| `UpdateRecipe` | `PUT /recipes/{Name}` | - | `Name` | - | `UpdateRecipeResponse` | `ResourceNotFoundException`, `ValidationException` | Modifies the definition of the `LATEST_WORKING` version of a DataBrew recipe. |
+| `UpdateProject` | `PUT /projects/{Name}` | - | `RoleArn`, `Name` | - | `UpdateProjectResponse` | `ResourceNotFoundException`, `ValidationException` | Modifies the definition of an existing DataBrew project. |
+| `UpdateRecipe` | `PUT /recipes/{Name}` | - | `Name` | - | `UpdateRecipeResponse` | `ResourceNotFoundException`, `ValidationException` | Modifies the definition of the LATEST_WORKING version of a DataBrew recipe. |
 | `UpdateRecipeJob` | `PUT /recipeJobs/{Name}` | - | `Name`, `RoleArn` | - | `UpdateRecipeJobResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Modifies the definition of an existing DataBrew recipe job. |
 | `UpdateRuleset` | `PUT /rulesets/{Name}` | - | `Name`, `Rules` | - | `UpdateRulesetResponse` | `ResourceNotFoundException`, `ValidationException` | Updates specified ruleset. |
 | `UpdateSchedule` | `PUT /schedules/{Name}` | - | `CronExpression`, `Name` | - | `UpdateScheduleResponse` | `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Modifies the definition of an existing DataBrew schedule. |
@@ -190,31 +190,56 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ValidationException` | `structure` | `Message` | The input parameters for this request failed validation. |
-| `ResourceNotFoundException` | `structure` | `Message` | One or more resources can't be found. |
-| `ConflictException` | `structure` | `Message` | Updating or deleting a resource can cause an inconsistent state. |
-| `ServiceQuotaExceededException` | `structure` | `Message` | A service quota is exceeded. |
-| `AccessDeniedException` | `structure` | `Message` | Access to the specified resource was denied. |
-| `InternalServerException` | `structure` | `Message` | An internal service failure occurred. |
-| `BatchDeleteRecipeVersionRequest` | `structure` | `Name`, `RecipeVersions` | - |
-| `BatchDeleteRecipeVersionResponse` | `structure` | `Errors`, `Name` | - |
-| `CreateDatasetRequest` | `structure` | `Format`, `FormatOptions`, `Input`, `Name`, `PathOptions`, `Tags` | - |
-| `CreateDatasetResponse` | `structure` | `Name` | - |
-| `CreateProfileJobRequest` | `structure` | `Configuration`, `DatasetName`, `EncryptionKeyArn`, `EncryptionMode`, `JobSample`, `LogSubscription`, `MaxCapacity`, `MaxRetries`, `Name`, `OutputLocation`, `RoleArn`, `Tags`, ... (+2) | - |
-| `CreateProfileJobResponse` | `structure` | `Name` | - |
-| `CreateProjectRequest` | `structure` | `DatasetName`, `Name`, `RecipeName`, `RoleArn`, `Sample`, `Tags` | - |
-| `CreateProjectResponse` | `structure` | `Name` | - |
-| `CreateRecipeRequest` | `structure` | `Description`, `Name`, `Steps`, `Tags` | - |
-| `CreateRecipeResponse` | `structure` | `Name` | - |
-| `CreateRecipeJobRequest` | `structure` | `DataCatalogOutputs`, `DatabaseOutputs`, `DatasetName`, `EncryptionKeyArn`, `EncryptionMode`, `LogSubscription`, `MaxCapacity`, `MaxRetries`, `Name`, `Outputs`, `ProjectName`, `RecipeReference`, ... (+3) | - |
-| `CreateRecipeJobResponse` | `structure` | `Name` | - |
-| `CreateRulesetRequest` | `structure` | `Description`, `Name`, `Rules`, `Tags`, `TargetArn` | - |
-| `CreateRulesetResponse` | `structure` | `Name` | - |
-| `CreateScheduleRequest` | `structure` | `CronExpression`, `JobNames`, `Name`, `Tags` | - |
-| `CreateScheduleResponse` | `structure` | `Name` | - |
-| `DeleteDatasetRequest` | `structure` | `Name` | - |
-| `DeleteDatasetResponse` | `structure` | `Name` | - |
-
+| `AccessDeniedException` | `structure` | Message | Access to the specified resource was denied. |
+| `ConflictException` | `structure` | Message | Updating or deleting a resource can cause an inconsistent state. |
+| `InternalServerException` | `structure` | Message | An internal service failure occurred. |
+| `ResourceNotFoundException` | `structure` | Message | One or more resources can't be found. |
+| `ServiceQuotaExceededException` | `structure` | Message | A service quota is exceeded. |
+| `ValidationException` | `structure` | Message | The input parameters for this request failed validation. |
+| `BatchDeleteRecipeVersionRequest` | `structure` | Name, RecipeVersions | - |
+| `BatchDeleteRecipeVersionResponse` | `structure` | Name, Errors | - |
+| `CreateDatasetRequest` | `structure` | Name, Format, FormatOptions, Input, PathOptions, Tags | - |
+| `CreateDatasetResponse` | `structure` | Name | - |
+| `CreateProfileJobRequest` | `structure` | DatasetName, EncryptionKeyArn, EncryptionMode, Name, LogSubscription, MaxCapacity, MaxRetries, OutputLocation, Configuration, ValidationConfigurations, RoleArn, Tags, ... (+2) | - |
+| `CreateProfileJobResponse` | `structure` | Name | - |
+| `CreateProjectRequest` | `structure` | DatasetName, Name, RecipeName, Sample, RoleArn, Tags | - |
+| `CreateProjectResponse` | `structure` | Name | - |
+| `CreateRecipeRequest` | `structure` | Description, Name, Steps, Tags | - |
+| `CreateRecipeResponse` | `structure` | Name | - |
+| `CreateRecipeJobRequest` | `structure` | DatasetName, EncryptionKeyArn, EncryptionMode, Name, LogSubscription, MaxCapacity, MaxRetries, Outputs, DataCatalogOutputs, DatabaseOutputs, ProjectName, RecipeReference, ... (+3) | - |
+| `CreateRecipeJobResponse` | `structure` | Name | - |
+| `CreateRulesetRequest` | `structure` | Name, Description, TargetArn, Rules, Tags | - |
+| `CreateRulesetResponse` | `structure` | Name | - |
+| `CreateScheduleRequest` | `structure` | JobNames, CronExpression, Tags, Name | - |
+| `CreateScheduleResponse` | `structure` | Name | - |
+| `DeleteDatasetRequest` | `structure` | Name | - |
+| `DeleteDatasetResponse` | `structure` | Name | - |
+| `DeleteJobRequest` | `structure` | Name | - |
+| `DeleteJobResponse` | `structure` | Name | - |
+| `DeleteProjectRequest` | `structure` | Name | - |
+| `DeleteProjectResponse` | `structure` | Name | - |
+| `DeleteRecipeVersionRequest` | `structure` | Name, RecipeVersion | - |
+| `DeleteRecipeVersionResponse` | `structure` | Name, RecipeVersion | - |
+| `DeleteRulesetRequest` | `structure` | Name | - |
+| `DeleteRulesetResponse` | `structure` | Name | - |
+| `DeleteScheduleRequest` | `structure` | Name | - |
+| `DeleteScheduleResponse` | `structure` | Name | - |
+| `DescribeDatasetRequest` | `structure` | Name | - |
+| `DescribeDatasetResponse` | `structure` | CreatedBy, CreateDate, Name, Format, FormatOptions, Input, LastModifiedDate, LastModifiedBy, Source, PathOptions, Tags, ResourceArn | - |
+| `DescribeJobRequest` | `structure` | Name | - |
+| `DescribeJobResponse` | `structure` | CreateDate, CreatedBy, DatasetName, EncryptionKeyArn, EncryptionMode, Name, Type, LastModifiedBy, LastModifiedDate, LogSubscription, MaxCapacity, MaxRetries, ... (+12) | - |
+| `DescribeJobRunRequest` | `structure` | Name, RunId | - |
+| `DescribeJobRunResponse` | `structure` | Attempt, CompletedOn, DatasetName, ErrorMessage, ExecutionTime, JobName, ProfileConfiguration, ValidationConfigurations, RunId, State, LogSubscription, LogGroupName, ... (+7) | - |
+| `AnalyticsMode` | `enum` | ENABLE, DISABLE | - |
+| `CompressionFormat` | `enum` | GZIP, LZ4, SNAPPY, BZIP2, DEFLATE, LZO, BROTLI, ZSTD, ZLIB | - |
+| `DatabaseOutputMode` | `enum` | NEW_TABLE | - |
+| `EncryptionMode` | `enum` | SSEKMS, SSES3 | - |
+| `InputFormat` | `enum` | CSV, JSON, PARQUET, EXCEL, ORC | - |
+| `JobRunState` | `enum` | STARTING, RUNNING, STOPPING, STOPPED, SUCCEEDED, FAILED, TIMEOUT | - |
+| `JobType` | `enum` | PROFILE, RECIPE | - |
+| `LogSubscription` | `enum` | ENABLE, DISABLE | - |
+| `Order` | `enum` | DESCENDING, ASCENDING | - |
+| `OrderedBy` | `enum` | LAST_MODIFIED_DATE | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

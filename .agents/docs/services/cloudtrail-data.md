@@ -43,13 +43,13 @@ The CloudTrail Data Service lets you ingest events into CloudTrail from any sour
 ### Put
 
 - Operations: `PutAuditEvents`
-- Common required input members in this group: `auditEvents`, `channelArn`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `PutAuditEvents` | `POST /PutAuditEvents` | - | `auditEvents`, `channelArn` | - | `PutAuditEventsResponse` | `ChannelInsufficientPermission`, `ChannelNotFound`, `ChannelUnsupportedSchema`, `DuplicatedAuditEventId`, `InvalidChannelARN`, `UnsupportedOperationException` | Ingests your application events into CloudTrail Lake. A required parameter, `auditEvents`, accepts the JSON records (also called payload ) of events that you want CloudTrail to ingest. |
+| `PutAuditEvents` | `POST /PutAuditEvents` | - | `auditEvents`, `channelArn` | - | `PutAuditEventsResponse` | `ChannelInsufficientPermission`, `ChannelNotFound`, `ChannelUnsupportedSchema`, `DuplicatedAuditEventId`, `InvalidChannelARN`, `UnsupportedOperationException` | Ingests your application events into CloudTrail Lake. A required parameter, auditEvents , accepts the JSON records (also called payload ) of events that you want CloudTrail to ingest. You can add up to 100 of these e ... |
 
 ## HTTP Bindings
 
@@ -63,15 +63,14 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `PutAuditEventsRequest` | `structure` | `auditEvents`, `channelArn`, `externalId` | - |
-| `PutAuditEventsResponse` | `structure` | `failed`, `successful` | - |
-| `ChannelInsufficientPermission` | `structure` | `message` | The caller's account ID must be the same as the channel owner's account ID. |
-| `ChannelNotFound` | `structure` | `message` | The channel could not be found. |
-| `ChannelUnsupportedSchema` | `structure` | `message` | The schema type of the event is not supported. |
-| `DuplicatedAuditEventId` | `structure` | `message` | Two or more entries in the request have the same event ID. |
-| `InvalidChannelARN` | `structure` | `message` | The specified channel ARN is not a valid channel ARN. |
-| `UnsupportedOperationException` | `structure` | `message` | The operation requested is not supported in this region or account. |
-
+| `ChannelInsufficientPermission` | `structure` | message | The caller's account ID must be the same as the channel owner's account ID. |
+| `ChannelNotFound` | `structure` | message | The channel could not be found. |
+| `ChannelUnsupportedSchema` | `structure` | message | The schema type of the event is not supported. |
+| `DuplicatedAuditEventId` | `structure` | message | Two or more entries in the request have the same event ID. |
+| `InvalidChannelARN` | `structure` | message | The specified channel ARN is not a valid channel ARN. |
+| `UnsupportedOperationException` | `structure` | message | The operation requested is not supported in this region or account. |
+| `PutAuditEventsRequest` | `structure` | auditEvents, channelArn, externalId | - |
+| `PutAuditEventsResponse` | `structure` | successful, failed | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

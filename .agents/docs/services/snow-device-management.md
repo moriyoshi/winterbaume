@@ -60,53 +60,26 @@ Snow Device Management currently returns physical network interface data as devi
 
 ### List
 
-- Operations: `ListDeviceResources`, `ListDevices`, `ListExecutions`, `ListTagsForResource`, `ListTasks`
-- Traits: `paginated` (4), `readonly` (5)
-- Common required input members in this group: `managedDeviceId`, `resourceArn`, `taskId`
-
-### Describe
-
-- Operations: `DescribeDevice`, `DescribeDeviceEc2Instances`, `DescribeExecution`, `DescribeTask`
-- Traits: `readonly` (4)
-- Common required input members in this group: `instanceIds`, `managedDeviceId`, `taskId`
-
-### Cancel
-
-- Operations: `CancelTask`
-- Common required input members in this group: `taskId`
-
-### Create
-
-- Operations: `CreateTask`
-- Traits: `idempotency-token` (1)
-- Common required input members in this group: `command`, `targets`
+- Operations: `ListTagsForResource`
+- Traits: `readonly` (1)
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CancelTask` | `POST /task/{taskId}/cancel` | - | `taskId` | - | `CancelTaskOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Sends a cancel request for a specified task. You can cancel a task only if it's still in a `QUEUED` state. |
-| `CreateTask` | `POST /task` | `idempotency-token` | `command`, `targets` | `clientToken` | `CreateTaskOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Instructs one or more devices to start a task, such as unlocking or rebooting. |
-| `DescribeDevice` | `POST /managed-device/{managedDeviceId}/describe` | `readonly` | `managedDeviceId` | - | `DescribeDeviceOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Checks device-specific information, such as the device type, software version, IP addresses, and lock status. |
-| `DescribeDeviceEc2Instances` | `POST /managed-device/{managedDeviceId}/resources/ec2/describe` | `readonly` | `instanceIds`, `managedDeviceId` | - | `DescribeDeviceEc2Output` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Checks the current state of the Amazon EC2 instances. The output is similar to `describeDevice`, but the results are sourced from the device cache in the Amazon Web Services Cloud and include a subset of the available fields. |
-| `DescribeExecution` | `POST /task/{taskId}/execution/{managedDeviceId}` | `readonly` | `managedDeviceId`, `taskId` | - | `DescribeExecutionOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Checks the status of a remote task running on one or more target devices. |
-| `DescribeTask` | `POST /task/{taskId}` | `readonly` | `taskId` | - | `DescribeTaskOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Checks the metadata for a given task on a device. |
-| `ListDeviceResources` | `GET /managed-device/{managedDeviceId}/resources` | `readonly`, `paginated` | `managedDeviceId` | - | `ListDeviceResourcesOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of the Amazon Web Services resources available for a device. Currently, Amazon EC2 instances are the only supported resource type. |
-| `ListDevices` | `GET /managed-devices` | `readonly`, `paginated` | - | - | `ListDevicesOutput` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of all devices on your Amazon Web Services account that have Amazon Web Services Snow Device Management enabled in the Amazon Web Services Region where the command is run. |
-| `ListExecutions` | `GET /executions` | `readonly`, `paginated` | `taskId` | - | `ListExecutionsOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns the status of tasks for one or more target devices. |
 | `ListTagsForResource` | `GET /tags/{resourceArn}` | `readonly` | `resourceArn` | - | `ListTagsForResourceOutput` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns a list of tags for a managed device or task. |
-| `ListTasks` | `GET /tasks` | `readonly`, `paginated` | - | - | `ListTasksOutput` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of tasks that can be filtered by state. |
 | `TagResource` | `POST /tags/{resourceArn}` | - | `resourceArn`, `tags` | - | `Unit` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Adds or replaces tags on a device or task. |
 | `UntagResource` | `DELETE /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `Unit` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Removes a tag from a device or task. |
 
@@ -122,30 +95,16 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `message` | An unexpected error occurred while processing the request. |
-| `ValidationException` | `structure` | `message` | The input fails to satisfy the constraints specified by an Amazon Web Services service. |
-| `ResourceNotFoundException` | `structure` | `message` | The request references a resource that doesn't exist. |
-| `AccessDeniedException` | `structure` | `message` | You don't have sufficient access to perform this action. |
-| `ThrottlingException` | `structure` | `message` | The request was denied due to request throttling. |
-| `CancelTaskInput` | `structure` | `taskId` | - |
-| `CancelTaskOutput` | `structure` | `taskId` | - |
-| `CreateTaskInput` | `structure` | `clientToken`, `command`, `description`, `tags`, `targets` | - |
-| `CreateTaskOutput` | `structure` | `taskArn`, `taskId` | - |
-| `ServiceQuotaExceededException` | `structure` | `message` | The request would cause a service quota to be exceeded. |
-| `DescribeDeviceInput` | `structure` | `managedDeviceId` | - |
-| `DescribeDeviceOutput` | `structure` | `associatedWithJob`, `deviceCapacities`, `deviceState`, `deviceType`, `lastReachedOutAt`, `lastUpdatedAt`, `managedDeviceArn`, `managedDeviceId`, `physicalNetworkInterfaces`, `software`, `tags` | - |
-| `DescribeDeviceEc2Input` | `structure` | `instanceIds`, `managedDeviceId` | - |
-| `DescribeDeviceEc2Output` | `structure` | `instances` | - |
-| `DescribeExecutionInput` | `structure` | `managedDeviceId`, `taskId` | - |
-| `DescribeExecutionOutput` | `structure` | `executionId`, `lastUpdatedAt`, `managedDeviceId`, `startedAt`, `state`, `taskId` | - |
-| `DescribeTaskInput` | `structure` | `taskId` | - |
-| `DescribeTaskOutput` | `structure` | `completedAt`, `createdAt`, `description`, `lastUpdatedAt`, `state`, `tags`, `targets`, `taskArn`, `taskId` | - |
-| `ListDeviceResourcesInput` | `structure` | `managedDeviceId`, `maxResults`, `nextToken`, `type` | - |
-| `ListDeviceResourcesOutput` | `structure` | `nextToken`, `resources` | - |
-| `ListDevicesInput` | `structure` | `jobId`, `maxResults`, `nextToken` | - |
-| `ListDevicesOutput` | `structure` | `devices`, `nextToken` | - |
-| `ListExecutionsInput` | `structure` | `maxResults`, `nextToken`, `state`, `taskId` | - |
-
+| `AccessDeniedException` | `structure` | message | You don't have sufficient access to perform this action. |
+| `InternalServerException` | `structure` | message | An unexpected error occurred while processing the request. |
+| `ResourceNotFoundException` | `structure` | message | The request references a resource that doesn't exist. |
+| `ServiceQuotaExceededException` | `structure` | message | The request would cause a service quota to be exceeded. |
+| `ThrottlingException` | `structure` | message | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | message | The input fails to satisfy the constraints specified by an Amazon Web Services service. |
+| `ListTagsForResourceInput` | `structure` | resourceArn | - |
+| `ListTagsForResourceOutput` | `structure` | tags | - |
+| `TagResourceInput` | `structure` | resourceArn, tags | - |
+| `UntagResourceInput` | `structure` | resourceArn, tagKeys | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

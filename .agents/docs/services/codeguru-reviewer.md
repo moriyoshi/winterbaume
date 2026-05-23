@@ -69,51 +69,51 @@ Parity implications:
 
 - Operations: `ListCodeReviews`, `ListRecommendationFeedback`, `ListRecommendations`, `ListRepositoryAssociations`, `ListTagsForResource`
 - Traits: `paginated` (4)
-- Common required input members in this group: `CodeReviewArn`, `Type`, `resourceArn`
+- Common required input members in this group: `CodeReviewArn`
 
 ### Describe
 
 - Operations: `DescribeCodeReview`, `DescribeRecommendationFeedback`, `DescribeRepositoryAssociation`
-- Common required input members in this group: `AssociationArn`, `CodeReviewArn`, `RecommendationId`
+- Common required input members in this group: `CodeReviewArn`
 
 ### Associate
 
 - Operations: `AssociateRepository`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `Repository`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateCodeReview`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `Name`, `RepositoryAssociationArn`, `Type`
+- Common required input members in this group: -
 
 ### Disassociate
 
 - Operations: `DisassociateRepository`
-- Common required input members in this group: `AssociationArn`
+- Common required input members in this group: -
 
 ### Put
 
 - Operations: `PutRecommendationFeedback`
-- Common required input members in this group: `CodeReviewArn`, `Reactions`, `RecommendationId`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `Tags`, `resourceArn`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `TagKeys`, `resourceArn`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AssociateRepository` | `POST /associations` | `idempotency-token` | `Repository` | `ClientRequestToken` | `AssociateRepositoryResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Use to associate an Amazon Web Services CodeCommit repository or a repository managed by Amazon Web Services CodeStar Connections with Amazon CodeGuru Reviewer. When you associate a repository, CodeGuru Reviewer reviews source code changes in the repository's... |
-| `CreateCodeReview` | `POST /codereviews` | `idempotency-token` | `Name`, `RepositoryAssociationArn`, `Type` | `ClientRequestToken` | `CreateCodeReviewResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Use to create a code review with a CodeReviewType of `RepositoryAnalysis`. This type of code review analyzes all code under a specified branch in an associated repository. |
+| `AssociateRepository` | `POST /associations` | `idempotency-token` | `Repository` | `ClientRequestToken` | `AssociateRepositoryResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Use to associate an Amazon Web Services CodeCommit repository or a repository managed by Amazon Web Services CodeStar Connections with Amazon CodeGuru Reviewer. When you associate a repository, CodeGuru Reviewer revi ... |
+| `CreateCodeReview` | `POST /codereviews` | `idempotency-token` | `Name`, `RepositoryAssociationArn`, `Type` | `ClientRequestToken` | `CreateCodeReviewResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Use to create a code review with a CodeReviewType of RepositoryAnalysis . This type of code review analyzes all code under a specified branch in an associated repository. PullRequest code reviews are automatically tr ... |
 | `DescribeCodeReview` | `GET /codereviews/{CodeReviewArn}` | - | `CodeReviewArn` | - | `DescribeCodeReviewResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns the metadata associated with the code review along with its status. |
 | `DescribeRecommendationFeedback` | `GET /feedback/{CodeReviewArn}` | - | `CodeReviewArn`, `RecommendationId` | - | `DescribeRecommendationFeedbackResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Describes the customer feedback for a CodeGuru Reviewer recommendation. |
 | `DescribeRepositoryAssociation` | `GET /associations/{AssociationArn}` | - | `AssociationArn` | - | `DescribeRepositoryAssociationResponse` | `AccessDeniedException`, `InternalServerException`, `NotFoundException`, `ThrottlingException`, `ValidationException` | Returns a RepositoryAssociation object that contains information about the requested repository association. |
@@ -121,11 +121,11 @@ Parity implications:
 | `ListCodeReviews` | `GET /codereviews` | `paginated` | `Type` | - | `ListCodeReviewsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists all the code reviews that the customer has created in the past 90 days. |
 | `ListRecommendationFeedback` | `GET /feedback/{CodeReviewArn}/RecommendationFeedback` | `paginated` | `CodeReviewArn` | - | `ListRecommendationFeedbackResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of RecommendationFeedbackSummary objects that contain customer recommendation feedback for all CodeGuru Reviewer users. |
 | `ListRecommendations` | `GET /codereviews/{CodeReviewArn}/Recommendations` | `paginated` | `CodeReviewArn` | - | `ListRecommendationsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns the list of all recommendations for a completed code review. |
-| `ListRepositoryAssociations` | `GET /associations` | `paginated` | - | - | `ListRepositoryAssociationsResponse` | `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of RepositoryAssociationSummary objects that contain summary information about a repository association. You can filter the returned list by ProviderType, Name, State, and Owner. |
+| `ListRepositoryAssociations` | `GET /associations` | `paginated` | - | - | `ListRepositoryAssociationsResponse` | `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of RepositoryAssociationSummary objects that contain summary information about a repository association. You can filter the returned list by ProviderType , Name , State , and Owner . |
 | `ListTagsForResource` | `GET /tags/{resourceArn}` | - | `resourceArn` | - | `ListTagsForResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns the list of tags associated with an associated repository resource. |
-| `PutRecommendationFeedback` | `PUT /feedback` | - | `CodeReviewArn`, `Reactions`, `RecommendationId` | - | `PutRecommendationFeedbackResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Stores customer feedback for a CodeGuru Reviewer recommendation. When this API is called again with different reactions the previous feedback is overwritten. |
-| `TagResource` | `POST /tags/{resourceArn}` | - | `Tags`, `resourceArn` | - | `TagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Adds one or more tags to an associated repository. |
-| `UntagResource` | `DELETE /tags/{resourceArn}` | - | `TagKeys`, `resourceArn` | - | `UntagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Removes a tag from an associated repository. |
+| `PutRecommendationFeedback` | `PUT /feedback` | - | `CodeReviewArn`, `RecommendationId`, `Reactions` | - | `PutRecommendationFeedbackResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Stores customer feedback for a CodeGuru Reviewer recommendation. When this API is called again with different reactions the previous feedback is overwritten. |
+| `TagResource` | `POST /tags/{resourceArn}` | - | `resourceArn`, `Tags` | - | `TagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Adds one or more tags to an associated repository. |
+| `UntagResource` | `DELETE /tags/{resourceArn}` | - | `resourceArn`, `TagKeys` | - | `UntagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Removes a tag from an associated repository. |
 
 ## HTTP Bindings
 
@@ -144,31 +144,52 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `Message` | The server encountered an internal error and is unable to complete the request. |
-| `ValidationException` | `structure` | `Message` | The input fails to satisfy the specified constraints. |
-| `ThrottlingException` | `structure` | `Message` | The request was denied due to request throttling. |
-| `AccessDeniedException` | `structure` | `Message` | You do not have sufficient access to perform this action. |
-| `ResourceNotFoundException` | `structure` | `Message` | The resource specified in the request was not found. |
-| `ConflictException` | `structure` | `Message` | The requested operation would cause a conflict with the current state of a service resource associated with the request. |
-| `NotFoundException` | `structure` | `Message` | The resource specified in the request was not found. |
-| `AssociateRepositoryRequest` | `structure` | `ClientRequestToken`, `KMSKeyDetails`, `Repository`, `Tags` | - |
-| `AssociateRepositoryResponse` | `structure` | `RepositoryAssociation`, `Tags` | - |
-| `CreateCodeReviewRequest` | `structure` | `ClientRequestToken`, `Name`, `RepositoryAssociationArn`, `Type` | - |
-| `CreateCodeReviewResponse` | `structure` | `CodeReview` | - |
-| `DescribeCodeReviewRequest` | `structure` | `CodeReviewArn` | - |
-| `DescribeCodeReviewResponse` | `structure` | `CodeReview` | - |
-| `DescribeRecommendationFeedbackRequest` | `structure` | `CodeReviewArn`, `RecommendationId`, `UserId` | - |
-| `DescribeRecommendationFeedbackResponse` | `structure` | `RecommendationFeedback` | - |
-| `DescribeRepositoryAssociationRequest` | `structure` | `AssociationArn` | - |
-| `DescribeRepositoryAssociationResponse` | `structure` | `RepositoryAssociation`, `Tags` | - |
-| `DisassociateRepositoryRequest` | `structure` | `AssociationArn` | - |
-| `DisassociateRepositoryResponse` | `structure` | `RepositoryAssociation`, `Tags` | - |
-| `ListCodeReviewsRequest` | `structure` | `MaxResults`, `NextToken`, `ProviderTypes`, `RepositoryNames`, `States`, `Type` | - |
-| `ListCodeReviewsResponse` | `structure` | `CodeReviewSummaries`, `NextToken` | - |
-| `ListRecommendationFeedbackRequest` | `structure` | `CodeReviewArn`, `MaxResults`, `NextToken`, `RecommendationIds`, `UserIds` | - |
-| `ListRecommendationFeedbackResponse` | `structure` | `NextToken`, `RecommendationFeedbackSummaries` | - |
-| `ListRecommendationsRequest` | `structure` | `CodeReviewArn`, `MaxResults`, `NextToken` | - |
-
+| `AccessDeniedException` | `structure` | Message | You do not have sufficient access to perform this action. |
+| `ConflictException` | `structure` | Message | The requested operation would cause a conflict with the current state of a service resource associated with the request. Resolve the conflict before retryin ... |
+| `InternalServerException` | `structure` | Message | The server encountered an internal error and is unable to complete the request. |
+| `NotFoundException` | `structure` | Message | The resource specified in the request was not found. |
+| `ResourceNotFoundException` | `structure` | Message | The resource specified in the request was not found. |
+| `ThrottlingException` | `structure` | Message | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | Message | The input fails to satisfy the specified constraints. |
+| `AssociateRepositoryRequest` | `structure` | Repository, ClientRequestToken, Tags, KMSKeyDetails | - |
+| `AssociateRepositoryResponse` | `structure` | RepositoryAssociation, Tags | - |
+| `CreateCodeReviewRequest` | `structure` | Name, RepositoryAssociationArn, Type, ClientRequestToken | - |
+| `CreateCodeReviewResponse` | `structure` | CodeReview | - |
+| `DescribeCodeReviewRequest` | `structure` | CodeReviewArn | - |
+| `DescribeCodeReviewResponse` | `structure` | CodeReview | - |
+| `DescribeRecommendationFeedbackRequest` | `structure` | CodeReviewArn, RecommendationId, UserId | - |
+| `DescribeRecommendationFeedbackResponse` | `structure` | RecommendationFeedback | - |
+| `DescribeRepositoryAssociationRequest` | `structure` | AssociationArn | - |
+| `DescribeRepositoryAssociationResponse` | `structure` | RepositoryAssociation, Tags | - |
+| `DisassociateRepositoryRequest` | `structure` | AssociationArn | - |
+| `DisassociateRepositoryResponse` | `structure` | RepositoryAssociation, Tags | - |
+| `ListCodeReviewsRequest` | `structure` | ProviderTypes, States, RepositoryNames, Type, MaxResults, NextToken | - |
+| `ListCodeReviewsResponse` | `structure` | CodeReviewSummaries, NextToken | - |
+| `ListRecommendationFeedbackRequest` | `structure` | NextToken, MaxResults, CodeReviewArn, UserIds, RecommendationIds | - |
+| `ListRecommendationFeedbackResponse` | `structure` | RecommendationFeedbackSummaries, NextToken | - |
+| `ListRecommendationsRequest` | `structure` | NextToken, MaxResults, CodeReviewArn | - |
+| `ListRecommendationsResponse` | `structure` | RecommendationSummaries, NextToken | - |
+| `ListRepositoryAssociationsRequest` | `structure` | ProviderTypes, States, Names, Owners, MaxResults, NextToken | - |
+| `ListRepositoryAssociationsResponse` | `structure` | RepositoryAssociationSummaries, NextToken | - |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | Tags | - |
+| `PutRecommendationFeedbackRequest` | `structure` | CodeReviewArn, RecommendationId, Reactions | - |
+| `PutRecommendationFeedbackResponse` | `structure` | **empty (no members)** | - |
+| `TagResourceRequest` | `structure` | resourceArn, Tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | resourceArn, TagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `AnalysisType` | `enum` | SECURITY, CODE_QUALITY | - |
+| `ConfigFileState` | `enum` | PRESENT, ABSENT, PRESENT_WITH_ERRORS | - |
+| `EncryptionOption` | `enum` | AoCmk, CmCmk | - |
+| `JobState` | `enum` | COMPLETED, PENDING, FAILED, DELETING | - |
+| `ProviderType` | `enum` | CODE_COMMIT, GIT_HUB, BITBUCKET, GIT_HUB_ENTERPRISE_SERVER, S3_BUCKET | - |
+| `Reaction` | `enum` | THUMBS_UP, THUMBS_DOWN | - |
+| `RecommendationCategory` | `enum` | AWS_BEST_PRACTICES, AWS_CLOUDFORMATION_ISSUES, DUPLICATE_CODE, CODE_MAINTENANCE_ISSUES, CONCURRENCY_ISSUES, INPUT_VALIDATIONS, PYTHON_BEST_PRACTICES, JAVA_BEST_PRACTICES, RESOURCE_LEAKS, SECURITY_ISSUES, CODE_INCONSISTENCIES | - |
+| `RepositoryAssociationState` | `enum` | ASSOCIATED, ASSOCIATING, FAILED, DISASSOCIATING, DISASSOCIATED | - |
+| `Severity` | `enum` | INFO, LOW, MEDIUM, HIGH, CRITICAL | - |
+| `Type` | `enum` | PULL_REQUEST, REPOSITORY_ANALYSIS | - |
+| `VendorName` | `enum` | GITHUB, GITLAB, NATIVE_S3 | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

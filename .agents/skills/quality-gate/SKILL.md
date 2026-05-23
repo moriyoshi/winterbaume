@@ -95,6 +95,15 @@ Per the canonical `QUALITY_GATE.md` §2 rule, `tests/scenario_test.rs` is mandat
 
 Lifecycle tests in `tests/integration_test.rs` do **not** substitute. Invariant coverage is the property this gate enforces, and lifecycle coverage does not exercise cross-call invariants. The previous "5-resource lifecycle test may substitute" carve-out is removed.
 
+#### §2 handler HTTP-binding audit
+
+The dossier at `.agents/docs/services/<slug>.md` carries a `## HTTP Bindings` table per operation, surfacing every input member that binds to `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload`. Optional members do **not** appear in the operation matrix's `Required input` column, so hand-written handlers routinely drop them ( GitHub issue #4 on S3 was exactly this anti-pattern: `If-Match` / `If-None-Match` were modelled, parsed by the dispatcher, then thrown away ). See the memory entry `handler-signatures-drop-modelled-fields` and the `dossier-handler-binding-audit` TODO.
+
+Audit each operation:
+- For every row in the dossier's `## HTTP Bindings` table that lists Header / Query / Prefix headers / Payload entries, confirm the corresponding handler either (a) plumbs the member into a state call, (b) explicitly drops it with a one-line rationale comment naming the AWS behaviour it forgoes, or (c) is fully wired by codegen ( `wire::deserialize_<op>_request` returns the field on the typed input struct and the handler consumes it ).
+- Pay extra attention to RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`). These are the most common silent-drop offenders.
+- The dossier's "Conditional-write/read coverage" trailer auto-enumerates every operation modelling RFC 7232 headers; cross-check it against the crate's actual enforcement.
+
 ### Step 5: State error shaping (QG §3)
 
 Inspect `state.rs`:
@@ -108,6 +117,8 @@ rg 'error_type:|status:\s*\d' crates/winterbaume-{service}/src/state.rs
 rg 'fn error_type|fn status\b' crates/winterbaume-{service}/src/state.rs
 rg 'err\.to_string\(\)' crates/winterbaume-{service}/src/handlers.rs
 ```
+
+- Audit the modelled `errors:` list against the AWS API Reference. The Smithy `errors:` list is a lower bound, not the full set: documented HTTP error codes ( 412 PreconditionFailed and 409 ConditionalRequestConflict on conditional writes, 304 Not Modified on conditional reads, throttling and quota variants ) are routinely absent from `errors:` but still need to be emitted with the correct HTTP status and `ErrorMetadata.code`. Cross-reference the dossier's `## Behavioural Model Notes` against the API Reference's "Errors" / "Response" sections per operation. Pair with the `dossier-modelled-errors-lower-bound-sweep` TODO and the `handler-signatures-drop-modelled-fields` memory.
 
 ### Step 6: StatefulService contract and state views (QG §4)
 
@@ -161,6 +172,18 @@ Report any remaining hand-written responses where generated `wire::serialize_*` 
 ```bash
 rg 'FIX\(terraform-e2e\)' crates/winterbaume-{service}/src/ -n
 ```
+
+- Audit error-path tests for typed-variant assertions. An `expect_err(...)` followed by `format!("{err:?}").contains("...")` is a fleet-wide anti-pattern -- the string check also accepts the SDK's `Unhandled` fallback, masking the exact `aws-sdk-rust` bug GitHub issue #3 reported against S3 ( see `error-tests-must-assert-typed-variant` in `.claude` memory and the `error-tests-typed-variant-assertion-sweep` TODO ). Flag every fuzzy-string error-path test in the crate:
+
+```bash
+rg -nB 0 -A 5 'expect_err\b' crates/winterbaume-{service}/tests/ | rg -B 1 'format!.*contains'
+```
+
+For each flagged test, the assertion should be either:
+- `assert!(matches!(err.as_service_error(), Some(<TypedVariant>::<Variant>(_))))` when the operation models a named error, or
+- `assert_eq!(err.as_service_error().unwrap().meta().code(), Some("<Code>"))` when the operation has no typed variant for that error.
+
+Permit the fuzzy form only when the operation's Smithy `errors:` list is empty AND the AWS API Reference does not document a specific HTTP error code for the scenario -- record that reasoning in a comment on the test.
 
 - Run the integration tests:
 

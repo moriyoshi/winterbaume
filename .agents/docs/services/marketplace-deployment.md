@@ -46,31 +46,24 @@ The AWS Marketplace Deployment Service supports the Quick Launch experience, whi
 
 - Operations: `ListTagsForResource`
 - Traits: `readonly` (1)
-- Common required input members in this group: `resourceArn`
-
-### Put
-
-- Operations: `PutDeploymentParameter`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `agreementId`, `catalog`, `deploymentParameter`, `productId`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
 | `ListTagsForResource` | `GET /tags/{resourceArn}` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all tags that have been added to a deployment parameter resource. |
-| `PutDeploymentParameter` | `POST /catalogs/{catalog}/products/{productId}/deployment-parameters` | `idempotent`, `idempotency-token` | `agreementId`, `catalog`, `deploymentParameter`, `productId` | `clientToken` | `PutDeploymentParameterResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates or updates a deployment parameter and is targeted by `catalog` and `agreementId`. |
 | `TagResource` | `POST /tags/{resourceArn}` | - | `resourceArn` | - | `TagResourceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Tags a resource. |
 | `UntagResource` | `DELETE /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes a tag or list of tags from a resource. |
 
@@ -86,22 +79,19 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | You do not have sufficient access to perform this action. |
-| `InternalServerException` | `structure` | `message` | There was an internal service exception. |
-| `ResourceNotFoundException` | `structure` | `message` | The specified resource wasn't found. |
-| `ThrottlingException` | `structure` | `message` | Too many requests. |
-| `ValidationException` | `structure` | `fieldName`, `message` | An error occurred during validation. |
-| `ConflictException` | `structure` | `message`, `resourceId` | The request configuration has conflicts. |
-| `ListTagsForResourceRequest` | `structure` | `resourceArn` | - |
-| `ListTagsForResourceResponse` | `structure` | `tags` | - |
-| `PutDeploymentParameterRequest` | `structure` | `agreementId`, `catalog`, `clientToken`, `deploymentParameter`, `expirationDate`, `productId`, `tags` | - |
-| `PutDeploymentParameterResponse` | `structure` | `agreementId`, `deploymentParameterId`, `resourceArn`, `tags` | - |
-| `ServiceQuotaExceededException` | `structure` | `message` | The maximum number of requests per account has been exceeded. |
-| `TagResourceRequest` | `structure` | `resourceArn`, `tags` | - |
-| `TagResourceResponse` | `structure` | - | - |
-| `UntagResourceRequest` | `structure` | `resourceArn`, `tagKeys` | - |
-| `UntagResourceResponse` | `structure` | - | - |
-
+| `AccessDeniedException` | `structure` | message | You do not have sufficient access to perform this action. |
+| `ConflictException` | `structure` | message, resourceId | The request configuration has conflicts. For details, see the accompanying error message. |
+| `InternalServerException` | `structure` | message | There was an internal service exception. |
+| `ResourceNotFoundException` | `structure` | message | The specified resource wasn't found. |
+| `ServiceQuotaExceededException` | `structure` | message | The maximum number of requests per account has been exceeded. |
+| `ThrottlingException` | `structure` | message | Too many requests. |
+| `ValidationException` | `structure` | message, fieldName | An error occurred during validation. |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `TagResourceRequest` | `structure` | resourceArn, tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | resourceArn, tagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

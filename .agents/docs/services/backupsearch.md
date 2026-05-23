@@ -49,54 +49,29 @@ Backup Search Backup Search is the recovery point and item level search for Back
 
 ### List
 
-- Operations: `ListSearchJobBackups`, `ListSearchJobResults`, `ListSearchJobs`, `ListSearchResultExportJobs`, `ListTagsForResource`
-- Traits: `paginated` (4), `readonly` (5)
-- Common required input members in this group: `ResourceArn`, `SearchJobIdentifier`
-
-### Get
-
-- Operations: `GetSearchJob`, `GetSearchResultExportJob`
-- Traits: `readonly` (2)
-- Common required input members in this group: `ExportJobIdentifier`, `SearchJobIdentifier`
-
-### Start
-
-- Operations: `StartSearchJob`, `StartSearchResultExportJob`
-- Traits: `idempotent` (2)
-- Common required input members in this group: `ExportSpecification`, `SearchJobIdentifier`, `SearchScope`
-
-### Stop
-
-- Operations: `StopSearchJob`
-- Traits: `idempotent` (1)
+- Operations: `ListSearchJobBackups`, `ListSearchJobResults`, `ListTagsForResource`
+- Traits: `readonly` (3), `paginated` (2)
 - Common required input members in this group: `SearchJobIdentifier`
 
 ### Tag
 
 - Operations: `TagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `GetSearchJob` | `GET /search-jobs/{SearchJobIdentifier}` | `readonly` | `SearchJobIdentifier` | - | `GetSearchJobOutput` | `ResourceNotFoundException` | This operation retrieves metadata of a search job, including its progress. |
-| `GetSearchResultExportJob` | `GET /export-search-jobs/{ExportJobIdentifier}` | `readonly` | `ExportJobIdentifier` | - | `GetSearchResultExportJobOutput` | `ResourceNotFoundException` | This operation retrieves the metadata of an export job. An export job is an operation that transmits the results of a search job to a specified S3 bucket in a .csv file. |
-| `ListSearchJobBackups` | `GET /search-jobs/{SearchJobIdentifier}/backups` | `readonly`, `paginated` | `SearchJobIdentifier` | - | `ListSearchJobBackupsOutput` | `ResourceNotFoundException` | This operation returns a list of all backups (recovery points) in a paginated format that were included in the search job. If a search does not display an expected backup in the results, you can call this operation to display each backup included in the... |
+| `ListSearchJobBackups` | `GET /search-jobs/{SearchJobIdentifier}/backups` | `readonly`, `paginated` | `SearchJobIdentifier` | - | `ListSearchJobBackupsOutput` | `ResourceNotFoundException` | This operation returns a list of all backups (recovery points) in a paginated format that were included in the search job. If a search does not display an expected backup in the results, you can call this operation t ... |
 | `ListSearchJobResults` | `GET /search-jobs/{SearchJobIdentifier}/search-results` | `readonly`, `paginated` | `SearchJobIdentifier` | - | `ListSearchJobResultsOutput` | `ResourceNotFoundException` | This operation returns a list of a specified search job. |
-| `ListSearchJobs` | `GET /search-jobs` | `readonly`, `paginated` | - | - | `ListSearchJobsOutput` | - | This operation returns a list of search jobs belonging to an account. |
-| `ListSearchResultExportJobs` | `GET /export-search-jobs` | `readonly`, `paginated` | - | - | `ListSearchResultExportJobsOutput` | `ResourceNotFoundException`, `ServiceQuotaExceededException` | This operation exports search results of a search job to a specified destination S3 bucket. |
 | `ListTagsForResource` | `GET /tags/{ResourceArn}` | `readonly` | `ResourceArn` | - | `ListTagsForResourceResponse` | `ResourceNotFoundException` | This operation returns the tags for a resource type. |
-| `StartSearchJob` | `PUT /search-jobs` | `idempotent` | `SearchScope` | - | `StartSearchJobOutput` | `ConflictException`, `ResourceNotFoundException`, `ServiceQuotaExceededException` | This operation creates a search job which returns recovery points filtered by SearchScope and items filtered by ItemFilters. You can optionally include ClientToken, EncryptionKeyArn, Name, and/or Tags. |
-| `StartSearchResultExportJob` | `PUT /export-search-jobs` | `idempotent` | `ExportSpecification`, `SearchJobIdentifier` | - | `StartSearchResultExportJobOutput` | `ConflictException`, `ResourceNotFoundException`, `ServiceQuotaExceededException` | This operations starts a job to export the results of search job to a designated S3 bucket. |
-| `StopSearchJob` | `PUT /search-jobs/{SearchJobIdentifier}/actions/cancel` | `idempotent` | `SearchJobIdentifier` | - | `StopSearchJobOutput` | `ConflictException`, `ResourceNotFoundException` | This operations ends a search job. Only a search job with a status of `RUNNING` can be stopped. |
 | `TagResource` | `POST /tags/{ResourceArn}` | `idempotent` | `ResourceArn`, `Tags` | - | `TagResourceResponse` | `ResourceNotFoundException` | This operation puts tags on the resource you indicate. |
 | `UntagResource` | `DELETE /tags/{ResourceArn}` | `idempotent` | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `ResourceNotFoundException` | This operation removes tags from the specified resource. |
 
@@ -114,31 +89,29 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ResourceNotFoundException` | `structure` | `message`, `resourceId`, `resourceType` | The resource was not found for this request. |
-| `ServiceQuotaExceededException` | `structure` | `message`, `quotaCode`, `resourceId`, `resourceType`, `serviceCode` | The request denied due to exceeding the quota limits permitted. |
-| `ConflictException` | `structure` | `message`, `resourceId`, `resourceType` | This exception occurs when a conflict with a previous successful operation is detected. |
-| `GetSearchJobInput` | `structure` | `SearchJobIdentifier` | - |
-| `GetSearchJobOutput` | `structure` | `CompletionTime`, `CreationTime`, `CurrentSearchProgress`, `EncryptionKeyArn`, `ItemFilters`, `Name`, `SearchJobArn`, `SearchJobIdentifier`, `SearchScope`, `SearchScopeSummary`, `Status`, `StatusMessage` | - |
-| `GetSearchResultExportJobInput` | `structure` | `ExportJobIdentifier` | - |
-| `GetSearchResultExportJobOutput` | `structure` | `CompletionTime`, `CreationTime`, `ExportJobArn`, `ExportJobIdentifier`, `ExportSpecification`, `SearchJobArn`, `Status`, `StatusMessage` | - |
-| `ListSearchJobBackupsInput` | `structure` | `MaxResults`, `NextToken`, `SearchJobIdentifier` | - |
-| `ListSearchJobBackupsOutput` | `structure` | `NextToken`, `Results` | - |
-| `ListSearchJobResultsInput` | `structure` | `MaxResults`, `NextToken`, `SearchJobIdentifier` | - |
-| `ListSearchJobResultsOutput` | `structure` | `NextToken`, `Results` | - |
-| `ListSearchJobsInput` | `structure` | `ByStatus`, `MaxResults`, `NextToken` | - |
-| `ListSearchJobsOutput` | `structure` | `NextToken`, `SearchJobs` | - |
-| `ListSearchResultExportJobsInput` | `structure` | `MaxResults`, `NextToken`, `SearchJobIdentifier`, `Status` | - |
-| `ListSearchResultExportJobsOutput` | `structure` | `ExportJobs`, `NextToken` | - |
-| `ListTagsForResourceRequest` | `structure` | `ResourceArn` | - |
-| `ListTagsForResourceResponse` | `structure` | `Tags` | - |
-| `StartSearchJobInput` | `structure` | `ClientToken`, `EncryptionKeyArn`, `ItemFilters`, `Name`, `SearchScope`, `Tags` | - |
-| `StartSearchJobOutput` | `structure` | `CreationTime`, `SearchJobArn`, `SearchJobIdentifier` | - |
-| `StartSearchResultExportJobInput` | `structure` | `ClientToken`, `ExportSpecification`, `RoleArn`, `SearchJobIdentifier`, `Tags` | - |
-| `StartSearchResultExportJobOutput` | `structure` | `ExportJobArn`, `ExportJobIdentifier` | - |
-| `StopSearchJobInput` | `structure` | `SearchJobIdentifier` | - |
-| `StopSearchJobOutput` | `structure` | - | - |
-| `TagResourceRequest` | `structure` | `ResourceArn`, `Tags` | - |
-
+| `AccessDeniedException` | `structure` | message | You do not have sufficient access to perform this action. |
+| `ConflictException` | `structure` | message, resourceId, resourceType | This exception occurs when a conflict with a previous successful operation is detected. This generally occurs when the previous operation did not have time ... |
+| `InternalServerException` | `structure` | message, retryAfterSeconds | An internal server error occurred. Retry your request. |
+| `ResourceNotFoundException` | `structure` | message, resourceId, resourceType | The resource was not found for this request. Confirm the resource information, such as the ARN or type is correct and exists, then retry the request. |
+| `ServiceQuotaExceededException` | `structure` | message, resourceId, resourceType, serviceCode, quotaCode | The request denied due to exceeding the quota limits permitted. |
+| `ThrottlingException` | `structure` | message, serviceCode, quotaCode, retryAfterSeconds | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | message | The input fails to satisfy the constraints specified by a service. |
+| `ListSearchJobBackupsInput` | `structure` | SearchJobIdentifier, NextToken, MaxResults | - |
+| `ListSearchJobBackupsOutput` | `structure` | Results, NextToken | - |
+| `ListSearchJobResultsInput` | `structure` | SearchJobIdentifier, NextToken, MaxResults | - |
+| `ListSearchJobResultsOutput` | `structure` | Results, NextToken | - |
+| `ListTagsForResourceRequest` | `structure` | ResourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | Tags | - |
+| `TagResourceRequest` | `structure` | ResourceArn, Tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | ResourceArn, TagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `ExportJobStatus` | `enum` | RUNNING, FAILED, COMPLETED | - |
+| `LongConditionOperator` | `enum` | EQUALS_TO, NOT_EQUALS_TO, LESS_THAN_EQUAL_TO, GREATER_THAN_EQUAL_TO | - |
+| `ResourceType` | `enum` | S3, EBS | - |
+| `SearchJobState` | `enum` | RUNNING, COMPLETED, STOPPING, STOPPED, FAILED | - |
+| `StringConditionOperator` | `enum` | EQUALS_TO, NOT_EQUALS_TO, CONTAINS, DOES_NOT_CONTAIN, BEGINS_WITH, ENDS_WITH, DOES_NOT_BEGIN_WITH, DOES_NOT_END_WITH | - |
+| `TimeConditionOperator` | `enum` | EQUALS_TO, NOT_EQUALS_TO, LESS_THAN_EQUAL_TO, GREATER_THAN_EQUAL_TO | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

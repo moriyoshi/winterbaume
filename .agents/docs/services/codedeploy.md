@@ -65,133 +65,136 @@ Parity implications:
 
 ### List
 
-- Operations: `ListApplicationRevisions`, `ListApplications`, `ListDeploymentConfigs`, `ListDeploymentGroups`, `ListDeploymentInstances`, `ListDeploymentTargets`, `ListDeployments`, `ListGitHubAccountTokenNames`, `ListOnPremisesInstances`, `ListTagsForResource`
+- Operations: `ListApplicationRevisions`, `ListApplications`, `ListDeploymentConfigs`, `ListDeploymentGroups`, `ListDeploymentInstances`, `ListDeployments`, `ListDeploymentTargets`, `ListGitHubAccountTokenNames`, `ListOnPremisesInstances`, `ListTagsForResource`
 - Traits: `paginated` (6)
-- Common required input members in this group: `ResourceArn`, `applicationName`, `deploymentId`
+- Common required input members in this group: `applicationName`, `deploymentId`
 
 ### Get
 
 - Operations: `GetApplication`, `GetApplicationRevision`, `GetDeployment`, `GetDeploymentConfig`, `GetDeploymentGroup`, `GetDeploymentInstance`, `GetDeploymentTarget`, `GetOnPremisesInstance`
-- Common required input members in this group: `applicationName`, `deploymentConfigName`, `deploymentGroupName`, `deploymentId`, `instanceId`, `instanceName`, `revision`, `targetId`
+- Common required input members in this group: `applicationName`, `deploymentId`
 
 ### Batch
 
-- Operations: `BatchGetApplicationRevisions`, `BatchGetApplications`, `BatchGetDeploymentGroups`, `BatchGetDeploymentInstances`, `BatchGetDeploymentTargets`, `BatchGetDeployments`, `BatchGetOnPremisesInstances`
-- Common required input members in this group: `applicationName`, `applicationNames`, `deploymentGroupNames`, `deploymentId`, `deploymentIds`, `instanceIds`, `instanceNames`, `revisions`, `targetIds`
+- Operations: `BatchGetApplicationRevisions`, `BatchGetApplications`, `BatchGetDeploymentGroups`, `BatchGetDeploymentInstances`, `BatchGetDeployments`, `BatchGetDeploymentTargets`, `BatchGetOnPremisesInstances`
+- Common required input members in this group: `applicationName`, `deploymentId`
 
 ### Delete
 
 - Operations: `DeleteApplication`, `DeleteDeploymentConfig`, `DeleteDeploymentGroup`, `DeleteGitHubAccountToken`, `DeleteResourcesByExternalId`
-- Common required input members in this group: `applicationName`, `deploymentConfigName`, `deploymentGroupName`
+- Common required input members in this group: `applicationName`
 
 ### Create
 
 - Operations: `CreateApplication`, `CreateDeployment`, `CreateDeploymentConfig`, `CreateDeploymentGroup`
-- Common required input members in this group: `applicationName`, `deploymentConfigName`, `deploymentGroupName`, `serviceRoleArn`
+- Common required input members in this group: `applicationName`
 
 ### Register
 
 - Operations: `RegisterApplicationRevision`, `RegisterOnPremisesInstance`
-- Common required input members in this group: `applicationName`, `instanceName`, `revision`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateApplication`, `UpdateDeploymentGroup`
-- Common required input members in this group: `applicationName`, `currentDeploymentGroupName`
+- Common required input members in this group: -
 
 ### Add
 
 - Operations: `AddTagsToOnPremisesInstances`
-- Common required input members in this group: `instanceNames`, `tags`
+- Common required input members in this group: -
 
 ### Continue
 
 - Operations: `ContinueDeployment`
+- Common required input members in this group: -
 
 ### Deregister
 
 - Operations: `DeregisterOnPremisesInstance`
-- Common required input members in this group: `instanceName`
+- Common required input members in this group: -
 
 ### Put
 
 - Operations: `PutLifecycleEventHookExecutionStatus`
+- Common required input members in this group: -
 
 ### Remove
 
 - Operations: `RemoveTagsFromOnPremisesInstances`
-- Common required input members in this group: `instanceNames`, `tags`
+- Common required input members in this group: -
 
 ### Skip
 
 - Operations: `SkipWaitTimeForInstanceTermination`
+- Common required input members in this group: -
 
 ### Stop
 
 - Operations: `StopDeployment`
-- Common required input members in this group: `deploymentId`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AddTagsToOnPremisesInstances` | - | - | `instanceNames`, `tags` | - | `Unit` | `InstanceLimitExceededException`, `InstanceNameRequiredException`, `InstanceNotRegisteredException`, `InvalidInstanceNameException`, `InvalidTagException`, `TagLimitExceededException`, `TagRequiredException` | Adds tags to on-premises instances. |
-| `BatchGetApplicationRevisions` | - | - | `applicationName`, `revisions` | - | `BatchGetApplicationRevisionsOutput` | `ApplicationDoesNotExistException`, `ApplicationNameRequiredException`, `BatchLimitExceededException`, `InvalidApplicationNameException`, `InvalidRevisionException`, `RevisionRequiredException` | Gets information about one or more application revisions. The maximum number of application revisions that can be returned is 25. |
-| `BatchGetApplications` | - | - | `applicationNames` | - | `BatchGetApplicationsOutput` | `ApplicationDoesNotExistException`, `ApplicationNameRequiredException`, `BatchLimitExceededException`, `InvalidApplicationNameException` | Gets information about one or more applications. The maximum number of applications that can be returned is 100. |
-| `BatchGetDeploymentGroups` | - | - | `applicationName`, `deploymentGroupNames` | - | `BatchGetDeploymentGroupsOutput` | `ApplicationDoesNotExistException`, `ApplicationNameRequiredException`, `BatchLimitExceededException`, `DeploymentConfigDoesNotExistException`, `DeploymentGroupNameRequiredException`, `InvalidApplicationNameException`, `InvalidDeploymentGroupNameException` | Gets information about one or more deployment groups. |
-| `BatchGetDeploymentInstances` | - | - | `deploymentId`, `instanceIds` | - | `BatchGetDeploymentInstancesOutput` | `BatchLimitExceededException`, `DeploymentDoesNotExistException`, `DeploymentIdRequiredException`, `InstanceIdRequiredException`, `InvalidComputePlatformException`, `InvalidDeploymentIdException`, `InvalidInstanceNameException` | This method works, but is deprecated. Use `BatchGetDeploymentTargets` instead. |
-| `BatchGetDeploymentTargets` | - | - | `deploymentId`, `targetIds` | - | `BatchGetDeploymentTargetsOutput` | `DeploymentDoesNotExistException`, `DeploymentIdRequiredException`, `DeploymentNotStartedException`, `DeploymentTargetDoesNotExistException`, `DeploymentTargetIdRequiredException`, `DeploymentTargetListSizeExceededException`, `InstanceDoesNotExistException`, `InvalidDeploymentIdException`, ... (+1) | Returns an array of one or more targets associated with a deployment. This method works with all compute types and should be used instead of the deprecated `BatchGetDeploymentInstances`. |
-| `BatchGetDeployments` | - | - | `deploymentIds` | - | `BatchGetDeploymentsOutput` | `BatchLimitExceededException`, `DeploymentIdRequiredException`, `InvalidDeploymentIdException` | Gets information about one or more deployments. The maximum number of deployments that can be returned is 25. |
-| `BatchGetOnPremisesInstances` | - | - | `instanceNames` | - | `BatchGetOnPremisesInstancesOutput` | `BatchLimitExceededException`, `InstanceNameRequiredException`, `InvalidInstanceNameException` | Gets information about one or more on-premises instances. The maximum number of on-premises instances that can be returned is 25. |
-| `ContinueDeployment` | - | - | - | - | `Unit` | `DeploymentAlreadyCompletedException`, `DeploymentDoesNotExistException`, `DeploymentIdRequiredException`, `DeploymentIsNotInReadyStateException`, `InvalidDeploymentIdException`, `InvalidDeploymentStatusException`, `InvalidDeploymentWaitTypeException`, `UnsupportedActionForDeploymentTypeException` | For a blue/green deployment, starts the process of rerouting traffic from instances in the original environment to instances in the replacement environment without waiting for a specified wait time to elapse. (Traffic rerouting, which is achieved by... |
-| `CreateApplication` | - | - | `applicationName` | - | `CreateApplicationOutput` | `ApplicationAlreadyExistsException`, `ApplicationLimitExceededException`, `ApplicationNameRequiredException`, `InvalidApplicationNameException`, `InvalidComputePlatformException`, `InvalidTagsToAddException` | Creates an application. |
-| `CreateDeployment` | - | - | `applicationName` | - | `CreateDeploymentOutput` | `AlarmsLimitExceededException`, `ApplicationDoesNotExistException`, `ApplicationNameRequiredException`, `DeploymentConfigDoesNotExistException`, `DeploymentGroupDoesNotExistException`, `DeploymentGroupNameRequiredException`, `DeploymentLimitExceededException`, `DescriptionTooLongException`, ... (+18) | Deploys an application revision through the specified deployment group. |
-| `CreateDeploymentConfig` | - | - | `deploymentConfigName` | - | `CreateDeploymentConfigOutput` | `DeploymentConfigAlreadyExistsException`, `DeploymentConfigLimitExceededException`, `DeploymentConfigNameRequiredException`, `InvalidComputePlatformException`, `InvalidDeploymentConfigNameException`, `InvalidMinimumHealthyHostValueException`, `InvalidTrafficRoutingConfigurationException`, `InvalidZonalDeploymentConfigurationException` | Creates a deployment configuration. |
-| `CreateDeploymentGroup` | - | - | `applicationName`, `deploymentGroupName`, `serviceRoleArn` | - | `CreateDeploymentGroupOutput` | `AlarmsLimitExceededException`, `ApplicationDoesNotExistException`, `ApplicationNameRequiredException`, `DeploymentConfigDoesNotExistException`, `DeploymentGroupAlreadyExistsException`, `DeploymentGroupLimitExceededException`, `DeploymentGroupNameRequiredException`, `ECSServiceMappingLimitExceededException`, ... (+25) | Creates a deployment group to which application revisions are deployed. |
-| `DeleteApplication` | - | - | `applicationName` | - | `Unit` | `ApplicationNameRequiredException`, `InvalidApplicationNameException`, `InvalidRoleException` | Deletes an application. |
-| `DeleteDeploymentConfig` | - | - | `deploymentConfigName` | - | `Unit` | `DeploymentConfigInUseException`, `DeploymentConfigNameRequiredException`, `InvalidDeploymentConfigNameException`, `InvalidOperationException` | Deletes a deployment configuration. A deployment configuration cannot be deleted if it is currently in use. |
-| `DeleteDeploymentGroup` | - | - | `applicationName`, `deploymentGroupName` | - | `DeleteDeploymentGroupOutput` | `ApplicationNameRequiredException`, `DeploymentGroupNameRequiredException`, `InvalidApplicationNameException`, `InvalidDeploymentGroupNameException`, `InvalidRoleException` | Deletes a deployment group. |
-| `DeleteGitHubAccountToken` | - | - | - | - | `DeleteGitHubAccountTokenOutput` | `GitHubAccountTokenDoesNotExistException`, `GitHubAccountTokenNameRequiredException`, `InvalidGitHubAccountTokenNameException`, `OperationNotSupportedException`, `ResourceValidationException` | Deletes a GitHub account connection. |
-| `DeleteResourcesByExternalId` | - | - | - | - | `DeleteResourcesByExternalIdOutput` | - | Deletes resources linked to an external ID. This action only applies if you have configured blue/green deployments through CloudFormation. |
-| `DeregisterOnPremisesInstance` | - | - | `instanceName` | - | `Unit` | `InstanceNameRequiredException`, `InvalidInstanceNameException` | Deregisters an on-premises instance. |
-| `GetApplication` | - | - | `applicationName` | - | `GetApplicationOutput` | `ApplicationDoesNotExistException`, `ApplicationNameRequiredException`, `InvalidApplicationNameException` | Gets information about an application. |
-| `GetApplicationRevision` | - | - | `applicationName`, `revision` | - | `GetApplicationRevisionOutput` | `ApplicationDoesNotExistException`, `ApplicationNameRequiredException`, `InvalidApplicationNameException`, `InvalidRevisionException`, `RevisionDoesNotExistException`, `RevisionRequiredException` | Gets information about an application revision. |
-| `GetDeployment` | - | - | `deploymentId` | - | `GetDeploymentOutput` | `DeploymentDoesNotExistException`, `DeploymentIdRequiredException`, `InvalidDeploymentIdException` | Gets information about a deployment. The `content` property of the `appSpecContent` object in the returned revision is always null. |
-| `GetDeploymentConfig` | - | - | `deploymentConfigName` | - | `GetDeploymentConfigOutput` | `DeploymentConfigDoesNotExistException`, `DeploymentConfigNameRequiredException`, `InvalidComputePlatformException`, `InvalidDeploymentConfigNameException` | Gets information about a deployment configuration. |
-| `GetDeploymentGroup` | - | - | `applicationName`, `deploymentGroupName` | - | `GetDeploymentGroupOutput` | `ApplicationDoesNotExistException`, `ApplicationNameRequiredException`, `DeploymentConfigDoesNotExistException`, `DeploymentGroupDoesNotExistException`, `DeploymentGroupNameRequiredException`, `InvalidApplicationNameException`, `InvalidDeploymentGroupNameException` | Gets information about a deployment group. |
-| `GetDeploymentInstance` | - | - | `deploymentId`, `instanceId` | - | `GetDeploymentInstanceOutput` | `DeploymentDoesNotExistException`, `DeploymentIdRequiredException`, `InstanceDoesNotExistException`, `InstanceIdRequiredException`, `InvalidComputePlatformException`, `InvalidDeploymentIdException`, `InvalidInstanceNameException` | Gets information about an instance as part of a deployment. |
-| `GetDeploymentTarget` | - | - | `deploymentId`, `targetId` | - | `GetDeploymentTargetOutput` | `DeploymentDoesNotExistException`, `DeploymentIdRequiredException`, `DeploymentNotStartedException`, `DeploymentTargetDoesNotExistException`, `DeploymentTargetIdRequiredException`, `InvalidDeploymentIdException`, `InvalidDeploymentTargetIdException`, `InvalidInstanceNameException` | Returns information about a deployment target. |
-| `GetOnPremisesInstance` | - | - | `instanceName` | - | `GetOnPremisesInstanceOutput` | `InstanceNameRequiredException`, `InstanceNotRegisteredException`, `InvalidInstanceNameException` | Gets information about an on-premises instance. |
-| `ListApplicationRevisions` | - | `paginated` | `applicationName` | - | `ListApplicationRevisionsOutput` | `ApplicationDoesNotExistException`, `ApplicationNameRequiredException`, `BucketNameFilterRequiredException`, `InvalidApplicationNameException`, `InvalidBucketNameFilterException`, `InvalidDeployedStateFilterException`, `InvalidKeyPrefixFilterException`, `InvalidNextTokenException`, ... (+2) | Lists information about revisions for an application. |
-| `ListApplications` | - | `paginated` | - | - | `ListApplicationsOutput` | `InvalidNextTokenException` | Lists the applications registered with the user or Amazon Web Services account. |
-| `ListDeploymentConfigs` | - | `paginated` | - | - | `ListDeploymentConfigsOutput` | `InvalidNextTokenException` | Lists the deployment configurations with the user or Amazon Web Services account. |
-| `ListDeploymentGroups` | - | `paginated` | `applicationName` | - | `ListDeploymentGroupsOutput` | `ApplicationDoesNotExistException`, `ApplicationNameRequiredException`, `InvalidApplicationNameException`, `InvalidNextTokenException` | Lists the deployment groups for an application registered with the Amazon Web Services user or Amazon Web Services account. |
-| `ListDeploymentInstances` | - | `paginated` | `deploymentId` | - | `ListDeploymentInstancesOutput` | `DeploymentDoesNotExistException`, `DeploymentIdRequiredException`, `DeploymentNotStartedException`, `InvalidComputePlatformException`, `InvalidDeploymentIdException`, `InvalidDeploymentInstanceTypeException`, `InvalidInstanceStatusException`, `InvalidInstanceTypeException`, ... (+2) | The newer `BatchGetDeploymentTargets` should be used instead because it works with all compute types. `ListDeploymentInstances` throws an exception if it is used with a compute platform other than EC2/On-premises or Lambda. |
-| `ListDeploymentTargets` | - | - | `deploymentId` | - | `ListDeploymentTargetsOutput` | `DeploymentDoesNotExistException`, `DeploymentIdRequiredException`, `DeploymentNotStartedException`, `InvalidDeploymentIdException`, `InvalidDeploymentInstanceTypeException`, `InvalidInstanceStatusException`, `InvalidInstanceTypeException`, `InvalidNextTokenException`, ... (+1) | Returns an array of target IDs that are associated a deployment. |
-| `ListDeployments` | - | `paginated` | - | - | `ListDeploymentsOutput` | `ApplicationDoesNotExistException`, `ApplicationNameRequiredException`, `DeploymentGroupDoesNotExistException`, `DeploymentGroupNameRequiredException`, `InvalidApplicationNameException`, `InvalidDeploymentGroupNameException`, `InvalidDeploymentStatusException`, `InvalidExternalIdException`, ... (+3) | Lists the deployments in a deployment group for an application registered with the user or Amazon Web Services account. |
-| `ListGitHubAccountTokenNames` | - | - | - | - | `ListGitHubAccountTokenNamesOutput` | `InvalidNextTokenException`, `OperationNotSupportedException`, `ResourceValidationException` | Lists the names of stored connections to GitHub accounts. |
-| `ListOnPremisesInstances` | - | - | - | - | `ListOnPremisesInstancesOutput` | `InvalidNextTokenException`, `InvalidRegistrationStatusException`, `InvalidTagFilterException` | Gets a list of names for one or more on-premises instances. Unless otherwise specified, both registered and deregistered on-premises instance names are listed. |
-| `ListTagsForResource` | - | - | `ResourceArn` | - | `ListTagsForResourceOutput` | `ArnNotSupportedException`, `InvalidArnException`, `ResourceArnRequiredException` | Returns a list of tags for the resource identified by a specified Amazon Resource Name (ARN). Tags are used to organize and categorize your CodeDeploy resources. |
-| `PutLifecycleEventHookExecutionStatus` | - | - | - | - | `PutLifecycleEventHookExecutionStatusOutput` | `DeploymentDoesNotExistException`, `DeploymentIdRequiredException`, `InvalidDeploymentIdException`, `InvalidLifecycleEventHookExecutionIdException`, `InvalidLifecycleEventHookExecutionStatusException`, `LifecycleEventAlreadyCompletedException`, `UnsupportedActionForDeploymentTypeException` | Sets the result of a Lambda validation function. The function validates lifecycle hooks during a deployment that uses the Lambda or Amazon ECS compute platform. |
-| `RegisterApplicationRevision` | - | - | `applicationName`, `revision` | - | `Unit` | `ApplicationDoesNotExistException`, `ApplicationNameRequiredException`, `DescriptionTooLongException`, `InvalidApplicationNameException`, `InvalidRevisionException`, `RevisionRequiredException` | Registers with CodeDeploy a revision for the specified application. |
-| `RegisterOnPremisesInstance` | - | - | `instanceName` | - | `Unit` | `IamArnRequiredException`, `IamSessionArnAlreadyRegisteredException`, `IamUserArnAlreadyRegisteredException`, `IamUserArnRequiredException`, `InstanceNameAlreadyRegisteredException`, `InstanceNameRequiredException`, `InvalidIamSessionArnException`, `InvalidIamUserArnException`, ... (+2) | Registers an on-premises instance. Only one IAM ARN (an IAM session ARN or IAM user ARN) is supported in the request. |
-| `RemoveTagsFromOnPremisesInstances` | - | - | `instanceNames`, `tags` | - | `Unit` | `InstanceLimitExceededException`, `InstanceNameRequiredException`, `InstanceNotRegisteredException`, `InvalidInstanceNameException`, `InvalidTagException`, `TagLimitExceededException`, `TagRequiredException` | Removes one or more tags from one or more on-premises instances. |
-| `SkipWaitTimeForInstanceTermination` | - | - | - | - | `Unit` | `DeploymentAlreadyCompletedException`, `DeploymentDoesNotExistException`, `DeploymentIdRequiredException`, `DeploymentNotStartedException`, `InvalidDeploymentIdException`, `UnsupportedActionForDeploymentTypeException` | In a blue/green deployment, overrides any specified wait time and starts terminating instances immediately after the traffic routing is complete. |
-| `StopDeployment` | - | - | `deploymentId` | - | `StopDeploymentOutput` | `DeploymentAlreadyCompletedException`, `DeploymentDoesNotExistException`, `DeploymentGroupDoesNotExistException`, `DeploymentIdRequiredException`, `InvalidDeploymentIdException`, `UnsupportedActionForDeploymentTypeException` | Attempts to stop an ongoing deployment. |
-| `TagResource` | - | - | `ResourceArn`, `Tags` | - | `TagResourceOutput` | `ApplicationDoesNotExistException`, `ArnNotSupportedException`, `DeploymentConfigDoesNotExistException`, `DeploymentGroupDoesNotExistException`, `InvalidArnException`, `InvalidTagsToAddException`, `ResourceArnRequiredException`, `TagRequiredException` | Associates the list of tags in the input `Tags` parameter with the resource identified by the `ResourceArn` input parameter. |
-| `UntagResource` | - | - | `ResourceArn`, `TagKeys` | - | `UntagResourceOutput` | `ApplicationDoesNotExistException`, `ArnNotSupportedException`, `DeploymentConfigDoesNotExistException`, `DeploymentGroupDoesNotExistException`, `InvalidArnException`, `InvalidTagsToAddException`, `ResourceArnRequiredException`, `TagRequiredException` | Disassociates a resource from a list of tags. The resource is identified by the `ResourceArn` input parameter. |
-| `UpdateApplication` | - | - | - | - | `Unit` | `ApplicationAlreadyExistsException`, `ApplicationDoesNotExistException`, `ApplicationNameRequiredException`, `InvalidApplicationNameException` | Changes the name of an application. |
-| `UpdateDeploymentGroup` | - | - | `applicationName`, `currentDeploymentGroupName` | - | `UpdateDeploymentGroupOutput` | `AlarmsLimitExceededException`, `ApplicationDoesNotExistException`, `ApplicationNameRequiredException`, `DeploymentConfigDoesNotExistException`, `DeploymentGroupAlreadyExistsException`, `DeploymentGroupDoesNotExistException`, `DeploymentGroupNameRequiredException`, `ECSServiceMappingLimitExceededException`, ... (+23) | Changes information about a deployment group. |
+| `AddTagsToOnPremisesInstances` | `-` | - | `tags`, `instanceNames` | - | `Unit` | `InstanceLimitExceededException`, `InstanceNameRequiredException`, `InstanceNotRegisteredException`, `InvalidInstanceNameException`, `InvalidTagException`, `TagLimitExceededException`, `TagRequiredException` | Adds tags to on-premises instances. |
+| `BatchGetApplicationRevisions` | `-` | - | `applicationName`, `revisions` | - | `BatchGetApplicationRevisionsOutput` | `ApplicationDoesNotExistException`, `ApplicationNameRequiredException`, `BatchLimitExceededException`, `InvalidApplicationNameException`, `InvalidRevisionException`, `RevisionRequiredException` | Gets information about one or more application revisions. The maximum number of application revisions that can be returned is 25. |
+| `BatchGetApplications` | `-` | - | `applicationNames` | - | `BatchGetApplicationsOutput` | `ApplicationDoesNotExistException`, `ApplicationNameRequiredException`, `BatchLimitExceededException`, `InvalidApplicationNameException` | Gets information about one or more applications. The maximum number of applications that can be returned is 100. |
+| `BatchGetDeploymentGroups` | `-` | - | `applicationName`, `deploymentGroupNames` | - | `BatchGetDeploymentGroupsOutput` | `ApplicationDoesNotExistException`, `ApplicationNameRequiredException`, `BatchLimitExceededException`, `DeploymentConfigDoesNotExistException`, `DeploymentGroupNameRequiredException`, `InvalidApplicationNameException`, `InvalidDeploymentGroupNameException` | Gets information about one or more deployment groups. |
+| `BatchGetDeploymentInstances` | `-` | - | `deploymentId`, `instanceIds` | - | `BatchGetDeploymentInstancesOutput` | `BatchLimitExceededException`, `DeploymentDoesNotExistException`, `DeploymentIdRequiredException`, `InstanceIdRequiredException`, `InvalidComputePlatformException`, `InvalidDeploymentIdException`, `InvalidInstanceNameException` | This method works, but is deprecated. Use BatchGetDeploymentTargets instead. Returns an array of one or more instances associated with a deployment. This method works with EC2/On-premises and Lambda compute platforms ... |
+| `BatchGetDeployments` | `-` | - | `deploymentIds` | - | `BatchGetDeploymentsOutput` | `BatchLimitExceededException`, `DeploymentIdRequiredException`, `InvalidDeploymentIdException` | Gets information about one or more deployments. The maximum number of deployments that can be returned is 25. |
+| `BatchGetDeploymentTargets` | `-` | - | `deploymentId`, `targetIds` | - | `BatchGetDeploymentTargetsOutput` | `DeploymentDoesNotExistException`, `DeploymentIdRequiredException`, `DeploymentNotStartedException`, `DeploymentTargetDoesNotExistException`, `DeploymentTargetIdRequiredException`, `DeploymentTargetListSizeExceededException`, `InstanceDoesNotExistException`, `InvalidDeploymentIdException`, `InvalidDeploymentTargetIdException` | Returns an array of one or more targets associated with a deployment. This method works with all compute types and should be used instead of the deprecated BatchGetDeploymentInstances . The maximum number of targets ... |
+| `BatchGetOnPremisesInstances` | `-` | - | `instanceNames` | - | `BatchGetOnPremisesInstancesOutput` | `BatchLimitExceededException`, `InstanceNameRequiredException`, `InvalidInstanceNameException` | Gets information about one or more on-premises instances. The maximum number of on-premises instances that can be returned is 25. |
+| `ContinueDeployment` | `-` | - | - | - | `Unit` | `DeploymentAlreadyCompletedException`, `DeploymentDoesNotExistException`, `DeploymentIdRequiredException`, `DeploymentIsNotInReadyStateException`, `InvalidDeploymentIdException`, `InvalidDeploymentStatusException`, `InvalidDeploymentWaitTypeException`, `UnsupportedActionForDeploymentTypeException` | For a blue/green deployment, starts the process of rerouting traffic from instances in the original environment to instances in the replacement environment without waiting for a specified wait time to elapse. (Traffi ... |
+| `CreateApplication` | `-` | - | `applicationName` | - | `CreateApplicationOutput` | `ApplicationAlreadyExistsException`, `ApplicationLimitExceededException`, `ApplicationNameRequiredException`, `InvalidApplicationNameException`, `InvalidComputePlatformException`, `InvalidTagsToAddException` | Creates an application. |
+| `CreateDeployment` | `-` | - | `applicationName` | - | `CreateDeploymentOutput` | `AlarmsLimitExceededException`, `ApplicationDoesNotExistException`, `ApplicationNameRequiredException`, `DeploymentConfigDoesNotExistException`, `DeploymentGroupDoesNotExistException`, `DeploymentGroupNameRequiredException`, `DeploymentLimitExceededException`, `DescriptionTooLongException`, `InvalidAlarmConfigException`, `InvalidApplicationNameException`, `InvalidAutoRollbackConfigException`, `InvalidAutoScalingGroupException`, `InvalidDeploymentConfigNameException`, `InvalidDeploymentGroupNameException`, `InvalidFileExistsBehaviorException`, `InvalidGitHubAccountTokenException`, `InvalidIgnoreApplicationStopFailuresValueException`, `InvalidLoadBalancerInfoException`, `InvalidRevisionException`, `InvalidRoleException`, `InvalidTargetInstancesException`, `InvalidTrafficRoutingConfigurationException`, `InvalidUpdateOutdatedInstancesOnlyValueException`, `RevisionDoesNotExistException`, `RevisionRequiredException`, `ThrottlingException` | Deploys an application revision through the specified deployment group. |
+| `CreateDeploymentConfig` | `-` | - | `deploymentConfigName` | - | `CreateDeploymentConfigOutput` | `DeploymentConfigAlreadyExistsException`, `DeploymentConfigLimitExceededException`, `DeploymentConfigNameRequiredException`, `InvalidComputePlatformException`, `InvalidDeploymentConfigNameException`, `InvalidMinimumHealthyHostValueException`, `InvalidTrafficRoutingConfigurationException`, `InvalidZonalDeploymentConfigurationException` | Creates a deployment configuration. |
+| `CreateDeploymentGroup` | `-` | - | `applicationName`, `deploymentGroupName`, `serviceRoleArn` | - | `CreateDeploymentGroupOutput` | `AlarmsLimitExceededException`, `ApplicationDoesNotExistException`, `ApplicationNameRequiredException`, `DeploymentConfigDoesNotExistException`, `DeploymentGroupAlreadyExistsException`, `DeploymentGroupLimitExceededException`, `DeploymentGroupNameRequiredException`, `ECSServiceMappingLimitExceededException`, `InvalidAlarmConfigException`, `InvalidApplicationNameException`, `InvalidAutoRollbackConfigException`, `InvalidAutoScalingGroupException`, `InvalidBlueGreenDeploymentConfigurationException`, `InvalidDeploymentConfigNameException`, `InvalidDeploymentGroupNameException`, `InvalidDeploymentStyleException`, `InvalidEC2TagCombinationException`, `InvalidEC2TagException`, `InvalidECSServiceException`, `InvalidInputException`, `InvalidLoadBalancerInfoException`, `InvalidOnPremisesTagCombinationException`, `InvalidRoleException`, `InvalidTagException`, `InvalidTagsToAddException`, `InvalidTargetGroupPairException`, `InvalidTrafficRoutingConfigurationException`, `InvalidTriggerConfigException`, `LifecycleHookLimitExceededException`, `RoleRequiredException`, `TagSetListLimitExceededException`, `ThrottlingException`, `TriggerTargetsLimitExceededException` | Creates a deployment group to which application revisions are deployed. |
+| `DeleteApplication` | `-` | - | `applicationName` | - | `Unit` | `ApplicationNameRequiredException`, `InvalidApplicationNameException`, `InvalidRoleException` | Deletes an application. |
+| `DeleteDeploymentConfig` | `-` | - | `deploymentConfigName` | - | `Unit` | `DeploymentConfigInUseException`, `DeploymentConfigNameRequiredException`, `InvalidDeploymentConfigNameException`, `InvalidOperationException` | Deletes a deployment configuration. A deployment configuration cannot be deleted if it is currently in use. Predefined configurations cannot be deleted. |
+| `DeleteDeploymentGroup` | `-` | - | `applicationName`, `deploymentGroupName` | - | `DeleteDeploymentGroupOutput` | `ApplicationNameRequiredException`, `DeploymentGroupNameRequiredException`, `InvalidApplicationNameException`, `InvalidDeploymentGroupNameException`, `InvalidRoleException` | Deletes a deployment group. |
+| `DeleteGitHubAccountToken` | `-` | - | - | - | `DeleteGitHubAccountTokenOutput` | `GitHubAccountTokenDoesNotExistException`, `GitHubAccountTokenNameRequiredException`, `InvalidGitHubAccountTokenNameException`, `OperationNotSupportedException`, `ResourceValidationException` | Deletes a GitHub account connection. |
+| `DeleteResourcesByExternalId` | `-` | - | - | - | `DeleteResourcesByExternalIdOutput` | - | Deletes resources linked to an external ID. This action only applies if you have configured blue/green deployments through CloudFormation. It is not necessary to call this action directly. CloudFormation calls it on ... |
+| `DeregisterOnPremisesInstance` | `-` | - | `instanceName` | - | `Unit` | `InstanceNameRequiredException`, `InvalidInstanceNameException` | Deregisters an on-premises instance. |
+| `GetApplication` | `-` | - | `applicationName` | - | `GetApplicationOutput` | `ApplicationDoesNotExistException`, `ApplicationNameRequiredException`, `InvalidApplicationNameException` | Gets information about an application. |
+| `GetApplicationRevision` | `-` | - | `applicationName`, `revision` | - | `GetApplicationRevisionOutput` | `ApplicationDoesNotExistException`, `ApplicationNameRequiredException`, `InvalidApplicationNameException`, `InvalidRevisionException`, `RevisionDoesNotExistException`, `RevisionRequiredException` | Gets information about an application revision. |
+| `GetDeployment` | `-` | - | `deploymentId` | - | `GetDeploymentOutput` | `DeploymentDoesNotExistException`, `DeploymentIdRequiredException`, `InvalidDeploymentIdException` | Gets information about a deployment. The content property of the appSpecContent object in the returned revision is always null. Use GetApplicationRevision and the sha256 property of the returned appSpecContent object ... |
+| `GetDeploymentConfig` | `-` | - | `deploymentConfigName` | - | `GetDeploymentConfigOutput` | `DeploymentConfigDoesNotExistException`, `DeploymentConfigNameRequiredException`, `InvalidComputePlatformException`, `InvalidDeploymentConfigNameException` | Gets information about a deployment configuration. |
+| `GetDeploymentGroup` | `-` | - | `applicationName`, `deploymentGroupName` | - | `GetDeploymentGroupOutput` | `ApplicationDoesNotExistException`, `ApplicationNameRequiredException`, `DeploymentConfigDoesNotExistException`, `DeploymentGroupDoesNotExistException`, `DeploymentGroupNameRequiredException`, `InvalidApplicationNameException`, `InvalidDeploymentGroupNameException` | Gets information about a deployment group. |
+| `GetDeploymentInstance` | `-` | - | `deploymentId`, `instanceId` | - | `GetDeploymentInstanceOutput` | `DeploymentDoesNotExistException`, `DeploymentIdRequiredException`, `InstanceDoesNotExistException`, `InstanceIdRequiredException`, `InvalidComputePlatformException`, `InvalidDeploymentIdException`, `InvalidInstanceNameException` | Gets information about an instance as part of a deployment. |
+| `GetDeploymentTarget` | `-` | - | `deploymentId`, `targetId` | - | `GetDeploymentTargetOutput` | `DeploymentDoesNotExistException`, `DeploymentIdRequiredException`, `DeploymentNotStartedException`, `DeploymentTargetDoesNotExistException`, `DeploymentTargetIdRequiredException`, `InvalidDeploymentIdException`, `InvalidDeploymentTargetIdException`, `InvalidInstanceNameException` | Returns information about a deployment target. |
+| `GetOnPremisesInstance` | `-` | - | `instanceName` | - | `GetOnPremisesInstanceOutput` | `InstanceNameRequiredException`, `InstanceNotRegisteredException`, `InvalidInstanceNameException` | Gets information about an on-premises instance. |
+| `ListApplicationRevisions` | `-` | `paginated` | `applicationName` | - | `ListApplicationRevisionsOutput` | `ApplicationDoesNotExistException`, `ApplicationNameRequiredException`, `BucketNameFilterRequiredException`, `InvalidApplicationNameException`, `InvalidBucketNameFilterException`, `InvalidDeployedStateFilterException`, `InvalidKeyPrefixFilterException`, `InvalidNextTokenException`, `InvalidSortByException`, `InvalidSortOrderException` | Lists information about revisions for an application. |
+| `ListApplications` | `-` | `paginated` | - | - | `ListApplicationsOutput` | `InvalidNextTokenException` | Lists the applications registered with the user or Amazon Web Services account. |
+| `ListDeploymentConfigs` | `-` | `paginated` | - | - | `ListDeploymentConfigsOutput` | `InvalidNextTokenException` | Lists the deployment configurations with the user or Amazon Web Services account. |
+| `ListDeploymentGroups` | `-` | `paginated` | `applicationName` | - | `ListDeploymentGroupsOutput` | `ApplicationDoesNotExistException`, `ApplicationNameRequiredException`, `InvalidApplicationNameException`, `InvalidNextTokenException` | Lists the deployment groups for an application registered with the Amazon Web Services user or Amazon Web Services account. |
+| `ListDeploymentInstances` | `-` | `paginated` | `deploymentId` | - | `ListDeploymentInstancesOutput` | `DeploymentDoesNotExistException`, `DeploymentIdRequiredException`, `DeploymentNotStartedException`, `InvalidComputePlatformException`, `InvalidDeploymentIdException`, `InvalidDeploymentInstanceTypeException`, `InvalidInstanceStatusException`, `InvalidInstanceTypeException`, `InvalidNextTokenException`, `InvalidTargetFilterNameException` | The newer BatchGetDeploymentTargets should be used instead because it works with all compute types. ListDeploymentInstances throws an exception if it is used with a compute platform other than EC2/On-premises or Lamb ... |
+| `ListDeployments` | `-` | `paginated` | - | - | `ListDeploymentsOutput` | `ApplicationDoesNotExistException`, `ApplicationNameRequiredException`, `DeploymentGroupDoesNotExistException`, `DeploymentGroupNameRequiredException`, `InvalidApplicationNameException`, `InvalidDeploymentGroupNameException`, `InvalidDeploymentStatusException`, `InvalidExternalIdException`, `InvalidInputException`, `InvalidNextTokenException`, `InvalidTimeRangeException` | Lists the deployments in a deployment group for an application registered with the user or Amazon Web Services account. |
+| `ListDeploymentTargets` | `-` | - | `deploymentId` | - | `ListDeploymentTargetsOutput` | `DeploymentDoesNotExistException`, `DeploymentIdRequiredException`, `DeploymentNotStartedException`, `InvalidDeploymentIdException`, `InvalidDeploymentInstanceTypeException`, `InvalidInstanceStatusException`, `InvalidInstanceTypeException`, `InvalidNextTokenException`, `InvalidTargetFilterNameException` | Returns an array of target IDs that are associated a deployment. |
+| `ListGitHubAccountTokenNames` | `-` | - | - | - | `ListGitHubAccountTokenNamesOutput` | `InvalidNextTokenException`, `OperationNotSupportedException`, `ResourceValidationException` | Lists the names of stored connections to GitHub accounts. |
+| `ListOnPremisesInstances` | `-` | - | - | - | `ListOnPremisesInstancesOutput` | `InvalidNextTokenException`, `InvalidRegistrationStatusException`, `InvalidTagFilterException` | Gets a list of names for one or more on-premises instances. Unless otherwise specified, both registered and deregistered on-premises instance names are listed. To list only registered or deregistered on-premises inst ... |
+| `ListTagsForResource` | `-` | - | `ResourceArn` | - | `ListTagsForResourceOutput` | `ArnNotSupportedException`, `InvalidArnException`, `ResourceArnRequiredException` | Returns a list of tags for the resource identified by a specified Amazon Resource Name (ARN). Tags are used to organize and categorize your CodeDeploy resources. |
+| `PutLifecycleEventHookExecutionStatus` | `-` | - | - | - | `PutLifecycleEventHookExecutionStatusOutput` | `DeploymentDoesNotExistException`, `DeploymentIdRequiredException`, `InvalidDeploymentIdException`, `InvalidLifecycleEventHookExecutionIdException`, `InvalidLifecycleEventHookExecutionStatusException`, `LifecycleEventAlreadyCompletedException`, `UnsupportedActionForDeploymentTypeException` | Sets the result of a Lambda validation function. The function validates lifecycle hooks during a deployment that uses the Lambda or Amazon ECS compute platform. For Lambda deployments, the available lifecycle hooks a ... |
+| `RegisterApplicationRevision` | `-` | - | `applicationName`, `revision` | - | `Unit` | `ApplicationDoesNotExistException`, `ApplicationNameRequiredException`, `DescriptionTooLongException`, `InvalidApplicationNameException`, `InvalidRevisionException`, `RevisionRequiredException` | Registers with CodeDeploy a revision for the specified application. |
+| `RegisterOnPremisesInstance` | `-` | - | `instanceName` | - | `Unit` | `IamArnRequiredException`, `IamSessionArnAlreadyRegisteredException`, `IamUserArnAlreadyRegisteredException`, `IamUserArnRequiredException`, `InstanceNameAlreadyRegisteredException`, `InstanceNameRequiredException`, `InvalidIamSessionArnException`, `InvalidIamUserArnException`, `InvalidInstanceNameException`, `MultipleIamArnsProvidedException` | Registers an on-premises instance. Only one IAM ARN (an IAM session ARN or IAM user ARN) is supported in the request. You cannot use both. |
+| `RemoveTagsFromOnPremisesInstances` | `-` | - | `tags`, `instanceNames` | - | `Unit` | `InstanceLimitExceededException`, `InstanceNameRequiredException`, `InstanceNotRegisteredException`, `InvalidInstanceNameException`, `InvalidTagException`, `TagLimitExceededException`, `TagRequiredException` | Removes one or more tags from one or more on-premises instances. |
+| `SkipWaitTimeForInstanceTermination` | `-` | - | - | - | `Unit` | `DeploymentAlreadyCompletedException`, `DeploymentDoesNotExistException`, `DeploymentIdRequiredException`, `DeploymentNotStartedException`, `InvalidDeploymentIdException`, `UnsupportedActionForDeploymentTypeException` | In a blue/green deployment, overrides any specified wait time and starts terminating instances immediately after the traffic routing is complete. |
+| `StopDeployment` | `-` | - | `deploymentId` | - | `StopDeploymentOutput` | `DeploymentAlreadyCompletedException`, `DeploymentDoesNotExistException`, `DeploymentGroupDoesNotExistException`, `DeploymentIdRequiredException`, `InvalidDeploymentIdException`, `UnsupportedActionForDeploymentTypeException` | Attempts to stop an ongoing deployment. |
+| `TagResource` | `-` | - | `ResourceArn`, `Tags` | - | `TagResourceOutput` | `ApplicationDoesNotExistException`, `ArnNotSupportedException`, `DeploymentConfigDoesNotExistException`, `DeploymentGroupDoesNotExistException`, `InvalidArnException`, `InvalidTagsToAddException`, `ResourceArnRequiredException`, `TagRequiredException` | Associates the list of tags in the input Tags parameter with the resource identified by the ResourceArn input parameter. |
+| `UntagResource` | `-` | - | `ResourceArn`, `TagKeys` | - | `UntagResourceOutput` | `ApplicationDoesNotExistException`, `ArnNotSupportedException`, `DeploymentConfigDoesNotExistException`, `DeploymentGroupDoesNotExistException`, `InvalidArnException`, `InvalidTagsToAddException`, `ResourceArnRequiredException`, `TagRequiredException` | Disassociates a resource from a list of tags. The resource is identified by the ResourceArn input parameter. The tags are identified by the list of keys in the TagKeys input parameter. |
+| `UpdateApplication` | `-` | - | - | - | `Unit` | `ApplicationAlreadyExistsException`, `ApplicationDoesNotExistException`, `ApplicationNameRequiredException`, `InvalidApplicationNameException` | Changes the name of an application. |
+| `UpdateDeploymentGroup` | `-` | - | `applicationName`, `currentDeploymentGroupName` | - | `UpdateDeploymentGroupOutput` | `AlarmsLimitExceededException`, `ApplicationDoesNotExistException`, `ApplicationNameRequiredException`, `DeploymentConfigDoesNotExistException`, `DeploymentGroupAlreadyExistsException`, `DeploymentGroupDoesNotExistException`, `DeploymentGroupNameRequiredException`, `ECSServiceMappingLimitExceededException`, `InvalidAlarmConfigException`, `InvalidApplicationNameException`, `InvalidAutoRollbackConfigException`, `InvalidAutoScalingGroupException`, `InvalidBlueGreenDeploymentConfigurationException`, `InvalidDeploymentConfigNameException`, `InvalidDeploymentGroupNameException`, `InvalidDeploymentStyleException`, `InvalidEC2TagCombinationException`, `InvalidEC2TagException`, `InvalidECSServiceException`, `InvalidInputException`, `InvalidLoadBalancerInfoException`, `InvalidOnPremisesTagCombinationException`, `InvalidRoleException`, `InvalidTagException`, `InvalidTargetGroupPairException`, `InvalidTrafficRoutingConfigurationException`, `InvalidTriggerConfigException`, `LifecycleHookLimitExceededException`, `TagSetListLimitExceededException`, `ThrottlingException`, `TriggerTargetsLimitExceededException` | Changes information about a deployment group. |
 
 ## HTTP Bindings
 
@@ -203,30 +206,116 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ApplicationNameRequiredException` | `structure` | `message` | The minimum number of required application names was not specified. |
-| `InvalidApplicationNameException` | `structure` | `message` | The application name was specified in an invalid format. |
-| `ApplicationDoesNotExistException` | `structure` | `message` | The application does not exist with the user or Amazon Web Services account. |
-| `DeploymentIdRequiredException` | `structure` | `message` | At least one deployment ID must be specified. |
-| `InvalidDeploymentIdException` | `structure` | `message` | At least one of the deployment IDs was specified in an invalid format. |
-| `DeploymentDoesNotExistException` | `structure` | `message` | The deployment with the user or Amazon Web Services account does not exist. |
-| `InvalidInstanceNameException` | `structure` | `message` | The on-premises instance name was specified in an invalid format. |
-| `InvalidNextTokenException` | `structure` | `message` | The next token was specified in an invalid format. |
-| `DeploymentConfigDoesNotExistException` | `structure` | `message` | The deployment configuration does not exist with the user or Amazon Web Services account. |
-| `DeploymentGroupNameRequiredException` | `structure` | `message` | The deployment group name was not specified. |
-| `InvalidDeploymentGroupNameException` | `structure` | `message` | The deployment group name was specified in an invalid format. |
-| `DeploymentGroupDoesNotExistException` | `structure` | `message` | The named deployment group with the user or Amazon Web Services account does not exist. |
-| `InstanceNameRequiredException` | `structure` | `message` | An on-premises instance name was not specified. |
-| `BatchLimitExceededException` | `structure` | `message` | The maximum number of names or IDs allowed for this request (100) was exceeded. |
-| `InvalidComputePlatformException` | `structure` | `message` | The computePlatform is invalid. |
-| `InvalidDeploymentConfigNameException` | `structure` | `message` | The deployment configuration name was specified in an invalid format. |
-| `DeploymentNotStartedException` | `structure` | `message` | The specified deployment has not started. |
-| `InvalidRoleException` | `structure` | `message` | The service role ARN was specified in an invalid format. |
-| `InvalidTagException` | `structure` | `message` | The tag was specified in an invalid format. |
-| `TagRequiredException` | `structure` | `message` | A tag was not specified. |
-| `InvalidRevisionException` | `structure` | `message` | The revision was specified in an invalid format. |
-| `RevisionRequiredException` | `structure` | `message` | The revision ID was not specified. |
-| `UnsupportedActionForDeploymentTypeException` | `structure` | `message` | A call was submitted that is not supported for the specified deployment type. |
-
+| `AlarmsLimitExceededException` | `structure` | message | The maximum number of alarms for a deployment group (10) was exceeded. |
+| `ApplicationAlreadyExistsException` | `structure` | message | An application with the specified name with the user or Amazon Web Services account already exists. |
+| `ApplicationDoesNotExistException` | `structure` | message | The application does not exist with the user or Amazon Web Services account. |
+| `ApplicationLimitExceededException` | `structure` | message | More applications were attempted to be created than are allowed. |
+| `ApplicationNameRequiredException` | `structure` | message | The minimum number of required application names was not specified. |
+| `ArnNotSupportedException` | `structure` | message | The specified ARN is not supported. For example, it might be an ARN for a resource that is not expected. |
+| `BatchLimitExceededException` | `structure` | message | The maximum number of names or IDs allowed for this request (100) was exceeded. |
+| `BucketNameFilterRequiredException` | `structure` | message | A bucket name is required, but was not provided. |
+| `DeploymentAlreadyCompletedException` | `structure` | message | The deployment is already complete. |
+| `DeploymentConfigAlreadyExistsException` | `structure` | message | A deployment configuration with the specified name with the user or Amazon Web Services account already exists. |
+| `DeploymentConfigDoesNotExistException` | `structure` | message | The deployment configuration does not exist with the user or Amazon Web Services account. |
+| `DeploymentConfigInUseException` | `structure` | message | The deployment configuration is still in use. |
+| `DeploymentConfigLimitExceededException` | `structure` | message | The deployment configurations limit was exceeded. |
+| `DeploymentConfigNameRequiredException` | `structure` | message | The deployment configuration name was not specified. |
+| `DeploymentDoesNotExistException` | `structure` | message | The deployment with the user or Amazon Web Services account does not exist. |
+| `DeploymentGroupAlreadyExistsException` | `structure` | message | A deployment group with the specified name with the user or Amazon Web Services account already exists. |
+| `DeploymentGroupDoesNotExistException` | `structure` | message | The named deployment group with the user or Amazon Web Services account does not exist. |
+| `DeploymentGroupLimitExceededException` | `structure` | message | The deployment groups limit was exceeded. |
+| `DeploymentGroupNameRequiredException` | `structure` | message | The deployment group name was not specified. |
+| `DeploymentIdRequiredException` | `structure` | message | At least one deployment ID must be specified. |
+| `DeploymentIsNotInReadyStateException` | `structure` | message | The deployment does not have a status of Ready and can't continue yet. |
+| `DeploymentLimitExceededException` | `structure` | message | The number of allowed deployments was exceeded. |
+| `DeploymentNotStartedException` | `structure` | message | The specified deployment has not started. |
+| `DeploymentTargetDoesNotExistException` | `structure` | message | The provided target ID does not belong to the attempted deployment. |
+| `DeploymentTargetIdRequiredException` | `structure` | message | A deployment target ID was not provided. |
+| `DeploymentTargetListSizeExceededException` | `structure` | message | The maximum number of targets that can be associated with an Amazon ECS or Lambda deployment was exceeded. The target list of both types of deployments must ... |
+| `DescriptionTooLongException` | `structure` | message | The description is too long. |
+| `ECSServiceMappingLimitExceededException` | `structure` | message | The Amazon ECS service is associated with more than one deployment groups. An Amazon ECS service can be associated with only one deployment group. |
+| `GitHubAccountTokenDoesNotExistException` | `structure` | message | No GitHub account connection exists with the named specified in the call. |
+| `GitHubAccountTokenNameRequiredException` | `structure` | message | The call is missing a required GitHub account connection name. |
+| `IamArnRequiredException` | `structure` | message | No IAM ARN was included in the request. You must use an IAM session ARN or user ARN in the request. |
+| `IamSessionArnAlreadyRegisteredException` | `structure` | message | The request included an IAM session ARN that has already been used to register a different instance. |
+| `IamUserArnAlreadyRegisteredException` | `structure` | message | The specified user ARN is already registered with an on-premises instance. |
+| `IamUserArnRequiredException` | `structure` | message | An user ARN was not specified. |
+| `InstanceDoesNotExistException` | `structure` | message | The specified instance does not exist in the deployment group. |
+| `InstanceIdRequiredException` | `structure` | message | The instance ID was not specified. |
+| `InstanceLimitExceededException` | `structure` | message | The maximum number of allowed on-premises instances in a single call was exceeded. |
+| `InstanceNameAlreadyRegisteredException` | `structure` | message | The specified on-premises instance name is already registered. |
+| `InstanceNameRequiredException` | `structure` | message | An on-premises instance name was not specified. |
+| `InstanceNotRegisteredException` | `structure` | message | The specified on-premises instance is not registered. |
+| `InvalidAlarmConfigException` | `structure` | message | The format of the alarm configuration is invalid. Possible causes include: The alarm list is null. The alarm object is null. The alarm name is empty or null ... |
+| `InvalidApplicationNameException` | `structure` | message | The application name was specified in an invalid format. |
+| `InvalidArnException` | `structure` | message | The specified ARN is not in a valid format. |
+| `InvalidAutoRollbackConfigException` | `structure` | message | The automatic rollback configuration was specified in an invalid format. For example, automatic rollback is enabled, but an invalid triggering event type or ... |
+| `InvalidAutoScalingGroupException` | `structure` | message | The Auto Scaling group was specified in an invalid format or does not exist. |
+| `InvalidBlueGreenDeploymentConfigurationException` | `structure` | message | The configuration for the blue/green deployment group was provided in an invalid format. For information about deployment configuration format, see CreateDe ... |
+| `InvalidBucketNameFilterException` | `structure` | message | The bucket name either doesn't exist or was specified in an invalid format. |
+| `InvalidComputePlatformException` | `structure` | message | The computePlatform is invalid. The computePlatform should be Lambda , Server , or ECS . |
+| `InvalidDeployedStateFilterException` | `structure` | message | The deployed state filter was specified in an invalid format. |
+| `InvalidDeploymentConfigNameException` | `structure` | message | The deployment configuration name was specified in an invalid format. |
+| `InvalidDeploymentGroupNameException` | `structure` | message | The deployment group name was specified in an invalid format. |
+| `InvalidDeploymentIdException` | `structure` | message | At least one of the deployment IDs was specified in an invalid format. |
+| `InvalidDeploymentInstanceTypeException` | `structure` | message | An instance type was specified for an in-place deployment. Instance types are supported for blue/green deployments only. |
+| `InvalidDeploymentStatusException` | `structure` | message | The specified deployment status doesn't exist or cannot be determined. |
+| `InvalidDeploymentStyleException` | `structure` | message | An invalid deployment style was specified. Valid deployment types include "IN_PLACE" and "BLUE_GREEN." Valid deployment options include "WITH_TRAFFIC_CONTRO ... |
+| `InvalidDeploymentTargetIdException` | `structure` | message | The target ID provided was not valid. |
+| `InvalidDeploymentWaitTypeException` | `structure` | message | The wait type is invalid. |
+| `InvalidEC2TagCombinationException` | `structure` | message | A call was submitted that specified both Ec2TagFilters and Ec2TagSet, but only one of these data types can be used in a single call. |
+| `InvalidEC2TagException` | `structure` | message | The tag was specified in an invalid format. |
+| `InvalidECSServiceException` | `structure` | message | The Amazon ECS service identifier is not valid. |
+| `InvalidExternalIdException` | `structure` | message | The external ID was specified in an invalid format. |
+| `InvalidFileExistsBehaviorException` | `structure` | message | An invalid fileExistsBehavior option was specified to determine how CodeDeploy handles files or directories that already exist in a deployment target locati ... |
+| `InvalidGitHubAccountTokenException` | `structure` | message | The GitHub token is not valid. |
+| `InvalidGitHubAccountTokenNameException` | `structure` | message | The format of the specified GitHub account connection name is invalid. |
+| `InvalidIamSessionArnException` | `structure` | message | The IAM session ARN was specified in an invalid format. |
+| `InvalidIamUserArnException` | `structure` | message | The user ARN was specified in an invalid format. |
+| `InvalidIgnoreApplicationStopFailuresValueException` | `structure` | message | The IgnoreApplicationStopFailures value is invalid. For Lambda deployments, false is expected. For EC2/On-premises deployments, true or false is expected. |
+| `InvalidInputException` | `structure` | message | The input was specified in an invalid format. |
+| `InvalidInstanceNameException` | `structure` | message | The on-premises instance name was specified in an invalid format. |
+| `InvalidInstanceStatusException` | `structure` | message | The specified instance status does not exist. |
+| `InvalidInstanceTypeException` | `structure` | message | An invalid instance type was specified for instances in a blue/green deployment. Valid values include "Blue" for an original environment and "Green" for a r ... |
+| `InvalidKeyPrefixFilterException` | `structure` | message | The specified key prefix filter was specified in an invalid format. |
+| `InvalidLifecycleEventHookExecutionIdException` | `structure` | message | A lifecycle event hook is invalid. Review the hooks section in your AppSpec file to ensure the lifecycle events and hooks functions are valid. |
+| `InvalidLifecycleEventHookExecutionStatusException` | `structure` | message | The result of a Lambda validation function that verifies a lifecycle event is invalid. It should return Succeeded or Failed . |
+| `InvalidLoadBalancerInfoException` | `structure` | message | An invalid load balancer name, or no load balancer name, was specified. |
+| `InvalidMinimumHealthyHostValueException` | `structure` | message | The minimum healthy instance value was specified in an invalid format. |
+| `InvalidNextTokenException` | `structure` | message | The next token was specified in an invalid format. |
+| `InvalidOnPremisesTagCombinationException` | `structure` | message | A call was submitted that specified both OnPremisesTagFilters and OnPremisesTagSet, but only one of these data types can be used in a single call. |
+| `InvalidOperationException` | `structure` | message | An invalid operation was detected. |
+| `InvalidRegistrationStatusException` | `structure` | message | The registration status was specified in an invalid format. |
+| `InvalidRevisionException` | `structure` | message | The revision was specified in an invalid format. |
+| `InvalidRoleException` | `structure` | message | The service role ARN was specified in an invalid format. Or, if an Auto Scaling group was specified, the specified service role does not grant the appropria ... |
+| `InvalidSortByException` | `structure` | message | The column name to sort by is either not present or was specified in an invalid format. |
+| `InvalidSortOrderException` | `structure` | message | The sort order was specified in an invalid format. |
+| `InvalidTagException` | `structure` | message | The tag was specified in an invalid format. |
+| `InvalidTagFilterException` | `structure` | message | The tag filter was specified in an invalid format. |
+| `InvalidTagsToAddException` | `structure` | message | The specified tags are not valid. |
+| `InvalidTargetFilterNameException` | `structure` | message | The target filter name is invalid. |
+| `InvalidTargetGroupPairException` | `structure` | message | A target group pair associated with this deployment is not valid. |
+| `InvalidTargetInstancesException` | `structure` | message | The target instance configuration is invalid. Possible causes include: Configuration data for target instances was entered for an in-place deployment. The l ... |
+| `InvalidTimeRangeException` | `structure` | message | The specified time range was specified in an invalid format. |
+| `InvalidTrafficRoutingConfigurationException` | `structure` | message | The configuration that specifies how traffic is routed during a deployment is invalid. |
+| `InvalidTriggerConfigException` | `structure` | message | The trigger was specified in an invalid format. |
+| `InvalidUpdateOutdatedInstancesOnlyValueException` | `structure` | message | The UpdateOutdatedInstancesOnly value is invalid. For Lambda deployments, false is expected. For EC2/On-premises deployments, true or false is expected. |
+| `InvalidZonalDeploymentConfigurationException` | `structure` | message | The ZonalConfig object is not valid. |
+| `LifecycleEventAlreadyCompletedException` | `structure` | message | An attempt to return the status of an already completed lifecycle event occurred. |
+| `LifecycleHookLimitExceededException` | `structure` | message | The limit for lifecycle hooks was exceeded. |
+| `MultipleIamArnsProvidedException` | `structure` | message | Both an user ARN and an IAM session ARN were included in the request. Use only one ARN type. |
+| `OperationNotSupportedException` | `structure` | message | The API used does not support the deployment. |
+| `ResourceArnRequiredException` | `structure` | message | The ARN of a resource is required, but was not found. |
+| `ResourceValidationException` | `structure` | message | The specified resource could not be validated. |
+| `RevisionDoesNotExistException` | `structure` | message | The named revision does not exist with the user or Amazon Web Services account. |
+| `RevisionRequiredException` | `structure` | message | The revision ID was not specified. |
+| `RoleRequiredException` | `structure` | message | The role ID was not specified. |
+| `TagLimitExceededException` | `structure` | message | The maximum allowed number of tags was exceeded. |
+| `TagRequiredException` | `structure` | message | A tag was not specified. |
+| `TagSetListLimitExceededException` | `structure` | message | The number of tag groups included in the tag set list exceeded the maximum allowed limit of 3. |
+| `ThrottlingException` | `structure` | message | An API function was called too frequently. |
+| `TriggerTargetsLimitExceededException` | `structure` | message | The maximum allowed number of triggers was exceeded. |
+| `UnsupportedActionForDeploymentTypeException` | `structure` | message | A call was submitted that is not supported for the specified deployment type. |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

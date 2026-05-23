@@ -63,66 +63,66 @@ Parity implications:
 ### List
 
 - Operations: `ListDataGrants`, `ListDataSetRevisions`, `ListDataSets`, `ListEventActions`, `ListJobs`, `ListReceivedDataGrants`, `ListRevisionAssets`, `ListTagsForResource`
-- Traits: `paginated` (7), `readonly` (8)
-- Common required input members in this group: `DataSetId`, `ResourceArn`, `RevisionId`
+- Traits: `readonly` (8), `paginated` (7)
+- Common required input members in this group: `DataSetId`
 
 ### Get
 
 - Operations: `GetAsset`, `GetDataGrant`, `GetDataSet`, `GetEventAction`, `GetJob`, `GetReceivedDataGrant`, `GetRevision`
 - Traits: `readonly` (7)
-- Common required input members in this group: `AssetId`, `DataGrantArn`, `DataGrantId`, `DataSetId`, `EventActionId`, `JobId`, `RevisionId`
+- Common required input members in this group: `DataSetId`, `RevisionId`
 
 ### Create
 
 - Operations: `CreateDataGrant`, `CreateDataSet`, `CreateEventAction`, `CreateJob`, `CreateRevision`
-- Common required input members in this group: `Action`, `AssetType`, `DataSetId`, `Description`, `Details`, `Event`, `GrantDistributionScope`, `Name`, `ReceiverPrincipal`, `SourceDataSetId`, `Type`
+- Common required input members in this group: `Name`
 
 ### Delete
 
 - Operations: `DeleteAsset`, `DeleteDataGrant`, `DeleteDataSet`, `DeleteEventAction`, `DeleteRevision`
-- Common required input members in this group: `AssetId`, `DataGrantId`, `DataSetId`, `EventActionId`, `RevisionId`
+- Common required input members in this group: `DataSetId`, `RevisionId`
 
 ### Update
 
 - Operations: `UpdateAsset`, `UpdateDataSet`, `UpdateEventAction`, `UpdateRevision`
-- Common required input members in this group: `AssetId`, `DataSetId`, `EventActionId`, `Name`, `RevisionId`
+- Common required input members in this group: `DataSetId`, `RevisionId`
 
 ### Send
 
 - Operations: `SendApiAsset`, `SendDataSetNotification`
-- Traits: `endpoint-bound` (1), `idempotency-token` (1)
-- Common required input members in this group: `AssetId`, `DataSetId`, `RevisionId`, `Type`
+- Traits: `idempotency-token` (1)
+- Common required input members in this group: `DataSetId`
 
 ### Accept
 
 - Operations: `AcceptDataGrant`
-- Common required input members in this group: `DataGrantArn`
+- Common required input members in this group: -
 
 ### Cancel
 
 - Operations: `CancelJob`
-- Common required input members in this group: `JobId`
+- Common required input members in this group: -
 
 ### Revoke
 
 - Operations: `RevokeRevision`
-- Common required input members in this group: `DataSetId`, `RevisionId`, `RevocationComment`
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartJob`
-- Common required input members in this group: `JobId`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
@@ -130,7 +130,7 @@ Parity implications:
 |---|---|---|---|---|---|---|---|
 | `AcceptDataGrant` | `POST /v1/data-grants/{DataGrantArn}/accept` | - | `DataGrantArn` | - | `AcceptDataGrantResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | This operation accepts a data grant. |
 | `CancelJob` | `DELETE /v1/jobs/{JobId}` | - | `JobId` | - | `Unit` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | This operation cancels a job. Jobs can be cancelled only when they are in the WAITING state. |
-| `CreateDataGrant` | `POST /v1/data-grants` | - | `GrantDistributionScope`, `Name`, `ReceiverPrincipal`, `SourceDataSetId` | - | `CreateDataGrantResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceLimitExceededException`, `ThrottlingException`, `ValidationException` | This operation creates a data grant. |
+| `CreateDataGrant` | `POST /v1/data-grants` | - | `Name`, `GrantDistributionScope`, `ReceiverPrincipal`, `SourceDataSetId` | - | `CreateDataGrantResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceLimitExceededException`, `ThrottlingException`, `ValidationException` | This operation creates a data grant. |
 | `CreateDataSet` | `POST /v1/data-sets` | - | `AssetType`, `Description`, `Name` | - | `CreateDataSetResponse` | `AccessDeniedException`, `InternalServerException`, `ServiceLimitExceededException`, `ThrottlingException`, `ValidationException` | This operation creates a data set. |
 | `CreateEventAction` | `POST /v1/event-actions` | - | `Action`, `Event` | - | `CreateEventActionResponse` | `AccessDeniedException`, `InternalServerException`, `ServiceLimitExceededException`, `ThrottlingException`, `ValidationException` | This operation creates an event action. |
 | `CreateJob` | `POST /v1/jobs` | - | `Details`, `Type` | - | `CreateJobResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | This operation creates a job. |
@@ -149,14 +149,14 @@ Parity implications:
 | `GetRevision` | `GET /v1/data-sets/{DataSetId}/revisions/{RevisionId}` | `readonly` | `DataSetId`, `RevisionId` | - | `GetRevisionResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | This operation returns information about a revision. |
 | `ListDataGrants` | `GET /v1/data-grants` | `readonly`, `paginated` | - | - | `ListDataGrantsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | This operation returns information about all data grants. |
 | `ListDataSetRevisions` | `GET /v1/data-sets/{DataSetId}/revisions` | `readonly`, `paginated` | `DataSetId` | - | `ListDataSetRevisionsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | This operation lists a data set's revisions sorted by CreatedAt in descending order. |
-| `ListDataSets` | `GET /v1/data-sets` | `readonly`, `paginated` | - | - | `ListDataSetsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | This operation lists your data sets. When listing by origin OWNED, results are sorted by CreatedAt in descending order. |
+| `ListDataSets` | `GET /v1/data-sets` | `readonly`, `paginated` | - | - | `ListDataSetsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | This operation lists your data sets. When listing by origin OWNED, results are sorted by CreatedAt in descending order. When listing by origin ENTITLED, there is no order. |
 | `ListEventActions` | `GET /v1/event-actions` | `readonly`, `paginated` | - | - | `ListEventActionsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | This operation lists your event actions. |
 | `ListJobs` | `GET /v1/jobs` | `readonly`, `paginated` | - | - | `ListJobsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | This operation lists your jobs sorted by CreatedAt in descending order. |
 | `ListReceivedDataGrants` | `GET /v1/received-data-grants` | `readonly`, `paginated` | - | - | `ListReceivedDataGrantsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | This operation returns information about all received data grants. |
 | `ListRevisionAssets` | `GET /v1/data-sets/{DataSetId}/revisions/{RevisionId}/assets` | `readonly`, `paginated` | `DataSetId`, `RevisionId` | - | `ListRevisionAssetsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | This operation lists a revision's assets sorted alphabetically in descending order. |
 | `ListTagsForResource` | `GET /tags/{ResourceArn}` | `readonly` | `ResourceArn` | - | `ListTagsForResourceResponse` | - | This operation lists the tags on the resource. |
 | `RevokeRevision` | `POST /v1/data-sets/{DataSetId}/revisions/{RevisionId}/revoke` | - | `DataSetId`, `RevisionId`, `RevocationComment` | - | `RevokeRevisionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | This operation revokes subscribers' access to a revision. |
-| `SendApiAsset` | `POST /v1` | `endpoint-bound` | `AssetId`, `DataSetId`, `RevisionId` | - | `SendApiAssetResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | This operation invokes an API Gateway API asset. The request is proxied to the provider’s API Gateway API. |
+| `SendApiAsset` | `POST /v1` | - | `AssetId`, `DataSetId`, `RevisionId` | - | `SendApiAssetResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | This operation invokes an API Gateway API asset. The request is proxied to the provider’s API Gateway API. |
 | `SendDataSetNotification` | `POST /v1/data-sets/{DataSetId}/notification` | `idempotency-token` | `DataSetId`, `Type` | `ClientToken` | `SendDataSetNotificationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | The type of event associated with the data set. |
 | `StartJob` | `PATCH /v1/jobs/{JobId}` | - | `JobId` | - | `StartJobResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | This operation starts a job. |
 | `TagResource` | `POST /tags/{ResourceArn}` | - | `ResourceArn`, `Tags` | - | `Unit` | - | This operation tags a resource. |
@@ -186,30 +186,46 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `Message` | An exception occurred with the service. |
-| `ThrottlingException` | `structure` | `Message` | The limit on the number of requests per second was exceeded. |
-| `ValidationException` | `structure` | `ExceptionCause`, `Message` | The request was invalid. |
-| `ResourceNotFoundException` | `structure` | `Message`, `ResourceId`, `ResourceType` | The resource couldn't be found. |
-| `AccessDeniedException` | `structure` | `Message` | Access to the resource is denied. |
-| `ConflictException` | `structure` | `Message`, `ResourceId`, `ResourceType` | The request couldn't be completed because it conflicted with the current state of the resource. |
-| `ServiceLimitExceededException` | `structure` | `LimitName`, `LimitValue`, `Message` | The request has exceeded the quotas imposed by the service. |
-| `AcceptDataGrantRequest` | `structure` | `DataGrantArn` | - |
-| `AcceptDataGrantResponse` | `structure` | `AcceptanceState`, `AcceptedAt`, `Arn`, `CreatedAt`, `DataSetId`, `Description`, `EndsAt`, `GrantDistributionScope`, `Id`, `Name`, `ReceiverPrincipal`, `SenderPrincipal`, ... (+1) | - |
-| `CancelJobRequest` | `structure` | `JobId` | - |
-| `CreateDataGrantRequest` | `structure` | `Description`, `EndsAt`, `GrantDistributionScope`, `Name`, `ReceiverPrincipal`, `SourceDataSetId`, `Tags` | - |
-| `CreateDataGrantResponse` | `structure` | `AcceptanceState`, `AcceptedAt`, `Arn`, `CreatedAt`, `DataSetId`, `Description`, `EndsAt`, `GrantDistributionScope`, `Id`, `Name`, `ReceiverPrincipal`, `SenderPrincipal`, ... (+3) | - |
-| `CreateDataSetRequest` | `structure` | `AssetType`, `Description`, `Name`, `Tags` | - |
-| `CreateDataSetResponse` | `structure` | `Arn`, `AssetType`, `CreatedAt`, `Description`, `Id`, `Name`, `Origin`, `OriginDetails`, `SourceId`, `Tags`, `UpdatedAt` | - |
-| `CreateEventActionRequest` | `structure` | `Action`, `Event`, `Tags` | - |
-| `CreateEventActionResponse` | `structure` | `Action`, `Arn`, `CreatedAt`, `Event`, `Id`, `Tags`, `UpdatedAt` | - |
-| `CreateJobRequest` | `structure` | `Details`, `Type` | - |
-| `CreateJobResponse` | `structure` | `Arn`, `CreatedAt`, `Details`, `Errors`, `Id`, `State`, `Type`, `UpdatedAt` | - |
-| `CreateRevisionRequest` | `structure` | `Comment`, `DataSetId`, `Tags` | - |
-| `CreateRevisionResponse` | `structure` | `Arn`, `Comment`, `CreatedAt`, `DataSetId`, `Finalized`, `Id`, `RevocationComment`, `Revoked`, `RevokedAt`, `SourceId`, `Tags`, `UpdatedAt` | - |
-| `DeleteAssetRequest` | `structure` | `AssetId`, `DataSetId`, `RevisionId` | - |
-| `DeleteDataGrantRequest` | `structure` | `DataGrantId` | - |
-| `DeleteDataSetRequest` | `structure` | `DataSetId` | - |
-
+| `AccessDeniedException` | `structure` | Message | Access to the resource is denied. |
+| `ConflictException` | `structure` | Message, ResourceId, ResourceType | The request couldn't be completed because it conflicted with the current state of the resource. |
+| `InternalServerException` | `structure` | Message | An exception occurred with the service. |
+| `ResourceNotFoundException` | `structure` | Message, ResourceId, ResourceType | The resource couldn't be found. |
+| `ServiceLimitExceededException` | `structure` | LimitName, LimitValue, Message | The request has exceeded the quotas imposed by the service. |
+| `ThrottlingException` | `structure` | Message | The limit on the number of requests per second was exceeded. |
+| `ValidationException` | `structure` | Message, ExceptionCause | The request was invalid. |
+| `AcceptDataGrantRequest` | `structure` | DataGrantArn | - |
+| `AcceptDataGrantResponse` | `structure` | Name, SenderPrincipal, ReceiverPrincipal, Description, AcceptanceState, AcceptedAt, EndsAt, GrantDistributionScope, DataSetId, Id, Arn, CreatedAt, ... (+1) | - |
+| `CancelJobRequest` | `structure` | JobId | - |
+| `CreateDataGrantRequest` | `structure` | Name, GrantDistributionScope, ReceiverPrincipal, SourceDataSetId, EndsAt, Description, Tags | - |
+| `CreateDataGrantResponse` | `structure` | Name, SenderPrincipal, ReceiverPrincipal, Description, AcceptanceState, AcceptedAt, EndsAt, GrantDistributionScope, DataSetId, SourceDataSetId, Id, Arn, ... (+3) | - |
+| `CreateDataSetRequest` | `structure` | AssetType, Description, Name, Tags | - |
+| `CreateDataSetResponse` | `structure` | Arn, AssetType, CreatedAt, Description, Id, Name, Origin, OriginDetails, SourceId, Tags, UpdatedAt | - |
+| `CreateEventActionRequest` | `structure` | Action, Event, Tags | - |
+| `CreateEventActionResponse` | `structure` | Action, Arn, CreatedAt, Event, Id, Tags, UpdatedAt | - |
+| `CreateJobRequest` | `structure` | AssetConfiguration, Details, Type | - |
+| `CreateJobResponse` | `structure` | Arn, AssetConfiguration, CreatedAt, Details, Errors, Id, State, Type, UpdatedAt | - |
+| `CreateRevisionRequest` | `structure` | Comment, DataSetId, Tags | - |
+| `CreateRevisionResponse` | `structure` | Arn, Comment, CreatedAt, DataSetId, Finalized, Id, SourceId, Tags, UpdatedAt, RevocationComment, Revoked, RevokedAt | - |
+| `DeleteAssetRequest` | `structure` | AssetId, DataSetId, RevisionId | - |
+| `DeleteDataGrantRequest` | `structure` | DataGrantId | - |
+| `DeleteDataSetRequest` | `structure` | DataSetId | - |
+| `DeleteEventActionRequest` | `structure` | EventActionId | - |
+| `DeleteRevisionRequest` | `structure` | DataSetId, RevisionId | - |
+| `GetAssetRequest` | `structure` | AssetId, DataSetId, RevisionId | - |
+| `GetAssetResponse` | `structure` | Arn, AssetDetails, AssetType, CreatedAt, DataSetId, Id, Name, RevisionId, SourceId, Tags, UpdatedAt | - |
+| `GetDataGrantRequest` | `structure` | DataGrantId | - |
+| `GetDataGrantResponse` | `structure` | Name, SenderPrincipal, ReceiverPrincipal, Description, AcceptanceState, AcceptedAt, EndsAt, GrantDistributionScope, DataSetId, SourceDataSetId, Id, Arn, ... (+3) | - |
+| `GetDataSetRequest` | `structure` | DataSetId | - |
+| `GetDataSetResponse` | `structure` | Arn, AssetType, CreatedAt, Description, Id, Name, Origin, OriginDetails, SourceId, Tags, UpdatedAt | - |
+| `GetEventActionRequest` | `structure` | EventActionId | - |
+| `GetEventActionResponse` | `structure` | Action, Arn, CreatedAt, Event, Id, Tags, UpdatedAt | - |
+| `GetJobRequest` | `structure` | JobId | - |
+| `GetJobResponse` | `structure` | Arn, AssetConfiguration, CreatedAt, Details, Errors, Id, State, Type, UpdatedAt | - |
+| `GetReceivedDataGrantRequest` | `structure` | DataGrantArn | - |
+| `GetReceivedDataGrantResponse` | `structure` | Name, SenderPrincipal, ReceiverPrincipal, Description, AcceptanceState, AcceptedAt, EndsAt, GrantDistributionScope, DataSetId, Id, Arn, CreatedAt, ... (+1) | - |
+| `GetRevisionRequest` | `structure` | DataSetId, RevisionId | - |
+| `GetRevisionResponse` | `structure` | Arn, Comment, CreatedAt, DataSetId, Finalized, Id, SourceId, Tags, UpdatedAt, RevocationComment, Revoked, RevokedAt | - |
+| `ListDataGrantsRequest` | `structure` | MaxResults, NextToken | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

@@ -40,38 +40,38 @@ This section contains documentation for the Amazon Lex V2 Runtime V2 API operati
 ### Recognize
 
 - Operations: `RecognizeText`, `RecognizeUtterance`
-- Common required input members in this group: `botAliasId`, `botId`, `localeId`, `requestContentType`, `sessionId`, `text`
+- Common required input members in this group: `botId`, `botAliasId`, `localeId`, `sessionId`
 
 ### Delete
 
 - Operations: `DeleteSession`
-- Common required input members in this group: `botAliasId`, `botId`, `localeId`, `sessionId`
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetSession`
-- Common required input members in this group: `botAliasId`, `botId`, `localeId`, `sessionId`
+- Common required input members in this group: -
 
 ### Put
 
 - Operations: `PutSession`
-- Common required input members in this group: `botAliasId`, `botId`, `localeId`, `sessionId`, `sessionState`
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartConversation`
-- Common required input members in this group: `botAliasId`, `botId`, `localeId`, `requestEventStream`, `sessionId`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `DeleteSession` | `DELETE /bots/{botId}/botAliases/{botAliasId}/botLocales/{localeId}/sessions/{sessionId}` | - | `botAliasId`, `botId`, `localeId`, `sessionId` | - | `DeleteSessionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes session information for a specified bot, alias, and user ID. You can use this operation to restart a conversation with a bot. |
-| `GetSession` | `GET /bots/{botId}/botAliases/{botAliasId}/botLocales/{localeId}/sessions/{sessionId}` | - | `botAliasId`, `botId`, `localeId`, `sessionId` | - | `GetSessionResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns session information for a specified bot, alias, and user. For example, you can use this operation to retrieve session information for a user that has left a long-running session in use. |
-| `PutSession` | `POST /bots/{botId}/botAliases/{botAliasId}/botLocales/{localeId}/sessions/{sessionId}` | - | `botAliasId`, `botId`, `localeId`, `sessionId`, `sessionState` | - | `PutSessionResponse` | `AccessDeniedException`, `BadGatewayException`, `ConflictException`, `DependencyFailedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a new session or modifies an existing session with an Amazon Lex V2 bot. Use this operation to enable your application to set the state of the bot. |
-| `RecognizeText` | `POST /bots/{botId}/botAliases/{botAliasId}/botLocales/{localeId}/sessions/{sessionId}/text` | - | `botAliasId`, `botId`, `localeId`, `sessionId`, `text` | - | `RecognizeTextResponse` | `AccessDeniedException`, `BadGatewayException`, `ConflictException`, `DependencyFailedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Sends user input to Amazon Lex V2. Client applications use this API to send requests to Amazon Lex V2 at runtime. |
-| `RecognizeUtterance` | `POST /bots/{botId}/botAliases/{botAliasId}/botLocales/{localeId}/sessions/{sessionId}/utterance` | - | `botAliasId`, `botId`, `localeId`, `requestContentType`, `sessionId` | - | `RecognizeUtteranceResponse` | `AccessDeniedException`, `BadGatewayException`, `ConflictException`, `DependencyFailedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Sends user input to Amazon Lex V2. You can send text or speech. |
-| `StartConversation` | `POST /bots/{botId}/botAliases/{botAliasId}/botLocales/{localeId}/sessions/{sessionId}/conversation` | - | `botAliasId`, `botId`, `localeId`, `requestEventStream`, `sessionId` | - | `StartConversationResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Starts an HTTP/2 bidirectional event stream that enables you to send audio, text, or DTMF input in real time. After your application starts a conversation, users send input to Amazon Lex V2 as a stream of events. |
+| `DeleteSession` | `DELETE /bots/{botId}/botAliases/{botAliasId}/botLocales/{localeId}/sessions/{sessionId}` | - | `botId`, `botAliasId`, `localeId`, `sessionId` | - | `DeleteSessionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes session information for a specified bot, alias, and user ID. You can use this operation to restart a conversation with a bot. When you remove a session, the entire history of the session is removed so that yo ... |
+| `GetSession` | `GET /bots/{botId}/botAliases/{botAliasId}/botLocales/{localeId}/sessions/{sessionId}` | - | `botId`, `botAliasId`, `localeId`, `sessionId` | - | `GetSessionResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns session information for a specified bot, alias, and user. For example, you can use this operation to retrieve session information for a user that has left a long-running session in use. If the bot, alias, or ... |
+| `PutSession` | `POST /bots/{botId}/botAliases/{botAliasId}/botLocales/{localeId}/sessions/{sessionId}` | - | `botId`, `botAliasId`, `localeId`, `sessionId`, `sessionState` | - | `PutSessionResponse` | `AccessDeniedException`, `BadGatewayException`, `ConflictException`, `DependencyFailedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a new session or modifies an existing session with an Amazon Lex V2 bot. Use this operation to enable your application to set the state of the bot. |
+| `RecognizeText` | `POST /bots/{botId}/botAliases/{botAliasId}/botLocales/{localeId}/sessions/{sessionId}/text` | - | `botId`, `botAliasId`, `localeId`, `sessionId`, `text` | - | `RecognizeTextResponse` | `AccessDeniedException`, `BadGatewayException`, `ConflictException`, `DependencyFailedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Sends user input to Amazon Lex V2. Client applications use this API to send requests to Amazon Lex V2 at runtime. Amazon Lex V2 then interprets the user input using the machine learning model that it build for the bo ... |
+| `RecognizeUtterance` | `POST /bots/{botId}/botAliases/{botAliasId}/botLocales/{localeId}/sessions/{sessionId}/utterance` | - | `botId`, `botAliasId`, `localeId`, `sessionId`, `requestContentType` | - | `RecognizeUtteranceResponse` | `AccessDeniedException`, `BadGatewayException`, `ConflictException`, `DependencyFailedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Sends user input to Amazon Lex V2. You can send text or speech. Clients use this API to send text and audio requests to Amazon Lex V2 at runtime. Amazon Lex V2 interprets the user input using the machine learning mod ... |
+| `StartConversation` | `POST /bots/{botId}/botAliases/{botAliasId}/botLocales/{localeId}/sessions/{sessionId}/conversation` | - | `botId`, `botAliasId`, `localeId`, `sessionId`, `requestEventStream` | - | `StartConversationResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Starts an HTTP/2 bidirectional event stream that enables you to send audio, text, or DTMF input in real time. After your application starts a conversation, users send input to Amazon Lex V2 as a stream of events. Ama ... |
 
 ## HTTP Bindings
 
@@ -87,27 +87,37 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | - |
-| `InternalServerException` | `structure` | `message` | - |
-| `ThrottlingException` | `structure` | `message` | - |
-| `ValidationException` | `structure` | `message` | - |
-| `ResourceNotFoundException` | `structure` | `message` | - |
-| `ConflictException` | `structure` | `message` | - |
-| `BadGatewayException` | `structure` | `message` | - |
-| `DependencyFailedException` | `structure` | `message` | - |
-| `DeleteSessionRequest` | `structure` | `botAliasId`, `botId`, `localeId`, `sessionId` | - |
-| `DeleteSessionResponse` | `structure` | `botAliasId`, `botId`, `localeId`, `sessionId` | - |
-| `GetSessionRequest` | `structure` | `botAliasId`, `botId`, `localeId`, `sessionId` | - |
-| `GetSessionResponse` | `structure` | `interpretations`, `messages`, `sessionId`, `sessionState` | - |
-| `PutSessionRequest` | `structure` | `botAliasId`, `botId`, `localeId`, `messages`, `requestAttributes`, `responseContentType`, `sessionId`, `sessionState` | - |
-| `PutSessionResponse` | `structure` | `audioStream`, `contentType`, `messages`, `requestAttributes`, `sessionId`, `sessionState` | - |
-| `RecognizeTextRequest` | `structure` | `botAliasId`, `botId`, `localeId`, `requestAttributes`, `sessionId`, `sessionState`, `text` | - |
-| `RecognizeTextResponse` | `structure` | `interpretations`, `messages`, `recognizedBotMember`, `requestAttributes`, `sessionId`, `sessionState` | - |
-| `RecognizeUtteranceRequest` | `structure` | `botAliasId`, `botId`, `inputStream`, `localeId`, `requestAttributes`, `requestContentType`, `responseContentType`, `sessionId`, `sessionState` | - |
-| `RecognizeUtteranceResponse` | `structure` | `audioStream`, `contentType`, `inputMode`, `inputTranscript`, `interpretations`, `messages`, `recognizedBotMember`, `requestAttributes`, `sessionId`, `sessionState` | - |
-| `StartConversationRequest` | `structure` | `botAliasId`, `botId`, `conversationMode`, `localeId`, `requestEventStream`, `sessionId` | - |
-| `StartConversationResponse` | `structure` | `responseEventStream` | - |
-
+| `AccessDeniedException` | `structure` | message | - |
+| `BadGatewayException` | `structure` | message | - |
+| `ConflictException` | `structure` | message | - |
+| `DependencyFailedException` | `structure` | message | - |
+| `InternalServerException` | `structure` | message | - |
+| `ResourceNotFoundException` | `structure` | message | - |
+| `ThrottlingException` | `structure` | message | - |
+| `ValidationException` | `structure` | message | - |
+| `DeleteSessionRequest` | `structure` | botId, botAliasId, localeId, sessionId | - |
+| `DeleteSessionResponse` | `structure` | botId, botAliasId, localeId, sessionId | - |
+| `GetSessionRequest` | `structure` | botId, botAliasId, localeId, sessionId | - |
+| `GetSessionResponse` | `structure` | sessionId, messages, interpretations, sessionState | - |
+| `PutSessionRequest` | `structure` | botId, botAliasId, localeId, sessionId, messages, sessionState, requestAttributes, responseContentType | - |
+| `PutSessionResponse` | `structure` | contentType, messages, sessionState, requestAttributes, sessionId, audioStream | - |
+| `RecognizeTextRequest` | `structure` | botId, botAliasId, localeId, sessionId, text, sessionState, requestAttributes | - |
+| `RecognizeTextResponse` | `structure` | messages, sessionState, interpretations, requestAttributes, sessionId, recognizedBotMember | - |
+| `RecognizeUtteranceRequest` | `structure` | botId, botAliasId, localeId, sessionId, sessionState, requestAttributes, requestContentType, responseContentType, inputStream | - |
+| `RecognizeUtteranceResponse` | `structure` | inputMode, contentType, messages, interpretations, sessionState, requestAttributes, sessionId, inputTranscript, audioStream, recognizedBotMember | - |
+| `StartConversationRequest` | `structure` | botId, botAliasId, localeId, sessionId, conversationMode, requestEventStream | - |
+| `StartConversationResponse` | `structure` | responseEventStream | - |
+| `ConfirmationState` | `enum` | CONFIRMED, DENIED, NONE | - |
+| `ConversationMode` | `enum` | AUDIO, TEXT | - |
+| `DialogActionType` | `enum` | CLOSE, CONFIRM_INTENT, DELEGATE, ELICIT_INTENT, ELICIT_SLOT, NONE | - |
+| `InputMode` | `enum` | TEXT, SPEECH, DTMF | - |
+| `IntentState` | `enum` | FAILED, FULFILLED, IN_PROGRESS, READY_FOR_FULFILLMENT, WAITING, FULFILLMENT_IN_PROGRESS | - |
+| `InterpretationSource` | `enum` | BEDROCK, LEX | - |
+| `MessageContentType` | `enum` | CUSTOM_PAYLOAD, IMAGE_RESPONSE_CARD, PLAIN_TEXT, SSML | - |
+| `PlaybackInterruptionReason` | `enum` | DTMF_START_DETECTED, TEXT_DETECTED, VOICE_START_DETECTED | - |
+| `SentimentType` | `enum` | MIXED, NEGATIVE, NEUTRAL, POSITIVE | - |
+| `Shape` | `enum` | SCALAR, LIST, COMPOSITE | - |
+| `StyleType` | `enum` | DEFAULT, SPELL_BY_LETTER, SPELL_BY_WORD | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

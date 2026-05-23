@@ -38,29 +38,29 @@ IoT Events monitors your equipment or device fleets for failures or changes in o
 ### Batch
 
 - Operations: `BatchAcknowledgeAlarm`, `BatchDeleteDetector`, `BatchDisableAlarm`, `BatchEnableAlarm`, `BatchPutMessage`, `BatchResetAlarm`, `BatchSnoozeAlarm`, `BatchUpdateDetector`
-- Common required input members in this group: `acknowledgeActionRequests`, `detectors`, `disableActionRequests`, `enableActionRequests`, `messages`, `resetActionRequests`, `snoozeActionRequests`
+- Common required input members in this group: `detectors`
 
 ### Describe
 
 - Operations: `DescribeAlarm`, `DescribeDetector`
-- Common required input members in this group: `alarmModelName`, `detectorModelName`
+- Common required input members in this group: -
 
 ### List
 
 - Operations: `ListAlarms`, `ListDetectors`
-- Common required input members in this group: `alarmModelName`, `detectorModelName`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `BatchAcknowledgeAlarm` | `POST /alarms/acknowledge` | - | `acknowledgeActionRequests` | - | `BatchAcknowledgeAlarmResponse` | `InternalFailureException`, `InvalidRequestException`, `ServiceUnavailableException`, `ThrottlingException` | Acknowledges one or more alarms. The alarms change to the `ACKNOWLEDGED` state after you acknowledge them. |
-| `BatchDeleteDetector` | `POST /detectors/delete` | - | `detectors` | - | `BatchDeleteDetectorResponse` | `InternalFailureException`, `InvalidRequestException`, `ServiceUnavailableException`, `ThrottlingException` | Deletes one or more detectors that were created. When a detector is deleted, its state will be cleared and the detector will be removed from the list of detectors. |
-| `BatchDisableAlarm` | `POST /alarms/disable` | - | `disableActionRequests` | - | `BatchDisableAlarmResponse` | `InternalFailureException`, `InvalidRequestException`, `ServiceUnavailableException`, `ThrottlingException` | Disables one or more alarms. The alarms change to the `DISABLED` state after you disable them. |
-| `BatchEnableAlarm` | `POST /alarms/enable` | - | `enableActionRequests` | - | `BatchEnableAlarmResponse` | `InternalFailureException`, `InvalidRequestException`, `ServiceUnavailableException`, `ThrottlingException` | Enables one or more alarms. The alarms change to the `NORMAL` state after you enable them. |
-| `BatchPutMessage` | `POST /inputs/messages` | - | `messages` | - | `BatchPutMessageResponse` | `InternalFailureException`, `InvalidRequestException`, `ServiceUnavailableException`, `ThrottlingException` | Sends a set of messages to the IoT Events system. Each message payload is transformed into the input you specify (`"inputName"`) and ingested into any detectors that monitor that input. |
-| `BatchResetAlarm` | `POST /alarms/reset` | - | `resetActionRequests` | - | `BatchResetAlarmResponse` | `InternalFailureException`, `InvalidRequestException`, `ServiceUnavailableException`, `ThrottlingException` | Resets one or more alarms. The alarms return to the `NORMAL` state after you reset them. |
-| `BatchSnoozeAlarm` | `POST /alarms/snooze` | - | `snoozeActionRequests` | - | `BatchSnoozeAlarmResponse` | `InternalFailureException`, `InvalidRequestException`, `ServiceUnavailableException`, `ThrottlingException` | Changes one or more alarms to the snooze mode. The alarms change to the `SNOOZE_DISABLED` state after you set them to the snooze mode. |
+| `BatchAcknowledgeAlarm` | `POST /alarms/acknowledge` | - | `acknowledgeActionRequests` | - | `BatchAcknowledgeAlarmResponse` | `InternalFailureException`, `InvalidRequestException`, `ServiceUnavailableException`, `ThrottlingException` | Acknowledges one or more alarms. The alarms change to the ACKNOWLEDGED state after you acknowledge them. |
+| `BatchDeleteDetector` | `POST /detectors/delete` | - | `detectors` | - | `BatchDeleteDetectorResponse` | `InternalFailureException`, `InvalidRequestException`, `ServiceUnavailableException`, `ThrottlingException` | Deletes one or more detectors that were created. When a detector is deleted, its state will be cleared and the detector will be removed from the list of detectors. The deleted detector will no longer appear if refere ... |
+| `BatchDisableAlarm` | `POST /alarms/disable` | - | `disableActionRequests` | - | `BatchDisableAlarmResponse` | `InternalFailureException`, `InvalidRequestException`, `ServiceUnavailableException`, `ThrottlingException` | Disables one or more alarms. The alarms change to the DISABLED state after you disable them. |
+| `BatchEnableAlarm` | `POST /alarms/enable` | - | `enableActionRequests` | - | `BatchEnableAlarmResponse` | `InternalFailureException`, `InvalidRequestException`, `ServiceUnavailableException`, `ThrottlingException` | Enables one or more alarms. The alarms change to the NORMAL state after you enable them. |
+| `BatchPutMessage` | `POST /inputs/messages` | - | `messages` | - | `BatchPutMessageResponse` | `InternalFailureException`, `InvalidRequestException`, `ServiceUnavailableException`, `ThrottlingException` | Sends a set of messages to the IoT Events system. Each message payload is transformed into the input you specify ( "inputName" ) and ingested into any detectors that monitor that input. If multiple messages are sent, ... |
+| `BatchResetAlarm` | `POST /alarms/reset` | - | `resetActionRequests` | - | `BatchResetAlarmResponse` | `InternalFailureException`, `InvalidRequestException`, `ServiceUnavailableException`, `ThrottlingException` | Resets one or more alarms. The alarms return to the NORMAL state after you reset them. |
+| `BatchSnoozeAlarm` | `POST /alarms/snooze` | - | `snoozeActionRequests` | - | `BatchSnoozeAlarmResponse` | `InternalFailureException`, `InvalidRequestException`, `ServiceUnavailableException`, `ThrottlingException` | Changes one or more alarms to the snooze mode. The alarms change to the SNOOZE_DISABLED state after you set them to the snooze mode. |
 | `BatchUpdateDetector` | `POST /detectors` | - | `detectors` | - | `BatchUpdateDetectorResponse` | `InternalFailureException`, `InvalidRequestException`, `ServiceUnavailableException`, `ThrottlingException` | Updates the state, variable values, and timer settings of one or more detectors (instances) of a specified detector model. |
 | `DescribeAlarm` | `GET /alarms/{alarmModelName}/keyValues` | - | `alarmModelName` | - | `DescribeAlarmResponse` | `InternalFailureException`, `InvalidRequestException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException` | Retrieves information about an alarm. |
 | `DescribeDetector` | `GET /detectors/{detectorModelName}/keyValues` | - | `detectorModelName` | - | `DescribeDetectorResponse` | `InternalFailureException`, `InvalidRequestException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException` | Returns information about the specified detector (instance). |
@@ -82,31 +82,41 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalFailureException` | `structure` | `message` | An internal failure occurred. |
-| `InvalidRequestException` | `structure` | `message` | The request was invalid. |
-| `ServiceUnavailableException` | `structure` | `message` | The service is currently unavailable. |
-| `ThrottlingException` | `structure` | `message` | The request could not be completed due to throttling. |
-| `ResourceNotFoundException` | `structure` | `message` | The resource was not found. |
-| `BatchAcknowledgeAlarmRequest` | `structure` | `acknowledgeActionRequests` | - |
-| `BatchAcknowledgeAlarmResponse` | `structure` | `errorEntries` | - |
-| `BatchDeleteDetectorRequest` | `structure` | `detectors` | - |
-| `BatchDeleteDetectorResponse` | `structure` | `batchDeleteDetectorErrorEntries` | - |
-| `BatchDisableAlarmRequest` | `structure` | `disableActionRequests` | - |
-| `BatchDisableAlarmResponse` | `structure` | `errorEntries` | - |
-| `BatchEnableAlarmRequest` | `structure` | `enableActionRequests` | - |
-| `BatchEnableAlarmResponse` | `structure` | `errorEntries` | - |
-| `BatchPutMessageRequest` | `structure` | `messages` | - |
-| `BatchPutMessageResponse` | `structure` | `BatchPutMessageErrorEntries` | - |
-| `BatchResetAlarmRequest` | `structure` | `resetActionRequests` | - |
-| `BatchResetAlarmResponse` | `structure` | `errorEntries` | - |
-| `BatchSnoozeAlarmRequest` | `structure` | `snoozeActionRequests` | - |
-| `BatchSnoozeAlarmResponse` | `structure` | `errorEntries` | - |
-| `BatchUpdateDetectorRequest` | `structure` | `detectors` | - |
-| `BatchUpdateDetectorResponse` | `structure` | `batchUpdateDetectorErrorEntries` | - |
-| `DescribeAlarmRequest` | `structure` | `alarmModelName`, `keyValue` | - |
-| `DescribeAlarmResponse` | `structure` | `alarm` | - |
-| `DescribeDetectorRequest` | `structure` | `detectorModelName`, `keyValue` | - |
-
+| `InternalFailureException` | `structure` | message | An internal failure occurred. |
+| `InvalidRequestException` | `structure` | message | The request was invalid. |
+| `ResourceNotFoundException` | `structure` | message | The resource was not found. |
+| `ServiceUnavailableException` | `structure` | message | The service is currently unavailable. |
+| `ThrottlingException` | `structure` | message | The request could not be completed due to throttling. |
+| `BatchAcknowledgeAlarmRequest` | `structure` | acknowledgeActionRequests | - |
+| `BatchAcknowledgeAlarmResponse` | `structure` | errorEntries | - |
+| `BatchDeleteDetectorRequest` | `structure` | detectors | - |
+| `BatchDeleteDetectorResponse` | `structure` | batchDeleteDetectorErrorEntries | - |
+| `BatchDisableAlarmRequest` | `structure` | disableActionRequests | - |
+| `BatchDisableAlarmResponse` | `structure` | errorEntries | - |
+| `BatchEnableAlarmRequest` | `structure` | enableActionRequests | - |
+| `BatchEnableAlarmResponse` | `structure` | errorEntries | - |
+| `BatchPutMessageRequest` | `structure` | messages | - |
+| `BatchPutMessageResponse` | `structure` | BatchPutMessageErrorEntries | - |
+| `BatchResetAlarmRequest` | `structure` | resetActionRequests | - |
+| `BatchResetAlarmResponse` | `structure` | errorEntries | - |
+| `BatchSnoozeAlarmRequest` | `structure` | snoozeActionRequests | - |
+| `BatchSnoozeAlarmResponse` | `structure` | errorEntries | - |
+| `BatchUpdateDetectorRequest` | `structure` | detectors | - |
+| `BatchUpdateDetectorResponse` | `structure` | batchUpdateDetectorErrorEntries | - |
+| `DescribeAlarmRequest` | `structure` | alarmModelName, keyValue | - |
+| `DescribeAlarmResponse` | `structure` | alarm | - |
+| `DescribeDetectorRequest` | `structure` | detectorModelName, keyValue | - |
+| `DescribeDetectorResponse` | `structure` | detector | - |
+| `ListAlarmsRequest` | `structure` | alarmModelName, nextToken, maxResults | - |
+| `ListAlarmsResponse` | `structure` | alarmSummaries, nextToken | - |
+| `ListDetectorsRequest` | `structure` | detectorModelName, stateName, nextToken, maxResults | - |
+| `ListDetectorsResponse` | `structure` | detectorSummaries, nextToken | - |
+| `AlarmStateName` | `enum` | DISABLED, NORMAL, ACTIVE, ACKNOWLEDGED, SNOOZE_DISABLED, LATCHED | - |
+| `ComparisonOperator` | `enum` | GREATER, GREATER_OR_EQUAL, LESS, LESS_OR_EQUAL, EQUAL, NOT_EQUAL | - |
+| `CustomerActionName` | `enum` | SNOOZE, ENABLE, DISABLE, ACKNOWLEDGE, RESET | - |
+| `ErrorCode` | `enum` | ResourceNotFoundException, InvalidRequestException, InternalFailureException, ServiceUnavailableException, ThrottlingException | - |
+| `EventType` | `enum` | STATE_CHANGE | - |
+| `TriggerType` | `enum` | SNOOZE_TIMEOUT | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

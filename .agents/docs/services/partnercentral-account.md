@@ -53,119 +53,49 @@ AWS Partner Central Account service provides APIs for managing partner accounts,
 
 ### Get
 
-- Operations: `GetAllianceLeadContact`, `GetConnection`, `GetConnectionInvitation`, `GetConnectionPreferences`, `GetPartner`, `GetProfileUpdateTask`, `GetProfileVisibility`, `GetVerification`
-- Traits: `readonly` (8)
-- Common required input members in this group: `Catalog`, `Identifier`, `VerificationType`
+- Operations: `GetVerification`
+- Traits: `readonly` (1)
+- Common required input members in this group: -
 
 ### List
 
-- Operations: `ListConnectionInvitations`, `ListConnections`, `ListPartners`, `ListTagsForResource`
-- Traits: `paginated` (3), `readonly` (4)
-- Common required input members in this group: `Catalog`, `ResourceArn`
-
-### Cancel
-
-- Operations: `CancelConnection`, `CancelConnectionInvitation`, `CancelProfileUpdateTask`
-- Traits: `idempotency-token` (3)
-- Common required input members in this group: `Catalog`, `ClientToken`, `ConnectionType`, `Identifier`, `Reason`, `TaskId`
-
-### Create
-
-- Operations: `CreateConnectionInvitation`, `CreatePartner`
-- Traits: `idempotency-token` (2), `idempotent` (1)
-- Common required input members in this group: `AllianceLeadContact`, `Catalog`, `ClientToken`, `ConnectionType`, `Email`, `EmailVerificationCode`, `LegalName`, `Message`, `Name`, `PrimarySolutionType`, `ReceiverIdentifier`
-
-### Put
-
-- Operations: `PutAllianceLeadContact`, `PutProfileVisibility`
-- Common required input members in this group: `AllianceLeadContact`, `Catalog`, `Identifier`, `Visibility`
-
-### Start
-
-- Operations: `StartProfileUpdateTask`, `StartVerification`
-- Traits: `idempotency-token` (2), `idempotent` (2)
-- Common required input members in this group: `Catalog`, `Identifier`, `TaskDetails`
-
-### Accept
-
-- Operations: `AcceptConnectionInvitation`
-- Traits: `idempotency-token` (1)
-- Common required input members in this group: `Catalog`, `ClientToken`, `Identifier`
-
-### Associate
-
-- Operations: `AssociateAwsTrainingCertificationEmailDomain`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `Catalog`, `Email`, `EmailVerificationCode`, `Identifier`
-
-### Disassociate
-
-- Operations: `DisassociateAwsTrainingCertificationEmailDomain`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `Catalog`, `DomainName`, `Identifier`
-
-### Reject
-
-- Operations: `RejectConnectionInvitation`
-- Traits: `idempotency-token` (1)
-- Common required input members in this group: `Catalog`, `ClientToken`, `Identifier`
+- Operations: `ListTagsForResource`
+- Traits: `readonly` (1)
+- Common required input members in this group: -
 
 ### Send
 
 - Operations: `SendEmailVerificationCode`
-- Common required input members in this group: `Catalog`, `Email`
+- Common required input members in this group: -
+
+### Start
+
+- Operations: `StartVerification`
+- Traits: `idempotent` (1), `idempotency-token` (1)
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `ResourceArn`, `TagKeys`
-
-### Update
-
-- Operations: `UpdateConnectionPreferences`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `AccessType`, `Catalog`, `Revision`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AcceptConnectionInvitation` | - | `idempotency-token` | `Catalog`, `ClientToken`, `Identifier` | `ClientToken` | `AcceptConnectionInvitationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Accepts a connection invitation from another partner, establishing a formal partnership connection between the two parties. |
-| `AssociateAwsTrainingCertificationEmailDomain` | - | `idempotent`, `idempotency-token` | `Catalog`, `Email`, `EmailVerificationCode`, `Identifier` | `ClientToken` | `AssociateAwsTrainingCertificationEmailDomainResponse` | `AccessDeniedException`, `ConflictException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Associates an email domain with AWS training and certification for the partner account, enabling automatic verification of employee certifications. |
-| `CancelConnection` | - | `idempotency-token` | `Catalog`, `ClientToken`, `ConnectionType`, `Identifier`, `Reason` | `ClientToken` | `CancelConnectionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Cancels an existing connection between partners, terminating the partnership relationship. |
-| `CancelConnectionInvitation` | - | `idempotency-token` | `Catalog`, `ClientToken`, `Identifier` | `ClientToken` | `CancelConnectionInvitationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Cancels a pending connection invitation before it has been accepted or rejected. |
-| `CancelProfileUpdateTask` | - | `idempotency-token` | `Catalog`, `Identifier`, `TaskId` | `ClientToken` | `CancelProfileUpdateTaskResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Cancels an in-progress profile update task, stopping any pending changes to the partner profile. |
-| `CreateConnectionInvitation` | - | `idempotency-token` | `Catalog`, `ClientToken`, `ConnectionType`, `Email`, `Message`, `Name`, `ReceiverIdentifier` | `ClientToken` | `CreateConnectionInvitationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a new connection invitation to establish a partnership with another organization. |
-| `CreatePartner` | - | `idempotent`, `idempotency-token` | `AllianceLeadContact`, `Catalog`, `EmailVerificationCode`, `LegalName`, `PrimarySolutionType` | `ClientToken` | `CreatePartnerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Creates a new partner account in the AWS Partner Network with the specified details and configuration. |
-| `DisassociateAwsTrainingCertificationEmailDomain` | - | `idempotent`, `idempotency-token` | `Catalog`, `DomainName`, `Identifier` | `ClientToken` | `DisassociateAwsTrainingCertificationEmailDomainResponse` | `AccessDeniedException`, `ConflictException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes the association between an email domain and AWS training and certification for the partner account. |
-| `GetAllianceLeadContact` | - | `readonly` | `Catalog`, `Identifier` | - | `GetAllianceLeadContactResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves the alliance lead contact information for a partner account. |
-| `GetConnection` | - | `readonly` | `Catalog`, `Identifier` | - | `GetConnectionResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves detailed information about a specific connection between partners. |
-| `GetConnectionInvitation` | - | `readonly` | `Catalog`, `Identifier` | - | `GetConnectionInvitationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves detailed information about a specific connection invitation. |
-| `GetConnectionPreferences` | - | `readonly` | `Catalog` | - | `GetConnectionPreferencesResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Retrieves the connection preferences for a partner account, including access settings and exclusions. |
-| `GetPartner` | - | `readonly` | `Catalog`, `Identifier` | - | `GetPartnerResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves detailed information about a specific partner account. |
-| `GetProfileUpdateTask` | - | `readonly` | `Catalog`, `Identifier` | - | `GetProfileUpdateTaskResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about a specific profile update task. |
-| `GetProfileVisibility` | - | `readonly` | `Catalog`, `Identifier` | - | `GetProfileVisibilityResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves the visibility settings for a partner profile, determining who can see the profile information. |
-| `GetVerification` | - | `readonly` | `VerificationType` | - | `GetVerificationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves the current status and details of a verification process for a partner account. This operation allows partners to check the progress and results of business or registrant verification processes. |
-| `ListConnectionInvitations` | - | `readonly`, `paginated` | `Catalog` | - | `ListConnectionInvitationsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists connection invitations for the partner account, with optional filtering by status, type, and other criteria. |
-| `ListConnections` | - | `readonly`, `paginated` | `Catalog` | - | `ListConnectionsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists active connections for the partner account, with optional filtering by connection type and participant. |
-| `ListPartners` | - | `readonly`, `paginated` | `Catalog` | - | `ListPartnersResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists partner accounts in the catalog, providing a summary view of all partners. |
-| `ListTagsForResource` | - | `readonly` | `ResourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all tags associated with a specific AWS Partner Central Account resource. |
-| `PutAllianceLeadContact` | - | - | `AllianceLeadContact`, `Catalog`, `Identifier` | - | `PutAllianceLeadContactResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates or updates the alliance lead contact information for a partner account. |
-| `PutProfileVisibility` | - | - | `Catalog`, `Identifier`, `Visibility` | - | `PutProfileVisibilityResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Sets the visibility level for a partner profile, controlling who can view the profile information. |
-| `RejectConnectionInvitation` | - | `idempotency-token` | `Catalog`, `ClientToken`, `Identifier` | `ClientToken` | `RejectConnectionInvitationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Rejects a connection invitation from another partner, declining the partnership request. |
-| `SendEmailVerificationCode` | - | - | `Catalog`, `Email` | - | `SendEmailVerificationCodeResponse` | `AccessDeniedException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Sends an email verification code to the specified email address for account verification purposes. |
-| `StartProfileUpdateTask` | - | `idempotent`, `idempotency-token` | `Catalog`, `Identifier`, `TaskDetails` | `ClientToken` | `StartProfileUpdateTaskResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Initiates a profile update task to modify partner profile information asynchronously. |
-| `StartVerification` | - | `idempotent`, `idempotency-token` | - | `ClientToken` | `StartVerificationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Initiates a new verification process for a partner account. This operation begins the verification workflow for either business registration or individual registrant identity verification as required by AWS Partner Central. |
-| `TagResource` | - | `idempotent` | `ResourceArn`, `Tags` | - | `TagResourceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Adds or updates tags for a specified AWS Partner Central Account resource. |
-| `UntagResource` | - | `idempotent` | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes specified tags from an AWS Partner Central Account resource. |
-| `UpdateConnectionPreferences` | - | `idempotent` | `AccessType`, `Catalog`, `Revision` | - | `UpdateConnectionPreferencesResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Updates the connection preferences for a partner account, modifying access settings and exclusions. |
+| `GetVerification` | `-` | `readonly` | `VerificationType` | - | `GetVerificationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves the current status and details of a verification process for a partner account. This operation allows partners to check the progress and results of business or registrant verification processes. |
+| `ListTagsForResource` | `-` | `readonly` | `ResourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all tags associated with a specific AWS Partner Central Account resource. |
+| `SendEmailVerificationCode` | `-` | - | `Catalog`, `Email` | - | `SendEmailVerificationCodeResponse` | `AccessDeniedException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Sends an email verification code to the specified email address for account verification purposes. |
+| `StartVerification` | `-` | `idempotent`, `idempotency-token` | - | `ClientToken` | `StartVerificationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Initiates a new verification process for a partner account. This operation begins the verification workflow for either business registration or individual registrant identity verification as required by AWS Partner C ... |
+| `TagResource` | `-` | `idempotent` | `ResourceArn`, `Tags` | - | `TagResourceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Adds or updates tags for a specified AWS Partner Central Account resource. |
+| `UntagResource` | `-` | `idempotent` | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes specified tags from an AWS Partner Central Account resource. |
 
 ## HTTP Bindings
 
@@ -177,31 +107,44 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `Message`, `Reason` | The request was denied due to insufficient permissions. |
-| `ThrottlingException` | `structure` | `Message`, `QuotaCode`, `ServiceCode` | The request was throttled due to too many requests being sent in a short period of time. |
-| `ValidationException` | `structure` | `ErrorDetails`, `Message`, `Reason` | The request failed validation. |
-| `InternalServerException` | `structure` | `Message` | An internal server error occurred while processing the request. |
-| `ResourceNotFoundException` | `structure` | `Message`, `Reason` | The specified resource could not be found. |
-| `ConflictException` | `structure` | `Message`, `Reason` | The request could not be completed due to a conflict with the current state of the resource. |
-| `ServiceQuotaExceededException` | `structure` | `Message`, `Reason` | The request was rejected because it would exceed a service quota or limit. |
-| `AcceptConnectionInvitationRequest` | `structure` | `Catalog`, `ClientToken`, `Identifier` | - |
-| `AcceptConnectionInvitationResponse` | `structure` | `Connection` | - |
-| `AssociateAwsTrainingCertificationEmailDomainRequest` | `structure` | `Catalog`, `ClientToken`, `Email`, `EmailVerificationCode`, `Identifier` | - |
-| `AssociateAwsTrainingCertificationEmailDomainResponse` | `structure` | - | - |
-| `CancelConnectionRequest` | `structure` | `Catalog`, `ClientToken`, `ConnectionType`, `Identifier`, `Reason` | - |
-| `CancelConnectionResponse` | `structure` | `Arn`, `Catalog`, `ConnectionTypes`, `Id`, `OtherParticipantAccountId`, `UpdatedAt` | - |
-| `CancelConnectionInvitationRequest` | `structure` | `Catalog`, `ClientToken`, `Identifier` | - |
-| `CancelConnectionInvitationResponse` | `structure` | `Arn`, `Catalog`, `ConnectionId`, `ConnectionType`, `CreatedAt`, `ExpiresAt`, `Id`, `InvitationMessage`, `InviterEmail`, `InviterName`, `OtherParticipantIdentifier`, `ParticipantType`, ... (+2) | - |
-| `CancelProfileUpdateTaskRequest` | `structure` | `Catalog`, `ClientToken`, `Identifier`, `TaskId` | - |
-| `CancelProfileUpdateTaskResponse` | `structure` | `Arn`, `Catalog`, `EndedAt`, `ErrorDetailList`, `Id`, `StartedAt`, `Status`, `TaskDetails`, `TaskId` | - |
-| `CreateConnectionInvitationRequest` | `structure` | `Catalog`, `ClientToken`, `ConnectionType`, `Email`, `Message`, `Name`, `ReceiverIdentifier` | - |
-| `CreateConnectionInvitationResponse` | `structure` | `Arn`, `Catalog`, `ConnectionId`, `ConnectionType`, `CreatedAt`, `ExpiresAt`, `Id`, `InvitationMessage`, `InviterEmail`, `InviterName`, `OtherParticipantIdentifier`, `ParticipantType`, ... (+2) | - |
-| `CreatePartnerRequest` | `structure` | `AllianceLeadContact`, `Catalog`, `ClientToken`, `EmailVerificationCode`, `LegalName`, `PrimarySolutionType`, `Tags` | - |
-| `CreatePartnerResponse` | `structure` | `AllianceLeadContact`, `Arn`, `AwsTrainingCertificationEmailDomains`, `Catalog`, `CreatedAt`, `Id`, `LegalName`, `Profile` | - |
-| `DisassociateAwsTrainingCertificationEmailDomainRequest` | `structure` | `Catalog`, `ClientToken`, `DomainName`, `Identifier` | - |
-| `DisassociateAwsTrainingCertificationEmailDomainResponse` | `structure` | - | - |
-| `GetAllianceLeadContactRequest` | `structure` | `Catalog`, `Identifier` | - |
-
+| `AccessDeniedException` | `structure` | Message, Reason | The request was denied due to insufficient permissions. The caller does not have the required permissions to perform this operation. |
+| `ConflictException` | `structure` | Message, Reason | The request could not be completed due to a conflict with the current state of the resource. This typically occurs when trying to create a resource that alr ... |
+| `InternalServerException` | `structure` | Message | An internal server error occurred while processing the request. This is typically a temporary condition and the request may be retried. |
+| `ResourceNotFoundException` | `structure` | Message, Reason | The specified resource could not be found. This may occur when referencing a resource that does not exist or has been deleted. |
+| `ServiceQuotaExceededException` | `structure` | Message, Reason | The request was rejected because it would exceed a service quota or limit. This may occur when trying to create more resources than allowed by the service l ... |
+| `ThrottlingException` | `structure` | Message, ServiceCode, QuotaCode | The request was throttled due to too many requests being sent in a short period of time. The client should implement exponential backoff and retry the request. |
+| `ValidationException` | `structure` | Message, Reason, ErrorDetails | The request failed validation. One or more input parameters are invalid, missing, or do not meet the required format or constraints. |
+| `GetVerificationRequest` | `structure` | VerificationType | - |
+| `GetVerificationResponse` | `structure` | VerificationType, VerificationStatus, VerificationStatusReason, VerificationResponseDetails, StartedAt, CompletedAt | - |
+| `ListTagsForResourceRequest` | `structure` | ResourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | ResourceArn, Tags | - |
+| `SendEmailVerificationCodeRequest` | `structure` | Catalog, Email | - |
+| `SendEmailVerificationCodeResponse` | `structure` | **empty (no members)** | - |
+| `StartVerificationRequest` | `structure` | ClientToken, VerificationDetails | - |
+| `StartVerificationResponse` | `structure` | VerificationType, VerificationStatus, VerificationStatusReason, VerificationResponseDetails, StartedAt, CompletedAt | - |
+| `TagResourceRequest` | `structure` | ResourceArn, Tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | ResourceArn, TagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `AccessDeniedExceptionReason` | `enum` | ACCESS_DENIED, INCOMPATIBLE_BENEFIT_AWS_PARTNER_STATE | - |
+| `AccessType` | `enum` | ALLOW_ALL, DENY_ALL, ALLOW_BY_DEFAULT_DENY_SOME | - |
+| `BusinessValidationCode` | `enum` | INCOMPATIBLE_CONNECTION_INVITATION_REQUEST, INCOMPATIBLE_LEGAL_NAME, INCOMPATIBLE_KNOW_YOUR_BUSINESS_STATUS, INCOMPATIBLE_IDENTITY_VERIFICATION_STATUS, INVALID_ACCOUNT_LINKING_STATUS, INVALID_ACCOUNT_STATE, INCOMPATIBLE_DOMAIN | - |
+| `ConflictExceptionReason` | `enum` | CONFLICT_CLIENT_TOKEN, DUPLICATE_PARTNER, INCOMPATIBLE_PROFILE_STATE, INCOMPATIBLE_PARTNER_PROFILE_TASK_STATE, DUPLICATE_CONNECTION_INVITATION, INCOMPATIBLE_CONNECTION_INVITATION_STATE, INCOMPATIBLE_CONNECTION_INVITATION_RECEIVER, DUPLICATE_CONNECTION, INCOMPATIBLE_CONNECTION_STATE, INCOMPATIBLE_CONNECTION_PREFERENCES_REVISION, ACCOUNT_ALREADY_VERIFIED, VERIFICATION_ALREADY_IN_PROGRESS | - |
+| `ConnectionType` | `enum` | OPPORTUNITY_COLLABORATION, SUBSIDIARY | - |
+| `ConnectionTypeStatus` | `enum` | ACTIVE, CANCELED | - |
+| `FieldValidationCode` | `enum` | REQUIRED_FIELD_MISSING, DUPLICATE_VALUE, INVALID_VALUE, INVALID_STRING_FORMAT, TOO_MANY_VALUES, ACTION_NOT_PERMITTED, INVALID_ENUM_VALUE | - |
+| `IndustrySegment` | `enum` | AGRICULTURE_MINING, BIOTECHNOLOGY, BUSINESS_CONSUMER_SERVICES, BUSINESS_SERV, COMMUNICATIONS, COMPUTER_HARDWARE, COMPUTERS_ELECTRONICS, COMPUTER_SOFTWARE, CONSUMER_GOODS, CONSUMER_RELATED, EDUCATION, ENERGY_UTILITIES, ... (+25) | - |
+| `InvitationStatus` | `enum` | PENDING, ACCEPTED, REJECTED, CANCELED, EXPIRED | - |
+| `ParticipantType` | `enum` | SENDER, RECEIVER | - |
+| `PrimarySolutionType` | `enum` | SOFTWARE_PRODUCTS, CONSULTING_SERVICES, PROFESSIONAL_SERVICES, MANAGED_SERVICES, HARDWARE_PRODUCTS, COMMUNICATION_SERVICES, VALUE_ADDED_RESALE_AWS_SERVICES, TRAINING_SERVICES | - |
+| `ProfileTaskStatus` | `enum` | IN_PROGRESS, CANCELED, SUCCEEDED, FAILED | - |
+| `ProfileValidationErrorReason` | `enum` | INVALID_CONTENT, DUPLICATE_PROFILE, INVALID_LOGO, INVALID_LOGO_URL, INVALID_LOGO_FILE, INVALID_LOGO_SIZE, INVALID_WEBSITE_URL | - |
+| `ProfileVisibility` | `enum` | PRIVATE, PUBLIC | - |
+| `ResourceNotFoundExceptionReason` | `enum` | PARTNER_NOT_FOUND, PARTNER_PROFILE_NOT_FOUND, PARTNER_PROFILE_TASK_NOT_FOUND, PARTNER_DOMAIN_NOT_FOUND, SENDER_PROFILE_NOT_FOUND, RECEIVER_PROFILE_NOT_FOUND, CONNECTION_INVITATION_NOT_FOUND, CONNECTION_NOT_FOUND, VERIFICATION_NOT_FOUND | - |
+| `ServiceQuotaExceededExceptionReason` | `enum` | LIMIT_EXCEEDED_NUMBER_OF_EMAIL, LIMIT_EXCEEDED_NUMBER_OF_DOMAIN, LIMIT_EXCEEDED_NUMBER_OF_CONNECTION_INVITATION_PER_DAY, LIMIT_EXCEEDED_NUMBER_OF_ACTIVE_CONNECTION, LIMIT_EXCEEDED_NUMBER_OF_OPEN_CONNECTION_INVITATION | - |
+| `ValidationExceptionReason` | `enum` | REQUEST_VALIDATION_FAILED, BUSINESS_VALIDATION_FAILED | - |
+| `VerificationStatus` | `enum` | PENDING_CUSTOMER_ACTION, IN_PROGRESS, FAILED, SUCCEEDED, REJECTED | - |
+| `VerificationType` | `enum` | BUSINESS_VERIFICATION, REGISTRANT_VERIFICATION | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

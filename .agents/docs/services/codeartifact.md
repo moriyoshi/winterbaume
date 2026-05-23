@@ -64,128 +64,128 @@ Parity implications:
 
 ### List
 
-- Operations: `ListAllowedRepositoriesForGroup`, `ListAssociatedPackages`, `ListDomains`, `ListPackageGroups`, `ListPackageVersionAssets`, `ListPackageVersionDependencies`, `ListPackageVersions`, `ListPackages`, `ListRepositories`, `ListRepositoriesInDomain`, `ListSubPackageGroups`, `ListTagsForResource`
+- Operations: `ListAllowedRepositoriesForGroup`, `ListAssociatedPackages`, `ListDomains`, `ListPackageGroups`, `ListPackages`, `ListPackageVersionAssets`, `ListPackageVersionDependencies`, `ListPackageVersions`, `ListRepositories`, `ListRepositoriesInDomain`, `ListSubPackageGroups`, `ListTagsForResource`
 - Traits: `paginated` (10)
-- Common required input members in this group: `domain`, `format`, `originRestrictionType`, `package`, `packageGroup`, `packageVersion`, `repository`, `resourceArn`
+- Common required input members in this group: `domain`, `packageGroup`, `repository`, `format`, `package`, `packageVersion`
 
 ### Delete
 
 - Operations: `DeleteDomain`, `DeleteDomainPermissionsPolicy`, `DeletePackage`, `DeletePackageGroup`, `DeletePackageVersions`, `DeleteRepository`, `DeleteRepositoryPermissionsPolicy`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `domain`, `format`, `package`, `packageGroup`, `repository`, `versions`
+- Common required input members in this group: `domain`, `repository`, `format`, `package`
 
 ### Get
 
 - Operations: `GetAssociatedPackageGroup`, `GetAuthorizationToken`, `GetDomainPermissionsPolicy`, `GetPackageVersionAsset`, `GetPackageVersionReadme`, `GetRepositoryEndpoint`, `GetRepositoryPermissionsPolicy`
-- Common required input members in this group: `asset`, `domain`, `format`, `package`, `packageVersion`, `repository`
+- Common required input members in this group: `domain`, `format`, `package`, `repository`, `packageVersion`
 
 ### Describe
 
 - Operations: `DescribeDomain`, `DescribePackage`, `DescribePackageGroup`, `DescribePackageVersion`, `DescribeRepository`
-- Common required input members in this group: `domain`, `format`, `package`, `packageGroup`, `packageVersion`, `repository`
+- Common required input members in this group: `domain`, `repository`, `format`, `package`
 
 ### Update
 
 - Operations: `UpdatePackageGroup`, `UpdatePackageGroupOriginConfiguration`, `UpdatePackageVersionsStatus`, `UpdateRepository`
 - Traits: `idempotent` (2)
-- Common required input members in this group: `domain`, `format`, `package`, `packageGroup`, `repository`, `targetStatus`, `versions`
+- Common required input members in this group: `domain`, `packageGroup`, `repository`
 
 ### Create
 
 - Operations: `CreateDomain`, `CreatePackageGroup`, `CreateRepository`
-- Common required input members in this group: `domain`, `packageGroup`, `repository`
+- Common required input members in this group: `domain`
 
 ### Put
 
 - Operations: `PutDomainPermissionsPolicy`, `PutPackageOriginConfiguration`, `PutRepositoryPermissionsPolicy`
-- Common required input members in this group: `domain`, `format`, `package`, `policyDocument`, `repository`, `restrictions`
+- Common required input members in this group: `domain`, `policyDocument`, `repository`
 
 ### Associate
 
 - Operations: `AssociateExternalConnection`
-- Common required input members in this group: `domain`, `externalConnection`, `repository`
+- Common required input members in this group: -
 
 ### Copy
 
 - Operations: `CopyPackageVersions`
-- Common required input members in this group: `destinationRepository`, `domain`, `format`, `package`, `sourceRepository`
+- Common required input members in this group: -
 
 ### Disassociate
 
 - Operations: `DisassociateExternalConnection`
-- Common required input members in this group: `domain`, `externalConnection`, `repository`
+- Common required input members in this group: -
 
 ### Dispose
 
 - Operations: `DisposePackageVersions`
-- Common required input members in this group: `domain`, `format`, `package`, `repository`, `versions`
+- Common required input members in this group: -
 
 ### Publish
 
 - Operations: `PublishPackageVersion`
-- Common required input members in this group: `assetContent`, `assetName`, `assetSHA256`, `domain`, `format`, `package`, `packageVersion`, `repository`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AssociateExternalConnection` | `POST /v1/repository/external-connection` | - | `domain`, `externalConnection`, `repository` | - | `AssociateExternalConnectionResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Adds an existing external connection to a repository. One external connection is allowed per repository. |
-| `CopyPackageVersions` | `POST /v1/package/versions/copy` | - | `destinationRepository`, `domain`, `format`, `package`, `sourceRepository` | - | `CopyPackageVersionsResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Copies package versions from one repository to another repository in the same domain. You must specify `versions` or `versionRevisions`. |
-| `CreateDomain` | `POST /v1/domain` | - | `domain` | - | `CreateDomainResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a domain. CodeArtifact domains make it easier to manage multiple repositories across an organization. |
+| `AssociateExternalConnection` | `POST /v1/repository/external-connection` | - | `domain`, `repository`, `externalConnection` | - | `AssociateExternalConnectionResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Adds an existing external connection to a repository. One external connection is allowed per repository. A repository can have one or more upstream repositories, or an external connection. |
+| `CopyPackageVersions` | `POST /v1/package/versions/copy` | - | `domain`, `sourceRepository`, `destinationRepository`, `format`, `package` | - | `CopyPackageVersionsResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Copies package versions from one repository to another repository in the same domain. You must specify versions or versionRevisions . You cannot specify both. |
+| `CreateDomain` | `POST /v1/domain` | - | `domain` | - | `CreateDomainResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a domain. CodeArtifact domains make it easier to manage multiple repositories across an organization. You can use a domain to apply permissions across many repositories owned by different Amazon Web Services ... |
 | `CreatePackageGroup` | `POST /v1/package-group` | - | `domain`, `packageGroup` | - | `CreatePackageGroupResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a package group. For more information about creating package groups, including example CLI commands, see Create a package group in the CodeArtifact User Guide . |
 | `CreateRepository` | `POST /v1/repository` | - | `domain`, `repository` | - | `CreateRepositoryResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a repository. |
-| `DeleteDomain` | `DELETE /v1/domain` | - | `domain` | - | `DeleteDomainResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Deletes a domain. You cannot delete a domain that contains repositories. |
+| `DeleteDomain` | `DELETE /v1/domain` | - | `domain` | - | `DeleteDomainResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Deletes a domain. You cannot delete a domain that contains repositories. If you want to delete a domain with repositories, first delete its repositories. |
 | `DeleteDomainPermissionsPolicy` | `DELETE /v1/domain/permissions/policy` | - | `domain` | - | `DeleteDomainPermissionsPolicyResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the resource policy set on a domain. |
-| `DeletePackage` | `DELETE /v1/package` | - | `domain`, `format`, `package`, `repository` | - | `DeletePackageResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a package and all associated package versions. A deleted package cannot be restored. |
-| `DeletePackageGroup` | `DELETE /v1/package-group` | `idempotent` | `domain`, `packageGroup` | - | `DeletePackageGroupResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Deletes a package group. Deleting a package group does not delete packages or package versions associated with the package group. |
-| `DeletePackageVersions` | `POST /v1/package/versions/delete` | - | `domain`, `format`, `package`, `repository`, `versions` | - | `DeletePackageVersionsResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes one or more versions of a package. A deleted package version cannot be restored in your repository. |
+| `DeletePackage` | `DELETE /v1/package` | - | `domain`, `repository`, `format`, `package` | - | `DeletePackageResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a package and all associated package versions. A deleted package cannot be restored. To delete one or more package versions, use the DeletePackageVersions API. |
+| `DeletePackageGroup` | `DELETE /v1/package-group` | `idempotent` | `domain`, `packageGroup` | - | `DeletePackageGroupResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Deletes a package group. Deleting a package group does not delete packages or package versions associated with the package group. When a package group is deleted, the direct child package groups will become children ... |
+| `DeletePackageVersions` | `POST /v1/package/versions/delete` | - | `domain`, `repository`, `format`, `package`, `versions` | - | `DeletePackageVersionsResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes one or more versions of a package. A deleted package version cannot be restored in your repository. If you want to remove a package version from your repository and be able to restore it later, set its status ... |
 | `DeleteRepository` | `DELETE /v1/repository` | - | `domain`, `repository` | - | `DeleteRepositoryResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a repository. |
-| `DeleteRepositoryPermissionsPolicy` | `DELETE /v1/repository/permissions/policies` | - | `domain`, `repository` | - | `DeleteRepositoryPermissionsPolicyResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the resource policy that is set on a repository. After a resource policy is deleted, the permissions allowed and denied by the deleted policy are removed. |
+| `DeleteRepositoryPermissionsPolicy` | `DELETE /v1/repository/permissions/policies` | - | `domain`, `repository` | - | `DeleteRepositoryPermissionsPolicyResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the resource policy that is set on a repository. After a resource policy is deleted, the permissions allowed and denied by the deleted policy are removed. The effect of deleting a resource policy might not be ... |
 | `DescribeDomain` | `GET /v1/domain` | - | `domain` | - | `DescribeDomainResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a DomainDescription object that contains information about the requested domain. |
-| `DescribePackage` | `GET /v1/package` | - | `domain`, `format`, `package`, `repository` | - | `DescribePackageResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a PackageDescription object that contains information about the requested package. |
+| `DescribePackage` | `GET /v1/package` | - | `domain`, `repository`, `format`, `package` | - | `DescribePackageResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a PackageDescription object that contains information about the requested package. |
 | `DescribePackageGroup` | `GET /v1/package-group` | - | `domain`, `packageGroup` | - | `DescribePackageGroupResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a PackageGroupDescription object that contains information about the requested package group. |
-| `DescribePackageVersion` | `GET /v1/package/version` | - | `domain`, `format`, `package`, `packageVersion`, `repository` | - | `DescribePackageVersionResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a PackageVersionDescription object that contains information about the requested package version. |
-| `DescribeRepository` | `GET /v1/repository` | - | `domain`, `repository` | - | `DescribeRepositoryResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a `RepositoryDescription` object that contains detailed information about the requested repository. |
-| `DisassociateExternalConnection` | `DELETE /v1/repository/external-connection` | - | `domain`, `externalConnection`, `repository` | - | `DisassociateExternalConnectionResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Removes an existing external connection from a repository. |
-| `DisposePackageVersions` | `POST /v1/package/versions/dispose` | - | `domain`, `format`, `package`, `repository`, `versions` | - | `DisposePackageVersionsResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the assets in package versions and sets the package versions' status to `Disposed`. A disposed package version cannot be restored in your repository because its assets are deleted. |
-| `GetAssociatedPackageGroup` | `GET /v1/get-associated-package-group` | - | `domain`, `format`, `package` | - | `GetAssociatedPackageGroupResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns the most closely associated package group to the specified package. This API does not require that the package exist in any repository in the domain. |
-| `GetAuthorizationToken` | `POST /v1/authorization-token` | - | `domain` | - | `GetAuthorizationTokenResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Generates a temporary authorization token for accessing repositories in the domain. This API requires the `codeartifact:GetAuthorizationToken` and `sts:GetServiceBearerToken` permissions. |
-| `GetDomainPermissionsPolicy` | `GET /v1/domain/permissions/policy` | - | `domain` | - | `GetDomainPermissionsPolicyResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns the resource policy attached to the specified domain. The policy is a resource-based policy, not an identity-based policy. |
-| `GetPackageVersionAsset` | `GET /v1/package/version/asset` | - | `asset`, `domain`, `format`, `package`, `packageVersion`, `repository` | - | `GetPackageVersionAssetResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns an asset (or file) that is in a package. For example, for a Maven package version, use `GetPackageVersionAsset` to download a `JAR` file, a `POM` file, or any other assets in the package version. |
-| `GetPackageVersionReadme` | `GET /v1/package/version/readme` | - | `domain`, `format`, `package`, `packageVersion`, `repository` | - | `GetPackageVersionReadmeResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets the readme file or descriptive text for a package version. The returned text might contain formatting. |
-| `GetRepositoryEndpoint` | `GET /v1/repository/endpoint` | - | `domain`, `format`, `repository` | - | `GetRepositoryEndpointResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns the endpoint of a repository for a specific package format. A repository has one endpoint for each package format: `cargo` `generic` `maven` `npm` `nuget` `pypi` `ruby` `swift` |
+| `DescribePackageVersion` | `GET /v1/package/version` | - | `domain`, `repository`, `format`, `package`, `packageVersion` | - | `DescribePackageVersionResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a PackageVersionDescription object that contains information about the requested package version. |
+| `DescribeRepository` | `GET /v1/repository` | - | `domain`, `repository` | - | `DescribeRepositoryResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a RepositoryDescription object that contains detailed information about the requested repository. |
+| `DisassociateExternalConnection` | `DELETE /v1/repository/external-connection` | - | `domain`, `repository`, `externalConnection` | - | `DisassociateExternalConnectionResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Removes an existing external connection from a repository. |
+| `DisposePackageVersions` | `POST /v1/package/versions/dispose` | - | `domain`, `repository`, `format`, `package`, `versions` | - | `DisposePackageVersionsResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the assets in package versions and sets the package versions' status to Disposed . A disposed package version cannot be restored in your repository because its assets are deleted. To view all disposed package ... |
+| `GetAssociatedPackageGroup` | `GET /v1/get-associated-package-group` | - | `domain`, `format`, `package` | - | `GetAssociatedPackageGroupResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns the most closely associated package group to the specified package. This API does not require that the package exist in any repository in the domain. As such, GetAssociatedPackageGroup can be used to see whic ... |
+| `GetAuthorizationToken` | `POST /v1/authorization-token` | - | `domain` | - | `GetAuthorizationTokenResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Generates a temporary authorization token for accessing repositories in the domain. This API requires the codeartifact:GetAuthorizationToken and sts:GetServiceBearerToken permissions. For more information about autho ... |
+| `GetDomainPermissionsPolicy` | `GET /v1/domain/permissions/policy` | - | `domain` | - | `GetDomainPermissionsPolicyResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns the resource policy attached to the specified domain. The policy is a resource-based policy, not an identity-based policy. For more information, see Identity-based policies and resource-based policies in the ... |
+| `GetPackageVersionAsset` | `GET /v1/package/version/asset` | - | `domain`, `repository`, `format`, `package`, `packageVersion`, `asset` | - | `GetPackageVersionAssetResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns an asset (or file) that is in a package. For example, for a Maven package version, use GetPackageVersionAsset to download a JAR file, a POM file, or any other assets in the package version. |
+| `GetPackageVersionReadme` | `GET /v1/package/version/readme` | - | `domain`, `repository`, `format`, `package`, `packageVersion` | - | `GetPackageVersionReadmeResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets the readme file or descriptive text for a package version. The returned text might contain formatting. For example, it might contain formatting for Markdown or reStructuredText. |
+| `GetRepositoryEndpoint` | `GET /v1/repository/endpoint` | - | `domain`, `repository`, `format` | - | `GetRepositoryEndpointResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns the endpoint of a repository for a specific package format. A repository has one endpoint for each package format: cargo generic maven npm nuget pypi ruby swift |
 | `GetRepositoryPermissionsPolicy` | `GET /v1/repository/permissions/policy` | - | `domain`, `repository` | - | `GetRepositoryPermissionsPolicyResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns the resource policy that is set on a repository. |
-| `ListAllowedRepositoriesForGroup` | `GET /v1/package-group-allowed-repositories` | `paginated` | `domain`, `originRestrictionType`, `packageGroup` | - | `ListAllowedRepositoriesForGroupResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Lists the repositories in the added repositories list of the specified restriction type for a package group. For more information about restriction types and added repository lists, see Package group origin controls in the CodeArtifact User Guide . |
+| `ListAllowedRepositoriesForGroup` | `GET /v1/package-group-allowed-repositories` | `paginated` | `domain`, `packageGroup`, `originRestrictionType` | - | `ListAllowedRepositoriesForGroupResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Lists the repositories in the added repositories list of the specified restriction type for a package group. For more information about restriction types and added repository lists, see Package group origin controls ... |
 | `ListAssociatedPackages` | `GET /v1/list-associated-packages` | `paginated` | `domain`, `packageGroup` | - | `ListAssociatedPackagesResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns a list of packages associated with the requested package group. For information package group association and matching, see Package group definition syntax and matching behavior in the CodeArtifact User Guide . |
-| `ListDomains` | `POST /v1/domains` | `paginated` | - | - | `ListDomainsResult` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of DomainSummary objects for all domains owned by the Amazon Web Services account that makes this call. Each returned `DomainSummary` object contains information about a domain. |
+| `ListDomains` | `POST /v1/domains` | `paginated` | - | - | `ListDomainsResult` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of DomainSummary objects for all domains owned by the Amazon Web Services account that makes this call. Each returned DomainSummary object contains information about a domain. |
 | `ListPackageGroups` | `POST /v1/package-groups` | `paginated` | `domain` | - | `ListPackageGroupsResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of package groups in the requested domain. |
-| `ListPackageVersionAssets` | `POST /v1/package/version/assets` | `paginated` | `domain`, `format`, `package`, `packageVersion`, `repository` | - | `ListPackageVersionAssetsResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of AssetSummary objects for assets in a package version. |
-| `ListPackageVersionDependencies` | `POST /v1/package/version/dependencies` | - | `domain`, `format`, `package`, `packageVersion`, `repository` | - | `ListPackageVersionDependenciesResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns the direct dependencies for a package version. The dependencies are returned as PackageDependency objects. |
-| `ListPackageVersions` | `POST /v1/package/versions` | `paginated` | `domain`, `format`, `package`, `repository` | - | `ListPackageVersionsResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of PackageVersionSummary objects for package versions in a repository that match the request parameters. Package versions of all statuses will be returned by default when calling `list-package-versions` with no `--status` parameter. |
 | `ListPackages` | `POST /v1/packages` | `paginated` | `domain`, `repository` | - | `ListPackagesResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of PackageSummary objects for packages in a repository that match the request parameters. |
-| `ListRepositories` | `POST /v1/repositories` | `paginated` | - | - | `ListRepositoriesResult` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of RepositorySummary objects. Each `RepositorySummary` contains information about a repository in the specified Amazon Web Services account and that matches the input parameters. |
-| `ListRepositoriesInDomain` | `POST /v1/domain/repositories` | `paginated` | `domain` | - | `ListRepositoriesInDomainResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of RepositorySummary objects. Each `RepositorySummary` contains information about a repository in the specified domain and that matches the input parameters. |
+| `ListPackageVersionAssets` | `POST /v1/package/version/assets` | `paginated` | `domain`, `repository`, `format`, `package`, `packageVersion` | - | `ListPackageVersionAssetsResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of AssetSummary objects for assets in a package version. |
+| `ListPackageVersionDependencies` | `POST /v1/package/version/dependencies` | - | `domain`, `repository`, `format`, `package`, `packageVersion` | - | `ListPackageVersionDependenciesResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns the direct dependencies for a package version. The dependencies are returned as PackageDependency objects. CodeArtifact extracts the dependencies for a package version from the metadata file for the package f ... |
+| `ListPackageVersions` | `POST /v1/package/versions` | `paginated` | `domain`, `repository`, `format`, `package` | - | `ListPackageVersionsResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of PackageVersionSummary objects for package versions in a repository that match the request parameters. Package versions of all statuses will be returned by default when calling list-package-versions ... |
+| `ListRepositories` | `POST /v1/repositories` | `paginated` | - | - | `ListRepositoriesResult` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of RepositorySummary objects. Each RepositorySummary contains information about a repository in the specified Amazon Web Services account and that matches the input parameters. |
+| `ListRepositoriesInDomain` | `POST /v1/domain/repositories` | `paginated` | `domain` | - | `ListRepositoriesInDomainResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of RepositorySummary objects. Each RepositorySummary contains information about a repository in the specified domain and that matches the input parameters. |
 | `ListSubPackageGroups` | `POST /v1/package-groups/sub-groups` | `paginated` | `domain`, `packageGroup` | - | `ListSubPackageGroupsResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of direct children of the specified package group. For information package group hierarchy, see Package group definition syntax and matching behavior in the CodeArtifact User Guide . |
 | `ListTagsForResource` | `POST /v1/tags` | - | `resourceArn` | - | `ListTagsForResourceResult` | `AccessDeniedException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets information about Amazon Web Services tags for a specified Amazon Resource Name (ARN) in CodeArtifact. |
-| `PublishPackageVersion` | `POST /v1/package/version/publish` | - | `assetContent`, `assetName`, `assetSHA256`, `domain`, `format`, `package`, `packageVersion`, `repository` | - | `PublishPackageVersionResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a new package version containing one or more assets (or files). The `unfinished` flag can be used to keep the package version in the `Unfinished` state until all of its assets have been uploaded (see Package version status in the CodeArtifact user... |
-| `PutDomainPermissionsPolicy` | `PUT /v1/domain/permissions/policy` | - | `domain`, `policyDocument` | - | `PutDomainPermissionsPolicyResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Sets a resource policy on a domain that specifies permissions to access it. When you call `PutDomainPermissionsPolicy`, the resource policy on the domain is ignored when evaluting permissions. |
-| `PutPackageOriginConfiguration` | `POST /v1/package` | - | `domain`, `format`, `package`, `repository`, `restrictions` | - | `PutPackageOriginConfigurationResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Sets the package origin configuration for a package. The package origin configuration determines how new versions of a package can be added to a repository. |
-| `PutRepositoryPermissionsPolicy` | `PUT /v1/repository/permissions/policy` | - | `domain`, `policyDocument`, `repository` | - | `PutRepositoryPermissionsPolicyResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Sets the resource policy on a repository that specifies permissions to access it. When you call `PutRepositoryPermissionsPolicy`, the resource policy on the repository is ignored when evaluting permissions. |
+| `PublishPackageVersion` | `POST /v1/package/version/publish` | - | `domain`, `repository`, `format`, `package`, `packageVersion`, `assetContent`, `assetName`, `assetSHA256` | - | `PublishPackageVersionResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a new package version containing one or more assets (or files). The unfinished flag can be used to keep the package version in the Unfinished state until all of its assets have been uploaded (see Package vers ... |
+| `PutDomainPermissionsPolicy` | `PUT /v1/domain/permissions/policy` | - | `domain`, `policyDocument` | - | `PutDomainPermissionsPolicyResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Sets a resource policy on a domain that specifies permissions to access it. When you call PutDomainPermissionsPolicy , the resource policy on the domain is ignored when evaluting permissions. This ensures that the ow ... |
+| `PutPackageOriginConfiguration` | `POST /v1/package` | - | `domain`, `repository`, `format`, `package`, `restrictions` | - | `PutPackageOriginConfigurationResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Sets the package origin configuration for a package. The package origin configuration determines how new versions of a package can be added to a repository. You can allow or block direct publishing of new package ver ... |
+| `PutRepositoryPermissionsPolicy` | `PUT /v1/repository/permissions/policy` | - | `domain`, `repository`, `policyDocument` | - | `PutRepositoryPermissionsPolicyResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Sets the resource policy on a repository that specifies permissions to access it. When you call PutRepositoryPermissionsPolicy , the resource policy on the repository is ignored when evaluting permissions. This ensur ... |
 | `TagResource` | `POST /v1/tag` | - | `resourceArn`, `tags` | - | `TagResourceResult` | `AccessDeniedException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Adds or updates tags for a resource in CodeArtifact. |
 | `UntagResource` | `POST /v1/untag` | - | `resourceArn`, `tagKeys` | - | `UntagResourceResult` | `AccessDeniedException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes tags from a resource in CodeArtifact. |
-| `UpdatePackageGroup` | `PUT /v1/package-group` | `idempotent` | `domain`, `packageGroup` | - | `UpdatePackageGroupResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates a package group. This API cannot be used to update a package group's origin configuration or pattern. |
-| `UpdatePackageGroupOriginConfiguration` | `PUT /v1/package-group-origin-configuration` | `idempotent` | `domain`, `packageGroup` | - | `UpdatePackageGroupOriginConfigurationResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates the package origin configuration for a package group. The package origin configuration determines how new versions of a package can be added to a repository. |
-| `UpdatePackageVersionsStatus` | `POST /v1/package/versions/update_status` | - | `domain`, `format`, `package`, `repository`, `targetStatus`, `versions` | - | `UpdatePackageVersionsStatusResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the status of one or more versions of a package. Using `UpdatePackageVersionsStatus`, you can update the status of package versions to `Archived`, `Published`, or `Unlisted`. |
+| `UpdatePackageGroup` | `PUT /v1/package-group` | `idempotent` | `domain`, `packageGroup` | - | `UpdatePackageGroupResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates a package group. This API cannot be used to update a package group's origin configuration or pattern. To update a package group's origin configuration, use UpdatePackageGroupOriginConfiguration . |
+| `UpdatePackageGroupOriginConfiguration` | `PUT /v1/package-group-origin-configuration` | `idempotent` | `domain`, `packageGroup` | - | `UpdatePackageGroupOriginConfigurationResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates the package origin configuration for a package group. The package origin configuration determines how new versions of a package can be added to a repository. You can allow or block direct publishing of new pa ... |
+| `UpdatePackageVersionsStatus` | `POST /v1/package/versions/update_status` | - | `domain`, `repository`, `format`, `package`, `versions`, `targetStatus` | - | `UpdatePackageVersionsStatusResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the status of one or more versions of a package. Using UpdatePackageVersionsStatus , you can update the status of package versions to Archived , Published , or Unlisted . To set the status of a package versio ... |
 | `UpdateRepository` | `PUT /v1/repository` | - | `domain`, `repository` | - | `UpdateRepositoryResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Update the properties of a repository. |
 
 ## HTTP Bindings
@@ -245,31 +245,56 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | The operation did not succeed because of an unauthorized access attempt. |
-| `ValidationException` | `structure` | `message`, `reason` | The operation did not succeed because a parameter in the request was sent with an invalid value. |
-| `ThrottlingException` | `structure` | `message`, `retryAfterSeconds` | The operation did not succeed because too many requests are sent to the service. |
-| `InternalServerException` | `structure` | `message` | The operation did not succeed because of an error that occurred inside CodeArtifact. |
-| `ResourceNotFoundException` | `structure` | `message`, `resourceId`, `resourceType` | The operation did not succeed because the resource requested is not found in the service. |
-| `ConflictException` | `structure` | `message`, `resourceId`, `resourceType` | The operation did not succeed because prerequisites are not met. |
-| `ServiceQuotaExceededException` | `structure` | `message`, `resourceId`, `resourceType` | The operation did not succeed because it would have exceeded a service limit for your account. |
-| `AssociateExternalConnectionRequest` | `structure` | `domain`, `domainOwner`, `externalConnection`, `repository` | - |
-| `AssociateExternalConnectionResult` | `structure` | `repository` | - |
-| `CopyPackageVersionsRequest` | `structure` | `allowOverwrite`, `destinationRepository`, `domain`, `domainOwner`, `format`, `includeFromUpstream`, `namespace`, `package`, `sourceRepository`, `versionRevisions`, `versions` | - |
-| `CopyPackageVersionsResult` | `structure` | `failedVersions`, `successfulVersions` | - |
-| `CreateDomainRequest` | `structure` | `domain`, `encryptionKey`, `tags` | - |
-| `CreateDomainResult` | `structure` | `domain` | - |
-| `CreatePackageGroupRequest` | `structure` | `contactInfo`, `description`, `domain`, `domainOwner`, `packageGroup`, `tags` | - |
-| `CreatePackageGroupResult` | `structure` | `packageGroup` | - |
-| `CreateRepositoryRequest` | `structure` | `description`, `domain`, `domainOwner`, `repository`, `tags`, `upstreams` | - |
-| `CreateRepositoryResult` | `structure` | `repository` | - |
-| `DeleteDomainRequest` | `structure` | `domain`, `domainOwner` | - |
-| `DeleteDomainResult` | `structure` | `domain` | - |
-| `DeleteDomainPermissionsPolicyRequest` | `structure` | `domain`, `domainOwner`, `policyRevision` | - |
-| `DeleteDomainPermissionsPolicyResult` | `structure` | `policy` | - |
-| `DeletePackageRequest` | `structure` | `domain`, `domainOwner`, `format`, `namespace`, `package`, `repository` | - |
-| `DeletePackageResult` | `structure` | `deletedPackage` | - |
-| `DeletePackageGroupRequest` | `structure` | `domain`, `domainOwner`, `packageGroup` | - |
-
+| `AccessDeniedException` | `structure` | message | The operation did not succeed because of an unauthorized access attempt. |
+| `ConflictException` | `structure` | message, resourceId, resourceType | The operation did not succeed because prerequisites are not met. |
+| `InternalServerException` | `structure` | message | The operation did not succeed because of an error that occurred inside CodeArtifact. |
+| `ResourceNotFoundException` | `structure` | message, resourceId, resourceType | The operation did not succeed because the resource requested is not found in the service. |
+| `ServiceQuotaExceededException` | `structure` | message, resourceId, resourceType | The operation did not succeed because it would have exceeded a service limit for your account. |
+| `ThrottlingException` | `structure` | message, retryAfterSeconds | The operation did not succeed because too many requests are sent to the service. |
+| `ValidationException` | `structure` | message, reason | The operation did not succeed because a parameter in the request was sent with an invalid value. |
+| `AssociateExternalConnectionRequest` | `structure` | domain, domainOwner, repository, externalConnection | - |
+| `AssociateExternalConnectionResult` | `structure` | repository | - |
+| `CopyPackageVersionsRequest` | `structure` | domain, domainOwner, sourceRepository, destinationRepository, format, namespace, package, versions, versionRevisions, allowOverwrite, includeFromUpstream | - |
+| `CopyPackageVersionsResult` | `structure` | successfulVersions, failedVersions | - |
+| `CreateDomainRequest` | `structure` | domain, encryptionKey, tags | - |
+| `CreateDomainResult` | `structure` | domain | - |
+| `CreatePackageGroupRequest` | `structure` | domain, domainOwner, packageGroup, contactInfo, description, tags | - |
+| `CreatePackageGroupResult` | `structure` | packageGroup | - |
+| `CreateRepositoryRequest` | `structure` | domain, domainOwner, repository, description, upstreams, tags | - |
+| `CreateRepositoryResult` | `structure` | repository | - |
+| `DeleteDomainRequest` | `structure` | domain, domainOwner | - |
+| `DeleteDomainResult` | `structure` | domain | - |
+| `DeleteDomainPermissionsPolicyRequest` | `structure` | domain, domainOwner, policyRevision | - |
+| `DeleteDomainPermissionsPolicyResult` | `structure` | policy | - |
+| `DeletePackageRequest` | `structure` | domain, domainOwner, repository, format, namespace, package | - |
+| `DeletePackageResult` | `structure` | deletedPackage | - |
+| `DeletePackageGroupRequest` | `structure` | domain, domainOwner, packageGroup | - |
+| `DeletePackageGroupResult` | `structure` | packageGroup | - |
+| `DeletePackageVersionsRequest` | `structure` | domain, domainOwner, repository, format, namespace, package, versions, expectedStatus | - |
+| `DeletePackageVersionsResult` | `structure` | successfulVersions, failedVersions | - |
+| `DeleteRepositoryRequest` | `structure` | domain, domainOwner, repository | - |
+| `DeleteRepositoryResult` | `structure` | repository | - |
+| `DeleteRepositoryPermissionsPolicyRequest` | `structure` | domain, domainOwner, repository, policyRevision | - |
+| `DeleteRepositoryPermissionsPolicyResult` | `structure` | policy | - |
+| `DescribeDomainRequest` | `structure` | domain, domainOwner | - |
+| `DescribeDomainResult` | `structure` | domain | - |
+| `DescribePackageRequest` | `structure` | domain, domainOwner, repository, format, namespace, package | - |
+| `DescribePackageResult` | `structure` | package | - |
+| `DescribePackageGroupRequest` | `structure` | domain, domainOwner, packageGroup | - |
+| `DescribePackageGroupResult` | `structure` | packageGroup | - |
+| `DescribePackageVersionRequest` | `structure` | domain, domainOwner, repository, format, namespace, package, packageVersion | - |
+| `DescribePackageVersionResult` | `structure` | packageVersion | - |
+| `DescribeRepositoryRequest` | `structure` | domain, domainOwner, repository | - |
+| `AllowPublish` | `enum` | ALLOW, BLOCK | - |
+| `AllowUpstream` | `enum` | ALLOW, BLOCK | - |
+| `DomainStatus` | `enum` | ACTIVE, DELETED | - |
+| `EndpointType` | `enum` | DUALSTACK, IPV4 | - |
+| `ExternalConnectionStatus` | `enum` | AVAILABLE | - |
+| `HashAlgorithm` | `enum` | MD5, SHA1, SHA256, SHA512 | - |
+| `PackageFormat` | `enum` | NPM, PYPI, MAVEN, NUGET, GENERIC, RUBY, SWIFT, CARGO | - |
+| `PackageGroupAllowedRepositoryUpdateType` | `enum` | ADDED, REMOVED | - |
+| `PackageGroupAssociationType` | `enum` | STRONG, WEAK | - |
+| `PackageGroupOriginRestrictionMode` | `enum` | ALLOW, ALLOW_SPECIFIC_REPOSITORIES, BLOCK, INHERIT | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

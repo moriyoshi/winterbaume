@@ -54,36 +54,36 @@ MediaLive currently has shallow networking placeholders.
 
 ### List
 
-- Operations: `ListAlerts`, `ListChannelPlacementGroups`, `ListChannels`, `ListCloudWatchAlarmTemplateGroups`, `ListCloudWatchAlarmTemplates`, `ListClusterAlerts`, `ListClusters`, `ListEventBridgeRuleTemplateGroups`, `ListEventBridgeRuleTemplates`, `ListInputDeviceTransfers`, `ListInputDevices`, `ListInputSecurityGroups`, `ListInputs`, `ListMultiplexAlerts`, `ListMultiplexPrograms`, `ListMultiplexes`, `ListNetworks`, `ListNodes`, `ListOfferings`, `ListReservations`, `ListSdiSources`, `ListSignalMaps`, `ListTagsForResource`, `ListVersions`
+- Operations: `ListAlerts`, `ListChannelPlacementGroups`, `ListChannels`, `ListCloudWatchAlarmTemplateGroups`, `ListCloudWatchAlarmTemplates`, `ListClusterAlerts`, `ListClusters`, `ListEventBridgeRuleTemplateGroups`, `ListEventBridgeRuleTemplates`, `ListInputDevices`, `ListInputDeviceTransfers`, `ListInputs`, `ListInputSecurityGroups`, `ListMultiplexAlerts`, `ListMultiplexes`, `ListMultiplexPrograms`, `ListNetworks`, `ListNodes`, `ListOfferings`, `ListReservations`, `ListSdiSources`, `ListSignalMaps`, `ListTagsForResource`, `ListVersions`
 - Traits: `paginated` (22)
-- Common required input members in this group: `ChannelId`, `ClusterId`, `MultiplexId`, `ResourceArn`, `TransferType`
+- Common required input members in this group: `ClusterId`, `MultiplexId`
 
 ### Update
 
 - Operations: `UpdateAccountConfiguration`, `UpdateChannel`, `UpdateChannelClass`, `UpdateChannelPlacementGroup`, `UpdateCloudWatchAlarmTemplate`, `UpdateCloudWatchAlarmTemplateGroup`, `UpdateCluster`, `UpdateEventBridgeRuleTemplate`, `UpdateEventBridgeRuleTemplateGroup`, `UpdateInput`, `UpdateInputDevice`, `UpdateInputSecurityGroup`, `UpdateMultiplex`, `UpdateMultiplexProgram`, `UpdateNetwork`, `UpdateNode`, `UpdateNodeState`, `UpdateReservation`, `UpdateSdiSource`
-- Common required input members in this group: `ChannelClass`, `ChannelId`, `ChannelPlacementGroupId`, `ClusterId`, `Identifier`, `InputDeviceId`, `InputId`, `InputSecurityGroupId`, `MultiplexId`, `NetworkId`, `NodeId`, `ProgramName`, `ReservationId`, `SdiSourceId`
+- Common required input members in this group: `ChannelId`, `ClusterId`, `Identifier`, `MultiplexId`, `NodeId`
 
 ### Create
 
 - Operations: `CreateChannel`, `CreateChannelPlacementGroup`, `CreateCloudWatchAlarmTemplate`, `CreateCloudWatchAlarmTemplateGroup`, `CreateCluster`, `CreateEventBridgeRuleTemplate`, `CreateEventBridgeRuleTemplateGroup`, `CreateInput`, `CreateInputSecurityGroup`, `CreateMultiplex`, `CreateMultiplexProgram`, `CreateNetwork`, `CreateNode`, `CreateNodeRegistrationScript`, `CreatePartnerInput`, `CreateSdiSource`, `CreateSignalMap`, `CreateTags`
 - Traits: `idempotency-token` (16)
-- Common required input members in this group: `AvailabilityZones`, `ClusterId`, `ComparisonOperator`, `DiscoveryEntryPointArn`, `EvaluationPeriods`, `EventType`, `GroupIdentifier`, `InputId`, `MetricName`, `MultiplexId`, `MultiplexProgramSettings`, `MultiplexSettings`, `Name`, `Period`, `ProgramName`, `RequestId`, `ResourceArn`, `Statistic`, `TargetResourceType`, `Threshold`, `TreatMissingData`
+- Common required input members in this group: `ClusterId`, `GroupIdentifier`, `Name`, `RequestId`
 
 ### Delete
 
 - Operations: `DeleteChannel`, `DeleteChannelPlacementGroup`, `DeleteCloudWatchAlarmTemplate`, `DeleteCloudWatchAlarmTemplateGroup`, `DeleteCluster`, `DeleteEventBridgeRuleTemplate`, `DeleteEventBridgeRuleTemplateGroup`, `DeleteInput`, `DeleteInputSecurityGroup`, `DeleteMultiplex`, `DeleteMultiplexProgram`, `DeleteNetwork`, `DeleteNode`, `DeleteReservation`, `DeleteSchedule`, `DeleteSdiSource`, `DeleteSignalMap`, `DeleteTags`
-- Common required input members in this group: `ChannelId`, `ChannelPlacementGroupId`, `ClusterId`, `Identifier`, `InputId`, `InputSecurityGroupId`, `MultiplexId`, `NetworkId`, `NodeId`, `ProgramName`, `ReservationId`, `ResourceArn`, `SdiSourceId`, `TagKeys`
+- Common required input members in this group: `ChannelId`, `ClusterId`, `Identifier`, `MultiplexId`
 
 ### Describe
 
 - Operations: `DescribeAccountConfiguration`, `DescribeChannel`, `DescribeChannelPlacementGroup`, `DescribeCluster`, `DescribeInput`, `DescribeInputDevice`, `DescribeInputDeviceThumbnail`, `DescribeInputSecurityGroup`, `DescribeMultiplex`, `DescribeMultiplexProgram`, `DescribeNetwork`, `DescribeNode`, `DescribeOffering`, `DescribeReservation`, `DescribeSchedule`, `DescribeSdiSource`, `DescribeThumbnails`
 - Traits: `paginated` (1)
-- Common required input members in this group: `Accept`, `ChannelId`, `ChannelPlacementGroupId`, `ClusterId`, `InputDeviceId`, `InputId`, `InputSecurityGroupId`, `MultiplexId`, `NetworkId`, `NodeId`, `OfferingId`, `PipelineId`, `ProgramName`, `ReservationId`, `SdiSourceId`, `ThumbnailType`
+- Common required input members in this group: `ChannelId`, `ClusterId`, `InputDeviceId`, `MultiplexId`
 
 ### Start
 
 - Operations: `StartChannel`, `StartDeleteMonitorDeployment`, `StartInputDevice`, `StartInputDeviceMaintenanceWindow`, `StartMonitorDeployment`, `StartMultiplex`, `StartUpdateSignalMap`
-- Common required input members in this group: `ChannelId`, `Identifier`, `InputDeviceId`, `MultiplexId`
+- Common required input members in this group: `Identifier`, `InputDeviceId`
 
 ### Get
 
@@ -93,66 +93,67 @@ MediaLive currently has shallow networking placeholders.
 ### Batch
 
 - Operations: `BatchDelete`, `BatchStart`, `BatchStop`, `BatchUpdateSchedule`
-- Common required input members in this group: `ChannelId`
+- Common required input members in this group: -
 
 ### Stop
 
 - Operations: `StopChannel`, `StopInputDevice`, `StopMultiplex`
-- Common required input members in this group: `ChannelId`, `InputDeviceId`, `MultiplexId`
+- Common required input members in this group: -
 
 ### Accept
 
 - Operations: `AcceptInputDeviceTransfer`
-- Common required input members in this group: `InputDeviceId`
+- Common required input members in this group: -
 
 ### Cancel
 
 - Operations: `CancelInputDeviceTransfer`
-- Common required input members in this group: `InputDeviceId`
+- Common required input members in this group: -
 
 ### Claim
 
 - Operations: `ClaimDevice`
+- Common required input members in this group: -
 
 ### Purchase
 
 - Operations: `PurchaseOffering`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `Count`, `OfferingId`
+- Common required input members in this group: -
 
 ### Reboot
 
 - Operations: `RebootInputDevice`
-- Common required input members in this group: `InputDeviceId`
+- Common required input members in this group: -
 
 ### Reject
 
 - Operations: `RejectInputDeviceTransfer`
-- Common required input members in this group: `InputDeviceId`
+- Common required input members in this group: -
 
 ### Restart
 
 - Operations: `RestartChannelPipelines`
-- Common required input members in this group: `ChannelId`
+- Common required input members in this group: -
 
 ### Transfer
 
 - Operations: `TransferInputDevice`
-- Common required input members in this group: `InputDeviceId`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AcceptInputDeviceTransfer` | `POST /prod/inputDevices/{InputDeviceId}/accept` | - | `InputDeviceId` | - | `AcceptInputDeviceTransferResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException`, ... (+1) | Accept an incoming input device transfer. The ownership of the device will transfer to your AWS account. |
+| `AcceptInputDeviceTransfer` | `POST /prod/inputDevices/{InputDeviceId}/accept` | - | `InputDeviceId` | - | `AcceptInputDeviceTransferResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException`, `UnprocessableEntityException` | Accept an incoming input device transfer. The ownership of the device will transfer to your AWS account. |
 | `BatchDelete` | `POST /prod/batch/delete` | - | - | - | `BatchDeleteResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Starts delete of resources. |
 | `BatchStart` | `POST /prod/batch/start` | - | - | - | `BatchStartResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Starts existing resources |
 | `BatchStop` | `POST /prod/batch/stop` | - | - | - | `BatchStopResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Stops running resources |
 | `BatchUpdateSchedule` | `PUT /prod/channels/{ChannelId}/schedule` | - | `ChannelId` | - | `BatchUpdateScheduleResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException`, `UnprocessableEntityException` | Update a channel schedule |
-| `CancelInputDeviceTransfer` | `POST /prod/inputDevices/{InputDeviceId}/cancel` | - | `InputDeviceId` | - | `CancelInputDeviceTransferResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException`, ... (+1) | Cancel an input device transfer that you have requested. |
+| `CancelInputDeviceTransfer` | `POST /prod/inputDevices/{InputDeviceId}/cancel` | - | `InputDeviceId` | - | `CancelInputDeviceTransferResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException`, `UnprocessableEntityException` | Cancel an input device transfer that you have requested. |
 | `ClaimDevice` | `POST /prod/claimDevice` | - | - | - | `ClaimDeviceResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException`, `UnprocessableEntityException` | Send a request to claim an AWS Elemental device that you have purchased from a third-party vendor. After the request succeeds, you will own the device. |
 | `CreateChannel` | `POST /prod/channels` | `idempotency-token` | - | `RequestId` | `CreateChannelResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `TooManyRequestsException`, `UnprocessableEntityException` | Creates a new channel |
-| `CreateChannelPlacementGroup` | `POST /prod/clusters/{ClusterId}/channelplacementgroups` | `idempotency-token` | `ClusterId` | `RequestId` | `CreateChannelPlacementGroupResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `TooManyRequestsException`, `UnprocessableEntityException` | Create a ChannelPlacementGroup in the specified Cluster. As part of the create operation, you specify the Nodes to attach the group to.After you create a ChannelPlacementGroup, you add Channels to the group (you do this by modifying the Channels to add them... |
+| `CreateChannelPlacementGroup` | `POST /prod/clusters/{ClusterId}/channelplacementgroups` | `idempotency-token` | `ClusterId` | `RequestId` | `CreateChannelPlacementGroupResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `TooManyRequestsException`, `UnprocessableEntityException` | Create a ChannelPlacementGroup in the specified Cluster. As part of the create operation, you specify the Nodes to attach the group to.After you create a ChannelPlacementGroup, you add Channels to the group (you do t ... |
 | `CreateCloudWatchAlarmTemplate` | `POST /prod/cloudwatch-alarm-templates` | `idempotency-token` | `ComparisonOperator`, `EvaluationPeriods`, `GroupIdentifier`, `MetricName`, `Name`, `Period`, `Statistic`, `TargetResourceType`, `Threshold`, `TreatMissingData` | `RequestId` | `CreateCloudWatchAlarmTemplateResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Creates a cloudwatch alarm template to dynamically generate cloudwatch metric alarms on targeted resource types. |
 | `CreateCloudWatchAlarmTemplateGroup` | `POST /prod/cloudwatch-alarm-template-groups` | `idempotency-token` | `Name` | `RequestId` | `CreateCloudWatchAlarmTemplateGroupResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Creates a cloudwatch alarm template group to group your cloudwatch alarm templates and to attach to signal maps for dynamically creating alarms. |
 | `CreateCluster` | `POST /prod/clusters` | `idempotency-token` | - | `RequestId` | `CreateClusterResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `TooManyRequestsException` | Create a new Cluster. |
@@ -162,11 +163,11 @@ MediaLive currently has shallow networking placeholders.
 | `CreateInputSecurityGroup` | `POST /prod/inputSecurityGroups` | - | - | - | `CreateInputSecurityGroupResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `TooManyRequestsException` | Creates a Input Security Group |
 | `CreateMultiplex` | `POST /prod/multiplexes` | `idempotency-token` | `AvailabilityZones`, `MultiplexSettings`, `Name`, `RequestId` | `RequestId` | `CreateMultiplexResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `TooManyRequestsException`, `UnprocessableEntityException` | Create a new multiplex. |
 | `CreateMultiplexProgram` | `POST /prod/multiplexes/{MultiplexId}/programs` | `idempotency-token` | `MultiplexId`, `MultiplexProgramSettings`, `ProgramName`, `RequestId` | `RequestId` | `CreateMultiplexProgramResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `TooManyRequestsException`, `UnprocessableEntityException` | Create a new program in the multiplex. |
-| `CreateNetwork` | `POST /prod/networks` | `idempotency-token` | - | `RequestId` | `CreateNetworkResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `TooManyRequestsException` | Create as many Networks as you need. You will associate one or more Clusters with each Network.Each Network provides MediaLive Anywhere with required information about the network in your organization that you are using for video encoding using MediaLive. |
-| `CreateNode` | `POST /prod/clusters/{ClusterId}/nodes` | `idempotency-token` | `ClusterId` | `RequestId` | `CreateNodeResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `TooManyRequestsException`, `UnprocessableEntityException` | Create a Node in the specified Cluster. You can also create Nodes using the CreateNodeRegistrationScript. |
-| `CreateNodeRegistrationScript` | `POST /prod/clusters/{ClusterId}/nodeRegistrationScript` | `idempotency-token` | `ClusterId` | `RequestId` | `CreateNodeRegistrationScriptResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `TooManyRequestsException` | Create the Register Node script for all the nodes intended for a specific Cluster. You will then run the script on each hardware unit that is intended for that Cluster. |
+| `CreateNetwork` | `POST /prod/networks` | `idempotency-token` | - | `RequestId` | `CreateNetworkResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `TooManyRequestsException` | Create as many Networks as you need. You will associate one or more Clusters with each Network.Each Network provides MediaLive Anywhere with required information about the network in your organization that you are us ... |
+| `CreateNode` | `POST /prod/clusters/{ClusterId}/nodes` | `idempotency-token` | `ClusterId` | `RequestId` | `CreateNodeResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `TooManyRequestsException`, `UnprocessableEntityException` | Create a Node in the specified Cluster. You can also create Nodes using the CreateNodeRegistrationScript. Note that you can't move a Node to another Cluster. |
+| `CreateNodeRegistrationScript` | `POST /prod/clusters/{ClusterId}/nodeRegistrationScript` | `idempotency-token` | `ClusterId` | `RequestId` | `CreateNodeRegistrationScriptResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `TooManyRequestsException` | Create the Register Node script for all the nodes intended for a specific Cluster. You will then run the script on each hardware unit that is intended for that Cluster. The script creates a Node in the specified Clus ... |
 | `CreatePartnerInput` | `POST /prod/inputs/{InputId}/partners` | `idempotency-token` | `InputId` | `RequestId` | `CreatePartnerInputResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `TooManyRequestsException` | Create a partner input |
-| `CreateSdiSource` | `POST /prod/sdiSources` | `idempotency-token` | - | `RequestId` | `CreateSdiSourceResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `TooManyRequestsException` | Create an SdiSource for each video source that uses the SDI protocol. You will reference the SdiSource when you create an SDI input in MediaLive. |
+| `CreateSdiSource` | `POST /prod/sdiSources` | `idempotency-token` | - | `RequestId` | `CreateSdiSourceResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `TooManyRequestsException` | Create an SdiSource for each video source that uses the SDI protocol. You will reference the SdiSource when you create an SDI input in MediaLive. You will also reference it in an SdiSourceMapping, in order to create ... |
 | `CreateSignalMap` | `POST /prod/signal-maps` | `idempotency-token` | `DiscoveryEntryPointArn`, `Name` | `RequestId` | `CreateSignalMapResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Initiates the creation of a new signal map. Will discover a new mediaResourceMap based on the provided discoveryEntryPointArn. |
 | `CreateTags` | `POST /prod/tags/{ResourceArn}` | - | `ResourceArn` | - | `Unit` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException` | Create tags for a resource |
 | `DeleteChannel` | `DELETE /prod/channels/{ChannelId}` | - | `ChannelId` | - | `DeleteChannelResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Starts deletion of channel. The associated outputs are also deleted. |
@@ -193,7 +194,7 @@ MediaLive currently has shallow networking placeholders.
 | `DescribeCluster` | `GET /prod/clusters/{ClusterId}` | - | `ClusterId` | - | `DescribeClusterResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Get details about a Cluster. |
 | `DescribeInput` | `GET /prod/inputs/{InputId}` | - | `InputId` | - | `DescribeInputResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Produces details about an input |
 | `DescribeInputDevice` | `GET /prod/inputDevices/{InputDeviceId}` | - | `InputDeviceId` | - | `DescribeInputDeviceResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Gets the details for the input device |
-| `DescribeInputDeviceThumbnail` | `GET /prod/inputDevices/{InputDeviceId}/thumbnailData` | - | `Accept`, `InputDeviceId` | - | `DescribeInputDeviceThumbnailResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Get the latest thumbnail data for the input device. |
+| `DescribeInputDeviceThumbnail` | `GET /prod/inputDevices/{InputDeviceId}/thumbnailData` | - | `InputDeviceId`, `Accept` | - | `DescribeInputDeviceThumbnailResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Get the latest thumbnail data for the input device. |
 | `DescribeInputSecurityGroup` | `GET /prod/inputSecurityGroups/{InputSecurityGroupId}` | - | `InputSecurityGroupId` | - | `DescribeInputSecurityGroupResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Produces a summary of an Input Security Group |
 | `DescribeMultiplex` | `GET /prod/multiplexes/{MultiplexId}` | - | `MultiplexId` | - | `DescribeMultiplexResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Gets details about a multiplex. |
 | `DescribeMultiplexProgram` | `GET /prod/multiplexes/{MultiplexId}/programs/{ProgramName}` | - | `MultiplexId`, `ProgramName` | - | `DescribeMultiplexProgramResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Get the details for a program in a multiplex. |
@@ -218,13 +219,13 @@ MediaLive currently has shallow networking placeholders.
 | `ListClusters` | `GET /prod/clusters` | `paginated` | - | - | `ListClustersResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `TooManyRequestsException` | Retrieve the list of Clusters. |
 | `ListEventBridgeRuleTemplateGroups` | `GET /prod/eventbridge-rule-template-groups` | `paginated` | - | - | `ListEventBridgeRuleTemplateGroupsResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Lists eventbridge rule template groups. |
 | `ListEventBridgeRuleTemplates` | `GET /prod/eventbridge-rule-templates` | `paginated` | - | - | `ListEventBridgeRuleTemplatesResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Lists eventbridge rule templates. |
-| `ListInputDeviceTransfers` | `GET /prod/inputDeviceTransfers` | `paginated` | `TransferType` | - | `ListInputDeviceTransfersResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `TooManyRequestsException`, `UnprocessableEntityException` | List input devices that are currently being transferred. List input devices that you are transferring from your AWS account or input devices that another AWS account is transferring to you. |
 | `ListInputDevices` | `GET /prod/inputDevices` | `paginated` | - | - | `ListInputDevicesResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `TooManyRequestsException` | List input devices |
-| `ListInputSecurityGroups` | `GET /prod/inputSecurityGroups` | `paginated` | - | - | `ListInputSecurityGroupsResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `TooManyRequestsException` | Produces a list of Input Security Groups for an account |
+| `ListInputDeviceTransfers` | `GET /prod/inputDeviceTransfers` | `paginated` | `TransferType` | - | `ListInputDeviceTransfersResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `TooManyRequestsException`, `UnprocessableEntityException` | List input devices that are currently being transferred. List input devices that you are transferring from your AWS account or input devices that another AWS account is transferring to you. |
 | `ListInputs` | `GET /prod/inputs` | `paginated` | - | - | `ListInputsResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `TooManyRequestsException` | Produces list of inputs that have been created |
+| `ListInputSecurityGroups` | `GET /prod/inputSecurityGroups` | `paginated` | - | - | `ListInputSecurityGroupsResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `TooManyRequestsException` | Produces a list of Input Security Groups for an account |
 | `ListMultiplexAlerts` | `GET /prod/multiplexes/{MultiplexId}/alerts` | `paginated` | `MultiplexId` | - | `ListMultiplexAlertsResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | List the alerts for a multiplex with optional filtering based on alert state. |
-| `ListMultiplexPrograms` | `GET /prod/multiplexes/{MultiplexId}/programs` | `paginated` | `MultiplexId` | - | `ListMultiplexProgramsResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | List the programs that currently exist for a specific multiplex. |
 | `ListMultiplexes` | `GET /prod/multiplexes` | `paginated` | - | - | `ListMultiplexesResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `TooManyRequestsException` | Retrieve a list of the existing multiplexes. |
+| `ListMultiplexPrograms` | `GET /prod/multiplexes/{MultiplexId}/programs` | `paginated` | `MultiplexId` | - | `ListMultiplexProgramsResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | List the programs that currently exist for a specific multiplex. |
 | `ListNetworks` | `GET /prod/networks` | `paginated` | - | - | `ListNetworksResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `TooManyRequestsException` | Retrieve the list of Networks. |
 | `ListNodes` | `GET /prod/clusters/{ClusterId}/nodes` | `paginated` | `ClusterId` | - | `ListNodesResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `TooManyRequestsException` | Retrieve the list of Nodes. |
 | `ListOfferings` | `GET /prod/offerings` | `paginated` | - | - | `ListOfferingsResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `TooManyRequestsException` | List offerings available for purchase. |
@@ -234,23 +235,23 @@ MediaLive currently has shallow networking placeholders.
 | `ListTagsForResource` | `GET /prod/tags/{ResourceArn}` | - | `ResourceArn` | - | `ListTagsForResourceResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException` | Produces list of tags that have been created for a resource |
 | `ListVersions` | `GET /prod/versions` | - | - | - | `ListVersionsResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Retrieves an array of all the encoder engine versions that are available in this AWS account. |
 | `PurchaseOffering` | `POST /prod/offerings/{OfferingId}/purchase` | `idempotency-token` | `Count`, `OfferingId` | `RequestId` | `PurchaseOfferingResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Purchase an offering and create a reservation. |
-| `RebootInputDevice` | `POST /prod/inputDevices/{InputDeviceId}/reboot` | - | `InputDeviceId` | - | `RebootInputDeviceResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException`, `UnprocessableEntityException` | Send a reboot command to the specified input device. The device will begin rebooting within a few seconds of sending the command. |
-| `RejectInputDeviceTransfer` | `POST /prod/inputDevices/{InputDeviceId}/reject` | - | `InputDeviceId` | - | `RejectInputDeviceTransferResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException`, ... (+1) | Reject the transfer of the specified input device to your AWS account. |
+| `RebootInputDevice` | `POST /prod/inputDevices/{InputDeviceId}/reboot` | - | `InputDeviceId` | - | `RebootInputDeviceResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException`, `UnprocessableEntityException` | Send a reboot command to the specified input device. The device will begin rebooting within a few seconds of sending the command. When the reboot is complete, the device’s connection status will change to connected. |
+| `RejectInputDeviceTransfer` | `POST /prod/inputDevices/{InputDeviceId}/reject` | - | `InputDeviceId` | - | `RejectInputDeviceTransferResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException`, `UnprocessableEntityException` | Reject the transfer of the specified input device to your AWS account. |
 | `RestartChannelPipelines` | `POST /prod/channels/{ChannelId}/restartChannelPipelines` | - | `ChannelId` | - | `RestartChannelPipelinesResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Restart pipelines in one channel that is currently running. |
 | `StartChannel` | `POST /prod/channels/{ChannelId}/start` | - | `ChannelId` | - | `StartChannelResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Starts an existing channel |
 | `StartDeleteMonitorDeployment` | `DELETE /prod/signal-maps/{Identifier}/monitor-deployment` | - | `Identifier` | - | `StartDeleteMonitorDeploymentResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Initiates a deployment to delete the monitor of the specified signal map. |
 | `StartInputDevice` | `POST /prod/inputDevices/{InputDeviceId}/start` | - | `InputDeviceId` | - | `StartInputDeviceResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException`, `UnprocessableEntityException` | Start an input device that is attached to a MediaConnect flow. (There is no need to start a device that is attached to a MediaLive input; MediaLive starts the device when the channel starts.) |
-| `StartInputDeviceMaintenanceWindow` | `POST /prod/inputDevices/{InputDeviceId}/startInputDeviceMaintenanceWindow` | - | `InputDeviceId` | - | `StartInputDeviceMaintenanceWindowResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException`, `UnprocessableEntityException` | Start a maintenance window for the specified input device. Starting a maintenance window will give the device up to two hours to install software. |
+| `StartInputDeviceMaintenanceWindow` | `POST /prod/inputDevices/{InputDeviceId}/startInputDeviceMaintenanceWindow` | - | `InputDeviceId` | - | `StartInputDeviceMaintenanceWindowResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException`, `UnprocessableEntityException` | Start a maintenance window for the specified input device. Starting a maintenance window will give the device up to two hours to install software. If the device was streaming prior to the maintenance, it will resume ... |
 | `StartMonitorDeployment` | `POST /prod/signal-maps/{Identifier}/monitor-deployment` | - | `Identifier` | - | `StartMonitorDeploymentResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Initiates a deployment to deploy the latest monitor of the specified signal map. |
-| `StartMultiplex` | `POST /prod/multiplexes/{MultiplexId}/start` | - | `MultiplexId` | - | `StartMultiplexResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Start (run) the multiplex. Starting the multiplex does not start the channels. |
+| `StartMultiplex` | `POST /prod/multiplexes/{MultiplexId}/start` | - | `MultiplexId` | - | `StartMultiplexResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Start (run) the multiplex. Starting the multiplex does not start the channels. You must explicitly start each channel. |
 | `StartUpdateSignalMap` | `PATCH /prod/signal-maps/{Identifier}` | - | `Identifier` | - | `StartUpdateSignalMapResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Initiates an update for the specified signal map. Will discover a new signal map if a changed discoveryEntryPointArn is provided. |
 | `StopChannel` | `POST /prod/channels/{ChannelId}/stop` | - | `ChannelId` | - | `StopChannelResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Stops a running channel |
 | `StopInputDevice` | `POST /prod/inputDevices/{InputDeviceId}/stop` | - | `InputDeviceId` | - | `StopInputDeviceResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException`, `UnprocessableEntityException` | Stop an input device that is attached to a MediaConnect flow. (There is no need to stop a device that is attached to a MediaLive input; MediaLive automatically stops the device when the channel stops.) |
 | `StopMultiplex` | `POST /prod/multiplexes/{MultiplexId}/stop` | - | `MultiplexId` | - | `StopMultiplexResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Stops a running multiplex. If the multiplex isn't running, this action has no effect. |
-| `TransferInputDevice` | `POST /prod/inputDevices/{InputDeviceId}/transfer` | - | `InputDeviceId` | - | `TransferInputDeviceResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException`, ... (+1) | Start an input device transfer to another AWS account. After you make the request, the other account must accept or reject the transfer. |
+| `TransferInputDevice` | `POST /prod/inputDevices/{InputDeviceId}/transfer` | - | `InputDeviceId` | - | `TransferInputDeviceResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException`, `UnprocessableEntityException` | Start an input device transfer to another AWS account. After you make the request, the other account must accept or reject the transfer. |
 | `UpdateAccountConfiguration` | `PUT /prod/accountConfiguration` | - | - | - | `UpdateAccountConfigurationResponse` | `BadGatewayException`, `BadRequestException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `TooManyRequestsException`, `UnprocessableEntityException` | Update account configuration |
 | `UpdateChannel` | `PUT /prod/channels/{ChannelId}` | - | `ChannelId` | - | `UpdateChannelResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `UnprocessableEntityException` | Updates a channel. |
-| `UpdateChannelClass` | `PUT /prod/channels/{ChannelId}/channelClass` | - | `ChannelClass`, `ChannelId` | - | `UpdateChannelClassResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException`, ... (+1) | Changes the class of the channel. |
+| `UpdateChannelClass` | `PUT /prod/channels/{ChannelId}/channelClass` | - | `ChannelClass`, `ChannelId` | - | `UpdateChannelClassResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException`, `UnprocessableEntityException` | Changes the class of the channel. |
 | `UpdateChannelPlacementGroup` | `PUT /prod/clusters/{ClusterId}/channelplacementgroups/{ChannelPlacementGroupId}` | - | `ChannelPlacementGroupId`, `ClusterId` | - | `UpdateChannelPlacementGroupResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `TooManyRequestsException`, `UnprocessableEntityException` | Change the settings for a ChannelPlacementGroup. |
 | `UpdateCloudWatchAlarmTemplate` | `PATCH /prod/cloudwatch-alarm-templates/{Identifier}` | - | `Identifier` | - | `UpdateCloudWatchAlarmTemplateResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Updates the specified cloudwatch alarm template. |
 | `UpdateCloudWatchAlarmTemplateGroup` | `PATCH /prod/cloudwatch-alarm-template-groups/{Identifier}` | - | `Identifier` | - | `UpdateCloudWatchAlarmTemplateGroupResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Updates the specified cloudwatch alarm template group. |
@@ -305,30 +306,56 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `BadRequestException` | `structure` | `Message` | Placeholder documentation for BadRequestException |
-| `ForbiddenException` | `structure` | `Message` | Placeholder documentation for ForbiddenException |
-| `InternalServerErrorException` | `structure` | `Message` | Placeholder documentation for InternalServerErrorException |
-| `TooManyRequestsException` | `structure` | `Message` | Placeholder documentation for TooManyRequestsException |
-| `BadGatewayException` | `structure` | `Message` | Placeholder documentation for BadGatewayException |
-| `GatewayTimeoutException` | `structure` | `Message` | Placeholder documentation for GatewayTimeoutException |
-| `NotFoundException` | `structure` | `Message` | Placeholder documentation for NotFoundException |
-| `ConflictException` | `structure` | `Message` | Placeholder documentation for ConflictException |
-| `UnprocessableEntityException` | `structure` | `Message`, `ValidationErrors` | Placeholder documentation for UnprocessableEntityException |
-| `AcceptInputDeviceTransferRequest` | `structure` | `InputDeviceId` | Placeholder documentation for AcceptInputDeviceTransferRequest |
-| `AcceptInputDeviceTransferResponse` | `structure` | - | Placeholder documentation for AcceptInputDeviceTransferResponse |
-| `BatchDeleteRequest` | `structure` | `ChannelIds`, `InputIds`, `InputSecurityGroupIds`, `MultiplexIds` | A request to delete resources |
-| `BatchDeleteResponse` | `structure` | `Failed`, `Successful` | Placeholder documentation for BatchDeleteResponse |
-| `BatchStartRequest` | `structure` | `ChannelIds`, `MultiplexIds` | A request to start resources |
-| `BatchStartResponse` | `structure` | `Failed`, `Successful` | Placeholder documentation for BatchStartResponse |
-| `BatchStopRequest` | `structure` | `ChannelIds`, `MultiplexIds` | A request to stop resources |
-| `BatchStopResponse` | `structure` | `Failed`, `Successful` | Placeholder documentation for BatchStopResponse |
-| `BatchUpdateScheduleRequest` | `structure` | `ChannelId`, `Creates`, `Deletes` | List of actions to create and list of actions to delete. |
-| `BatchUpdateScheduleResponse` | `structure` | `Creates`, `Deletes` | Placeholder documentation for BatchUpdateScheduleResponse |
-| `CancelInputDeviceTransferRequest` | `structure` | `InputDeviceId` | Placeholder documentation for CancelInputDeviceTransferRequest |
-| `CancelInputDeviceTransferResponse` | `structure` | - | Placeholder documentation for CancelInputDeviceTransferResponse |
-| `ClaimDeviceRequest` | `structure` | `Id` | A request to claim an AWS Elemental device that you have purchased from a third-party vendor. |
-| `ClaimDeviceResponse` | `structure` | - | Placeholder documentation for ClaimDeviceResponse |
-
+| `BadGatewayException` | `structure` | Message | Placeholder documentation for BadGatewayException |
+| `BadRequestException` | `structure` | Message | Placeholder documentation for BadRequestException |
+| `ConflictException` | `structure` | Message | Placeholder documentation for ConflictException |
+| `ForbiddenException` | `structure` | Message | Placeholder documentation for ForbiddenException |
+| `GatewayTimeoutException` | `structure` | Message | Placeholder documentation for GatewayTimeoutException |
+| `InternalServerErrorException` | `structure` | Message | Placeholder documentation for InternalServerErrorException |
+| `NotFoundException` | `structure` | Message | Placeholder documentation for NotFoundException |
+| `TooManyRequestsException` | `structure` | Message | Placeholder documentation for TooManyRequestsException |
+| `UnprocessableEntityException` | `structure` | Message, ValidationErrors | Placeholder documentation for UnprocessableEntityException |
+| `AcceptInputDeviceTransferRequest` | `structure` | InputDeviceId | Placeholder documentation for AcceptInputDeviceTransferRequest |
+| `AcceptInputDeviceTransferResponse` | `structure` | **empty (no members)** | Placeholder documentation for AcceptInputDeviceTransferResponse |
+| `BatchDeleteRequest` | `structure` | ChannelIds, InputIds, InputSecurityGroupIds, MultiplexIds | A request to delete resources |
+| `BatchDeleteResponse` | `structure` | Failed, Successful | Placeholder documentation for BatchDeleteResponse |
+| `BatchStartRequest` | `structure` | ChannelIds, MultiplexIds | A request to start resources |
+| `BatchStartResponse` | `structure` | Failed, Successful | Placeholder documentation for BatchStartResponse |
+| `BatchStopRequest` | `structure` | ChannelIds, MultiplexIds | A request to stop resources |
+| `BatchStopResponse` | `structure` | Failed, Successful | Placeholder documentation for BatchStopResponse |
+| `BatchUpdateScheduleRequest` | `structure` | ChannelId, Creates, Deletes | List of actions to create and list of actions to delete. |
+| `BatchUpdateScheduleResponse` | `structure` | Creates, Deletes | Placeholder documentation for BatchUpdateScheduleResponse |
+| `CancelInputDeviceTransferRequest` | `structure` | InputDeviceId | Placeholder documentation for CancelInputDeviceTransferRequest |
+| `CancelInputDeviceTransferResponse` | `structure` | **empty (no members)** | Placeholder documentation for CancelInputDeviceTransferResponse |
+| `ClaimDeviceRequest` | `structure` | Id | A request to claim an AWS Elemental device that you have purchased from a third-party vendor. |
+| `ClaimDeviceResponse` | `structure` | **empty (no members)** | Placeholder documentation for ClaimDeviceResponse |
+| `CreateChannelRequest` | `structure` | CdiInputSpecification, ChannelClass, Destinations, EncoderSettings, InputAttachments, InputSpecification, LogLevel, Maintenance, Name, RequestId, Reserved, RoleArn, ... (+8) | A request to create a channel |
+| `CreateChannelResponse` | `structure` | Channel | Placeholder documentation for CreateChannelResponse |
+| `CreateChannelPlacementGroupRequest` | `structure` | ClusterId, Name, Nodes, RequestId, Tags | A request to create a channel placement group. |
+| `CreateChannelPlacementGroupResponse` | `structure` | Arn, Channels, ClusterId, Id, Name, Nodes, State | Placeholder documentation for CreateChannelPlacementGroupResponse |
+| `CreateCloudWatchAlarmTemplateRequest` | `structure` | ComparisonOperator, DatapointsToAlarm, Description, EvaluationPeriods, GroupIdentifier, MetricName, Name, Period, Statistic, Tags, TargetResourceType, Threshold, ... (+2) | Placeholder documentation for CreateCloudWatchAlarmTemplateRequest |
+| `CreateCloudWatchAlarmTemplateResponse` | `structure` | Arn, ComparisonOperator, CreatedAt, DatapointsToAlarm, Description, EvaluationPeriods, GroupId, Id, MetricName, ModifiedAt, Name, Period, ... (+5) | Placeholder documentation for CreateCloudWatchAlarmTemplateResponse |
+| `CreateCloudWatchAlarmTemplateGroupRequest` | `structure` | Description, Name, Tags, RequestId | Placeholder documentation for CreateCloudWatchAlarmTemplateGroupRequest |
+| `CreateCloudWatchAlarmTemplateGroupResponse` | `structure` | Arn, CreatedAt, Description, Id, ModifiedAt, Name, Tags | Placeholder documentation for CreateCloudWatchAlarmTemplateGroupResponse |
+| `CreateClusterRequest` | `structure` | ClusterType, InstanceRoleArn, Name, NetworkSettings, RequestId, Tags | Create as many Clusters as you want, but create at least one. Each Cluster groups together Nodes that you want to treat as a collection. Within the Cluster, ... |
+| `CreateClusterResponse` | `structure` | Arn, ChannelIds, ClusterType, Id, InstanceRoleArn, Name, NetworkSettings, State | Placeholder documentation for CreateClusterResponse |
+| `CreateEventBridgeRuleTemplateRequest` | `structure` | Description, EventTargets, EventType, GroupIdentifier, Name, Tags, RequestId | Placeholder documentation for CreateEventBridgeRuleTemplateRequest |
+| `CreateEventBridgeRuleTemplateResponse` | `structure` | Arn, CreatedAt, Description, EventTargets, EventType, GroupId, Id, ModifiedAt, Name, Tags | Placeholder documentation for CreateEventBridgeRuleTemplateResponse |
+| `CreateEventBridgeRuleTemplateGroupRequest` | `structure` | Description, Name, Tags, RequestId | Placeholder documentation for CreateEventBridgeRuleTemplateGroupRequest |
+| `CreateEventBridgeRuleTemplateGroupResponse` | `structure` | Arn, CreatedAt, Description, Id, ModifiedAt, Name, Tags | Placeholder documentation for CreateEventBridgeRuleTemplateGroupResponse |
+| `CreateInputRequest` | `structure` | Destinations, InputDevices, InputSecurityGroups, MediaConnectFlows, Name, RequestId, RoleArn, Sources, Tags, Type, Vpc, SrtSettings, ... (+5) | The name of the input |
+| `CreateInputResponse` | `structure` | Input | Placeholder documentation for CreateInputResponse |
+| `CreateInputSecurityGroupRequest` | `structure` | Tags, WhitelistRules | The IPv4 CIDRs to whitelist for this Input Security Group |
+| `AacCodingMode` | `enum` | AD_RECEIVER_MIX, CODING_MODE_1_0, CODING_MODE_1_1, CODING_MODE_2_0, CODING_MODE_5_1 | Aac Coding Mode |
+| `AacInputType` | `enum` | BROADCASTER_MIXED_AD, NORMAL | Aac Input Type |
+| `AacProfile` | `enum` | HEV1, HEV2, LC | Aac Profile |
+| `AacRateControlMode` | `enum` | CBR, VBR | Aac Rate Control Mode |
+| `AacRawFormat` | `enum` | LATM_LOAS, NONE | Aac Raw Format |
+| `AacSpec` | `enum` | MPEG2, MPEG4 | Aac Spec |
+| `AacVbrQuality` | `enum` | HIGH, LOW, MEDIUM_HIGH, MEDIUM_LOW | Aac Vbr Quality |
+| `Ac3AttenuationControl` | `enum` | ATTENUATE_3_DB, NONE | Ac3 Attenuation Control |
+| `Ac3BitstreamMode` | `enum` | COMMENTARY, COMPLETE_MAIN, DIALOGUE, EMERGENCY, HEARING_IMPAIRED, MUSIC_AND_EFFECTS, VISUALLY_IMPAIRED, VOICE_OVER | Ac3 Bitstream Mode |
+| `Ac3CodingMode` | `enum` | CODING_MODE_1_0, CODING_MODE_1_1, CODING_MODE_2_0, CODING_MODE_3_2_LFE | Ac3 Coding Mode |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

@@ -64,39 +64,39 @@ Parity implications:
 
 - Operations: `ListChangedBlocks`, `ListSnapshotBlocks`
 - Traits: `paginated` (2)
-- Common required input members in this group: `SecondSnapshotId`, `SnapshotId`
+- Common required input members in this group: -
 
 ### Complete
 
 - Operations: `CompleteSnapshot`
-- Common required input members in this group: `ChangedBlocksCount`, `SnapshotId`
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetSnapshotBlock`
-- Common required input members in this group: `BlockIndex`, `BlockToken`, `SnapshotId`
+- Common required input members in this group: -
 
 ### Put
 
 - Operations: `PutSnapshotBlock`
-- Common required input members in this group: `BlockData`, `BlockIndex`, `Checksum`, `ChecksumAlgorithm`, `DataLength`, `SnapshotId`
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartSnapshot`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `VolumeSize`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CompleteSnapshot` | `POST /snapshots/completion/{SnapshotId}` | - | `ChangedBlocksCount`, `SnapshotId` | - | `CompleteSnapshotResponse` | `AccessDeniedException`, `InternalServerException`, `RequestThrottledException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Seals and completes the snapshot after all of the required blocks of data have been written to it. Completing the snapshot changes the status to `completed`. |
-| `GetSnapshotBlock` | `GET /snapshots/{SnapshotId}/blocks/{BlockIndex}` | - | `BlockIndex`, `BlockToken`, `SnapshotId` | - | `GetSnapshotBlockResponse` | `AccessDeniedException`, `InternalServerException`, `RequestThrottledException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Returns the data in a block in an Amazon Elastic Block Store snapshot. You should always retry requests that receive server (`5xx`) error responses, and `ThrottlingException` and `RequestThrottledException` client error responses. |
-| `ListChangedBlocks` | `GET /snapshots/{SecondSnapshotId}/changedblocks` | `paginated` | `SecondSnapshotId` | - | `ListChangedBlocksResponse` | `AccessDeniedException`, `InternalServerException`, `RequestThrottledException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Returns information about the blocks that are different between two Amazon Elastic Block Store snapshots of the same volume/snapshot lineage. You should always retry requests that receive server (`5xx`) error responses, and `ThrottlingException` and... |
-| `ListSnapshotBlocks` | `GET /snapshots/{SnapshotId}/blocks` | `paginated` | `SnapshotId` | - | `ListSnapshotBlocksResponse` | `AccessDeniedException`, `InternalServerException`, `RequestThrottledException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Returns information about the blocks in an Amazon Elastic Block Store snapshot. You should always retry requests that receive server (`5xx`) error responses, and `ThrottlingException` and `RequestThrottledException` client error responses. |
-| `PutSnapshotBlock` | `PUT /snapshots/{SnapshotId}/blocks/{BlockIndex}` | - | `BlockData`, `BlockIndex`, `Checksum`, `ChecksumAlgorithm`, `DataLength`, `SnapshotId` | - | `PutSnapshotBlockResponse` | `AccessDeniedException`, `InternalServerException`, `RequestThrottledException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Writes a block of data to a snapshot. If the specified block contains data, the existing data is overwritten. |
-| `StartSnapshot` | `POST /snapshots` | `idempotency-token` | `VolumeSize` | `ClientToken` | `StartSnapshotResponse` | `AccessDeniedException`, `ConcurrentLimitExceededException`, `ConflictException`, `InternalServerException`, `RequestThrottledException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a new Amazon EBS snapshot. The new snapshot enters the `pending` state after the request completes. |
+| `CompleteSnapshot` | `POST /snapshots/completion/{SnapshotId}` | - | `SnapshotId`, `ChangedBlocksCount` | - | `CompleteSnapshotResponse` | `AccessDeniedException`, `InternalServerException`, `RequestThrottledException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Seals and completes the snapshot after all of the required blocks of data have been written to it. Completing the snapshot changes the status to completed . You cannot write new blocks to a snapshot after it has been ... |
+| `GetSnapshotBlock` | `GET /snapshots/{SnapshotId}/blocks/{BlockIndex}` | - | `SnapshotId`, `BlockIndex`, `BlockToken` | - | `GetSnapshotBlockResponse` | `AccessDeniedException`, `InternalServerException`, `RequestThrottledException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Returns the data in a block in an Amazon Elastic Block Store snapshot. You should always retry requests that receive server ( 5xx ) error responses, and ThrottlingException and RequestThrottledException client error ... |
+| `ListChangedBlocks` | `GET /snapshots/{SecondSnapshotId}/changedblocks` | `paginated` | `SecondSnapshotId` | - | `ListChangedBlocksResponse` | `AccessDeniedException`, `InternalServerException`, `RequestThrottledException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Returns information about the blocks that are different between two Amazon Elastic Block Store snapshots of the same volume/snapshot lineage. You should always retry requests that receive server ( 5xx ) error respons ... |
+| `ListSnapshotBlocks` | `GET /snapshots/{SnapshotId}/blocks` | `paginated` | `SnapshotId` | - | `ListSnapshotBlocksResponse` | `AccessDeniedException`, `InternalServerException`, `RequestThrottledException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Returns information about the blocks in an Amazon Elastic Block Store snapshot. You should always retry requests that receive server ( 5xx ) error responses, and ThrottlingException and RequestThrottledException clie ... |
+| `PutSnapshotBlock` | `PUT /snapshots/{SnapshotId}/blocks/{BlockIndex}` | - | `SnapshotId`, `BlockIndex`, `BlockData`, `DataLength`, `Checksum`, `ChecksumAlgorithm` | - | `PutSnapshotBlockResponse` | `AccessDeniedException`, `InternalServerException`, `RequestThrottledException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Writes a block of data to a snapshot. If the specified block contains data, the existing data is overwritten. The target snapshot must be in the pending state. Data written to a snapshot must be aligned with 512-KiB ... |
+| `StartSnapshot` | `POST /snapshots` | `idempotency-token` | `VolumeSize` | `ClientToken` | `StartSnapshotResponse` | `AccessDeniedException`, `ConcurrentLimitExceededException`, `ConflictException`, `InternalServerException`, `RequestThrottledException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a new Amazon EBS snapshot. The new snapshot enters the pending state after the request completes. After creating the snapshot, use PutSnapshotBlock to write blocks of data to the snapshot. You should always r ... |
 
 ## HTTP Bindings
 
@@ -114,27 +114,35 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `Message`, `Reason` | You do not have sufficient access to perform this action. |
-| `InternalServerException` | `structure` | `Message` | An internal error has occurred. |
-| `RequestThrottledException` | `structure` | `Message`, `Reason` | The number of API requests has exceeded the maximum allowed API request throttling limit for the snapshot. |
-| `ResourceNotFoundException` | `structure` | `Message`, `Reason` | The specified resource does not exist. |
-| `ServiceQuotaExceededException` | `structure` | `Message`, `Reason` | Your current service quotas do not allow you to perform this action. |
-| `ValidationException` | `structure` | `Message`, `Reason` | The input fails to satisfy the constraints of the EBS direct APIs. |
-| `CompleteSnapshotRequest` | `structure` | `ChangedBlocksCount`, `Checksum`, `ChecksumAggregationMethod`, `ChecksumAlgorithm`, `SnapshotId` | - |
-| `CompleteSnapshotResponse` | `structure` | `Status` | - |
-| `GetSnapshotBlockRequest` | `structure` | `BlockIndex`, `BlockToken`, `SnapshotId` | - |
-| `GetSnapshotBlockResponse` | `structure` | `BlockData`, `Checksum`, `ChecksumAlgorithm`, `DataLength` | - |
-| `ListChangedBlocksRequest` | `structure` | `FirstSnapshotId`, `MaxResults`, `NextToken`, `SecondSnapshotId`, `StartingBlockIndex` | - |
-| `ListChangedBlocksResponse` | `structure` | `BlockSize`, `ChangedBlocks`, `ExpiryTime`, `NextToken`, `VolumeSize` | - |
-| `ListSnapshotBlocksRequest` | `structure` | `MaxResults`, `NextToken`, `SnapshotId`, `StartingBlockIndex` | - |
-| `ListSnapshotBlocksResponse` | `structure` | `BlockSize`, `Blocks`, `ExpiryTime`, `NextToken`, `VolumeSize` | - |
-| `PutSnapshotBlockRequest` | `structure` | `BlockData`, `BlockIndex`, `Checksum`, `ChecksumAlgorithm`, `DataLength`, `Progress`, `SnapshotId` | - |
-| `PutSnapshotBlockResponse` | `structure` | `Checksum`, `ChecksumAlgorithm` | - |
-| `StartSnapshotRequest` | `structure` | `ClientToken`, `Description`, `Encrypted`, `KmsKeyArn`, `ParentSnapshotId`, `Tags`, `Timeout`, `VolumeSize` | - |
-| `StartSnapshotResponse` | `structure` | `BlockSize`, `Description`, `KmsKeyArn`, `OwnerId`, `ParentSnapshotId`, `SnapshotId`, `SseType`, `StartTime`, `Status`, `Tags`, `VolumeSize` | - |
-| `ConcurrentLimitExceededException` | `structure` | `Message` | You have reached the limit for concurrent API requests. |
-| `ConflictException` | `structure` | `Message` | The request uses the same client token as a previous, but non-identical request. |
-
+| `AccessDeniedException` | `structure` | Message, Reason | You do not have sufficient access to perform this action. |
+| `ConcurrentLimitExceededException` | `structure` | Message | You have reached the limit for concurrent API requests. For more information, see Optimizing performance of the EBS direct APIs in the Amazon Elastic Comput ... |
+| `ConflictException` | `structure` | Message | The request uses the same client token as a previous, but non-identical request. |
+| `InternalServerException` | `structure` | Message | An internal error has occurred. For more information see Error retries . |
+| `RequestThrottledException` | `structure` | Message, Reason | The number of API requests has exceeded the maximum allowed API request throttling limit for the snapshot. For more information see Error retries . |
+| `ResourceNotFoundException` | `structure` | Message, Reason | The specified resource does not exist. |
+| `ServiceQuotaExceededException` | `structure` | Message, Reason | Your current service quotas do not allow you to perform this action. |
+| `ValidationException` | `structure` | Message, Reason | The input fails to satisfy the constraints of the EBS direct APIs. |
+| `CompleteSnapshotRequest` | `structure` | SnapshotId, ChangedBlocksCount, Checksum, ChecksumAlgorithm, ChecksumAggregationMethod | - |
+| `CompleteSnapshotResponse` | `structure` | Status | - |
+| `GetSnapshotBlockRequest` | `structure` | SnapshotId, BlockIndex, BlockToken | - |
+| `GetSnapshotBlockResponse` | `structure` | DataLength, BlockData, Checksum, ChecksumAlgorithm | - |
+| `ListChangedBlocksRequest` | `structure` | FirstSnapshotId, SecondSnapshotId, NextToken, MaxResults, StartingBlockIndex | - |
+| `ListChangedBlocksResponse` | `structure` | ChangedBlocks, ExpiryTime, VolumeSize, BlockSize, NextToken | - |
+| `ListSnapshotBlocksRequest` | `structure` | SnapshotId, NextToken, MaxResults, StartingBlockIndex | - |
+| `ListSnapshotBlocksResponse` | `structure` | Blocks, ExpiryTime, VolumeSize, BlockSize, NextToken | - |
+| `PutSnapshotBlockRequest` | `structure` | SnapshotId, BlockIndex, BlockData, DataLength, Progress, Checksum, ChecksumAlgorithm | - |
+| `PutSnapshotBlockResponse` | `structure` | Checksum, ChecksumAlgorithm | - |
+| `StartSnapshotRequest` | `structure` | VolumeSize, ParentSnapshotId, Tags, Description, ClientToken, Encrypted, KmsKeyArn, Timeout | - |
+| `StartSnapshotResponse` | `structure` | Description, SnapshotId, OwnerId, Status, StartTime, VolumeSize, BlockSize, Tags, ParentSnapshotId, KmsKeyArn, SseType | - |
+| `AccessDeniedExceptionReason` | `enum` | UNAUTHORIZED_ACCOUNT, DEPENDENCY_ACCESS_DENIED | - |
+| `ChecksumAggregationMethod` | `enum` | CHECKSUM_AGGREGATION_LINEAR | - |
+| `ChecksumAlgorithm` | `enum` | CHECKSUM_ALGORITHM_SHA256 | - |
+| `RequestThrottledExceptionReason` | `enum` | ACCOUNT_THROTTLED, DEPENDENCY_REQUEST_THROTTLED, RESOURCE_LEVEL_THROTTLE | - |
+| `ResourceNotFoundExceptionReason` | `enum` | SNAPSHOT_NOT_FOUND, GRANT_NOT_FOUND, DEPENDENCY_RESOURCE_NOT_FOUND, IMAGE_NOT_FOUND | - |
+| `SSEType` | `enum` | SSE_EBS, SSE_KMS, NONE | - |
+| `ServiceQuotaExceededExceptionReason` | `enum` | DEPENDENCY_SERVICE_QUOTA_EXCEEDED | - |
+| `Status` | `enum` | COMPLETED, PENDING, ERROR | - |
+| `ValidationExceptionReason` | `enum` | INVALID_CUSTOMER_KEY, INVALID_PAGE_TOKEN, INVALID_BLOCK_TOKEN, INVALID_GRANT_TOKEN, INVALID_SNAPSHOT_ID, UNRELATED_SNAPSHOTS, INVALID_BLOCK, INVALID_CONTENT_ENCODING, INVALID_TAG, INVALID_DEPENDENCY_REQUEST, INVALID_PARAMETER_VALUE, INVALID_VOLUME_SIZE, ... (+3) | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

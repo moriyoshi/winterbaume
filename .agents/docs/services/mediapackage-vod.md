@@ -40,12 +40,12 @@ AWS Elemental MediaPackage VOD
 
 - Operations: `ListAssets`, `ListPackagingConfigurations`, `ListPackagingGroups`, `ListTagsForResource`
 - Traits: `paginated` (3)
-- Common required input members in this group: `ResourceArn`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateAsset`, `CreatePackagingConfiguration`, `CreatePackagingGroup`
-- Common required input members in this group: `Id`, `PackagingGroupId`, `SourceArn`, `SourceRoleArn`
+- Common required input members in this group: `Id`, `PackagingGroupId`
 
 ### Delete
 
@@ -60,22 +60,22 @@ AWS Elemental MediaPackage VOD
 ### Configure
 
 - Operations: `ConfigureLogs`
-- Common required input members in this group: `Id`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdatePackagingGroup`
-- Common required input members in this group: `Id`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
@@ -114,30 +114,54 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ForbiddenException` | `structure` | `Message` | The client is not authorized to access the requested resource. |
-| `InternalServerErrorException` | `structure` | `Message` | An unexpected error occurred. |
-| `NotFoundException` | `structure` | `Message` | The requested resource does not exist. |
-| `ServiceUnavailableException` | `structure` | `Message` | An unexpected error occurred. |
-| `TooManyRequestsException` | `structure` | `Message` | The client has exceeded their resource or throttling limits. |
-| `UnprocessableEntityException` | `structure` | `Message` | The parameters sent in the request are not valid. |
-| `ConfigureLogsRequest` | `structure` | `EgressAccessLogs`, `Id` | The option to configure log subscription. |
-| `ConfigureLogsResponse` | `structure` | `Arn`, `Authorization`, `CreatedAt`, `DomainName`, `EgressAccessLogs`, `Id`, `Tags` | - |
-| `CreateAssetRequest` | `structure` | `Id`, `PackagingGroupId`, `ResourceId`, `SourceArn`, `SourceRoleArn`, `Tags` | A new MediaPackage VOD Asset configuration. |
-| `CreateAssetResponse` | `structure` | `Arn`, `CreatedAt`, `EgressEndpoints`, `Id`, `PackagingGroupId`, `ResourceId`, `SourceArn`, `SourceRoleArn`, `Tags` | - |
-| `CreatePackagingConfigurationRequest` | `structure` | `CmafPackage`, `DashPackage`, `HlsPackage`, `Id`, `MssPackage`, `PackagingGroupId`, `Tags` | A new MediaPackage VOD PackagingConfiguration resource configuration. |
-| `CreatePackagingConfigurationResponse` | `structure` | `Arn`, `CmafPackage`, `CreatedAt`, `DashPackage`, `HlsPackage`, `Id`, `MssPackage`, `PackagingGroupId`, `Tags` | - |
-| `CreatePackagingGroupRequest` | `structure` | `Authorization`, `EgressAccessLogs`, `Id`, `Tags` | A new MediaPackage VOD PackagingGroup resource configuration. |
-| `CreatePackagingGroupResponse` | `structure` | `Arn`, `Authorization`, `CreatedAt`, `DomainName`, `EgressAccessLogs`, `Id`, `Tags` | - |
-| `DeleteAssetRequest` | `structure` | `Id` | - |
-| `DeleteAssetResponse` | `structure` | - | - |
-| `DeletePackagingConfigurationRequest` | `structure` | `Id` | - |
-| `DeletePackagingConfigurationResponse` | `structure` | - | - |
-| `DeletePackagingGroupRequest` | `structure` | `Id` | - |
-| `DeletePackagingGroupResponse` | `structure` | - | - |
-| `DescribeAssetRequest` | `structure` | `Id` | - |
-| `DescribeAssetResponse` | `structure` | `Arn`, `CreatedAt`, `EgressEndpoints`, `Id`, `PackagingGroupId`, `ResourceId`, `SourceArn`, `SourceRoleArn`, `Tags` | - |
-| `DescribePackagingConfigurationRequest` | `structure` | `Id` | - |
-
+| `ForbiddenException` | `structure` | Message | The client is not authorized to access the requested resource. |
+| `InternalServerErrorException` | `structure` | Message | An unexpected error occurred. |
+| `NotFoundException` | `structure` | Message | The requested resource does not exist. |
+| `ServiceUnavailableException` | `structure` | Message | An unexpected error occurred. |
+| `TooManyRequestsException` | `structure` | Message | The client has exceeded their resource or throttling limits. |
+| `UnprocessableEntityException` | `structure` | Message | The parameters sent in the request are not valid. |
+| `ConfigureLogsRequest` | `structure` | EgressAccessLogs, Id | The option to configure log subscription. |
+| `ConfigureLogsResponse` | `structure` | Arn, Authorization, CreatedAt, DomainName, EgressAccessLogs, Id, Tags | - |
+| `CreateAssetRequest` | `structure` | Id, PackagingGroupId, ResourceId, SourceArn, SourceRoleArn, Tags | A new MediaPackage VOD Asset configuration. |
+| `CreateAssetResponse` | `structure` | Arn, CreatedAt, EgressEndpoints, Id, PackagingGroupId, ResourceId, SourceArn, SourceRoleArn, Tags | - |
+| `CreatePackagingConfigurationRequest` | `structure` | CmafPackage, DashPackage, HlsPackage, Id, MssPackage, PackagingGroupId, Tags | A new MediaPackage VOD PackagingConfiguration resource configuration. |
+| `CreatePackagingConfigurationResponse` | `structure` | Arn, CmafPackage, CreatedAt, DashPackage, HlsPackage, Id, MssPackage, PackagingGroupId, Tags | - |
+| `CreatePackagingGroupRequest` | `structure` | Authorization, EgressAccessLogs, Id, Tags | A new MediaPackage VOD PackagingGroup resource configuration. |
+| `CreatePackagingGroupResponse` | `structure` | Arn, Authorization, CreatedAt, DomainName, EgressAccessLogs, Id, Tags | - |
+| `DeleteAssetRequest` | `structure` | Id | - |
+| `DeleteAssetResponse` | `structure` | **empty (no members)** | - |
+| `DeletePackagingConfigurationRequest` | `structure` | Id | - |
+| `DeletePackagingConfigurationResponse` | `structure` | **empty (no members)** | - |
+| `DeletePackagingGroupRequest` | `structure` | Id | - |
+| `DeletePackagingGroupResponse` | `structure` | **empty (no members)** | - |
+| `DescribeAssetRequest` | `structure` | Id | - |
+| `DescribeAssetResponse` | `structure` | Arn, CreatedAt, EgressEndpoints, Id, PackagingGroupId, ResourceId, SourceArn, SourceRoleArn, Tags | - |
+| `DescribePackagingConfigurationRequest` | `structure` | Id | - |
+| `DescribePackagingConfigurationResponse` | `structure` | Arn, CmafPackage, CreatedAt, DashPackage, HlsPackage, Id, MssPackage, PackagingGroupId, Tags | - |
+| `DescribePackagingGroupRequest` | `structure` | Id | - |
+| `DescribePackagingGroupResponse` | `structure` | ApproximateAssetCount, Arn, Authorization, CreatedAt, DomainName, EgressAccessLogs, Id, Tags | - |
+| `ListAssetsRequest` | `structure` | MaxResults, NextToken, PackagingGroupId | - |
+| `ListAssetsResponse` | `structure` | Assets, NextToken | - |
+| `ListPackagingConfigurationsRequest` | `structure` | MaxResults, NextToken, PackagingGroupId | - |
+| `ListPackagingConfigurationsResponse` | `structure` | NextToken, PackagingConfigurations | - |
+| `ListPackagingGroupsRequest` | `structure` | MaxResults, NextToken | - |
+| `ListPackagingGroupsResponse` | `structure` | NextToken, PackagingGroups | - |
+| `ListTagsForResourceRequest` | `structure` | ResourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | Tags | - |
+| `TagResourceRequest` | `structure` | ResourceArn, Tags | - |
+| `UntagResourceRequest` | `structure` | ResourceArn, TagKeys | - |
+| `UpdatePackagingGroupRequest` | `structure` | Authorization, Id | A MediaPackage VOD PackagingGroup resource configuration. |
+| `UpdatePackagingGroupResponse` | `structure` | ApproximateAssetCount, Arn, Authorization, CreatedAt, DomainName, EgressAccessLogs, Id, Tags | - |
+| `AdMarkers` | `enum` | NONE, SCTE35_ENHANCED, PASSTHROUGH | - |
+| `EncryptionMethod` | `enum` | AES_128, SAMPLE_AES | - |
+| `ManifestLayout` | `enum` | FULL, COMPACT | - |
+| `PresetSpeke20Audio` | `enum` | PRESET_AUDIO_1, PRESET_AUDIO_2, PRESET_AUDIO_3, SHARED, UNENCRYPTED | - |
+| `PresetSpeke20Video` | `enum` | PRESET_VIDEO_1, PRESET_VIDEO_2, PRESET_VIDEO_3, PRESET_VIDEO_4, PRESET_VIDEO_5, PRESET_VIDEO_6, PRESET_VIDEO_7, PRESET_VIDEO_8, SHARED, UNENCRYPTED | - |
+| `Profile` | `enum` | NONE, HBBTV_1_5 | - |
+| `ScteMarkersSource` | `enum` | SEGMENTS, MANIFEST | - |
+| `SegmentTemplateFormat` | `enum` | NUMBER_WITH_TIMELINE, TIME_WITH_TIMELINE, NUMBER_WITH_DURATION | - |
+| `StreamOrder` | `enum` | ORIGINAL, VIDEO_BITRATE_ASCENDING, VIDEO_BITRATE_DESCENDING | - |
+| `__PeriodTriggersElement` | `enum` | ADS | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

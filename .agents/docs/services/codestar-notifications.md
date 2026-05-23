@@ -64,54 +64,54 @@ Parity implications:
 
 - Operations: `ListEventTypes`, `ListNotificationRules`, `ListTagsForResource`, `ListTargets`
 - Traits: `paginated` (3)
-- Common required input members in this group: `Arn`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteNotificationRule`, `DeleteTarget`
-- Common required input members in this group: `Arn`, `TargetAddress`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateNotificationRule`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `DetailType`, `EventTypeIds`, `Name`, `Resource`, `Targets`
+- Common required input members in this group: -
 
 ### Describe
 
 - Operations: `DescribeNotificationRule`
-- Common required input members in this group: `Arn`
+- Common required input members in this group: -
 
 ### Subscribe
 
 - Operations: `Subscribe`
-- Common required input members in this group: `Arn`, `Target`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `Arn`, `Tags`
+- Common required input members in this group: -
 
 ### Unsubscribe
 
 - Operations: `Unsubscribe`
-- Common required input members in this group: `Arn`, `TargetAddress`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `Arn`, `TagKeys`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateNotificationRule`
-- Common required input members in this group: `Arn`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateNotificationRule` | `POST /createNotificationRule` | `idempotency-token` | `DetailType`, `EventTypeIds`, `Name`, `Resource`, `Targets` | `ClientRequestToken` | `CreateNotificationRuleResult` | `AccessDeniedException`, `ConcurrentModificationException`, `ConfigurationException`, `LimitExceededException`, `ResourceAlreadyExistsException`, `ValidationException` | Creates a notification rule for a resource. The rule specifies the events you want notifications about and the targets (such as Amazon Q Developer in chat applications topics or Amazon Q Developer in chat applications clients configured for Slack) where you... |
+| `CreateNotificationRule` | `POST /createNotificationRule` | `idempotency-token` | `Name`, `EventTypeIds`, `Resource`, `Targets`, `DetailType` | `ClientRequestToken` | `CreateNotificationRuleResult` | `AccessDeniedException`, `ConcurrentModificationException`, `ConfigurationException`, `LimitExceededException`, `ResourceAlreadyExistsException`, `ValidationException` | Creates a notification rule for a resource. The rule specifies the events you want notifications about and the targets (such as Amazon Q Developer in chat applications topics or Amazon Q Developer in chat application ... |
 | `DeleteNotificationRule` | `POST /deleteNotificationRule` | - | `Arn` | - | `DeleteNotificationRuleResult` | `ConcurrentModificationException`, `LimitExceededException`, `ValidationException` | Deletes a notification rule for a resource. |
 | `DeleteTarget` | `POST /deleteTarget` | - | `TargetAddress` | - | `DeleteTargetResult` | `ValidationException` | Deletes a specified target for notifications. |
 | `DescribeNotificationRule` | `POST /describeNotificationRule` | - | `Arn` | - | `DescribeNotificationRuleResult` | `ResourceNotFoundException`, `ValidationException` | Returns information about a specified notification rule. |
@@ -119,11 +119,11 @@ Parity implications:
 | `ListNotificationRules` | `POST /listNotificationRules` | `paginated` | - | - | `ListNotificationRulesResult` | `InvalidNextTokenException`, `ValidationException` | Returns a list of the notification rules for an Amazon Web Services account. |
 | `ListTagsForResource` | `POST /listTagsForResource` | - | `Arn` | - | `ListTagsForResourceResult` | `ResourceNotFoundException`, `ValidationException` | Returns a list of the tags associated with a notification rule. |
 | `ListTargets` | `POST /listTargets` | `paginated` | - | - | `ListTargetsResult` | `InvalidNextTokenException`, `ValidationException` | Returns a list of the notification rule targets for an Amazon Web Services account. |
-| `Subscribe` | `POST /subscribe` | - | `Arn`, `Target` | - | `SubscribeResult` | `ConfigurationException`, `ResourceNotFoundException`, `ValidationException` | Creates an association between a notification rule and an Amazon Q Developer in chat applications topic or Amazon Q Developer in chat applications client so that the associated target can receive notifications when the events described in the rule are... |
+| `Subscribe` | `POST /subscribe` | - | `Arn`, `Target` | - | `SubscribeResult` | `ConfigurationException`, `ResourceNotFoundException`, `ValidationException` | Creates an association between a notification rule and an Amazon Q Developer in chat applications topic or Amazon Q Developer in chat applications client so that the associated target can receive notifications when t ... |
 | `TagResource` | `POST /tagResource` | - | `Arn`, `Tags` | - | `TagResourceResult` | `ConcurrentModificationException`, `LimitExceededException`, `ResourceNotFoundException`, `ValidationException` | Associates a set of provided tags with a notification rule. |
 | `Unsubscribe` | `POST /unsubscribe` | - | `Arn`, `TargetAddress` | - | `UnsubscribeResult` | `ValidationException` | Removes an association between a notification rule and an Amazon Q Developer in chat applications topic so that subscribers to that topic stop receiving notifications when the events described in the rule are triggered. |
 | `UntagResource` | `POST /untagResource/{Arn}` | - | `Arn`, `TagKeys` | - | `UntagResourceResult` | `ConcurrentModificationException`, `LimitExceededException`, `ResourceNotFoundException`, `ValidationException` | Removes the association between one or more provided tags and a notification rule. |
-| `UpdateNotificationRule` | `POST /updateNotificationRule` | - | `Arn` | - | `UpdateNotificationRuleResult` | `ConfigurationException`, `ResourceNotFoundException`, `ValidationException` | Updates a notification rule for a resource. You can change the events that trigger the notification rule, the status of the rule, and the targets that receive the notifications. |
+| `UpdateNotificationRule` | `POST /updateNotificationRule` | - | `Arn` | - | `UpdateNotificationRuleResult` | `ConfigurationException`, `ResourceNotFoundException`, `ValidationException` | Updates a notification rule for a resource. You can change the events that trigger the notification rule, the status of the rule, and the targets that receive the notifications. To add or remove tags for a notificati ... |
 
 ## HTTP Bindings
 
@@ -137,31 +137,46 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ValidationException` | `structure` | `Message` | One or more parameter values are not valid. |
-| `ResourceNotFoundException` | `structure` | `Message` | CodeStar Notifications can't find a resource that matches the provided ARN. |
-| `ConcurrentModificationException` | `structure` | `Message` | CodeStar Notifications can't complete the request because the resource is being modified by another process. |
-| `LimitExceededException` | `structure` | `Message` | One of the CodeStar Notifications limits has been exceeded. |
-| `ConfigurationException` | `structure` | `Message` | Some or all of the configuration is incomplete, missing, or not valid. |
-| `InvalidNextTokenException` | `structure` | `Message` | The value for the enumeration token used in the request to return the next batch of the results is not valid. |
-| `CreateNotificationRuleRequest` | `structure` | `ClientRequestToken`, `DetailType`, `EventTypeIds`, `Name`, `Resource`, `Status`, `Tags`, `Targets` | - |
-| `CreateNotificationRuleResult` | `structure` | `Arn` | - |
-| `AccessDeniedException` | `structure` | `Message` | CodeStar Notifications can't create the notification rule because you do not have sufficient permissions. |
-| `ResourceAlreadyExistsException` | `structure` | `Message` | A resource with the same name or ID already exists. |
-| `DeleteNotificationRuleRequest` | `structure` | `Arn` | - |
-| `DeleteNotificationRuleResult` | `structure` | `Arn` | - |
-| `DeleteTargetRequest` | `structure` | `ForceUnsubscribeAll`, `TargetAddress` | - |
-| `DeleteTargetResult` | `structure` | - | - |
-| `DescribeNotificationRuleRequest` | `structure` | `Arn` | - |
-| `DescribeNotificationRuleResult` | `structure` | `Arn`, `CreatedBy`, `CreatedTimestamp`, `DetailType`, `EventTypes`, `LastModifiedTimestamp`, `Name`, `Resource`, `Status`, `Tags`, `Targets` | - |
-| `ListEventTypesRequest` | `structure` | `Filters`, `MaxResults`, `NextToken` | - |
-| `ListEventTypesResult` | `structure` | `EventTypes`, `NextToken` | - |
-| `ListNotificationRulesRequest` | `structure` | `Filters`, `MaxResults`, `NextToken` | - |
-| `ListNotificationRulesResult` | `structure` | `NextToken`, `NotificationRules` | - |
-| `ListTagsForResourceRequest` | `structure` | `Arn` | - |
-| `ListTagsForResourceResult` | `structure` | `Tags` | - |
-| `ListTargetsRequest` | `structure` | `Filters`, `MaxResults`, `NextToken` | - |
-| `ListTargetsResult` | `structure` | `NextToken`, `Targets` | - |
-
+| `AccessDeniedException` | `structure` | Message | CodeStar Notifications can't create the notification rule because you do not have sufficient permissions. |
+| `ConcurrentModificationException` | `structure` | Message | CodeStar Notifications can't complete the request because the resource is being modified by another process. Wait a few minutes and try again. |
+| `ConfigurationException` | `structure` | Message | Some or all of the configuration is incomplete, missing, or not valid. |
+| `InvalidNextTokenException` | `structure` | Message | The value for the enumeration token used in the request to return the next batch of the results is not valid. |
+| `LimitExceededException` | `structure` | Message | One of the CodeStar Notifications limits has been exceeded. Limits apply to accounts, notification rules, notifications, resources, and targets. For more in ... |
+| `ResourceAlreadyExistsException` | `structure` | Message | A resource with the same name or ID already exists. Notification rule names must be unique in your Amazon Web Services account. |
+| `ResourceNotFoundException` | `structure` | Message | CodeStar Notifications can't find a resource that matches the provided ARN. |
+| `ValidationException` | `structure` | Message | One or more parameter values are not valid. |
+| `CreateNotificationRuleRequest` | `structure` | Name, EventTypeIds, Resource, Targets, DetailType, ClientRequestToken, Tags, Status | - |
+| `CreateNotificationRuleResult` | `structure` | Arn | - |
+| `DeleteNotificationRuleRequest` | `structure` | Arn | - |
+| `DeleteNotificationRuleResult` | `structure` | Arn | - |
+| `DeleteTargetRequest` | `structure` | TargetAddress, ForceUnsubscribeAll | - |
+| `DeleteTargetResult` | `structure` | **empty (no members)** | - |
+| `DescribeNotificationRuleRequest` | `structure` | Arn | - |
+| `DescribeNotificationRuleResult` | `structure` | Arn, Name, EventTypes, Resource, Targets, DetailType, CreatedBy, Status, CreatedTimestamp, LastModifiedTimestamp, Tags | - |
+| `ListEventTypesRequest` | `structure` | Filters, NextToken, MaxResults | - |
+| `ListEventTypesResult` | `structure` | EventTypes, NextToken | - |
+| `ListNotificationRulesRequest` | `structure` | Filters, NextToken, MaxResults | - |
+| `ListNotificationRulesResult` | `structure` | NextToken, NotificationRules | - |
+| `ListTagsForResourceRequest` | `structure` | Arn | - |
+| `ListTagsForResourceResult` | `structure` | Tags | - |
+| `ListTargetsRequest` | `structure` | Filters, NextToken, MaxResults | - |
+| `ListTargetsResult` | `structure` | Targets, NextToken | - |
+| `SubscribeRequest` | `structure` | Arn, Target, ClientRequestToken | - |
+| `SubscribeResult` | `structure` | Arn | - |
+| `TagResourceRequest` | `structure` | Arn, Tags | - |
+| `TagResourceResult` | `structure` | Tags | - |
+| `UnsubscribeRequest` | `structure` | Arn, TargetAddress | - |
+| `UnsubscribeResult` | `structure` | Arn | - |
+| `UntagResourceRequest` | `structure` | Arn, TagKeys | - |
+| `UntagResourceResult` | `structure` | **empty (no members)** | - |
+| `UpdateNotificationRuleRequest` | `structure` | Arn, Name, Status, EventTypeIds, Targets, DetailType | - |
+| `UpdateNotificationRuleResult` | `structure` | **empty (no members)** | - |
+| `DetailType` | `enum` | BASIC, FULL | - |
+| `ListEventTypesFilterName` | `enum` | RESOURCE_TYPE, SERVICE_NAME | - |
+| `ListNotificationRulesFilterName` | `enum` | EVENT_TYPE_ID, CREATED_BY, RESOURCE, TARGET_ADDRESS | - |
+| `ListTargetsFilterName` | `enum` | TARGET_TYPE, TARGET_ADDRESS, TARGET_STATUS | - |
+| `NotificationRuleStatus` | `enum` | ENABLED, DISABLED | - |
+| `TargetStatus` | `enum` | PENDING, ACTIVE, UNREACHABLE, INACTIVE, DEACTIVATED | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

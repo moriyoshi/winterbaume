@@ -71,53 +71,53 @@ Parity implications:
 ### List
 
 - Operations: `ListDatabases`, `ListSchemas`, `ListStatements`, `ListTables`
-- Traits: `paginated` (4), `readonly` (4)
+- Traits: `readonly` (4), `paginated` (4)
 - Common required input members in this group: `Database`
 
 ### Describe
 
 - Operations: `DescribeStatement`, `DescribeTable`
-- Traits: `paginated` (1), `readonly` (2)
-- Common required input members in this group: `Database`, `Id`
+- Traits: `readonly` (2), `paginated` (1)
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetStatementResult`, `GetStatementResultV2`
-- Traits: `paginated` (2), `readonly` (2)
+- Traits: `readonly` (2), `paginated` (2)
 - Common required input members in this group: `Id`
 
 ### Batch
 
 - Operations: `BatchExecuteStatement`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `Sqls`
+- Common required input members in this group: -
 
 ### Cancel
 
 - Operations: `CancelStatement`
-- Common required input members in this group: `Id`
+- Common required input members in this group: -
 
 ### Execute
 
 - Operations: `ExecuteStatement`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `Sql`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `BatchExecuteStatement` | - | `idempotency-token` | `Sqls` | `ClientToken` | `BatchExecuteStatementOutput` | `ActiveSessionsExceededException`, `ActiveStatementsExceededException`, `BatchExecuteStatementException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Runs one or more SQL statements, which can be data manipulation language (DML) or data definition language (DDL). Depending on the authorization method, use one of the following combinations of request parameters: Secrets Manager - when connecting to a... |
-| `CancelStatement` | - | - | `Id` | - | `CancelStatementResponse` | `DatabaseConnectionException`, `InternalServerException`, `QueryTimeoutException`, `ResourceNotFoundException`, `ValidationException` | Cancels a running query. To be canceled, a query must be running. |
-| `DescribeStatement` | - | `readonly` | `Id` | - | `DescribeStatementResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Describes the details about a specific instance when a query was run by the Amazon Redshift Data API. The information includes when the query started, when it finished, the query status, the number of rows returned, and the SQL statement. |
-| `DescribeTable` | - | `readonly`, `paginated` | `Database` | - | `DescribeTableResponse` | `DatabaseConnectionException`, `InternalServerException`, `QueryTimeoutException`, `ResourceNotFoundException`, `ValidationException` | Describes the detailed information about a table from metadata in the cluster. The information includes its columns. |
-| `ExecuteStatement` | - | `idempotency-token` | `Sql` | `ClientToken` | `ExecuteStatementOutput` | `ActiveSessionsExceededException`, `ActiveStatementsExceededException`, `ExecuteStatementException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Runs an SQL statement, which can be data manipulation language (DML) or data definition language (DDL). This statement must be a single SQL statement. |
-| `GetStatementResult` | - | `readonly`, `paginated` | `Id` | - | `GetStatementResultResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Fetches the temporarily cached result of an SQL statement in JSON format. The `ExecuteStatement` or `BatchExecuteStatement` operation that ran the SQL statement must have specified `ResultFormat` as `JSON` , or let the format default to JSON. |
-| `GetStatementResultV2` | - | `readonly`, `paginated` | `Id` | - | `GetStatementResultV2Response` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Fetches the temporarily cached result of an SQL statement in CSV format. The `ExecuteStatement` or `BatchExecuteStatement` operation that ran the SQL statement must have specified `ResultFormat` as `CSV`. |
-| `ListDatabases` | - | `readonly`, `paginated` | `Database` | - | `ListDatabasesResponse` | `DatabaseConnectionException`, `InternalServerException`, `QueryTimeoutException`, `ResourceNotFoundException`, `ValidationException` | List the databases in a cluster. A token is returned to page through the database list. |
-| `ListSchemas` | - | `readonly`, `paginated` | `Database` | - | `ListSchemasResponse` | `DatabaseConnectionException`, `InternalServerException`, `QueryTimeoutException`, `ResourceNotFoundException`, `ValidationException` | Lists the schemas in a database. A token is returned to page through the schema list. |
-| `ListStatements` | - | `readonly`, `paginated` | - | - | `ListStatementsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | List of SQL statements. By default, only finished statements are shown. |
-| `ListTables` | - | `readonly`, `paginated` | `Database` | - | `ListTablesResponse` | `DatabaseConnectionException`, `InternalServerException`, `QueryTimeoutException`, `ResourceNotFoundException`, `ValidationException` | List the tables in a database. If neither `SchemaPattern` nor `TablePattern` are specified, then all tables in the database are returned. |
+| `BatchExecuteStatement` | `-` | `idempotency-token` | `Sqls` | `ClientToken` | `BatchExecuteStatementOutput` | `ActiveSessionsExceededException`, `ActiveStatementsExceededException`, `BatchExecuteStatementException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Runs one or more SQL statements, which can be data manipulation language (DML) or data definition language (DDL). Depending on the authorization method, use one of the following combinations of request parameters: Se ... |
+| `CancelStatement` | `-` | - | `Id` | - | `CancelStatementResponse` | `DatabaseConnectionException`, `InternalServerException`, `QueryTimeoutException`, `ResourceNotFoundException`, `ValidationException` | Cancels a running query. To be canceled, a query must be running. For more information about the Amazon Redshift Data API and CLI usage examples, see Using the Amazon Redshift Data API in the Amazon Redshift Manageme ... |
+| `DescribeStatement` | `-` | `readonly` | `Id` | - | `DescribeStatementResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Describes the details about a specific instance when a query was run by the Amazon Redshift Data API. The information includes when the query started, when it finished, the query status, the number of rows returned, ... |
+| `DescribeTable` | `-` | `readonly`, `paginated` | `Database` | - | `DescribeTableResponse` | `DatabaseConnectionException`, `InternalServerException`, `QueryTimeoutException`, `ResourceNotFoundException`, `ValidationException` | Describes the detailed information about a table from metadata in the cluster. The information includes its columns. A token is returned to page through the column list. Depending on the authorization method, use one ... |
+| `ExecuteStatement` | `-` | `idempotency-token` | `Sql` | `ClientToken` | `ExecuteStatementOutput` | `ActiveSessionsExceededException`, `ActiveStatementsExceededException`, `ExecuteStatementException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Runs an SQL statement, which can be data manipulation language (DML) or data definition language (DDL). This statement must be a single SQL statement. Depending on the authorization method, use one of the following c ... |
+| `GetStatementResult` | `-` | `readonly`, `paginated` | `Id` | - | `GetStatementResultResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Fetches the temporarily cached result of an SQL statement in JSON format. The ExecuteStatement or BatchExecuteStatement operation that ran the SQL statement must have specified ResultFormat as JSON , or let the forma ... |
+| `GetStatementResultV2` | `-` | `readonly`, `paginated` | `Id` | - | `GetStatementResultV2Response` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Fetches the temporarily cached result of an SQL statement in CSV format. The ExecuteStatement or BatchExecuteStatement operation that ran the SQL statement must have specified ResultFormat as CSV . A token is returne ... |
+| `ListDatabases` | `-` | `readonly`, `paginated` | `Database` | - | `ListDatabasesResponse` | `DatabaseConnectionException`, `InternalServerException`, `QueryTimeoutException`, `ResourceNotFoundException`, `ValidationException` | List the databases in a cluster. A token is returned to page through the database list. Depending on the authorization method, use one of the following combinations of request parameters: Secrets Manager - when conne ... |
+| `ListSchemas` | `-` | `readonly`, `paginated` | `Database` | - | `ListSchemasResponse` | `DatabaseConnectionException`, `InternalServerException`, `QueryTimeoutException`, `ResourceNotFoundException`, `ValidationException` | Lists the schemas in a database. A token is returned to page through the schema list. Depending on the authorization method, use one of the following combinations of request parameters: Secrets Manager - when connect ... |
+| `ListStatements` | `-` | `readonly`, `paginated` | - | - | `ListStatementsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | List of SQL statements. By default, only finished statements are shown. A token is returned to page through the statement list. When you use identity-enhanced role sessions to list statements, you must provide either ... |
+| `ListTables` | `-` | `readonly`, `paginated` | `Database` | - | `ListTablesResponse` | `DatabaseConnectionException`, `InternalServerException`, `QueryTimeoutException`, `ResourceNotFoundException`, `ValidationException` | List the tables in a database. If neither SchemaPattern nor TablePattern are specified, then all tables in the database are returned. A token is returned to page through the table list. Depending on the authorization ... |
 
 ## HTTP Bindings
 
@@ -129,31 +129,37 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `Message` | The Amazon Redshift Data API operation failed due to invalid input. |
-| `ResourceNotFoundException` | `structure` | `Message`, `ResourceId` | The Amazon Redshift Data API operation failed due to a missing resource. |
-| `ValidationException` | `structure` | `Message` | The Amazon Redshift Data API operation failed due to invalid input. |
-| `DatabaseConnectionException` | `structure` | `Message` | Connection to a database failed. |
-| `QueryTimeoutException` | `structure` | `Message` | The Amazon Redshift Data API operation failed due to timeout. |
-| `ActiveSessionsExceededException` | `structure` | `Message` | The Amazon Redshift Data API operation failed because the maximum number of active sessions exceeded. |
-| `ActiveStatementsExceededException` | `structure` | `Message` | The number of active statements exceeds the limit. |
-| `BatchExecuteStatementInput` | `structure` | `ClientToken`, `ClusterIdentifier`, `Database`, `DbUser`, `ResultFormat`, `SecretArn`, `SessionId`, `SessionKeepAliveSeconds`, `Sqls`, `StatementName`, `WithEvent`, `WorkgroupName` | - |
-| `BatchExecuteStatementOutput` | `structure` | `ClusterIdentifier`, `CreatedAt`, `Database`, `DbGroups`, `DbUser`, `Id`, `SecretArn`, `SessionId`, `WorkgroupName` | - |
-| `BatchExecuteStatementException` | `structure` | `Message`, `StatementId` | An SQL statement encountered an environmental error while running. |
-| `CancelStatementRequest` | `structure` | `Id` | - |
-| `CancelStatementResponse` | `structure` | `Status` | - |
-| `DescribeStatementRequest` | `structure` | `Id` | - |
-| `DescribeStatementResponse` | `structure` | `ClusterIdentifier`, `CreatedAt`, `Database`, `DbUser`, `Duration`, `Error`, `HasResultSet`, `Id`, `QueryParameters`, `QueryString`, `RedshiftPid`, `RedshiftQueryId`, ... (+9) | - |
-| `DescribeTableRequest` | `structure` | `ClusterIdentifier`, `ConnectedDatabase`, `Database`, `DbUser`, `MaxResults`, `NextToken`, `Schema`, `SecretArn`, `Table`, `WorkgroupName` | - |
-| `DescribeTableResponse` | `structure` | `ColumnList`, `NextToken`, `TableName` | - |
-| `ExecuteStatementInput` | `structure` | `ClientToken`, `ClusterIdentifier`, `Database`, `DbUser`, `Parameters`, `ResultFormat`, `SecretArn`, `SessionId`, `SessionKeepAliveSeconds`, `Sql`, `StatementName`, `WithEvent`, ... (+1) | - |
-| `ExecuteStatementOutput` | `structure` | `ClusterIdentifier`, `CreatedAt`, `Database`, `DbGroups`, `DbUser`, `Id`, `SecretArn`, `SessionId`, `WorkgroupName` | - |
-| `ExecuteStatementException` | `structure` | `Message`, `StatementId` | The SQL statement encountered an environmental error while running. |
-| `GetStatementResultRequest` | `structure` | `Id`, `NextToken` | - |
-| `GetStatementResultResponse` | `structure` | `ColumnMetadata`, `NextToken`, `Records`, `TotalNumRows` | - |
-| `GetStatementResultV2Request` | `structure` | `Id`, `NextToken` | - |
-| `GetStatementResultV2Response` | `structure` | `ColumnMetadata`, `NextToken`, `Records`, `ResultFormat`, `TotalNumRows` | - |
-| `ListDatabasesRequest` | `structure` | `ClusterIdentifier`, `Database`, `DbUser`, `MaxResults`, `NextToken`, `SecretArn`, `WorkgroupName` | - |
-
+| `ActiveSessionsExceededException` | `structure` | Message | The Amazon Redshift Data API operation failed because the maximum number of active sessions exceeded. |
+| `ActiveStatementsExceededException` | `structure` | Message | The number of active statements exceeds the limit. |
+| `BatchExecuteStatementException` | `structure` | Message, StatementId | An SQL statement encountered an environmental error while running. |
+| `DatabaseConnectionException` | `structure` | Message | Connection to a database failed. |
+| `ExecuteStatementException` | `structure` | Message, StatementId | The SQL statement encountered an environmental error while running. |
+| `InternalServerException` | `structure` | Message | The Amazon Redshift Data API operation failed due to invalid input. |
+| `QueryTimeoutException` | `structure` | Message | The Amazon Redshift Data API operation failed due to timeout. |
+| `ResourceNotFoundException` | `structure` | Message, ResourceId | The Amazon Redshift Data API operation failed due to a missing resource. |
+| `ValidationException` | `structure` | Message | The Amazon Redshift Data API operation failed due to invalid input. |
+| `BatchExecuteStatementInput` | `structure` | Sqls, ClusterIdentifier, SecretArn, DbUser, Database, WithEvent, StatementName, Parameters, WorkgroupName, ClientToken, ResultFormat, SessionKeepAliveSeconds, ... (+1) | - |
+| `BatchExecuteStatementOutput` | `structure` | Id, CreatedAt, ClusterIdentifier, DbUser, DbGroups, Database, SecretArn, WorkgroupName, SessionId | - |
+| `CancelStatementRequest` | `structure` | Id | - |
+| `CancelStatementResponse` | `structure` | Status | - |
+| `DescribeStatementRequest` | `structure` | Id | - |
+| `DescribeStatementResponse` | `structure` | Id, SecretArn, DbUser, Database, ClusterIdentifier, Duration, Error, Status, CreatedAt, UpdatedAt, RedshiftPid, HasResultSet, ... (+9) | - |
+| `DescribeTableRequest` | `structure` | ClusterIdentifier, SecretArn, DbUser, Database, ConnectedDatabase, Schema, Table, NextToken, MaxResults, WorkgroupName | - |
+| `DescribeTableResponse` | `structure` | TableName, ColumnList, NextToken | - |
+| `ExecuteStatementInput` | `structure` | Sql, ClusterIdentifier, SecretArn, DbUser, Database, WithEvent, StatementName, Parameters, WorkgroupName, ClientToken, ResultFormat, SessionKeepAliveSeconds, ... (+1) | - |
+| `ExecuteStatementOutput` | `structure` | Id, CreatedAt, ClusterIdentifier, DbUser, DbGroups, Database, SecretArn, WorkgroupName, SessionId | - |
+| `GetStatementResultRequest` | `structure` | Id, NextToken | - |
+| `GetStatementResultResponse` | `structure` | Records, ColumnMetadata, TotalNumRows, NextToken | - |
+| `GetStatementResultV2Request` | `structure` | Id, NextToken | - |
+| `GetStatementResultV2Response` | `structure` | Records, ColumnMetadata, TotalNumRows, ResultFormat, NextToken | - |
+| `ListDatabasesRequest` | `structure` | ClusterIdentifier, Database, SecretArn, DbUser, NextToken, MaxResults, WorkgroupName | - |
+| `ListDatabasesResponse` | `structure` | Databases, NextToken | - |
+| `ListSchemasRequest` | `structure` | ClusterIdentifier, SecretArn, DbUser, Database, ConnectedDatabase, SchemaPattern, NextToken, MaxResults, WorkgroupName | - |
+| `ListSchemasResponse` | `structure` | Schemas, NextToken | - |
+| `ListStatementsRequest` | `structure` | NextToken, MaxResults, StatementName, Status, RoleLevel, Database, ClusterIdentifier, WorkgroupName | - |
+| `ListStatementsResponse` | `structure` | Statements, NextToken | - |
+| `ListTablesRequest` | `structure` | ClusterIdentifier, SecretArn, DbUser, Database, ConnectedDatabase, SchemaPattern, TablePattern, NextToken, MaxResults, WorkgroupName | - |
+| `ListTablesResponse` | `structure` | Tables, NextToken | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

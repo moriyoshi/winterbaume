@@ -63,73 +63,73 @@ Parity implications:
 
 - Operations: `DescribeBudget`, `DescribeBudgetAction`, `DescribeBudgetActionHistories`, `DescribeBudgetActionsForAccount`, `DescribeBudgetActionsForBudget`, `DescribeBudgetNotificationsForAccount`, `DescribeBudgetPerformanceHistory`, `DescribeBudgets`, `DescribeNotificationsForBudget`, `DescribeSubscribersForNotification`
 - Traits: `paginated` (8)
-- Common required input members in this group: `AccountId`, `ActionId`, `BudgetName`, `Notification`
+- Common required input members in this group: `AccountId`, `BudgetName`, `ActionId`
 
 ### Create
 
 - Operations: `CreateBudget`, `CreateBudgetAction`, `CreateNotification`, `CreateSubscriber`
-- Common required input members in this group: `AccountId`, `ActionThreshold`, `ActionType`, `ApprovalModel`, `Budget`, `BudgetName`, `Definition`, `ExecutionRoleArn`, `Notification`, `NotificationType`, `Subscriber`, `Subscribers`
+- Common required input members in this group: `AccountId`, `BudgetName`, `Subscribers`, `Notification`
 
 ### Delete
 
 - Operations: `DeleteBudget`, `DeleteBudgetAction`, `DeleteNotification`, `DeleteSubscriber`
-- Common required input members in this group: `AccountId`, `ActionId`, `BudgetName`, `Notification`, `Subscriber`
+- Common required input members in this group: `AccountId`, `BudgetName`, `Notification`
 
 ### Update
 
 - Operations: `UpdateBudget`, `UpdateBudgetAction`, `UpdateNotification`, `UpdateSubscriber`
-- Common required input members in this group: `AccountId`, `ActionId`, `BudgetName`, `NewBudget`, `NewNotification`, `NewSubscriber`, `Notification`, `OldNotification`, `OldSubscriber`
+- Common required input members in this group: `AccountId`, `BudgetName`
 
 ### Execute
 
 - Operations: `ExecuteBudgetAction`
-- Common required input members in this group: `AccountId`, `ActionId`, `BudgetName`, `ExecutionType`
+- Common required input members in this group: -
 
 ### List
 
 - Operations: `ListTagsForResource`
-- Common required input members in this group: `ResourceARN`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceARN`, `ResourceTags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceARN`, `ResourceTagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateBudget` | - | - | `AccountId`, `Budget` | - | `CreateBudgetResponse` | `AccessDeniedException`, `BillingViewHealthStatusException`, `CreationLimitExceededException`, `DuplicateRecordException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ServiceQuotaExceededException`, ... (+1) | Creates a budget and, if included, notifications and subscribers. Only one of `BudgetLimit` or `PlannedBudgetLimits` can be present in the syntax at one time. |
-| `CreateBudgetAction` | - | - | `AccountId`, `ActionThreshold`, `ActionType`, `ApprovalModel`, `BudgetName`, `Definition`, `ExecutionRoleArn`, `NotificationType`, `Subscribers` | - | `CreateBudgetActionResponse` | `AccessDeniedException`, `CreationLimitExceededException`, `DuplicateRecordException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException` | Creates a budget action. |
-| `CreateNotification` | - | - | `AccountId`, `BudgetName`, `Notification`, `Subscribers` | - | `CreateNotificationResponse` | `AccessDeniedException`, `CreationLimitExceededException`, `DuplicateRecordException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Creates a notification. You must create the budget before you create the associated notification. |
-| `CreateSubscriber` | - | - | `AccountId`, `BudgetName`, `Notification`, `Subscriber` | - | `CreateSubscriberResponse` | `AccessDeniedException`, `CreationLimitExceededException`, `DuplicateRecordException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Creates a subscriber. You must create the associated budget and notification before you create the subscriber. |
-| `DeleteBudget` | - | - | `AccountId`, `BudgetName` | - | `DeleteBudgetResponse` | `AccessDeniedException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Deletes a budget. You can delete your budget at any time. |
-| `DeleteBudgetAction` | - | - | `AccountId`, `ActionId`, `BudgetName` | - | `DeleteBudgetActionResponse` | `AccessDeniedException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ResourceLockedException`, `ThrottlingException` | Deletes a budget action. |
-| `DeleteNotification` | - | - | `AccountId`, `BudgetName`, `Notification` | - | `DeleteNotificationResponse` | `AccessDeniedException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Deletes a notification. Deleting a notification also deletes the subscribers that are associated with the notification. |
-| `DeleteSubscriber` | - | - | `AccountId`, `BudgetName`, `Notification`, `Subscriber` | - | `DeleteSubscriberResponse` | `AccessDeniedException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Deletes a subscriber. Deleting the last subscriber to a notification also deletes the notification. |
-| `DescribeBudget` | - | - | `AccountId`, `BudgetName` | - | `DescribeBudgetResponse` | `AccessDeniedException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Describes a budget. The Request Syntax section shows the `BudgetLimit` syntax. |
-| `DescribeBudgetAction` | - | - | `AccountId`, `ActionId`, `BudgetName` | - | `DescribeBudgetActionResponse` | `AccessDeniedException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Describes a budget action detail. |
-| `DescribeBudgetActionHistories` | - | `paginated` | `AccountId`, `ActionId`, `BudgetName` | - | `DescribeBudgetActionHistoriesResponse` | `AccessDeniedException`, `InternalErrorException`, `InvalidNextTokenException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Describes a budget action history detail. |
-| `DescribeBudgetActionsForAccount` | - | `paginated` | `AccountId` | - | `DescribeBudgetActionsForAccountResponse` | `AccessDeniedException`, `InternalErrorException`, `InvalidNextTokenException`, `InvalidParameterException`, `ThrottlingException` | Describes all of the budget actions for an account. |
-| `DescribeBudgetActionsForBudget` | - | `paginated` | `AccountId`, `BudgetName` | - | `DescribeBudgetActionsForBudgetResponse` | `AccessDeniedException`, `InternalErrorException`, `InvalidNextTokenException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Describes all of the budget actions for a budget. |
-| `DescribeBudgetNotificationsForAccount` | - | `paginated` | `AccountId` | - | `DescribeBudgetNotificationsForAccountResponse` | `AccessDeniedException`, `ExpiredNextTokenException`, `InternalErrorException`, `InvalidNextTokenException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Lists the budget names and notifications that are associated with an account. |
-| `DescribeBudgetPerformanceHistory` | - | `paginated` | `AccountId`, `BudgetName` | - | `DescribeBudgetPerformanceHistoryResponse` | `AccessDeniedException`, `BillingViewHealthStatusException`, `ExpiredNextTokenException`, `InternalErrorException`, `InvalidNextTokenException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Describes the history for `DAILY`, `MONTHLY`, and `QUARTERLY` budgets. Budget history isn't available for `ANNUAL` budgets. |
-| `DescribeBudgets` | - | `paginated` | `AccountId` | - | `DescribeBudgetsResponse` | `AccessDeniedException`, `ExpiredNextTokenException`, `InternalErrorException`, `InvalidNextTokenException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Lists the budgets that are associated with an account. The Request Syntax section shows the `BudgetLimit` syntax. |
-| `DescribeNotificationsForBudget` | - | `paginated` | `AccountId`, `BudgetName` | - | `DescribeNotificationsForBudgetResponse` | `AccessDeniedException`, `ExpiredNextTokenException`, `InternalErrorException`, `InvalidNextTokenException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Lists the notifications that are associated with a budget. |
-| `DescribeSubscribersForNotification` | - | `paginated` | `AccountId`, `BudgetName`, `Notification` | - | `DescribeSubscribersForNotificationResponse` | `AccessDeniedException`, `ExpiredNextTokenException`, `InternalErrorException`, `InvalidNextTokenException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Lists the subscribers that are associated with a notification. |
-| `ExecuteBudgetAction` | - | - | `AccountId`, `ActionId`, `BudgetName`, `ExecutionType` | - | `ExecuteBudgetActionResponse` | `AccessDeniedException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ResourceLockedException`, `ThrottlingException` | Executes a budget action. |
-| `ListTagsForResource` | - | - | `ResourceARN` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Lists tags associated with a budget or budget action resource. |
-| `TagResource` | - | - | `ResourceARN`, `ResourceTags` | - | `TagResourceResponse` | `AccessDeniedException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException` | Creates tags for a budget or budget action resource. |
-| `UntagResource` | - | - | `ResourceARN`, `ResourceTagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Deletes tags associated with a budget or budget action resource. |
-| `UpdateBudget` | - | - | `AccountId`, `NewBudget` | - | `UpdateBudgetResponse` | `AccessDeniedException`, `BillingViewHealthStatusException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException` | Updates a budget. You can change every part of a budget except for the `budgetName` and the `calculatedSpend`. |
-| `UpdateBudgetAction` | - | - | `AccountId`, `ActionId`, `BudgetName` | - | `UpdateBudgetActionResponse` | `AccessDeniedException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ResourceLockedException`, `ThrottlingException` | Updates a budget action. |
-| `UpdateNotification` | - | - | `AccountId`, `BudgetName`, `NewNotification`, `OldNotification` | - | `UpdateNotificationResponse` | `AccessDeniedException`, `DuplicateRecordException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Updates a notification. |
-| `UpdateSubscriber` | - | - | `AccountId`, `BudgetName`, `NewSubscriber`, `Notification`, `OldSubscriber` | - | `UpdateSubscriberResponse` | `AccessDeniedException`, `DuplicateRecordException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Updates a subscriber. |
+| `CreateBudget` | `-` | - | `AccountId`, `Budget` | - | `CreateBudgetResponse` | `AccessDeniedException`, `BillingViewHealthStatusException`, `CreationLimitExceededException`, `DuplicateRecordException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException` | Creates a budget and, if included, notifications and subscribers. Only one of BudgetLimit or PlannedBudgetLimits can be present in the syntax at one time. Use the syntax that matches your use case. The Request Syntax ... |
+| `CreateBudgetAction` | `-` | - | `AccountId`, `BudgetName`, `NotificationType`, `ActionType`, `ActionThreshold`, `Definition`, `ExecutionRoleArn`, `ApprovalModel`, `Subscribers` | - | `CreateBudgetActionResponse` | `AccessDeniedException`, `CreationLimitExceededException`, `DuplicateRecordException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException` | Creates a budget action. |
+| `CreateNotification` | `-` | - | `AccountId`, `BudgetName`, `Notification`, `Subscribers` | - | `CreateNotificationResponse` | `AccessDeniedException`, `CreationLimitExceededException`, `DuplicateRecordException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Creates a notification. You must create the budget before you create the associated notification. |
+| `CreateSubscriber` | `-` | - | `AccountId`, `BudgetName`, `Notification`, `Subscriber` | - | `CreateSubscriberResponse` | `AccessDeniedException`, `CreationLimitExceededException`, `DuplicateRecordException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Creates a subscriber. You must create the associated budget and notification before you create the subscriber. |
+| `DeleteBudget` | `-` | - | `AccountId`, `BudgetName` | - | `DeleteBudgetResponse` | `AccessDeniedException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Deletes a budget. You can delete your budget at any time. Deleting a budget also deletes the notifications and subscribers that are associated with that budget. |
+| `DeleteBudgetAction` | `-` | - | `AccountId`, `BudgetName`, `ActionId` | - | `DeleteBudgetActionResponse` | `AccessDeniedException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ResourceLockedException`, `ThrottlingException` | Deletes a budget action. |
+| `DeleteNotification` | `-` | - | `AccountId`, `BudgetName`, `Notification` | - | `DeleteNotificationResponse` | `AccessDeniedException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Deletes a notification. Deleting a notification also deletes the subscribers that are associated with the notification. |
+| `DeleteSubscriber` | `-` | - | `AccountId`, `BudgetName`, `Notification`, `Subscriber` | - | `DeleteSubscriberResponse` | `AccessDeniedException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Deletes a subscriber. Deleting the last subscriber to a notification also deletes the notification. |
+| `DescribeBudget` | `-` | - | `AccountId`, `BudgetName` | - | `DescribeBudgetResponse` | `AccessDeniedException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Describes a budget. The Request Syntax section shows the BudgetLimit syntax. For PlannedBudgetLimits , see the Examples section. |
+| `DescribeBudgetAction` | `-` | - | `AccountId`, `BudgetName`, `ActionId` | - | `DescribeBudgetActionResponse` | `AccessDeniedException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Describes a budget action detail. |
+| `DescribeBudgetActionHistories` | `-` | `paginated` | `AccountId`, `BudgetName`, `ActionId` | - | `DescribeBudgetActionHistoriesResponse` | `AccessDeniedException`, `InternalErrorException`, `InvalidNextTokenException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Describes a budget action history detail. |
+| `DescribeBudgetActionsForAccount` | `-` | `paginated` | `AccountId` | - | `DescribeBudgetActionsForAccountResponse` | `AccessDeniedException`, `InternalErrorException`, `InvalidNextTokenException`, `InvalidParameterException`, `ThrottlingException` | Describes all of the budget actions for an account. |
+| `DescribeBudgetActionsForBudget` | `-` | `paginated` | `AccountId`, `BudgetName` | - | `DescribeBudgetActionsForBudgetResponse` | `AccessDeniedException`, `InternalErrorException`, `InvalidNextTokenException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Describes all of the budget actions for a budget. |
+| `DescribeBudgetNotificationsForAccount` | `-` | `paginated` | `AccountId` | - | `DescribeBudgetNotificationsForAccountResponse` | `AccessDeniedException`, `ExpiredNextTokenException`, `InternalErrorException`, `InvalidNextTokenException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Lists the budget names and notifications that are associated with an account. |
+| `DescribeBudgetPerformanceHistory` | `-` | `paginated` | `AccountId`, `BudgetName` | - | `DescribeBudgetPerformanceHistoryResponse` | `AccessDeniedException`, `BillingViewHealthStatusException`, `ExpiredNextTokenException`, `InternalErrorException`, `InvalidNextTokenException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Describes the history for DAILY , MONTHLY , and QUARTERLY budgets. Budget history isn't available for ANNUAL budgets. |
+| `DescribeBudgets` | `-` | `paginated` | `AccountId` | - | `DescribeBudgetsResponse` | `AccessDeniedException`, `ExpiredNextTokenException`, `InternalErrorException`, `InvalidNextTokenException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Lists the budgets that are associated with an account. The Request Syntax section shows the BudgetLimit syntax. For PlannedBudgetLimits , see the Examples section. |
+| `DescribeNotificationsForBudget` | `-` | `paginated` | `AccountId`, `BudgetName` | - | `DescribeNotificationsForBudgetResponse` | `AccessDeniedException`, `ExpiredNextTokenException`, `InternalErrorException`, `InvalidNextTokenException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Lists the notifications that are associated with a budget. |
+| `DescribeSubscribersForNotification` | `-` | `paginated` | `AccountId`, `BudgetName`, `Notification` | - | `DescribeSubscribersForNotificationResponse` | `AccessDeniedException`, `ExpiredNextTokenException`, `InternalErrorException`, `InvalidNextTokenException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Lists the subscribers that are associated with a notification. |
+| `ExecuteBudgetAction` | `-` | - | `AccountId`, `BudgetName`, `ActionId`, `ExecutionType` | - | `ExecuteBudgetActionResponse` | `AccessDeniedException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ResourceLockedException`, `ThrottlingException` | Executes a budget action. |
+| `ListTagsForResource` | `-` | - | `ResourceARN` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Lists tags associated with a budget or budget action resource. |
+| `TagResource` | `-` | - | `ResourceARN`, `ResourceTags` | - | `TagResourceResponse` | `AccessDeniedException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException` | Creates tags for a budget or budget action resource. |
+| `UntagResource` | `-` | - | `ResourceARN`, `ResourceTagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Deletes tags associated with a budget or budget action resource. |
+| `UpdateBudget` | `-` | - | `AccountId`, `NewBudget` | - | `UpdateBudgetResponse` | `AccessDeniedException`, `BillingViewHealthStatusException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException` | Updates a budget. You can change every part of a budget except for the budgetName and the calculatedSpend . When you modify a budget, the calculatedSpend drops to zero until Amazon Web Services has new usage data to ... |
+| `UpdateBudgetAction` | `-` | - | `AccountId`, `BudgetName`, `ActionId` | - | `UpdateBudgetActionResponse` | `AccessDeniedException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ResourceLockedException`, `ThrottlingException` | Updates a budget action. |
+| `UpdateNotification` | `-` | - | `AccountId`, `BudgetName`, `OldNotification`, `NewNotification` | - | `UpdateNotificationResponse` | `AccessDeniedException`, `DuplicateRecordException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Updates a notification. |
+| `UpdateSubscriber` | `-` | - | `AccountId`, `BudgetName`, `Notification`, `OldSubscriber`, `NewSubscriber` | - | `UpdateSubscriberResponse` | `AccessDeniedException`, `DuplicateRecordException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Updates a subscriber. |
 
 ## HTTP Bindings
 
@@ -141,31 +141,56 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `Message` | You are not authorized to use this operation with the given parameters. |
-| `InternalErrorException` | `structure` | `Message` | An error on the server occurred during the processing of your request. |
-| `InvalidParameterException` | `structure` | `Message` | An error on the client occurred. |
-| `ThrottlingException` | `structure` | `Message` | The number of API requests has exceeded the maximum allowed API request throttling limit for the account. |
-| `NotFoundException` | `structure` | `Message` | We can’t locate the resource that you specified. |
-| `InvalidNextTokenException` | `structure` | `Message` | The pagination token is invalid. |
-| `DuplicateRecordException` | `structure` | `Message` | The budget name already exists. |
-| `ExpiredNextTokenException` | `structure` | `Message` | The pagination token expired. |
-| `CreationLimitExceededException` | `structure` | `Message` | You've exceeded the notification or subscriber limit. |
-| `ServiceQuotaExceededException` | `structure` | `Message` | You've reached a Service Quota limit on this resource. |
-| `BillingViewHealthStatusException` | `structure` | `Message` | The billing view status must be HEALTHY to perform this action. |
-| `ResourceLockedException` | `structure` | `Message` | The request was received and recognized by the server, but the server rejected that particular method for the requested resource. |
-| `CreateBudgetRequest` | `structure` | `AccountId`, `Budget`, `NotificationsWithSubscribers`, `ResourceTags` | Request of CreateBudget |
-| `CreateBudgetResponse` | `structure` | - | Response of CreateBudget |
-| `CreateBudgetActionRequest` | `structure` | `AccountId`, `ActionThreshold`, `ActionType`, `ApprovalModel`, `BudgetName`, `Definition`, `ExecutionRoleArn`, `NotificationType`, `ResourceTags`, `Subscribers` | - |
-| `CreateBudgetActionResponse` | `structure` | `AccountId`, `ActionId`, `BudgetName` | - |
-| `CreateNotificationRequest` | `structure` | `AccountId`, `BudgetName`, `Notification`, `Subscribers` | Request of CreateNotification |
-| `CreateNotificationResponse` | `structure` | - | Response of CreateNotification |
-| `CreateSubscriberRequest` | `structure` | `AccountId`, `BudgetName`, `Notification`, `Subscriber` | Request of CreateSubscriber |
-| `CreateSubscriberResponse` | `structure` | - | Response of CreateSubscriber |
-| `DeleteBudgetRequest` | `structure` | `AccountId`, `BudgetName` | Request of DeleteBudget |
-| `DeleteBudgetResponse` | `structure` | - | Response of DeleteBudget |
-| `DeleteBudgetActionRequest` | `structure` | `AccountId`, `ActionId`, `BudgetName` | - |
-| `DeleteBudgetActionResponse` | `structure` | `AccountId`, `Action`, `BudgetName` | - |
-
+| `AccessDeniedException` | `structure` | Message | You are not authorized to use this operation with the given parameters. |
+| `BillingViewHealthStatusException` | `structure` | Message | The billing view status must be HEALTHY to perform this action. Try again when the status is HEALTHY. |
+| `CreationLimitExceededException` | `structure` | Message | You've exceeded the notification or subscriber limit. |
+| `DuplicateRecordException` | `structure` | Message | The budget name already exists. Budget names must be unique within an account. |
+| `ExpiredNextTokenException` | `structure` | Message | The pagination token expired. |
+| `InternalErrorException` | `structure` | Message | An error on the server occurred during the processing of your request. Try again later. |
+| `InvalidNextTokenException` | `structure` | Message | The pagination token is invalid. |
+| `InvalidParameterException` | `structure` | Message | An error on the client occurred. Typically, the cause is an invalid input value. |
+| `NotFoundException` | `structure` | Message | We can’t locate the resource that you specified. |
+| `ResourceLockedException` | `structure` | Message | The request was received and recognized by the server, but the server rejected that particular method for the requested resource. |
+| `ServiceQuotaExceededException` | `structure` | Message | You've reached a Service Quota limit on this resource. |
+| `ThrottlingException` | `structure` | Message | The number of API requests has exceeded the maximum allowed API request throttling limit for the account. |
+| `CreateBudgetRequest` | `structure` | AccountId, Budget, NotificationsWithSubscribers, ResourceTags | Request of CreateBudget |
+| `CreateBudgetResponse` | `structure` | **empty (no members)** | Response of CreateBudget |
+| `CreateBudgetActionRequest` | `structure` | AccountId, BudgetName, NotificationType, ActionType, ActionThreshold, Definition, ExecutionRoleArn, ApprovalModel, Subscribers, ResourceTags | - |
+| `CreateBudgetActionResponse` | `structure` | AccountId, BudgetName, ActionId | - |
+| `CreateNotificationRequest` | `structure` | AccountId, BudgetName, Notification, Subscribers | Request of CreateNotification |
+| `CreateNotificationResponse` | `structure` | **empty (no members)** | Response of CreateNotification |
+| `CreateSubscriberRequest` | `structure` | AccountId, BudgetName, Notification, Subscriber | Request of CreateSubscriber |
+| `CreateSubscriberResponse` | `structure` | **empty (no members)** | Response of CreateSubscriber |
+| `DeleteBudgetRequest` | `structure` | AccountId, BudgetName | Request of DeleteBudget |
+| `DeleteBudgetResponse` | `structure` | **empty (no members)** | Response of DeleteBudget |
+| `DeleteBudgetActionRequest` | `structure` | AccountId, BudgetName, ActionId | - |
+| `DeleteBudgetActionResponse` | `structure` | AccountId, BudgetName, Action | - |
+| `DeleteNotificationRequest` | `structure` | AccountId, BudgetName, Notification | Request of DeleteNotification |
+| `DeleteNotificationResponse` | `structure` | **empty (no members)** | Response of DeleteNotification |
+| `DeleteSubscriberRequest` | `structure` | AccountId, BudgetName, Notification, Subscriber | Request of DeleteSubscriber |
+| `DeleteSubscriberResponse` | `structure` | **empty (no members)** | Response of DeleteSubscriber |
+| `DescribeBudgetRequest` | `structure` | AccountId, BudgetName, ShowFilterExpression | Request of DescribeBudget |
+| `DescribeBudgetResponse` | `structure` | Budget | Response of DescribeBudget |
+| `DescribeBudgetActionRequest` | `structure` | AccountId, BudgetName, ActionId | - |
+| `DescribeBudgetActionResponse` | `structure` | AccountId, BudgetName, Action | - |
+| `DescribeBudgetActionHistoriesRequest` | `structure` | AccountId, BudgetName, ActionId, TimePeriod, MaxResults, NextToken | - |
+| `DescribeBudgetActionHistoriesResponse` | `structure` | ActionHistories, NextToken | - |
+| `DescribeBudgetActionsForAccountRequest` | `structure` | AccountId, MaxResults, NextToken | - |
+| `DescribeBudgetActionsForAccountResponse` | `structure` | Actions, NextToken | - |
+| `DescribeBudgetActionsForBudgetRequest` | `structure` | AccountId, BudgetName, MaxResults, NextToken | - |
+| `DescribeBudgetActionsForBudgetResponse` | `structure` | Actions, NextToken | - |
+| `DescribeBudgetNotificationsForAccountRequest` | `structure` | AccountId, MaxResults, NextToken | - |
+| `DescribeBudgetNotificationsForAccountResponse` | `structure` | BudgetNotificationsForAccount, NextToken | - |
+| `ActionStatus` | `enum` | Standby, Pending, Execution_In_Progress, Execution_Success, Execution_Failure, Reverse_In_Progress, Reverse_Success, Reverse_Failure, Reset_In_Progress, Reset_Failure | - |
+| `ActionSubType` | `enum` | STOP_EC2, STOP_RDS | - |
+| `ActionType` | `enum` | IAM, SCP, SSM | - |
+| `ApprovalModel` | `enum` | AUTO, MANUAL | - |
+| `AutoAdjustType` | `enum` | HISTORICAL, FORECAST | - |
+| `BudgetType` | `enum` | Usage, Cost, RIUtilization, RICoverage, SPUtilization, SPCoverage | The type of a budget. It must be one of the following types: COST , USAGE , RI_UTILIZATION , RI_COVERAGE , SAVINGS_PLANS_UTILIZATION , or SAVINGS_PLANS_COVE ... |
+| `ComparisonOperator` | `enum` | GREATER_THAN, LESS_THAN, EQUAL_TO | The comparison operator of a notification. Currently, the service supports the following operators: GREATER_THAN , LESS_THAN , EQUAL_TO |
+| `Dimension` | `enum` | AZ, INSTANCE_TYPE, LINKED_ACCOUNT, LINKED_ACCOUNT_NAME, OPERATION, PURCHASE_TYPE, REGION, SERVICE, SERVICE_CODE, USAGE_TYPE, USAGE_TYPE_GROUP, RECORD_TYPE, ... (+21) | - |
+| `EventType` | `enum` | System, CreateAction, DeleteAction, UpdateAction, ExecuteAction | - |
+| `ExecutionType` | `enum` | ApproveBudgetAction, RetryBudgetAction, ReverseBudgetAction, ResetBudgetAction | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

@@ -65,9 +65,9 @@ Parity implications:
 
 ### Get
 
-- Operations: `GetAdministratorAccount`, `GetAllowList`, `GetAutomatedDiscoveryConfiguration`, `GetBucketStatistics`, `GetClassificationExportConfiguration`, `GetClassificationScope`, `GetCustomDataIdentifier`, `GetFindingStatistics`, `GetFindings`, `GetFindingsFilter`, `GetFindingsPublicationConfiguration`, `GetInvitationsCount`, `GetMacieSession`, `GetMasterAccount`, `GetMember`, `GetResourceProfile`, `GetRevealConfiguration`, `GetSensitiveDataOccurrences`, `GetSensitiveDataOccurrencesAvailability`, `GetSensitivityInspectionTemplate`, `GetUsageStatistics`, `GetUsageTotals`
+- Operations: `GetAdministratorAccount`, `GetAllowList`, `GetAutomatedDiscoveryConfiguration`, `GetBucketStatistics`, `GetClassificationExportConfiguration`, `GetClassificationScope`, `GetCustomDataIdentifier`, `GetFindings`, `GetFindingsFilter`, `GetFindingsPublicationConfiguration`, `GetFindingStatistics`, `GetInvitationsCount`, `GetMacieSession`, `GetMasterAccount`, `GetMember`, `GetResourceProfile`, `GetRevealConfiguration`, `GetSensitiveDataOccurrences`, `GetSensitiveDataOccurrencesAvailability`, `GetSensitivityInspectionTemplate`, `GetUsageStatistics`, `GetUsageTotals`
 - Traits: `paginated` (1)
-- Common required input members in this group: `findingId`, `findingIds`, `groupBy`, `id`, `resourceArn`
+- Common required input members in this group: `id`, `findingId`
 
 ### List
 
@@ -79,80 +79,82 @@ Parity implications:
 
 - Operations: `UpdateAllowList`, `UpdateAutomatedDiscoveryConfiguration`, `UpdateClassificationJob`, `UpdateClassificationScope`, `UpdateFindingsFilter`, `UpdateMacieSession`, `UpdateMemberSession`, `UpdateOrganizationConfiguration`, `UpdateResourceProfile`, `UpdateResourceProfileDetections`, `UpdateRevealConfiguration`, `UpdateSensitivityInspectionTemplate`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `autoEnable`, `configuration`, `criteria`, `id`, `jobId`, `jobStatus`, `name`, `resourceArn`, `status`
+- Common required input members in this group: `id`, `status`, `resourceArn`
 
 ### Create
 
 - Operations: `CreateAllowList`, `CreateClassificationJob`, `CreateCustomDataIdentifier`, `CreateFindingsFilter`, `CreateInvitations`, `CreateMember`, `CreateSampleFindings`
 - Traits: `idempotency-token` (4)
-- Common required input members in this group: `account`, `accountIds`, `action`, `clientToken`, `criteria`, `findingCriteria`, `jobType`, `name`, `regex`, `s3JobDefinition`
+- Common required input members in this group: `clientToken`, `name`
 
 ### Delete
 
 - Operations: `DeleteAllowList`, `DeleteCustomDataIdentifier`, `DeleteFindingsFilter`, `DeleteInvitations`, `DeleteMember`
-- Common required input members in this group: `accountIds`, `id`
+- Common required input members in this group: `id`
 
 ### Describe
 
 - Operations: `DescribeBuckets`, `DescribeClassificationJob`, `DescribeOrganizationConfiguration`
 - Traits: `paginated` (1)
-- Common required input members in this group: `jobId`
+- Common required input members in this group: -
 
 ### Disassociate
 
 - Operations: `DisassociateFromAdministratorAccount`, `DisassociateFromMasterAccount`, `DisassociateMember`
-- Common required input members in this group: `id`
+- Common required input members in this group: -
 
 ### Batch
 
 - Operations: `BatchGetCustomDataIdentifiers`, `BatchUpdateAutomatedDiscoveryAccounts`
+- Common required input members in this group: -
 
 ### Disable
 
 - Operations: `DisableMacie`, `DisableOrganizationAdminAccount`
-- Common required input members in this group: `adminAccountId`
+- Common required input members in this group: -
 
 ### Enable
 
 - Operations: `EnableMacie`, `EnableOrganizationAdminAccount`
 - Traits: `idempotency-token` (2)
-- Common required input members in this group: `adminAccountId`
+- Common required input members in this group: -
 
 ### Put
 
 - Operations: `PutClassificationExportConfiguration`, `PutFindingsPublicationConfiguration`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `configuration`
+- Common required input members in this group: -
 
 ### Accept
 
 - Operations: `AcceptInvitation`
-- Common required input members in this group: `invitationId`
+- Common required input members in this group: -
 
 ### Decline
 
 - Operations: `DeclineInvitations`
-- Common required input members in this group: `accountIds`
+- Common required input members in this group: -
 
 ### Search
 
 - Operations: `SearchResources`
 - Traits: `paginated` (1)
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Test
 
 - Operations: `TestCustomDataIdentifier`
-- Common required input members in this group: `regex`, `sampleText`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
@@ -191,10 +193,10 @@ Parity implications:
 | `GetClassificationExportConfiguration` | `GET /classification-export-configuration` | - | - | - | `GetClassificationExportConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Retrieves the configuration settings for storing data classification results. |
 | `GetClassificationScope` | `GET /classification-scopes/{id}` | - | `id` | - | `GetClassificationScopeResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves the classification scope settings for an account. |
 | `GetCustomDataIdentifier` | `GET /custom-data-identifiers/{id}` | - | `id` | - | `GetCustomDataIdentifierResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Retrieves the criteria and other settings for a custom data identifier. |
-| `GetFindingStatistics` | `POST /findings/statistics` | - | `groupBy` | - | `GetFindingStatisticsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Retrieves (queries) aggregated statistical data about findings. |
 | `GetFindings` | `POST /findings/describe` | - | `findingIds` | - | `GetFindingsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Retrieves the details of one or more findings. |
 | `GetFindingsFilter` | `GET /findingsfilters/{id}` | - | `id` | - | `GetFindingsFilterResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Retrieves the criteria and other settings for a findings filter. |
 | `GetFindingsPublicationConfiguration` | `GET /findings-publication-configuration` | - | - | - | `GetFindingsPublicationConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Retrieves the configuration settings for publishing findings to Security Hub. |
+| `GetFindingStatistics` | `POST /findings/statistics` | - | `groupBy` | - | `GetFindingStatisticsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Retrieves (queries) aggregated statistical data about findings. |
 | `GetInvitationsCount` | `GET /invitations/count` | - | - | - | `GetInvitationsCountResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Retrieves the count of Amazon Macie membership invitations that were received by an account. |
 | `GetMacieSession` | `GET /macie` | - | - | - | `GetMacieSessionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Retrieves the status and configuration settings for an Amazon Macie account. |
 | `GetMasterAccount` | `GET /master` | - | - | - | `GetMasterAccountResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | (Deprecated) Retrieves information about the Amazon Macie administrator account for an account. This operation has been replaced by the GetAdministratorAccount operation. |
@@ -268,31 +270,56 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | Provides information about an error that occurred due to insufficient access to a specified resource. |
-| `InternalServerException` | `structure` | `message` | Provides information about an error that occurred due to an unknown internal server error, exception, or failure. |
-| `ThrottlingException` | `structure` | `message` | Provides information about an error that occurred because too many requests were sent during a certain amount of time. |
-| `ValidationException` | `structure` | `message` | Provides information about an error that occurred due to a syntax error in a request. |
-| `ResourceNotFoundException` | `structure` | `message` | Provides information about an error that occurred because a specified resource wasn't found. |
-| `ServiceQuotaExceededException` | `structure` | `message` | Provides information about an error that occurred due to one or more service quotas for an account. |
-| `ConflictException` | `structure` | `message` | Provides information about an error that occurred due to a versioning conflict for a specified resource. |
-| `AcceptInvitationRequest` | `structure` | `administratorAccountId`, `invitationId`, `masterAccount` | - |
-| `AcceptInvitationResponse` | `structure` | - | - |
-| `BatchGetCustomDataIdentifiersRequest` | `structure` | `ids` | - |
-| `BatchGetCustomDataIdentifiersResponse` | `structure` | `customDataIdentifiers`, `notFoundIdentifierIds` | - |
-| `BatchUpdateAutomatedDiscoveryAccountsRequest` | `structure` | `accounts` | - |
-| `BatchUpdateAutomatedDiscoveryAccountsResponse` | `structure` | `errors` | - |
-| `CreateAllowListRequest` | `structure` | `clientToken`, `criteria`, `description`, `name`, `tags` | - |
-| `CreateAllowListResponse` | `structure` | `arn`, `id` | - |
-| `CreateClassificationJobRequest` | `structure` | `allowListIds`, `clientToken`, `customDataIdentifierIds`, `description`, `initialRun`, `jobType`, `managedDataIdentifierIds`, `managedDataIdentifierSelector`, `name`, `s3JobDefinition`, `samplingPercentage`, `scheduleFrequency`, ... (+1) | - |
-| `CreateClassificationJobResponse` | `structure` | `jobArn`, `jobId` | - |
-| `CreateCustomDataIdentifierRequest` | `structure` | `clientToken`, `description`, `ignoreWords`, `keywords`, `maximumMatchDistance`, `name`, `regex`, `severityLevels`, `tags` | - |
-| `CreateCustomDataIdentifierResponse` | `structure` | `customDataIdentifierId` | - |
-| `CreateFindingsFilterRequest` | `structure` | `action`, `clientToken`, `description`, `findingCriteria`, `name`, `position`, `tags` | - |
-| `CreateFindingsFilterResponse` | `structure` | `arn`, `id` | - |
-| `CreateInvitationsRequest` | `structure` | `accountIds`, `disableEmailNotification`, `message` | - |
-| `CreateInvitationsResponse` | `structure` | `unprocessedAccounts` | - |
-| `CreateMemberRequest` | `structure` | `account`, `tags` | - |
-
+| `AccessDeniedException` | `structure` | message | Provides information about an error that occurred due to insufficient access to a specified resource. |
+| `ConflictException` | `structure` | message | Provides information about an error that occurred due to a versioning conflict for a specified resource. |
+| `InternalServerException` | `structure` | message | Provides information about an error that occurred due to an unknown internal server error, exception, or failure. |
+| `ResourceNotFoundException` | `structure` | message | Provides information about an error that occurred because a specified resource wasn't found. |
+| `ServiceQuotaExceededException` | `structure` | message | Provides information about an error that occurred due to one or more service quotas for an account. |
+| `ThrottlingException` | `structure` | message | Provides information about an error that occurred because too many requests were sent during a certain amount of time. |
+| `UnprocessableEntityException` | `structure` | message | Provides information about an error that occurred due to an unprocessable entity. |
+| `ValidationException` | `structure` | message | Provides information about an error that occurred due to a syntax error in a request. |
+| `AcceptInvitationRequest` | `structure` | administratorAccountId, invitationId, masterAccount | - |
+| `AcceptInvitationResponse` | `structure` | **empty (no members)** | - |
+| `BatchGetCustomDataIdentifiersRequest` | `structure` | ids | - |
+| `BatchGetCustomDataIdentifiersResponse` | `structure` | customDataIdentifiers, notFoundIdentifierIds | - |
+| `BatchUpdateAutomatedDiscoveryAccountsRequest` | `structure` | accounts | - |
+| `BatchUpdateAutomatedDiscoveryAccountsResponse` | `structure` | errors | - |
+| `CreateAllowListRequest` | `structure` | clientToken, criteria, description, name, tags | - |
+| `CreateAllowListResponse` | `structure` | arn, id | - |
+| `CreateClassificationJobRequest` | `structure` | allowListIds, clientToken, customDataIdentifierIds, description, initialRun, jobType, managedDataIdentifierIds, managedDataIdentifierSelector, name, s3JobDefinition, samplingPercentage, scheduleFrequency, ... (+1) | - |
+| `CreateClassificationJobResponse` | `structure` | jobArn, jobId | - |
+| `CreateCustomDataIdentifierRequest` | `structure` | clientToken, description, ignoreWords, keywords, maximumMatchDistance, name, regex, severityLevels, tags | - |
+| `CreateCustomDataIdentifierResponse` | `structure` | customDataIdentifierId | - |
+| `CreateFindingsFilterRequest` | `structure` | action, clientToken, description, findingCriteria, name, position, tags | - |
+| `CreateFindingsFilterResponse` | `structure` | arn, id | - |
+| `CreateInvitationsRequest` | `structure` | accountIds, disableEmailNotification, message | - |
+| `CreateInvitationsResponse` | `structure` | unprocessedAccounts | - |
+| `CreateMemberRequest` | `structure` | account, tags | - |
+| `CreateMemberResponse` | `structure` | arn | - |
+| `CreateSampleFindingsRequest` | `structure` | findingTypes | - |
+| `CreateSampleFindingsResponse` | `structure` | **empty (no members)** | - |
+| `DeclineInvitationsRequest` | `structure` | accountIds | - |
+| `DeclineInvitationsResponse` | `structure` | unprocessedAccounts | - |
+| `DeleteAllowListRequest` | `structure` | id, ignoreJobChecks | - |
+| `DeleteAllowListResponse` | `structure` | **empty (no members)** | - |
+| `DeleteCustomDataIdentifierRequest` | `structure` | id | - |
+| `DeleteCustomDataIdentifierResponse` | `structure` | **empty (no members)** | - |
+| `DeleteFindingsFilterRequest` | `structure` | id | - |
+| `DeleteFindingsFilterResponse` | `structure` | **empty (no members)** | - |
+| `DeleteInvitationsRequest` | `structure` | accountIds | - |
+| `DeleteInvitationsResponse` | `structure` | unprocessedAccounts | - |
+| `DeleteMemberRequest` | `structure` | id | - |
+| `DeleteMemberResponse` | `structure` | **empty (no members)** | - |
+| `AdminStatus` | `enum` | ENABLED, DISABLING_IN_PROGRESS | The current status of an account as the delegated Amazon Macie administrator account for an organization in Organizations. Possible values are: |
+| `AllowListStatusCode` | `enum` | OK, S3_OBJECT_NOT_FOUND, S3_USER_ACCESS_DENIED, S3_OBJECT_ACCESS_DENIED, S3_THROTTLED, S3_OBJECT_OVERSIZE, S3_OBJECT_EMPTY, UNKNOWN_ERROR | Indicates the current status of an allow list. Depending on the type of criteria that the list specifies, possible values are: |
+| `AllowsUnencryptedObjectUploads` | `enum` | TRUE, FALSE, UNKNOWN | - |
+| `AutoEnableMode` | `enum` | ALL, NEW, NONE | Specifies whether to automatically enable automated sensitive data discovery for accounts that are part of an organization in Amazon Macie. Valid values are: |
+| `AutomatedDiscoveryAccountStatus` | `enum` | ENABLED, DISABLED | The status of automated sensitive data discovery for an Amazon Macie account. Valid values are: |
+| `AutomatedDiscoveryAccountUpdateErrorCode` | `enum` | ACCOUNT_PAUSED, ACCOUNT_NOT_FOUND | The error code that indicates why a request failed to change the status of automated sensitive data discovery for an Amazon Macie account. Possible values are: |
+| `AutomatedDiscoveryMonitoringStatus` | `enum` | MONITORED, NOT_MONITORED | Specifies whether automated sensitive data discovery is currently configured to analyze objects in an S3 bucket. Possible values are: |
+| `AutomatedDiscoveryStatus` | `enum` | ENABLED, DISABLED | The status of the automated sensitive data discovery configuration for an organization in Amazon Macie or a standalone Macie account. Valid values are: |
+| `AvailabilityCode` | `enum` | AVAILABLE, UNAVAILABLE | Specifies whether occurrences of sensitive data can be retrieved for a finding. Possible values are: |
+| `BucketMetadataErrorCode` | `enum` | ACCESS_DENIED, BUCKET_COUNT_EXCEEDS_QUOTA | The code for an error or issue that prevented Amazon Macie from retrieving and processing information about an S3 bucket and the bucket's objects. |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

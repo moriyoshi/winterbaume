@@ -60,83 +60,28 @@ EMR Serverless currently stores application network configuration locally.
 
 ### List
 
-- Operations: `ListApplications`, `ListJobRunAttempts`, `ListJobRuns`, `ListTagsForResource`
-- Traits: `paginated` (3), `readonly` (4)
-- Common required input members in this group: `applicationId`, `jobRunId`, `resourceArn`
-
-### Get
-
-- Operations: `GetApplication`, `GetDashboardForJobRun`, `GetJobRun`
-- Traits: `readonly` (2)
-- Common required input members in this group: `applicationId`, `jobRunId`
-
-### Start
-
-- Operations: `StartApplication`, `StartJobRun`
-- Traits: `idempotency-token` (1), `idempotent` (2)
-- Common required input members in this group: `applicationId`, `clientToken`, `executionRoleArn`
-
-### Cancel
-
-- Operations: `CancelJobRun`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `applicationId`, `jobRunId`
-
-### Create
-
-- Operations: `CreateApplication`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `clientToken`, `releaseLabel`, `type`
-
-### Delete
-
-- Operations: `DeleteApplication`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `applicationId`
-
-### Stop
-
-- Operations: `StopApplication`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `applicationId`
+- Operations: `ListTagsForResource`
+- Traits: `readonly` (1)
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
-
-### Update
-
-- Operations: `UpdateApplication`
-- Traits: `idempotency-token` (1)
-- Common required input members in this group: `applicationId`, `clientToken`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CancelJobRun` | `DELETE /applications/{applicationId}/jobruns/{jobRunId}` | `idempotent` | `applicationId`, `jobRunId` | - | `CancelJobRunResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Cancels a job run. |
-| `CreateApplication` | `POST /applications` | `idempotent`, `idempotency-token` | `clientToken`, `releaseLabel`, `type` | `clientToken` | `CreateApplicationResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Creates an application. |
-| `DeleteApplication` | `DELETE /applications/{applicationId}` | `idempotent` | `applicationId` | - | `DeleteApplicationResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes an application. An application has to be in a stopped or created state in order to be deleted. |
-| `GetApplication` | `GET /applications/{applicationId}` | `readonly` | `applicationId` | - | `GetApplicationResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Displays detailed information about a specified application. |
-| `GetDashboardForJobRun` | `GET /applications/{applicationId}/jobruns/{jobRunId}/dashboard` | - | `applicationId`, `jobRunId` | - | `GetDashboardForJobRunResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Creates and returns a URL that you can use to access the application UIs for a job run. For jobs in a running state, the application UI is a live user interface such as the Spark or Tez web UI. |
-| `GetJobRun` | `GET /applications/{applicationId}/jobruns/{jobRunId}` | `readonly` | `applicationId`, `jobRunId` | - | `GetJobRunResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Displays detailed information about a job run. |
-| `ListApplications` | `GET /applications` | `readonly`, `paginated` | - | - | `ListApplicationsResponse` | `InternalServerException`, `ValidationException` | Lists applications based on a set of parameters. |
-| `ListJobRunAttempts` | `GET /applications/{applicationId}/jobruns/{jobRunId}/attempts` | `readonly`, `paginated` | `applicationId`, `jobRunId` | - | `ListJobRunAttemptsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Lists all attempt of a job run. |
-| `ListJobRuns` | `GET /applications/{applicationId}/jobruns` | `readonly`, `paginated` | `applicationId` | - | `ListJobRunsResponse` | `InternalServerException`, `ValidationException` | Lists job runs based on a set of parameters. |
 | `ListTagsForResource` | `GET /tags/{resourceArn}` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Lists the tags assigned to the resources. |
-| `StartApplication` | `POST /applications/{applicationId}/start` | `idempotent` | `applicationId` | - | `StartApplicationResponse` | `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Starts a specified application and initializes initial capacity if configured. |
-| `StartJobRun` | `POST /applications/{applicationId}/jobruns` | `idempotent`, `idempotency-token` | `applicationId`, `clientToken`, `executionRoleArn` | `clientToken` | `StartJobRunResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Starts a job run. |
-| `StopApplication` | `POST /applications/{applicationId}/stop` | `idempotent` | `applicationId` | - | `StopApplicationResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Stops a specified application and releases initial capacity if configured. All scheduled and running jobs must be completed or cancelled before stopping an application. |
-| `TagResource` | `POST /tags/{resourceArn}` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Assigns tags to resources. A tag is a label that you assign to an Amazon Web Services resource. |
+| `TagResource` | `POST /tags/{resourceArn}` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Assigns tags to resources. A tag is a label that you assign to an Amazon Web Services resource. Each tag consists of a key and an optional value, both of which you define. Tags enable you to categorize your Amazon We ... |
 | `UntagResource` | `DELETE /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Removes tags from resources. |
-| `UpdateApplication` | `PATCH /applications/{applicationId}` | `idempotency-token` | `applicationId`, `clientToken` | `clientToken` | `UpdateApplicationResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Updates a specified application. An application has to be in a stopped or created state in order to be updated. |
 
 ## HTTP Bindings
 
@@ -150,31 +95,17 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `message` | Request processing failed because of an error or failure with the service. |
-| `ValidationException` | `structure` | `message` | The input fails to satisfy the constraints specified by an Amazon Web Services service. |
-| `ResourceNotFoundException` | `structure` | `message` | The specified resource was not found. |
-| `ConflictException` | `structure` | `message` | The request could not be processed because of conflict in the current state of the resource. |
-| `CancelJobRunRequest` | `structure` | `applicationId`, `jobRunId`, `shutdownGracePeriodInSeconds` | - |
-| `CancelJobRunResponse` | `structure` | `applicationId`, `jobRunId` | - |
-| `CreateApplicationRequest` | `structure` | `architecture`, `autoStartConfiguration`, `autoStopConfiguration`, `clientToken`, `diskEncryptionConfiguration`, `identityCenterConfiguration`, `imageConfiguration`, `initialCapacity`, `interactiveConfiguration`, `jobLevelCostAllocationConfiguration`, `maximumCapacity`, `monitoringConfiguration`, ... (+8) | - |
-| `CreateApplicationResponse` | `structure` | `applicationId`, `arn`, `name` | - |
-| `DeleteApplicationRequest` | `structure` | `applicationId` | - |
-| `DeleteApplicationResponse` | `structure` | - | - |
-| `GetApplicationRequest` | `structure` | `applicationId` | - |
-| `GetApplicationResponse` | `structure` | `application` | - |
-| `GetDashboardForJobRunRequest` | `structure` | `accessSystemProfileLogs`, `applicationId`, `attempt`, `jobRunId` | - |
-| `GetDashboardForJobRunResponse` | `structure` | `url` | - |
-| `GetJobRunRequest` | `structure` | `applicationId`, `attempt`, `jobRunId` | - |
-| `GetJobRunResponse` | `structure` | `jobRun` | - |
-| `ListApplicationsRequest` | `structure` | `maxResults`, `nextToken`, `states` | - |
-| `ListApplicationsResponse` | `structure` | `applications`, `nextToken` | - |
-| `ListJobRunAttemptsRequest` | `structure` | `applicationId`, `jobRunId`, `maxResults`, `nextToken` | - |
-| `ListJobRunAttemptsResponse` | `structure` | `jobRunAttempts`, `nextToken` | - |
-| `ListJobRunsRequest` | `structure` | `applicationId`, `createdAtAfter`, `createdAtBefore`, `maxResults`, `mode`, `nextToken`, `states` | - |
-| `ListJobRunsResponse` | `structure` | `jobRuns`, `nextToken` | - |
-| `ListTagsForResourceRequest` | `structure` | `resourceArn` | - |
-| `ListTagsForResourceResponse` | `structure` | `tags` | - |
-
+| `ConflictException` | `structure` | message | The request could not be processed because of conflict in the current state of the resource. |
+| `InternalServerException` | `structure` | message | Request processing failed because of an error or failure with the service. |
+| `ResourceNotFoundException` | `structure` | message | The specified resource was not found. |
+| `ServiceQuotaExceededException` | `structure` | message | The maximum number of resources per account has been reached. |
+| `ValidationException` | `structure` | message | The input fails to satisfy the constraints specified by an Amazon Web Services service. |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `TagResourceRequest` | `structure` | resourceArn, tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | resourceArn, tagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

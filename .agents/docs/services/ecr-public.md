@@ -58,7 +58,7 @@ Parity implications:
 
 ### Describe
 
-- Operations: `DescribeImageTags`, `DescribeImages`, `DescribeRegistries`, `DescribeRepositories`
+- Operations: `DescribeImages`, `DescribeImageTags`, `DescribeRegistries`, `DescribeRepositories`
 - Traits: `paginated` (4)
 - Common required input members in this group: `repositoryName`
 
@@ -70,12 +70,12 @@ Parity implications:
 ### Put
 
 - Operations: `PutImage`, `PutRegistryCatalogData`, `PutRepositoryCatalogData`
-- Common required input members in this group: `catalogData`, `imageManifest`, `repositoryName`
+- Common required input members in this group: `repositoryName`
 
 ### Batch
 
 - Operations: `BatchCheckLayerAvailability`, `BatchDeleteImage`
-- Common required input members in this group: `imageIds`, `layerDigests`, `repositoryName`
+- Common required input members in this group: `repositoryName`
 
 ### Delete
 
@@ -85,70 +85,70 @@ Parity implications:
 ### Complete
 
 - Operations: `CompleteLayerUpload`
-- Common required input members in this group: `layerDigests`, `repositoryName`, `uploadId`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateRepository`
-- Common required input members in this group: `repositoryName`
+- Common required input members in this group: -
 
 ### Initiate
 
 - Operations: `InitiateLayerUpload`
-- Common required input members in this group: `repositoryName`
+- Common required input members in this group: -
 
 ### List
 
 - Operations: `ListTagsForResource`
-- Common required input members in this group: `resourceArn`
+- Common required input members in this group: -
 
 ### Set
 
 - Operations: `SetRepositoryPolicy`
-- Common required input members in this group: `policyText`, `repositoryName`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ### Upload
 
 - Operations: `UploadLayerPart`
-- Common required input members in this group: `layerPartBlob`, `partFirstByte`, `partLastByte`, `repositoryName`, `uploadId`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `BatchCheckLayerAvailability` | - | - | `layerDigests`, `repositoryName` | - | `BatchCheckLayerAvailabilityResponse` | `InvalidParameterException`, `RegistryNotFoundException`, `RepositoryNotFoundException`, `ServerException`, `UnsupportedCommandException` | Checks the availability of one or more image layers that are within a repository in a public registry. When an image is pushed to a repository, each image layer is checked to verify if it has been uploaded before. |
-| `BatchDeleteImage` | - | - | `imageIds`, `repositoryName` | - | `BatchDeleteImageResponse` | `InvalidParameterException`, `RepositoryNotFoundException`, `ServerException`, `UnsupportedCommandException` | Deletes a list of specified images that are within a repository in a public registry. Images are specified with either an `imageTag` or `imageDigest`. |
-| `CompleteLayerUpload` | - | - | `layerDigests`, `repositoryName`, `uploadId` | - | `CompleteLayerUploadResponse` | `EmptyUploadException`, `InvalidLayerException`, `InvalidParameterException`, `LayerAlreadyExistsException`, `LayerPartTooSmallException`, `RegistryNotFoundException`, `RepositoryNotFoundException`, `ServerException`, ... (+2) | Informs Amazon ECR that the image layer upload is complete for a specified public registry, repository name, and upload ID. You can optionally provide a `sha256` digest of the image layer for data validation purposes. |
-| `CreateRepository` | - | - | `repositoryName` | - | `CreateRepositoryResponse` | `InvalidParameterException`, `InvalidTagParameterException`, `LimitExceededException`, `RepositoryAlreadyExistsException`, `ServerException`, `TooManyTagsException`, `UnsupportedCommandException` | Creates a repository in a public registry. For more information, see Amazon ECR repositories in the Amazon Elastic Container Registry User Guide . |
-| `DeleteRepository` | - | - | `repositoryName` | - | `DeleteRepositoryResponse` | `InvalidParameterException`, `RepositoryNotEmptyException`, `RepositoryNotFoundException`, `ServerException`, `UnsupportedCommandException` | Deletes a repository in a public registry. If the repository contains images, you must either manually delete all images in the repository or use the `force` option. |
-| `DeleteRepositoryPolicy` | - | - | `repositoryName` | - | `DeleteRepositoryPolicyResponse` | `InvalidParameterException`, `RepositoryNotFoundException`, `RepositoryPolicyNotFoundException`, `ServerException`, `UnsupportedCommandException` | Deletes the repository policy that's associated with the specified repository. |
-| `DescribeImageTags` | - | `paginated` | `repositoryName` | - | `DescribeImageTagsResponse` | `InvalidParameterException`, `RepositoryNotFoundException`, `ServerException`, `UnsupportedCommandException` | Returns the image tag details for a repository in a public registry. |
-| `DescribeImages` | - | `paginated` | `repositoryName` | - | `DescribeImagesResponse` | `ImageNotFoundException`, `InvalidParameterException`, `RepositoryNotFoundException`, `ServerException`, `UnsupportedCommandException` | Returns metadata that's related to the images in a repository in a public registry. Beginning with Docker version 1.9, the Docker client compresses image layers before pushing them to a V2 Docker registry. |
-| `DescribeRegistries` | - | `paginated` | - | - | `DescribeRegistriesResponse` | `InvalidParameterException`, `ServerException`, `UnsupportedCommandException` | Returns details for a public registry. |
-| `DescribeRepositories` | - | `paginated` | - | - | `DescribeRepositoriesResponse` | `InvalidParameterException`, `RepositoryNotFoundException`, `ServerException`, `UnsupportedCommandException` | Describes repositories that are in a public registry. |
-| `GetAuthorizationToken` | - | - | - | - | `GetAuthorizationTokenResponse` | `InvalidParameterException`, `ServerException`, `UnsupportedCommandException` | Retrieves an authorization token. An authorization token represents your IAM authentication credentials. |
-| `GetRegistryCatalogData` | - | - | - | - | `GetRegistryCatalogDataResponse` | `ServerException`, `UnsupportedCommandException` | Retrieves catalog metadata for a public registry. |
-| `GetRepositoryCatalogData` | - | - | `repositoryName` | - | `GetRepositoryCatalogDataResponse` | `InvalidParameterException`, `RepositoryCatalogDataNotFoundException`, `RepositoryNotFoundException`, `ServerException`, `UnsupportedCommandException` | Retrieve catalog metadata for a repository in a public registry. This metadata is displayed publicly in the Amazon ECR Public Gallery. |
-| `GetRepositoryPolicy` | - | - | `repositoryName` | - | `GetRepositoryPolicyResponse` | `InvalidParameterException`, `RepositoryNotFoundException`, `RepositoryPolicyNotFoundException`, `ServerException`, `UnsupportedCommandException` | Retrieves the repository policy for the specified repository. |
-| `InitiateLayerUpload` | - | - | `repositoryName` | - | `InitiateLayerUploadResponse` | `InvalidParameterException`, `RegistryNotFoundException`, `RepositoryNotFoundException`, `ServerException`, `UnsupportedCommandException` | Notifies Amazon ECR that you intend to upload an image layer. When an image is pushed, the InitiateLayerUpload API is called once for each image layer that hasn't already been uploaded. |
-| `ListTagsForResource` | - | - | `resourceArn` | - | `ListTagsForResourceResponse` | `InvalidParameterException`, `RepositoryNotFoundException`, `ServerException`, `UnsupportedCommandException` | List the tags for an Amazon ECR Public resource. |
-| `PutImage` | - | - | `imageManifest`, `repositoryName` | - | `PutImageResponse` | `ImageAlreadyExistsException`, `ImageDigestDoesNotMatchException`, `ImageTagAlreadyExistsException`, `InvalidParameterException`, `LayersNotFoundException`, `LimitExceededException`, `ReferencedImagesNotFoundException`, `RegistryNotFoundException`, ... (+3) | Creates or updates the image manifest and tags that are associated with an image. When an image is pushed and all new image layers have been uploaded, the PutImage API is called once to create or update the image manifest and the tags that are associated with... |
-| `PutRegistryCatalogData` | - | - | - | - | `PutRegistryCatalogDataResponse` | `InvalidParameterException`, `ServerException`, `UnsupportedCommandException` | Create or update the catalog data for a public registry. |
-| `PutRepositoryCatalogData` | - | - | `catalogData`, `repositoryName` | - | `PutRepositoryCatalogDataResponse` | `InvalidParameterException`, `RepositoryNotFoundException`, `ServerException`, `UnsupportedCommandException` | Creates or updates the catalog data for a repository in a public registry. |
-| `SetRepositoryPolicy` | - | - | `policyText`, `repositoryName` | - | `SetRepositoryPolicyResponse` | `InvalidParameterException`, `RepositoryNotFoundException`, `ServerException`, `UnsupportedCommandException` | Applies a repository policy to the specified public repository to control access permissions. For more information, see Amazon ECR Repository Policies in the Amazon Elastic Container Registry User Guide . |
-| `TagResource` | - | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `InvalidParameterException`, `InvalidTagParameterException`, `RepositoryNotFoundException`, `ServerException`, `TooManyTagsException`, `UnsupportedCommandException` | Associates the specified tags to a resource with the specified `resourceArn`. If existing tags on a resource aren't specified in the request parameters, they aren't changed. |
-| `UntagResource` | - | - | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `InvalidParameterException`, `InvalidTagParameterException`, `RepositoryNotFoundException`, `ServerException`, `TooManyTagsException`, `UnsupportedCommandException` | Deletes specified tags from a resource. |
-| `UploadLayerPart` | - | - | `layerPartBlob`, `partFirstByte`, `partLastByte`, `repositoryName`, `uploadId` | - | `UploadLayerPartResponse` | `InvalidLayerPartException`, `InvalidParameterException`, `LimitExceededException`, `RegistryNotFoundException`, `RepositoryNotFoundException`, `ServerException`, `UnsupportedCommandException`, `UploadNotFoundException` | Uploads an image layer part to Amazon ECR. When an image is pushed, each new image layer is uploaded in parts. |
+| `BatchCheckLayerAvailability` | `-` | - | `repositoryName`, `layerDigests` | - | `BatchCheckLayerAvailabilityResponse` | `InvalidParameterException`, `RegistryNotFoundException`, `RepositoryNotFoundException`, `ServerException`, `UnsupportedCommandException` | Checks the availability of one or more image layers that are within a repository in a public registry. When an image is pushed to a repository, each image layer is checked to verify if it has been uploaded before. If ... |
+| `BatchDeleteImage` | `-` | - | `repositoryName`, `imageIds` | - | `BatchDeleteImageResponse` | `InvalidParameterException`, `RepositoryNotFoundException`, `ServerException`, `UnsupportedCommandException` | Deletes a list of specified images that are within a repository in a public registry. Images are specified with either an imageTag or imageDigest . You can remove a tag from an image by specifying the image's tag in ... |
+| `CompleteLayerUpload` | `-` | - | `repositoryName`, `uploadId`, `layerDigests` | - | `CompleteLayerUploadResponse` | `EmptyUploadException`, `InvalidLayerException`, `InvalidParameterException`, `LayerAlreadyExistsException`, `LayerPartTooSmallException`, `RegistryNotFoundException`, `RepositoryNotFoundException`, `ServerException`, `UnsupportedCommandException`, `UploadNotFoundException` | Informs Amazon ECR that the image layer upload is complete for a specified public registry, repository name, and upload ID. You can optionally provide a sha256 digest of the image layer for data validation purposes. ... |
+| `CreateRepository` | `-` | - | `repositoryName` | - | `CreateRepositoryResponse` | `InvalidParameterException`, `InvalidTagParameterException`, `LimitExceededException`, `RepositoryAlreadyExistsException`, `ServerException`, `TooManyTagsException`, `UnsupportedCommandException` | Creates a repository in a public registry. For more information, see Amazon ECR repositories in the Amazon Elastic Container Registry User Guide . |
+| `DeleteRepository` | `-` | - | `repositoryName` | - | `DeleteRepositoryResponse` | `InvalidParameterException`, `RepositoryNotEmptyException`, `RepositoryNotFoundException`, `ServerException`, `UnsupportedCommandException` | Deletes a repository in a public registry. If the repository contains images, you must either manually delete all images in the repository or use the force option. This option deletes all images on your behalf before ... |
+| `DeleteRepositoryPolicy` | `-` | - | `repositoryName` | - | `DeleteRepositoryPolicyResponse` | `InvalidParameterException`, `RepositoryNotFoundException`, `RepositoryPolicyNotFoundException`, `ServerException`, `UnsupportedCommandException` | Deletes the repository policy that's associated with the specified repository. |
+| `DescribeImages` | `-` | `paginated` | `repositoryName` | - | `DescribeImagesResponse` | `ImageNotFoundException`, `InvalidParameterException`, `RepositoryNotFoundException`, `ServerException`, `UnsupportedCommandException` | Returns metadata that's related to the images in a repository in a public registry. Beginning with Docker version 1.9, the Docker client compresses image layers before pushing them to a V2 Docker registry. The output ... |
+| `DescribeImageTags` | `-` | `paginated` | `repositoryName` | - | `DescribeImageTagsResponse` | `InvalidParameterException`, `RepositoryNotFoundException`, `ServerException`, `UnsupportedCommandException` | Returns the image tag details for a repository in a public registry. |
+| `DescribeRegistries` | `-` | `paginated` | - | - | `DescribeRegistriesResponse` | `InvalidParameterException`, `ServerException`, `UnsupportedCommandException` | Returns details for a public registry. |
+| `DescribeRepositories` | `-` | `paginated` | - | - | `DescribeRepositoriesResponse` | `InvalidParameterException`, `RepositoryNotFoundException`, `ServerException`, `UnsupportedCommandException` | Describes repositories that are in a public registry. |
+| `GetAuthorizationToken` | `-` | - | - | - | `GetAuthorizationTokenResponse` | `InvalidParameterException`, `ServerException`, `UnsupportedCommandException` | Retrieves an authorization token. An authorization token represents your IAM authentication credentials. You can use it to access any Amazon ECR registry that your IAM principal has access to. The authorization token ... |
+| `GetRegistryCatalogData` | `-` | - | - | - | `GetRegistryCatalogDataResponse` | `ServerException`, `UnsupportedCommandException` | Retrieves catalog metadata for a public registry. |
+| `GetRepositoryCatalogData` | `-` | - | `repositoryName` | - | `GetRepositoryCatalogDataResponse` | `InvalidParameterException`, `RepositoryCatalogDataNotFoundException`, `RepositoryNotFoundException`, `ServerException`, `UnsupportedCommandException` | Retrieve catalog metadata for a repository in a public registry. This metadata is displayed publicly in the Amazon ECR Public Gallery. |
+| `GetRepositoryPolicy` | `-` | - | `repositoryName` | - | `GetRepositoryPolicyResponse` | `InvalidParameterException`, `RepositoryNotFoundException`, `RepositoryPolicyNotFoundException`, `ServerException`, `UnsupportedCommandException` | Retrieves the repository policy for the specified repository. |
+| `InitiateLayerUpload` | `-` | - | `repositoryName` | - | `InitiateLayerUploadResponse` | `InvalidParameterException`, `RegistryNotFoundException`, `RepositoryNotFoundException`, `ServerException`, `UnsupportedCommandException` | Notifies Amazon ECR that you intend to upload an image layer. When an image is pushed, the InitiateLayerUpload API is called once for each image layer that hasn't already been uploaded. Whether an image layer uploads ... |
+| `ListTagsForResource` | `-` | - | `resourceArn` | - | `ListTagsForResourceResponse` | `InvalidParameterException`, `RepositoryNotFoundException`, `ServerException`, `UnsupportedCommandException` | List the tags for an Amazon ECR Public resource. |
+| `PutImage` | `-` | - | `repositoryName`, `imageManifest` | - | `PutImageResponse` | `ImageAlreadyExistsException`, `ImageDigestDoesNotMatchException`, `ImageTagAlreadyExistsException`, `InvalidParameterException`, `LayersNotFoundException`, `LimitExceededException`, `ReferencedImagesNotFoundException`, `RegistryNotFoundException`, `RepositoryNotFoundException`, `ServerException`, `UnsupportedCommandException` | Creates or updates the image manifest and tags that are associated with an image. When an image is pushed and all new image layers have been uploaded, the PutImage API is called once to create or update the image man ... |
+| `PutRegistryCatalogData` | `-` | - | - | - | `PutRegistryCatalogDataResponse` | `InvalidParameterException`, `ServerException`, `UnsupportedCommandException` | Create or update the catalog data for a public registry. |
+| `PutRepositoryCatalogData` | `-` | - | `repositoryName`, `catalogData` | - | `PutRepositoryCatalogDataResponse` | `InvalidParameterException`, `RepositoryNotFoundException`, `ServerException`, `UnsupportedCommandException` | Creates or updates the catalog data for a repository in a public registry. |
+| `SetRepositoryPolicy` | `-` | - | `repositoryName`, `policyText` | - | `SetRepositoryPolicyResponse` | `InvalidParameterException`, `RepositoryNotFoundException`, `ServerException`, `UnsupportedCommandException` | Applies a repository policy to the specified public repository to control access permissions. For more information, see Amazon ECR Repository Policies in the Amazon Elastic Container Registry User Guide . |
+| `TagResource` | `-` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `InvalidParameterException`, `InvalidTagParameterException`, `RepositoryNotFoundException`, `ServerException`, `TooManyTagsException`, `UnsupportedCommandException` | Associates the specified tags to a resource with the specified resourceArn . If existing tags on a resource aren't specified in the request parameters, they aren't changed. When a resource is deleted, the tags associ ... |
+| `UntagResource` | `-` | - | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `InvalidParameterException`, `InvalidTagParameterException`, `RepositoryNotFoundException`, `ServerException`, `TooManyTagsException`, `UnsupportedCommandException` | Deletes specified tags from a resource. |
+| `UploadLayerPart` | `-` | - | `repositoryName`, `uploadId`, `partFirstByte`, `partLastByte`, `layerPartBlob` | - | `UploadLayerPartResponse` | `InvalidLayerPartException`, `InvalidParameterException`, `LimitExceededException`, `RegistryNotFoundException`, `RepositoryNotFoundException`, `ServerException`, `UnsupportedCommandException`, `UploadNotFoundException` | Uploads an image layer part to Amazon ECR. When an image is pushed, each new image layer is uploaded in parts. The maximum size of each image layer part can be 20971520 bytes (about 20MB). The UploadLayerPart API is ... |
 
 ## HTTP Bindings
 
@@ -160,31 +160,50 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ServerException` | `structure` | `message` | These errors are usually caused by a server-side issue. |
-| `UnsupportedCommandException` | `structure` | `message` | The action isn't supported in this Region. |
-| `InvalidParameterException` | `structure` | `message` | The specified parameter is invalid. |
-| `RepositoryNotFoundException` | `structure` | `message` | The specified repository can't be found. |
-| `RegistryNotFoundException` | `structure` | `message` | The registry doesn't exist. |
-| `InvalidTagParameterException` | `structure` | `message` | An invalid parameter has been specified. |
-| `LimitExceededException` | `structure` | `message` | The operation didn't succeed because it would have exceeded a service limit for your account. |
-| `TooManyTagsException` | `structure` | `message` | The list of tags on the repository is over the limit. |
-| `UploadNotFoundException` | `structure` | `message` | The upload can't be found, or the specified upload ID isn't valid for this repository. |
-| `RepositoryPolicyNotFoundException` | `structure` | `message` | The specified repository and registry combination doesn't have an associated repository policy. |
-| `BatchCheckLayerAvailabilityRequest` | `structure` | `layerDigests`, `registryId`, `repositoryName` | - |
-| `BatchCheckLayerAvailabilityResponse` | `structure` | `failures`, `layers` | - |
-| `BatchDeleteImageRequest` | `structure` | `imageIds`, `registryId`, `repositoryName` | - |
-| `BatchDeleteImageResponse` | `structure` | `failures`, `imageIds` | - |
-| `CompleteLayerUploadRequest` | `structure` | `layerDigests`, `registryId`, `repositoryName`, `uploadId` | - |
-| `CompleteLayerUploadResponse` | `structure` | `layerDigest`, `registryId`, `repositoryName`, `uploadId` | - |
-| `EmptyUploadException` | `structure` | `message` | The specified layer upload doesn't contain any layer parts. |
-| `InvalidLayerException` | `structure` | `message` | The layer digest calculation performed by Amazon ECR when the image layer doesn't match the digest specified. |
-| `LayerAlreadyExistsException` | `structure` | `message` | The image layer already exists in the associated repository. |
-| `LayerPartTooSmallException` | `structure` | `message` | Layer parts must be at least 5 MiB in size. |
-| `CreateRepositoryRequest` | `structure` | `catalogData`, `repositoryName`, `tags` | - |
-| `CreateRepositoryResponse` | `structure` | `catalogData`, `repository` | - |
-| `RepositoryAlreadyExistsException` | `structure` | `message` | The specified repository already exists in the specified registry. |
-| `DeleteRepositoryRequest` | `structure` | `force`, `registryId`, `repositoryName` | - |
-
+| `EmptyUploadException` | `structure` | message | The specified layer upload doesn't contain any layer parts. |
+| `ImageAlreadyExistsException` | `structure` | message | The specified image has already been pushed, and there were no changes to the manifest or image tag after the last push. |
+| `ImageDigestDoesNotMatchException` | `structure` | message | The specified image digest doesn't match the digest that Amazon ECR calculated for the image. |
+| `ImageNotFoundException` | `structure` | message | The image requested doesn't exist in the specified repository. |
+| `ImageTagAlreadyExistsException` | `structure` | message | The specified image is tagged with a tag that already exists. The repository is configured for tag immutability. |
+| `InvalidLayerException` | `structure` | message | The layer digest calculation performed by Amazon ECR when the image layer doesn't match the digest specified. |
+| `InvalidLayerPartException` | `structure` | registryId, repositoryName, uploadId, lastValidByteReceived, message | The layer part size isn't valid, or the first byte specified isn't consecutive to the last byte of a previous layer part upload. |
+| `InvalidParameterException` | `structure` | message | The specified parameter is invalid. Review the available parameters for the API request. |
+| `InvalidTagParameterException` | `structure` | message | An invalid parameter has been specified. Tag keys can have a maximum character length of 128 characters, and tag values can have a maximum length of 256 cha ... |
+| `LayerAlreadyExistsException` | `structure` | message | The image layer already exists in the associated repository. |
+| `LayerPartTooSmallException` | `structure` | message | Layer parts must be at least 5 MiB in size. |
+| `LayersNotFoundException` | `structure` | message | The specified layers can't be found, or the specified layer isn't valid for this repository. |
+| `LimitExceededException` | `structure` | message | The operation didn't succeed because it would have exceeded a service limit for your account. For more information, see Amazon ECR Service Quotas in the Ama ... |
+| `ReferencedImagesNotFoundException` | `structure` | message | The manifest list is referencing an image that doesn't exist. |
+| `RegistryNotFoundException` | `structure` | message | The registry doesn't exist. |
+| `RepositoryAlreadyExistsException` | `structure` | message | The specified repository already exists in the specified registry. |
+| `RepositoryCatalogDataNotFoundException` | `structure` | message | The repository catalog data doesn't exist. |
+| `RepositoryNotEmptyException` | `structure` | message | The specified repository contains images. To delete a repository that contains images, you must force the deletion with the force parameter. |
+| `RepositoryNotFoundException` | `structure` | message | The specified repository can't be found. Check the spelling of the specified repository and ensure that you're performing operations on the correct registry. |
+| `RepositoryPolicyNotFoundException` | `structure` | message | The specified repository and registry combination doesn't have an associated repository policy. |
+| `ServerException` | `structure` | message | These errors are usually caused by a server-side issue. |
+| `TooManyTagsException` | `structure` | message | The list of tags on the repository is over the limit. The maximum number of tags that can be applied to a repository is 50. |
+| `UnsupportedCommandException` | `structure` | message | The action isn't supported in this Region. |
+| `UploadNotFoundException` | `structure` | message | The upload can't be found, or the specified upload ID isn't valid for this repository. |
+| `BatchCheckLayerAvailabilityRequest` | `structure` | registryId, repositoryName, layerDigests | - |
+| `BatchCheckLayerAvailabilityResponse` | `structure` | layers, failures | - |
+| `BatchDeleteImageRequest` | `structure` | registryId, repositoryName, imageIds | - |
+| `BatchDeleteImageResponse` | `structure` | imageIds, failures | - |
+| `CompleteLayerUploadRequest` | `structure` | registryId, repositoryName, uploadId, layerDigests | - |
+| `CompleteLayerUploadResponse` | `structure` | registryId, repositoryName, uploadId, layerDigest | - |
+| `CreateRepositoryRequest` | `structure` | repositoryName, catalogData, tags | - |
+| `CreateRepositoryResponse` | `structure` | repository, catalogData | - |
+| `DeleteRepositoryRequest` | `structure` | registryId, repositoryName, force | - |
+| `DeleteRepositoryResponse` | `structure` | repository | - |
+| `DeleteRepositoryPolicyRequest` | `structure` | registryId, repositoryName | - |
+| `DeleteRepositoryPolicyResponse` | `structure` | registryId, repositoryName, policyText | - |
+| `DescribeImagesRequest` | `structure` | registryId, repositoryName, imageIds, nextToken, maxResults | - |
+| `DescribeImagesResponse` | `structure` | imageDetails, nextToken | - |
+| `DescribeImageTagsRequest` | `structure` | registryId, repositoryName, nextToken, maxResults | - |
+| `DescribeImageTagsResponse` | `structure` | imageTagDetails, nextToken | - |
+| `ImageFailureCode` | `enum` | InvalidImageDigest, InvalidImageTag, ImageTagDoesNotMatchDigest, ImageNotFound, MissingDigestAndTag, ImageReferencedByManifestList, KmsError | - |
+| `LayerAvailability` | `enum` | AVAILABLE, UNAVAILABLE | - |
+| `LayerFailureCode` | `enum` | InvalidLayerDigest, MissingLayerDigest | - |
+| `RegistryAliasStatus` | `enum` | ACTIVE, PENDING, REJECTED | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

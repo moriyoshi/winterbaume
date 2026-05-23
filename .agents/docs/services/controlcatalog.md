@@ -47,25 +47,15 @@ Welcome to the Control Catalog API reference. This guide is for developers who n
 
 ### List
 
-- Operations: `ListCommonControls`, `ListControlMappings`, `ListControls`, `ListDomains`, `ListObjectives`
-- Traits: `paginated` (5), `readonly` (5)
-
-### Get
-
-- Operations: `GetControl`
-- Traits: `readonly` (1)
-- Common required input members in this group: `ControlArn`
+- Operations: `ListControlMappings`
+- Traits: `readonly` (1), `paginated` (1)
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `GetControl` | `POST /get-control` | `readonly` | `ControlArn` | - | `GetControlResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns details about a specific control, most notably a list of Amazon Web Services Regions where this control is supported. Input a value for the ControlArn parameter, in ARN form. |
-| `ListCommonControls` | `POST /common-controls` | `readonly`, `paginated` | - | - | `ListCommonControlsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a paginated list of common controls from the Amazon Web Services Control Catalog. You can apply an optional filter to see common controls that have a specific objective. |
 | `ListControlMappings` | `POST /list-control-mappings` | `readonly`, `paginated` | - | - | `ListControlMappingsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a paginated list of control mappings from the Control Catalog. Control mappings show relationships between controls and other entities, such as common controls or compliance frameworks. |
-| `ListControls` | `POST /list-controls` | `readonly`, `paginated` | - | - | `ListControlsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a paginated list of all available controls in the Control Catalog library. Allows you to discover available controls. |
-| `ListDomains` | `POST /domains` | `readonly`, `paginated` | - | - | `ListDomainsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a paginated list of domains from the Control Catalog. |
-| `ListObjectives` | `POST /objectives` | `readonly`, `paginated` | - | - | `ListObjectivesResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a paginated list of objectives from the Control Catalog. You can apply an optional filter to see the objectives that belong to a specific domain. |
 
 ## HTTP Bindings
 
@@ -79,24 +69,18 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `Message` | You do not have sufficient access to perform this action. |
-| `InternalServerException` | `structure` | `Message` | An internal service error occurred during the processing of your request. |
-| `ThrottlingException` | `structure` | `Message` | The request was denied due to request throttling. |
-| `ValidationException` | `structure` | `Message` | The request has invalid or missing parameters. |
-| `GetControlRequest` | `structure` | `ControlArn` | - |
-| `GetControlResponse` | `structure` | `Aliases`, `Arn`, `Behavior`, `CreateTime`, `Description`, `GovernedResources`, `Implementation`, `Name`, `Parameters`, `RegionConfiguration`, `Severity` | - |
-| `ResourceNotFoundException` | `structure` | `Message` | The requested resource does not exist. |
-| `ListCommonControlsRequest` | `structure` | `CommonControlFilter`, `MaxResults`, `NextToken` | - |
-| `ListCommonControlsResponse` | `structure` | `CommonControls`, `NextToken` | - |
-| `ListControlMappingsRequest` | `structure` | `Filter`, `MaxResults`, `NextToken` | - |
-| `ListControlMappingsResponse` | `structure` | `ControlMappings`, `NextToken` | - |
-| `ListControlsRequest` | `structure` | `Filter`, `MaxResults`, `NextToken` | - |
-| `ListControlsResponse` | `structure` | `Controls`, `NextToken` | - |
-| `ListDomainsRequest` | `structure` | `MaxResults`, `NextToken` | - |
-| `ListDomainsResponse` | `structure` | `Domains`, `NextToken` | - |
-| `ListObjectivesRequest` | `structure` | `MaxResults`, `NextToken`, `ObjectiveFilter` | - |
-| `ListObjectivesResponse` | `structure` | `NextToken`, `Objectives` | - |
-
+| `AccessDeniedException` | `structure` | Message | You do not have sufficient access to perform this action. |
+| `InternalServerException` | `structure` | Message | An internal service error occurred during the processing of your request. Try again later. |
+| `ResourceNotFoundException` | `structure` | Message | The requested resource does not exist. |
+| `ThrottlingException` | `structure` | Message | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | Message | The request has invalid or missing parameters. |
+| `ListControlMappingsRequest` | `structure` | NextToken, MaxResults, Filter | - |
+| `ListControlMappingsResponse` | `structure` | ControlMappings, NextToken | - |
+| `ControlBehavior` | `enum` | PREVENTIVE, PROACTIVE, DETECTIVE | - |
+| `ControlRelationType` | `enum` | COMPLEMENTARY, ALTERNATIVE, MUTUALLY_EXCLUSIVE | - |
+| `ControlScope` | `enum` | GLOBAL, REGIONAL | - |
+| `ControlSeverity` | `enum` | LOW, MEDIUM, HIGH, CRITICAL | - |
+| `MappingType` | `enum` | FRAMEWORK, COMMON_CONTROL, RELATED_CONTROL | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

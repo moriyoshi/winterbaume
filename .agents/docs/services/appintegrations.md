@@ -63,65 +63,65 @@ Parity implications:
 
 - Operations: `ListApplicationAssociations`, `ListApplications`, `ListDataIntegrationAssociations`, `ListDataIntegrations`, `ListEventIntegrationAssociations`, `ListEventIntegrations`, `ListTagsForResource`
 - Traits: `paginated` (6)
-- Common required input members in this group: `ApplicationId`, `DataIntegrationIdentifier`, `EventIntegrationName`, `resourceArn`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateApplication`, `CreateDataIntegration`, `CreateDataIntegrationAssociation`, `CreateEventIntegration`
 - Traits: `idempotency-token` (4)
-- Common required input members in this group: `ApplicationSourceConfig`, `DataIntegrationIdentifier`, `EventBridgeBus`, `EventFilter`, `KmsKey`, `Name`, `Namespace`
+- Common required input members in this group: `Name`
 
 ### Update
 
 - Operations: `UpdateApplication`, `UpdateDataIntegration`, `UpdateDataIntegrationAssociation`, `UpdateEventIntegration`
-- Common required input members in this group: `Arn`, `DataIntegrationAssociationIdentifier`, `DataIntegrationIdentifier`, `ExecutionConfiguration`, `Identifier`, `Name`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteApplication`, `DeleteDataIntegration`, `DeleteEventIntegration`
-- Common required input members in this group: `Arn`, `DataIntegrationIdentifier`, `Name`
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetApplication`, `GetDataIntegration`, `GetEventIntegration`
-- Common required input members in this group: `Arn`, `Identifier`, `Name`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateApplication` | `POST /applications` | `idempotency-token` | `ApplicationSourceConfig`, `Name`, `Namespace` | `ClientToken` | `CreateApplicationResponse` | `AccessDeniedException`, `DuplicateResourceException`, `InternalServiceError`, `InvalidRequestException`, `ResourceQuotaExceededException`, `ThrottlingException`, `UnsupportedOperationException` | Creates and persists an Application resource. |
-| `CreateDataIntegration` | `POST /dataIntegrations` | `idempotency-token` | `KmsKey`, `Name` | `ClientToken` | `CreateDataIntegrationResponse` | `AccessDeniedException`, `DuplicateResourceException`, `InternalServiceError`, `InvalidRequestException`, `ResourceQuotaExceededException`, `ThrottlingException` | Creates and persists a DataIntegration resource. You cannot create a DataIntegration association for a DataIntegration that has been previously associated. |
+| `CreateApplication` | `POST /applications` | `idempotency-token` | `Name`, `Namespace`, `ApplicationSourceConfig` | `ClientToken` | `CreateApplicationResponse` | `AccessDeniedException`, `DuplicateResourceException`, `InternalServiceError`, `InvalidRequestException`, `ResourceQuotaExceededException`, `ThrottlingException`, `UnsupportedOperationException` | Creates and persists an Application resource. |
+| `CreateDataIntegration` | `POST /dataIntegrations` | `idempotency-token` | `Name`, `KmsKey` | `ClientToken` | `CreateDataIntegrationResponse` | `AccessDeniedException`, `DuplicateResourceException`, `InternalServiceError`, `InvalidRequestException`, `ResourceQuotaExceededException`, `ThrottlingException` | Creates and persists a DataIntegration resource. You cannot create a DataIntegration association for a DataIntegration that has been previously associated. Use a different DataIntegration, or recreate the DataIntegra ... |
 | `CreateDataIntegrationAssociation` | `POST /dataIntegrations/{DataIntegrationIdentifier}/associations` | `idempotency-token` | `DataIntegrationIdentifier` | `ClientToken` | `CreateDataIntegrationAssociationResponse` | `AccessDeniedException`, `InternalServiceError`, `InvalidRequestException`, `ResourceNotFoundException`, `ResourceQuotaExceededException`, `ThrottlingException` | Creates and persists a DataIntegrationAssociation resource. |
-| `CreateEventIntegration` | `POST /eventIntegrations` | `idempotency-token` | `EventBridgeBus`, `EventFilter`, `Name` | `ClientToken` | `CreateEventIntegrationResponse` | `AccessDeniedException`, `DuplicateResourceException`, `InternalServiceError`, `InvalidRequestException`, `ResourceQuotaExceededException`, `ThrottlingException` | Creates an EventIntegration, given a specified name, description, and a reference to an Amazon EventBridge bus in your account and a partner event source that pushes events to that bus. No objects are created in the your account, only metadata that is... |
+| `CreateEventIntegration` | `POST /eventIntegrations` | `idempotency-token` | `Name`, `EventFilter`, `EventBridgeBus` | `ClientToken` | `CreateEventIntegrationResponse` | `AccessDeniedException`, `DuplicateResourceException`, `InternalServiceError`, `InvalidRequestException`, `ResourceQuotaExceededException`, `ThrottlingException` | Creates an EventIntegration, given a specified name, description, and a reference to an Amazon EventBridge bus in your account and a partner event source that pushes events to that bus. No objects are created in the ... |
 | `DeleteApplication` | `DELETE /applications/{Arn}` | - | `Arn` | - | `DeleteApplicationResponse` | `AccessDeniedException`, `InternalServiceError`, `InvalidRequestException`, `ResourceNotFoundException`, `ThrottlingException` | Deletes the Application. Only Applications that don't have any Application Associations can be deleted. |
-| `DeleteDataIntegration` | `DELETE /dataIntegrations/{DataIntegrationIdentifier}` | - | `DataIntegrationIdentifier` | - | `DeleteDataIntegrationResponse` | `AccessDeniedException`, `InternalServiceError`, `InvalidRequestException`, `ResourceNotFoundException`, `ThrottlingException` | Deletes the DataIntegration. Only DataIntegrations that don't have any DataIntegrationAssociations can be deleted. |
+| `DeleteDataIntegration` | `DELETE /dataIntegrations/{DataIntegrationIdentifier}` | - | `DataIntegrationIdentifier` | - | `DeleteDataIntegrationResponse` | `AccessDeniedException`, `InternalServiceError`, `InvalidRequestException`, `ResourceNotFoundException`, `ThrottlingException` | Deletes the DataIntegration. Only DataIntegrations that don't have any DataIntegrationAssociations can be deleted. Deleting a DataIntegration also deletes the underlying Amazon AppFlow flow and service linked role. Y ... |
 | `DeleteEventIntegration` | `DELETE /eventIntegrations/{Name}` | - | `Name` | - | `DeleteEventIntegrationResponse` | `AccessDeniedException`, `InternalServiceError`, `InvalidRequestException`, `ResourceNotFoundException`, `ThrottlingException` | Deletes the specified existing event integration. If the event integration is associated with clients, the request is rejected. |
 | `GetApplication` | `GET /applications/{Arn}` | - | `Arn` | - | `GetApplicationResponse` | `AccessDeniedException`, `InternalServiceError`, `InvalidRequestException`, `ResourceNotFoundException`, `ThrottlingException` | Get an Application resource. |
-| `GetDataIntegration` | `GET /dataIntegrations/{Identifier}` | - | `Identifier` | - | `GetDataIntegrationResponse` | `AccessDeniedException`, `InternalServiceError`, `InvalidRequestException`, `ResourceNotFoundException`, `ThrottlingException` | Returns information about the DataIntegration. You cannot create a DataIntegration association for a DataIntegration that has been previously associated. |
+| `GetDataIntegration` | `GET /dataIntegrations/{Identifier}` | - | `Identifier` | - | `GetDataIntegrationResponse` | `AccessDeniedException`, `InternalServiceError`, `InvalidRequestException`, `ResourceNotFoundException`, `ThrottlingException` | Returns information about the DataIntegration. You cannot create a DataIntegration association for a DataIntegration that has been previously associated. Use a different DataIntegration, or recreate the DataIntegrati ... |
 | `GetEventIntegration` | `GET /eventIntegrations/{Name}` | - | `Name` | - | `GetEventIntegrationResponse` | `AccessDeniedException`, `InternalServiceError`, `InvalidRequestException`, `ResourceNotFoundException`, `ThrottlingException` | Returns information about the event integration. |
 | `ListApplicationAssociations` | `GET /applications/{ApplicationId}/associations` | `paginated` | `ApplicationId` | - | `ListApplicationAssociationsResponse` | `AccessDeniedException`, `InternalServiceError`, `InvalidRequestException`, `ResourceNotFoundException`, `ThrottlingException` | Returns a paginated list of application associations for an application. |
 | `ListApplications` | `GET /applications` | `paginated` | - | - | `ListApplicationsResponse` | `AccessDeniedException`, `InternalServiceError`, `InvalidRequestException`, `ThrottlingException` | Lists applications in the account. |
-| `ListDataIntegrationAssociations` | `GET /dataIntegrations/{DataIntegrationIdentifier}/associations` | `paginated` | `DataIntegrationIdentifier` | - | `ListDataIntegrationAssociationsResponse` | `AccessDeniedException`, `InternalServiceError`, `InvalidRequestException`, `ResourceNotFoundException`, `ThrottlingException` | Returns a paginated list of DataIntegration associations in the account. You cannot create a DataIntegration association for a DataIntegration that has been previously associated. |
-| `ListDataIntegrations` | `GET /dataIntegrations` | `paginated` | - | - | `ListDataIntegrationsResponse` | `AccessDeniedException`, `InternalServiceError`, `InvalidRequestException`, `ThrottlingException` | Returns a paginated list of DataIntegrations in the account. You cannot create a DataIntegration association for a DataIntegration that has been previously associated. |
+| `ListDataIntegrationAssociations` | `GET /dataIntegrations/{DataIntegrationIdentifier}/associations` | `paginated` | `DataIntegrationIdentifier` | - | `ListDataIntegrationAssociationsResponse` | `AccessDeniedException`, `InternalServiceError`, `InvalidRequestException`, `ResourceNotFoundException`, `ThrottlingException` | Returns a paginated list of DataIntegration associations in the account. You cannot create a DataIntegration association for a DataIntegration that has been previously associated. Use a different DataIntegration, or ... |
+| `ListDataIntegrations` | `GET /dataIntegrations` | `paginated` | - | - | `ListDataIntegrationsResponse` | `AccessDeniedException`, `InternalServiceError`, `InvalidRequestException`, `ThrottlingException` | Returns a paginated list of DataIntegrations in the account. You cannot create a DataIntegration association for a DataIntegration that has been previously associated. Use a different DataIntegration, or recreate the ... |
 | `ListEventIntegrationAssociations` | `GET /eventIntegrations/{EventIntegrationName}/associations` | `paginated` | `EventIntegrationName` | - | `ListEventIntegrationAssociationsResponse` | `AccessDeniedException`, `InternalServiceError`, `InvalidRequestException`, `ResourceNotFoundException`, `ThrottlingException` | Returns a paginated list of event integration associations in the account. |
 | `ListEventIntegrations` | `GET /eventIntegrations` | `paginated` | - | - | `ListEventIntegrationsResponse` | `AccessDeniedException`, `InternalServiceError`, `InvalidRequestException`, `ThrottlingException` | Returns a paginated list of event integrations in the account. |
 | `ListTagsForResource` | `GET /tags/{resourceArn}` | - | `resourceArn` | - | `ListTagsForResourceResponse` | `InternalServiceError`, `InvalidRequestException`, `ResourceNotFoundException`, `ThrottlingException` | Lists the tags for the specified resource. |
 | `TagResource` | `POST /tags/{resourceArn}` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `InternalServiceError`, `InvalidRequestException`, `ResourceNotFoundException`, `ThrottlingException` | Adds the specified tags to the specified resource. |
 | `UntagResource` | `DELETE /tags/{resourceArn}` | - | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `InternalServiceError`, `InvalidRequestException`, `ResourceNotFoundException`, `ThrottlingException` | Removes the specified tags from the specified resource. |
 | `UpdateApplication` | `PATCH /applications/{Arn}` | - | `Arn` | - | `UpdateApplicationResponse` | `AccessDeniedException`, `InternalServiceError`, `InvalidRequestException`, `ResourceNotFoundException`, `ThrottlingException`, `UnsupportedOperationException` | Updates and persists an Application resource. |
-| `UpdateDataIntegration` | `PATCH /dataIntegrations/{Identifier}` | - | `Identifier` | - | `UpdateDataIntegrationResponse` | `AccessDeniedException`, `InternalServiceError`, `InvalidRequestException`, `ResourceNotFoundException`, `ThrottlingException` | Updates the description of a DataIntegration. You cannot create a DataIntegration association for a DataIntegration that has been previously associated. |
-| `UpdateDataIntegrationAssociation` | `PATCH /dataIntegrations/{DataIntegrationIdentifier}/associations/{DataIntegrationAssociationIdentifier}` | - | `DataIntegrationAssociationIdentifier`, `DataIntegrationIdentifier`, `ExecutionConfiguration` | - | `UpdateDataIntegrationAssociationResponse` | `AccessDeniedException`, `InternalServiceError`, `InvalidRequestException`, `ResourceNotFoundException`, `ThrottlingException` | Updates and persists a DataIntegrationAssociation resource. Updating a DataIntegrationAssociation with ExecutionConfiguration will rerun the on-demand job. |
+| `UpdateDataIntegration` | `PATCH /dataIntegrations/{Identifier}` | - | `Identifier` | - | `UpdateDataIntegrationResponse` | `AccessDeniedException`, `InternalServiceError`, `InvalidRequestException`, `ResourceNotFoundException`, `ThrottlingException` | Updates the description of a DataIntegration. You cannot create a DataIntegration association for a DataIntegration that has been previously associated. Use a different DataIntegration, or recreate the DataIntegratio ... |
+| `UpdateDataIntegrationAssociation` | `PATCH /dataIntegrations/{DataIntegrationIdentifier}/associations/{DataIntegrationAssociationIdentifier}` | - | `DataIntegrationIdentifier`, `DataIntegrationAssociationIdentifier`, `ExecutionConfiguration` | - | `UpdateDataIntegrationAssociationResponse` | `AccessDeniedException`, `InternalServiceError`, `InvalidRequestException`, `ResourceNotFoundException`, `ThrottlingException` | Updates and persists a DataIntegrationAssociation resource. Updating a DataIntegrationAssociation with ExecutionConfiguration will rerun the on-demand job. |
 | `UpdateEventIntegration` | `PATCH /eventIntegrations/{Name}` | - | `Name` | - | `UpdateEventIntegrationResponse` | `AccessDeniedException`, `InternalServiceError`, `InvalidRequestException`, `ResourceNotFoundException`, `ThrottlingException` | Updates the description of an event integration. |
 
 ## HTTP Bindings
@@ -142,31 +142,50 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServiceError` | `structure` | `Message` | Request processing failed due to an error or failure with the service. |
-| `InvalidRequestException` | `structure` | `Message` | The request is not valid. |
-| `ThrottlingException` | `structure` | `Message` | The throttling limit has been exceeded. |
-| `AccessDeniedException` | `structure` | `Message` | You do not have sufficient access to perform this action. |
-| `ResourceNotFoundException` | `structure` | `Message` | The specified resource was not found. |
-| `ResourceQuotaExceededException` | `structure` | `Message` | The allowed quota for the resource has been exceeded. |
-| `DuplicateResourceException` | `structure` | `Message` | A resource with the specified name already exists. |
-| `UnsupportedOperationException` | `structure` | `Message` | The operation is not supported. |
-| `CreateApplicationRequest` | `structure` | `ApplicationConfig`, `ApplicationSourceConfig`, `ApplicationType`, `ClientToken`, `Description`, `IframeConfig`, `InitializationTimeout`, `IsService`, `Name`, `Namespace`, `Permissions`, `Publications`, ... (+2) | - |
-| `CreateApplicationResponse` | `structure` | `Arn`, `Id` | - |
-| `CreateDataIntegrationRequest` | `structure` | `ClientToken`, `Description`, `FileConfiguration`, `KmsKey`, `Name`, `ObjectConfiguration`, `ScheduleConfig`, `SourceURI`, `Tags` | - |
-| `CreateDataIntegrationResponse` | `structure` | `Arn`, `ClientToken`, `Description`, `FileConfiguration`, `Id`, `KmsKey`, `Name`, `ObjectConfiguration`, `ScheduleConfiguration`, `SourceURI`, `Tags` | - |
-| `CreateDataIntegrationAssociationRequest` | `structure` | `ClientAssociationMetadata`, `ClientId`, `ClientToken`, `DataIntegrationIdentifier`, `DestinationURI`, `ExecutionConfiguration`, `ObjectConfiguration` | - |
-| `CreateDataIntegrationAssociationResponse` | `structure` | `DataIntegrationArn`, `DataIntegrationAssociationId` | - |
-| `CreateEventIntegrationRequest` | `structure` | `ClientToken`, `Description`, `EventBridgeBus`, `EventFilter`, `Name`, `Tags` | - |
-| `CreateEventIntegrationResponse` | `structure` | `EventIntegrationArn` | - |
-| `DeleteApplicationRequest` | `structure` | `Arn` | - |
-| `DeleteApplicationResponse` | `structure` | - | - |
-| `DeleteDataIntegrationRequest` | `structure` | `DataIntegrationIdentifier` | - |
-| `DeleteDataIntegrationResponse` | `structure` | - | - |
-| `DeleteEventIntegrationRequest` | `structure` | `Name` | - |
-| `DeleteEventIntegrationResponse` | `structure` | - | - |
-| `GetApplicationRequest` | `structure` | `Arn` | - |
-| `GetApplicationResponse` | `structure` | `ApplicationConfig`, `ApplicationSourceConfig`, `ApplicationType`, `Arn`, `CreatedTime`, `Description`, `Id`, `IframeConfig`, `InitializationTimeout`, `IsService`, `LastModifiedTime`, `Name`, ... (+5) | - |
-
+| `AccessDeniedException` | `structure` | Message | You do not have sufficient access to perform this action. |
+| `DuplicateResourceException` | `structure` | Message | A resource with the specified name already exists. |
+| `InternalServiceError` | `structure` | Message | Request processing failed due to an error or failure with the service. |
+| `InvalidRequestException` | `structure` | Message | The request is not valid. |
+| `ResourceNotFoundException` | `structure` | Message | The specified resource was not found. |
+| `ResourceQuotaExceededException` | `structure` | Message | The allowed quota for the resource has been exceeded. |
+| `ThrottlingException` | `structure` | Message | The throttling limit has been exceeded. |
+| `UnsupportedOperationException` | `structure` | Message | The operation is not supported. |
+| `CreateApplicationRequest` | `structure` | Name, Namespace, Description, ApplicationSourceConfig, Subscriptions, Publications, ClientToken, Tags, Permissions, IsService, InitializationTimeout, ApplicationConfig, ... (+2) | - |
+| `CreateApplicationResponse` | `structure` | Arn, Id | - |
+| `CreateDataIntegrationRequest` | `structure` | Name, Description, KmsKey, SourceURI, ScheduleConfig, Tags, ClientToken, FileConfiguration, ObjectConfiguration | - |
+| `CreateDataIntegrationResponse` | `structure` | Arn, Id, Name, Description, KmsKey, SourceURI, ScheduleConfiguration, Tags, ClientToken, FileConfiguration, ObjectConfiguration | - |
+| `CreateDataIntegrationAssociationRequest` | `structure` | DataIntegrationIdentifier, ClientId, ObjectConfiguration, DestinationURI, ClientAssociationMetadata, ClientToken, ExecutionConfiguration | - |
+| `CreateDataIntegrationAssociationResponse` | `structure` | DataIntegrationAssociationId, DataIntegrationArn | - |
+| `CreateEventIntegrationRequest` | `structure` | Name, Description, EventFilter, EventBridgeBus, ClientToken, Tags | - |
+| `CreateEventIntegrationResponse` | `structure` | EventIntegrationArn | - |
+| `DeleteApplicationRequest` | `structure` | Arn | - |
+| `DeleteApplicationResponse` | `structure` | **empty (no members)** | - |
+| `DeleteDataIntegrationRequest` | `structure` | DataIntegrationIdentifier | - |
+| `DeleteDataIntegrationResponse` | `structure` | **empty (no members)** | - |
+| `DeleteEventIntegrationRequest` | `structure` | Name | - |
+| `DeleteEventIntegrationResponse` | `structure` | **empty (no members)** | - |
+| `GetApplicationRequest` | `structure` | Arn | - |
+| `GetApplicationResponse` | `structure` | Arn, Id, Name, Namespace, Description, ApplicationSourceConfig, Subscriptions, Publications, CreatedTime, LastModifiedTime, Tags, Permissions, ... (+5) | - |
+| `GetDataIntegrationRequest` | `structure` | Identifier | - |
+| `GetDataIntegrationResponse` | `structure` | Arn, Id, Name, Description, KmsKey, SourceURI, ScheduleConfiguration, Tags, FileConfiguration, ObjectConfiguration | - |
+| `GetEventIntegrationRequest` | `structure` | Name | - |
+| `GetEventIntegrationResponse` | `structure` | Name, Description, EventIntegrationArn, EventBridgeBus, EventFilter, Tags | - |
+| `ListApplicationAssociationsRequest` | `structure` | ApplicationId, NextToken, MaxResults | - |
+| `ListApplicationAssociationsResponse` | `structure` | ApplicationAssociations, NextToken | - |
+| `ListApplicationsRequest` | `structure` | NextToken, MaxResults, ApplicationType | - |
+| `ListApplicationsResponse` | `structure` | Applications, NextToken | - |
+| `ListDataIntegrationAssociationsRequest` | `structure` | DataIntegrationIdentifier, NextToken, MaxResults | - |
+| `ListDataIntegrationAssociationsResponse` | `structure` | DataIntegrationAssociations, NextToken | - |
+| `ListDataIntegrationsRequest` | `structure` | NextToken, MaxResults | - |
+| `ListDataIntegrationsResponse` | `structure` | DataIntegrations, NextToken | - |
+| `ListEventIntegrationAssociationsRequest` | `structure` | EventIntegrationName, NextToken, MaxResults | - |
+| `ListEventIntegrationAssociationsResponse` | `structure` | EventIntegrationAssociations, NextToken | - |
+| `ListEventIntegrationsRequest` | `structure` | NextToken, MaxResults | - |
+| `ListEventIntegrationsResponse` | `structure` | EventIntegrations, NextToken | - |
+| `ApplicationType` | `enum` | STANDARD, SERVICE, MCP_SERVER | The type of application |
+| `ContactHandlingScope` | `enum` | CROSS_CONTACTS, PER_CONTACT | - |
+| `ExecutionMode` | `enum` | ON_DEMAND, SCHEDULED | - |
+| `ExecutionStatus` | `enum` | COMPLETED, IN_PROGRESS, FAILED | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

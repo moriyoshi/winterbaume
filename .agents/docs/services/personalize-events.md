@@ -39,17 +39,17 @@ Amazon Personalize can consume real-time user event data, such as stream or clic
 ### Put
 
 - Operations: `PutActionInteractions`, `PutActions`, `PutEvents`, `PutItems`, `PutUsers`
-- Common required input members in this group: `actionInteractions`, `actions`, `datasetArn`, `eventList`, `items`, `sessionId`, `trackingId`, `users`
+- Common required input members in this group: `trackingId`, `datasetArn`
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `PutActionInteractions` | `POST /action-interactions` | - | `actionInteractions`, `trackingId` | - | `Unit` | `InvalidInputException`, `ResourceInUseException`, `ResourceNotFoundException` | Records action interaction event data. An action interaction event is an interaction between a user and an action . |
-| `PutActions` | `POST /actions` | - | `actions`, `datasetArn` | - | `Unit` | `InvalidInputException`, `ResourceInUseException`, `ResourceNotFoundException` | Adds one or more actions to an Actions dataset. For more information see Importing actions individually. |
-| `PutEvents` | `POST /events` | - | `eventList`, `sessionId`, `trackingId` | - | `Unit` | `InvalidInputException` | Records item interaction event data. For more information see Recording item interaction events. |
-| `PutItems` | `POST /items` | - | `datasetArn`, `items` | - | `Unit` | `InvalidInputException`, `ResourceInUseException`, `ResourceNotFoundException` | Adds one or more items to an Items dataset. For more information see Importing items individually. |
-| `PutUsers` | `POST /users` | - | `datasetArn`, `users` | - | `Unit` | `InvalidInputException`, `ResourceInUseException`, `ResourceNotFoundException` | Adds one or more users to a Users dataset. For more information see Importing users individually. |
+| `PutActionInteractions` | `POST /action-interactions` | - | `trackingId`, `actionInteractions` | - | `Unit` | `InvalidInputException`, `ResourceInUseException`, `ResourceNotFoundException` | Records action interaction event data. An action interaction event is an interaction between a user and an action . For example, a user taking an action, such a enrolling in a membership program or downloading your a ... |
+| `PutActions` | `POST /actions` | - | `datasetArn`, `actions` | - | `Unit` | `InvalidInputException`, `ResourceInUseException`, `ResourceNotFoundException` | Adds one or more actions to an Actions dataset. For more information see Importing actions individually . |
+| `PutEvents` | `POST /events` | - | `trackingId`, `sessionId`, `eventList` | - | `Unit` | `InvalidInputException` | Records item interaction event data. For more information see Recording item interaction events . |
+| `PutItems` | `POST /items` | - | `datasetArn`, `items` | - | `Unit` | `InvalidInputException`, `ResourceInUseException`, `ResourceNotFoundException` | Adds one or more items to an Items dataset. For more information see Importing items individually . |
+| `PutUsers` | `POST /users` | - | `datasetArn`, `users` | - | `Unit` | `InvalidInputException`, `ResourceInUseException`, `ResourceNotFoundException` | Adds one or more users to a Users dataset. For more information see Importing users individually . |
 
 ## HTTP Bindings
 
@@ -61,15 +61,14 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InvalidInputException` | `structure` | `message` | Provide a valid value for the field or parameter. |
-| `ResourceInUseException` | `structure` | `message` | The specified resource is in use. |
-| `ResourceNotFoundException` | `structure` | `message` | Could not find the specified resource. |
-| `PutActionInteractionsRequest` | `structure` | `actionInteractions`, `trackingId` | - |
-| `PutActionsRequest` | `structure` | `actions`, `datasetArn` | - |
-| `PutEventsRequest` | `structure` | `eventList`, `sessionId`, `trackingId`, `userId` | - |
-| `PutItemsRequest` | `structure` | `datasetArn`, `items` | - |
-| `PutUsersRequest` | `structure` | `datasetArn`, `users` | - |
-
+| `InvalidInputException` | `structure` | message | Provide a valid value for the field or parameter. |
+| `ResourceInUseException` | `structure` | message | The specified resource is in use. |
+| `ResourceNotFoundException` | `structure` | message | Could not find the specified resource. |
+| `PutActionInteractionsRequest` | `structure` | trackingId, actionInteractions | - |
+| `PutActionsRequest` | `structure` | datasetArn, actions | - |
+| `PutEventsRequest` | `structure` | trackingId, userId, sessionId, eventList | - |
+| `PutItemsRequest` | `structure` | datasetArn, items | - |
+| `PutUsersRequest` | `structure` | datasetArn, users | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

@@ -41,62 +41,62 @@ This is the Recycle Bin API Reference . This documentation provides descriptions
 
 - Operations: `ListRules`, `ListTagsForResource`
 - Traits: `paginated` (1)
-- Common required input members in this group: `ResourceArn`, `ResourceType`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateRule`
-- Common required input members in this group: `ResourceType`, `RetentionPeriod`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteRule`
-- Common required input members in this group: `Identifier`
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetRule`
-- Common required input members in this group: `Identifier`
+- Common required input members in this group: -
 
 ### Lock
 
 - Operations: `LockRule`
-- Common required input members in this group: `Identifier`, `LockConfiguration`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Unlock
 
 - Operations: `UnlockRule`
-- Common required input members in this group: `Identifier`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateRule`
-- Common required input members in this group: `Identifier`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateRule` | `POST /rules` | - | `ResourceType`, `RetentionPeriod` | - | `CreateRuleResponse` | `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a Recycle Bin retention rule. You can create two types of retention rules: Tag-level retention rules - These retention rules use resource tags to identify the resources to protect. |
+| `CreateRule` | `POST /rules` | - | `RetentionPeriod`, `ResourceType` | - | `CreateRuleResponse` | `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a Recycle Bin retention rule. You can create two types of retention rules: Tag-level retention rules - These retention rules use resource tags to identify the resources to protect. For each retention rule, yo ... |
 | `DeleteRule` | `DELETE /rules/{Identifier}` | - | `Identifier` | - | `DeleteRuleResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes a Recycle Bin retention rule. For more information, see Delete Recycle Bin retention rules in the Amazon Elastic Compute Cloud User Guide . |
 | `GetRule` | `GET /rules/{Identifier}` | - | `Identifier` | - | `GetRuleResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Gets information about a Recycle Bin retention rule. |
 | `ListRules` | `POST /list-rules` | `paginated` | `ResourceType` | - | `ListRulesResponse` | `InternalServerException`, `ValidationException` | Lists the Recycle Bin retention rules in the Region. |
 | `ListTagsForResource` | `GET /tags/{ResourceArn}` | - | `ResourceArn` | - | `ListTagsForResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Lists the tags assigned to a retention rule. |
-| `LockRule` | `PATCH /rules/{Identifier}/lock` | - | `Identifier`, `LockConfiguration` | - | `LockRuleResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Locks a Region-level retention rule. A locked retention rule can't be modified or deleted. |
+| `LockRule` | `PATCH /rules/{Identifier}/lock` | - | `Identifier`, `LockConfiguration` | - | `LockRuleResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Locks a Region-level retention rule. A locked retention rule can't be modified or deleted. You can't lock tag-level retention rules, or Region-level retention rules that have exclusion tags. |
 | `TagResource` | `POST /tags/{ResourceArn}` | - | `ResourceArn`, `Tags` | - | `TagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Assigns tags to the specified retention rule. |
 | `UnlockRule` | `PATCH /rules/{Identifier}/unlock` | - | `Identifier` | - | `UnlockRuleResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Unlocks a retention rule. After a retention rule is unlocked, it can be modified or deleted only after the unlock delay period expires. |
 | `UntagResource` | `DELETE /tags/{ResourceArn}` | - | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Unassigns a tag from a retention rule. |
-| `UpdateRule` | `PATCH /rules/{Identifier}` | - | `Identifier` | - | `UpdateRuleResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Updates an existing Recycle Bin retention rule. You can update a retention rule's description, resource tags, and retention period at any time after creation. |
+| `UpdateRule` | `PATCH /rules/{Identifier}` | - | `Identifier` | - | `UpdateRuleResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Updates an existing Recycle Bin retention rule. You can update a retention rule's description, resource tags, and retention period at any time after creation. You can't update a retention rule's resource type after c ... |
 
 ## HTTP Bindings
 
@@ -110,31 +110,40 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `Message` | The service could not respond to the request due to an internal problem. |
-| `ValidationException` | `structure` | `Message`, `Reason` | One or more of the parameters in the request is not valid. |
-| `ResourceNotFoundException` | `structure` | `Message`, `Reason` | The specified resource was not found. |
-| `ConflictException` | `structure` | `Message`, `Reason` | The specified retention rule lock request can't be completed. |
-| `ServiceQuotaExceededException` | `structure` | `Message`, `Reason` | The request would cause a service quota for the number of tags per resource to be exceeded. |
-| `CreateRuleRequest` | `structure` | `Description`, `ExcludeResourceTags`, `LockConfiguration`, `ResourceTags`, `ResourceType`, `RetentionPeriod`, `Tags` | - |
-| `CreateRuleResponse` | `structure` | `Description`, `ExcludeResourceTags`, `Identifier`, `LockConfiguration`, `LockState`, `ResourceTags`, `ResourceType`, `RetentionPeriod`, `RuleArn`, `Status`, `Tags` | - |
-| `DeleteRuleRequest` | `structure` | `Identifier` | - |
-| `DeleteRuleResponse` | `structure` | - | - |
-| `GetRuleRequest` | `structure` | `Identifier` | - |
-| `GetRuleResponse` | `structure` | `Description`, `ExcludeResourceTags`, `Identifier`, `LockConfiguration`, `LockEndTime`, `LockState`, `ResourceTags`, `ResourceType`, `RetentionPeriod`, `RuleArn`, `Status` | - |
-| `ListRulesRequest` | `structure` | `ExcludeResourceTags`, `LockState`, `MaxResults`, `NextToken`, `ResourceTags`, `ResourceType` | - |
-| `ListRulesResponse` | `structure` | `NextToken`, `Rules` | - |
-| `ListTagsForResourceRequest` | `structure` | `ResourceArn` | - |
-| `ListTagsForResourceResponse` | `structure` | `Tags` | - |
-| `LockRuleRequest` | `structure` | `Identifier`, `LockConfiguration` | - |
-| `LockRuleResponse` | `structure` | `Description`, `ExcludeResourceTags`, `Identifier`, `LockConfiguration`, `LockState`, `ResourceTags`, `ResourceType`, `RetentionPeriod`, `RuleArn`, `Status` | - |
-| `TagResourceRequest` | `structure` | `ResourceArn`, `Tags` | - |
-| `TagResourceResponse` | `structure` | - | - |
-| `UnlockRuleRequest` | `structure` | `Identifier` | - |
-| `UnlockRuleResponse` | `structure` | `Description`, `ExcludeResourceTags`, `Identifier`, `LockConfiguration`, `LockEndTime`, `LockState`, `ResourceTags`, `ResourceType`, `RetentionPeriod`, `RuleArn`, `Status` | - |
-| `UntagResourceRequest` | `structure` | `ResourceArn`, `TagKeys` | - |
-| `UntagResourceResponse` | `structure` | - | - |
-| `UpdateRuleRequest` | `structure` | `Description`, `ExcludeResourceTags`, `Identifier`, `ResourceTags`, `ResourceType`, `RetentionPeriod` | - |
-
+| `ConflictException` | `structure` | Message, Reason | The specified retention rule lock request can't be completed. |
+| `InternalServerException` | `structure` | Message | The service could not respond to the request due to an internal problem. |
+| `ResourceNotFoundException` | `structure` | Message, Reason | The specified resource was not found. |
+| `ServiceQuotaExceededException` | `structure` | Message, Reason | The request would cause a service quota for the number of tags per resource to be exceeded. |
+| `ValidationException` | `structure` | Message, Reason | One or more of the parameters in the request is not valid. |
+| `CreateRuleRequest` | `structure` | RetentionPeriod, Description, Tags, ResourceType, ResourceTags, LockConfiguration, ExcludeResourceTags | - |
+| `CreateRuleResponse` | `structure` | Identifier, RetentionPeriod, Description, Tags, ResourceType, ResourceTags, Status, LockConfiguration, LockState, RuleArn, ExcludeResourceTags | - |
+| `DeleteRuleRequest` | `structure` | Identifier | - |
+| `DeleteRuleResponse` | `structure` | **empty (no members)** | - |
+| `GetRuleRequest` | `structure` | Identifier | - |
+| `GetRuleResponse` | `structure` | Identifier, Description, ResourceType, RetentionPeriod, ResourceTags, Status, LockConfiguration, LockState, LockEndTime, RuleArn, ExcludeResourceTags | - |
+| `ListRulesRequest` | `structure` | MaxResults, NextToken, ResourceType, ResourceTags, LockState, ExcludeResourceTags | - |
+| `ListRulesResponse` | `structure` | Rules, NextToken | - |
+| `ListTagsForResourceRequest` | `structure` | ResourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | Tags | - |
+| `LockRuleRequest` | `structure` | Identifier, LockConfiguration | - |
+| `LockRuleResponse` | `structure` | Identifier, Description, ResourceType, RetentionPeriod, ResourceTags, Status, LockConfiguration, LockState, RuleArn, ExcludeResourceTags | - |
+| `TagResourceRequest` | `structure` | ResourceArn, Tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UnlockRuleRequest` | `structure` | Identifier | - |
+| `UnlockRuleResponse` | `structure` | Identifier, Description, ResourceType, RetentionPeriod, ResourceTags, Status, LockConfiguration, LockState, LockEndTime, RuleArn, ExcludeResourceTags | - |
+| `UntagResourceRequest` | `structure` | ResourceArn, TagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UpdateRuleRequest` | `structure` | Identifier, RetentionPeriod, Description, ResourceType, ResourceTags, ExcludeResourceTags | - |
+| `UpdateRuleResponse` | `structure` | Identifier, RetentionPeriod, Description, ResourceType, ResourceTags, Status, LockState, LockEndTime, RuleArn, ExcludeResourceTags | - |
+| `ConflictExceptionReason` | `enum` | INVALID_RULE_STATE | - |
+| `LockState` | `enum` | LOCKED, PENDING_UNLOCK, UNLOCKED | - |
+| `ResourceNotFoundExceptionReason` | `enum` | RULE_NOT_FOUND | - |
+| `ResourceType` | `enum` | EBS_SNAPSHOT, EC2_IMAGE, EBS_VOLUME | - |
+| `RetentionPeriodUnit` | `enum` | DAYS | - |
+| `RuleStatus` | `enum` | PENDING, AVAILABLE | - |
+| `ServiceQuotaExceededExceptionReason` | `enum` | SERVICE_QUOTA_EXCEEDED | - |
+| `UnlockDelayUnit` | `enum` | DAYS | - |
+| `ValidationExceptionReason` | `enum` | INVALID_PAGE_TOKEN, INVALID_PARAMETER_VALUE | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

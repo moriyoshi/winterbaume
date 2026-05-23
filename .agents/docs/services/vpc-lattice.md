@@ -72,153 +72,62 @@ VPC Lattice currently stores service-network VPC associations and resource gatew
 
 ## Operation Groups
 
-### List
-
-- Operations: `ListAccessLogSubscriptions`, `ListDomainVerifications`, `ListListeners`, `ListResourceConfigurations`, `ListResourceEndpointAssociations`, `ListResourceGateways`, `ListRules`, `ListServiceNetworkResourceAssociations`, `ListServiceNetworkServiceAssociations`, `ListServiceNetworkVpcAssociations`, `ListServiceNetworkVpcEndpointAssociations`, `ListServiceNetworks`, `ListServices`, `ListTagsForResource`, `ListTargetGroups`, `ListTargets`
-- Traits: `paginated` (15), `readonly` (16)
-- Common required input members in this group: `listenerIdentifier`, `resourceArn`, `resourceConfigurationIdentifier`, `resourceIdentifier`, `serviceIdentifier`, `serviceNetworkIdentifier`, `targetGroupIdentifier`
-
 ### Delete
 
-- Operations: `DeleteAccessLogSubscription`, `DeleteAuthPolicy`, `DeleteDomainVerification`, `DeleteListener`, `DeleteResourceConfiguration`, `DeleteResourceEndpointAssociation`, `DeleteResourceGateway`, `DeleteResourcePolicy`, `DeleteRule`, `DeleteService`, `DeleteServiceNetwork`, `DeleteServiceNetworkResourceAssociation`, `DeleteServiceNetworkServiceAssociation`, `DeleteServiceNetworkVpcAssociation`, `DeleteTargetGroup`
-- Traits: `idempotent` (15)
-- Common required input members in this group: `accessLogSubscriptionIdentifier`, `domainVerificationIdentifier`, `listenerIdentifier`, `resourceArn`, `resourceConfigurationIdentifier`, `resourceEndpointAssociationIdentifier`, `resourceGatewayIdentifier`, `resourceIdentifier`, `ruleIdentifier`, `serviceIdentifier`, `serviceNetworkIdentifier`, `serviceNetworkResourceAssociationIdentifier`, `serviceNetworkServiceAssociationIdentifier`, `serviceNetworkVpcAssociationIdentifier`, `targetGroupIdentifier`
+- Operations: `DeleteAuthPolicy`, `DeleteResourcePolicy`
+- Traits: `idempotent` (2)
+- Common required input members in this group: -
 
 ### Get
 
-- Operations: `GetAccessLogSubscription`, `GetAuthPolicy`, `GetDomainVerification`, `GetListener`, `GetResourceConfiguration`, `GetResourceGateway`, `GetResourcePolicy`, `GetRule`, `GetService`, `GetServiceNetwork`, `GetServiceNetworkResourceAssociation`, `GetServiceNetworkServiceAssociation`, `GetServiceNetworkVpcAssociation`, `GetTargetGroup`
-- Traits: `readonly` (14)
-- Common required input members in this group: `accessLogSubscriptionIdentifier`, `domainVerificationIdentifier`, `listenerIdentifier`, `resourceArn`, `resourceConfigurationIdentifier`, `resourceGatewayIdentifier`, `resourceIdentifier`, `ruleIdentifier`, `serviceIdentifier`, `serviceNetworkIdentifier`, `serviceNetworkResourceAssociationIdentifier`, `serviceNetworkServiceAssociationIdentifier`, `serviceNetworkVpcAssociationIdentifier`, `targetGroupIdentifier`
+- Operations: `GetAuthPolicy`, `GetResourcePolicy`
+- Traits: `readonly` (2)
+- Common required input members in this group: -
 
-### Create
+### List
 
-- Operations: `CreateAccessLogSubscription`, `CreateListener`, `CreateResourceConfiguration`, `CreateResourceGateway`, `CreateRule`, `CreateService`, `CreateServiceNetwork`, `CreateServiceNetworkResourceAssociation`, `CreateServiceNetworkServiceAssociation`, `CreateServiceNetworkVpcAssociation`, `CreateTargetGroup`
-- Traits: `idempotency-token` (11), `idempotent` (11)
-- Common required input members in this group: `action`, `defaultAction`, `destinationArn`, `listenerIdentifier`, `match`, `name`, `priority`, `protocol`, `resourceConfigurationIdentifier`, `resourceIdentifier`, `serviceIdentifier`, `serviceNetworkIdentifier`, `type`, `vpcIdentifier`
-
-### Update
-
-- Operations: `UpdateAccessLogSubscription`, `UpdateListener`, `UpdateResourceConfiguration`, `UpdateResourceGateway`, `UpdateRule`, `UpdateService`, `UpdateServiceNetwork`, `UpdateServiceNetworkVpcAssociation`, `UpdateTargetGroup`
-- Traits: `idempotent` (6)
-- Common required input members in this group: `accessLogSubscriptionIdentifier`, `authType`, `defaultAction`, `destinationArn`, `healthCheck`, `listenerIdentifier`, `resourceConfigurationIdentifier`, `resourceGatewayIdentifier`, `ruleIdentifier`, `securityGroupIds`, `serviceIdentifier`, `serviceNetworkIdentifier`, `serviceNetworkVpcAssociationIdentifier`, `targetGroupIdentifier`
+- Operations: `ListServiceNetworkVpcEndpointAssociations`, `ListTagsForResource`
+- Traits: `readonly` (2), `paginated` (1)
+- Common required input members in this group: -
 
 ### Put
 
 - Operations: `PutAuthPolicy`, `PutResourcePolicy`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `policy`, `resourceArn`, `resourceIdentifier`
+- Common required input members in this group: `policy`
 
 ### Batch
 
 - Operations: `BatchUpdateRule`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `listenerIdentifier`, `rules`, `serviceIdentifier`
-
-### Deregister
-
-- Operations: `DeregisterTargets`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `targetGroupIdentifier`, `targets`
-
-### Register
-
-- Operations: `RegisterTargets`
-- Common required input members in this group: `targetGroupIdentifier`, `targets`
-
-### Start
-
-- Operations: `StartDomainVerification`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `domainName`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `BatchUpdateRule` | `PATCH /services/{serviceIdentifier}/listeners/{listenerIdentifier}/rules` | `idempotent` | `listenerIdentifier`, `rules`, `serviceIdentifier` | - | `BatchUpdateRuleResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the listener rules in a batch. You can use this operation to change the priority of listener rules. |
-| `CreateAccessLogSubscription` | `POST /accesslogsubscriptions` | `idempotent`, `idempotency-token` | `destinationArn`, `resourceIdentifier` | `clientToken` | `CreateAccessLogSubscriptionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Enables access logs to be sent to Amazon CloudWatch, Amazon S3, and Amazon Kinesis Data Firehose. The service network owner can use the access logs to audit the services in the network. |
-| `CreateListener` | `POST /services/{serviceIdentifier}/listeners` | `idempotent`, `idempotency-token` | `defaultAction`, `name`, `protocol`, `serviceIdentifier` | `clientToken` | `CreateListenerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a listener for a service. Before you start using your Amazon VPC Lattice service, you must add one or more listeners. |
-| `CreateResourceConfiguration` | `POST /resourceconfigurations` | `idempotent`, `idempotency-token` | `name`, `type` | `clientToken` | `CreateResourceConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a resource configuration. A resource configuration defines a specific resource. |
-| `CreateResourceGateway` | `POST /resourcegateways` | `idempotent`, `idempotency-token` | `name` | `clientToken` | `CreateResourceGatewayResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | A resource gateway is a point of ingress into the VPC where a resource resides. It spans multiple Availability Zones. |
-| `CreateRule` | `POST /services/{serviceIdentifier}/listeners/{listenerIdentifier}/rules` | `idempotent`, `idempotency-token` | `action`, `listenerIdentifier`, `match`, `name`, `priority`, `serviceIdentifier` | `clientToken` | `CreateRuleResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a listener rule. Each listener has a default rule for checking connection requests, but you can define additional rules. |
-| `CreateService` | `POST /services` | `idempotent`, `idempotency-token` | `name` | `clientToken` | `CreateServiceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a service. A service is any software application that can run on instances containers, or serverless functions within an account or virtual private cloud (VPC). |
-| `CreateServiceNetwork` | `POST /servicenetworks` | `idempotent`, `idempotency-token` | `name` | `clientToken` | `CreateServiceNetworkResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a service network. A service network is a logical boundary for a collection of services. |
-| `CreateServiceNetworkResourceAssociation` | `POST /servicenetworkresourceassociations` | `idempotent`, `idempotency-token` | `resourceConfigurationIdentifier`, `serviceNetworkIdentifier` | `clientToken` | `CreateServiceNetworkResourceAssociationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Associates the specified service network with the specified resource configuration. This allows the resource configuration to receive connections through the service network, including through a service network VPC endpoint. |
-| `CreateServiceNetworkServiceAssociation` | `POST /servicenetworkserviceassociations` | `idempotent`, `idempotency-token` | `serviceIdentifier`, `serviceNetworkIdentifier` | `clientToken` | `CreateServiceNetworkServiceAssociationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Associates the specified service with the specified service network. For more information, see Manage service associations in the Amazon VPC Lattice User Guide . |
-| `CreateServiceNetworkVpcAssociation` | `POST /servicenetworkvpcassociations` | `idempotent`, `idempotency-token` | `serviceNetworkIdentifier`, `vpcIdentifier` | `clientToken` | `CreateServiceNetworkVpcAssociationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Associates a VPC with a service network. When you associate a VPC with the service network, it enables all the resources within that VPC to be clients and communicate with other services in the service network. |
-| `CreateTargetGroup` | `POST /targetgroups` | `idempotent`, `idempotency-token` | `name`, `type` | `clientToken` | `CreateTargetGroupResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a target group. A target group is a collection of targets, or compute resources, that run your application or service. |
-| `DeleteAccessLogSubscription` | `DELETE /accesslogsubscriptions/{accessLogSubscriptionIdentifier}` | `idempotent` | `accessLogSubscriptionIdentifier` | - | `DeleteAccessLogSubscriptionResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the specified access log subscription. |
-| `DeleteAuthPolicy` | `DELETE /authpolicy/{resourceIdentifier}` | `idempotent` | `resourceIdentifier` | - | `DeleteAuthPolicyResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the specified auth policy. If an auth is set to `AWS_IAM` and the auth policy is deleted, all requests are denied. |
-| `DeleteDomainVerification` | `DELETE /domainverifications/{domainVerificationIdentifier}` | `idempotent` | `domainVerificationIdentifier` | - | `DeleteDomainVerificationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the specified domain verification. |
-| `DeleteListener` | `DELETE /services/{serviceIdentifier}/listeners/{listenerIdentifier}` | `idempotent` | `listenerIdentifier`, `serviceIdentifier` | - | `DeleteListenerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the specified listener. |
-| `DeleteResourceConfiguration` | `DELETE /resourceconfigurations/{resourceConfigurationIdentifier}` | `idempotent` | `resourceConfigurationIdentifier` | - | `DeleteResourceConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the specified resource configuration. |
-| `DeleteResourceEndpointAssociation` | `DELETE /resourceendpointassociations/{resourceEndpointAssociationIdentifier}` | `idempotent` | `resourceEndpointAssociationIdentifier` | - | `DeleteResourceEndpointAssociationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Disassociates the resource configuration from the resource VPC endpoint. |
-| `DeleteResourceGateway` | `DELETE /resourcegateways/{resourceGatewayIdentifier}` | `idempotent` | `resourceGatewayIdentifier` | - | `DeleteResourceGatewayResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the specified resource gateway. |
+| `BatchUpdateRule` | `PATCH /services/{serviceIdentifier}/listeners/{listenerIdentifier}/rules` | `idempotent` | `serviceIdentifier`, `listenerIdentifier`, `rules` | - | `BatchUpdateRuleResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the listener rules in a batch. You can use this operation to change the priority of listener rules. This can be useful when bulk updating or swapping rule priority. Required permissions: vpc-lattice:UpdateRul ... |
+| `DeleteAuthPolicy` | `DELETE /authpolicy/{resourceIdentifier}` | `idempotent` | `resourceIdentifier` | - | `DeleteAuthPolicyResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the specified auth policy. If an auth is set to AWS_IAM and the auth policy is deleted, all requests are denied. If you are trying to remove the auth policy completely, you must set the auth type to NONE . If ... |
 | `DeleteResourcePolicy` | `DELETE /resourcepolicy/{resourceArn}` | `idempotent` | `resourceArn` | - | `DeleteResourcePolicyResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the specified resource policy. |
-| `DeleteRule` | `DELETE /services/{serviceIdentifier}/listeners/{listenerIdentifier}/rules/{ruleIdentifier}` | `idempotent` | `listenerIdentifier`, `ruleIdentifier`, `serviceIdentifier` | - | `DeleteRuleResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a listener rule. Each listener has a default rule for checking connection requests, but you can define additional rules. |
-| `DeleteService` | `DELETE /services/{serviceIdentifier}` | `idempotent` | `serviceIdentifier` | - | `DeleteServiceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a service. A service can't be deleted if it's associated with a service network. |
-| `DeleteServiceNetwork` | `DELETE /servicenetworks/{serviceNetworkIdentifier}` | `idempotent` | `serviceNetworkIdentifier` | - | `DeleteServiceNetworkResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a service network. You can only delete the service network if there is no service or VPC associated with it. |
-| `DeleteServiceNetworkResourceAssociation` | `DELETE /servicenetworkresourceassociations/{serviceNetworkResourceAssociationIdentifier}` | `idempotent` | `serviceNetworkResourceAssociationIdentifier` | - | `DeleteServiceNetworkResourceAssociationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the association between a service network and a resource configuration. |
-| `DeleteServiceNetworkServiceAssociation` | `DELETE /servicenetworkserviceassociations/{serviceNetworkServiceAssociationIdentifier}` | `idempotent` | `serviceNetworkServiceAssociationIdentifier` | - | `DeleteServiceNetworkServiceAssociationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the association between a service and a service network. This operation fails if an association is still in progress. |
-| `DeleteServiceNetworkVpcAssociation` | `DELETE /servicenetworkvpcassociations/{serviceNetworkVpcAssociationIdentifier}` | `idempotent` | `serviceNetworkVpcAssociationIdentifier` | - | `DeleteServiceNetworkVpcAssociationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Disassociates the VPC from the service network. You can't disassociate the VPC if there is a create or update association in progress. |
-| `DeleteTargetGroup` | `DELETE /targetgroups/{targetGroupIdentifier}` | `idempotent` | `targetGroupIdentifier` | - | `DeleteTargetGroupResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a target group. You can't delete a target group if it is used in a listener rule or if the target group creation is in progress. |
-| `DeregisterTargets` | `POST /targetgroups/{targetGroupIdentifier}/deregistertargets` | `idempotent` | `targetGroupIdentifier`, `targets` | - | `DeregisterTargetsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deregisters the specified targets from the specified target group. |
-| `GetAccessLogSubscription` | `GET /accesslogsubscriptions/{accessLogSubscriptionIdentifier}` | `readonly` | `accessLogSubscriptionIdentifier` | - | `GetAccessLogSubscriptionResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about the specified access log subscription. |
 | `GetAuthPolicy` | `GET /authpolicy/{resourceIdentifier}` | `readonly` | `resourceIdentifier` | - | `GetAuthPolicyResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about the auth policy for the specified service or service network. |
-| `GetDomainVerification` | `GET /domainverifications/{domainVerificationIdentifier}` | `readonly` | `domainVerificationIdentifier` | - | `GetDomainVerificationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about a domain verification.ß |
-| `GetListener` | `GET /services/{serviceIdentifier}/listeners/{listenerIdentifier}` | `readonly` | `listenerIdentifier`, `serviceIdentifier` | - | `GetListenerResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about the specified listener for the specified service. |
-| `GetResourceConfiguration` | `GET /resourceconfigurations/{resourceConfigurationIdentifier}` | `readonly` | `resourceConfigurationIdentifier` | - | `GetResourceConfigurationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about the specified resource configuration. |
-| `GetResourceGateway` | `GET /resourcegateways/{resourceGatewayIdentifier}` | `readonly` | `resourceGatewayIdentifier` | - | `GetResourceGatewayResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about the specified resource gateway. |
 | `GetResourcePolicy` | `GET /resourcepolicy/{resourceArn}` | `readonly` | `resourceArn` | - | `GetResourcePolicyResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about the specified resource policy. The resource policy is an IAM policy created on behalf of the resource owner when they share a resource. |
-| `GetRule` | `GET /services/{serviceIdentifier}/listeners/{listenerIdentifier}/rules/{ruleIdentifier}` | `readonly` | `listenerIdentifier`, `ruleIdentifier`, `serviceIdentifier` | - | `GetRuleResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about the specified listener rules. You can also retrieve information about the default listener rule. |
-| `GetService` | `GET /services/{serviceIdentifier}` | `readonly` | `serviceIdentifier` | - | `GetServiceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about the specified service. |
-| `GetServiceNetwork` | `GET /servicenetworks/{serviceNetworkIdentifier}` | `readonly` | `serviceNetworkIdentifier` | - | `GetServiceNetworkResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about the specified service network. |
-| `GetServiceNetworkResourceAssociation` | `GET /servicenetworkresourceassociations/{serviceNetworkResourceAssociationIdentifier}` | `readonly` | `serviceNetworkResourceAssociationIdentifier` | - | `GetServiceNetworkResourceAssociationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about the specified association between a service network and a resource configuration. |
-| `GetServiceNetworkServiceAssociation` | `GET /servicenetworkserviceassociations/{serviceNetworkServiceAssociationIdentifier}` | `readonly` | `serviceNetworkServiceAssociationIdentifier` | - | `GetServiceNetworkServiceAssociationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about the specified association between a service network and a service. |
-| `GetServiceNetworkVpcAssociation` | `GET /servicenetworkvpcassociations/{serviceNetworkVpcAssociationIdentifier}` | `readonly` | `serviceNetworkVpcAssociationIdentifier` | - | `GetServiceNetworkVpcAssociationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about the specified association between a service network and a VPC. |
-| `GetTargetGroup` | `GET /targetgroups/{targetGroupIdentifier}` | `readonly` | `targetGroupIdentifier` | - | `GetTargetGroupResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about the specified target group. |
-| `ListAccessLogSubscriptions` | `GET /accesslogsubscriptions` | `readonly`, `paginated` | `resourceIdentifier` | - | `ListAccessLogSubscriptionsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists the access log subscriptions for the specified service network or service. |
-| `ListDomainVerifications` | `GET /domainverifications` | `readonly`, `paginated` | - | - | `ListDomainVerificationsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the domain verifications. |
-| `ListListeners` | `GET /services/{serviceIdentifier}/listeners` | `readonly`, `paginated` | `serviceIdentifier` | - | `ListListenersResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the listeners for the specified service. |
-| `ListResourceConfigurations` | `GET /resourceconfigurations` | `readonly`, `paginated` | - | - | `ListResourceConfigurationsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists the resource configurations owned by or shared with this account. |
-| `ListResourceEndpointAssociations` | `GET /resourceendpointassociations` | `readonly`, `paginated` | `resourceConfigurationIdentifier` | - | `ListResourceEndpointAssociationsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists the associations for the specified VPC endpoint. |
-| `ListResourceGateways` | `GET /resourcegateways` | `readonly`, `paginated` | - | - | `ListResourceGatewaysResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists the resource gateways that you own or that were shared with you. |
-| `ListRules` | `GET /services/{serviceIdentifier}/listeners/{listenerIdentifier}/rules` | `readonly`, `paginated` | `listenerIdentifier`, `serviceIdentifier` | - | `ListRulesResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the rules for the specified listener. |
-| `ListServiceNetworkResourceAssociations` | `GET /servicenetworkresourceassociations` | `readonly`, `paginated` | - | - | `ListServiceNetworkResourceAssociationsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists the associations between a service network and a resource configuration. |
-| `ListServiceNetworkServiceAssociations` | `GET /servicenetworkserviceassociations` | `readonly`, `paginated` | - | - | `ListServiceNetworkServiceAssociationsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists the associations between a service network and a service. You can filter the list either by service or service network. |
-| `ListServiceNetworkVpcAssociations` | `GET /servicenetworkvpcassociations` | `readonly`, `paginated` | - | - | `ListServiceNetworkVpcAssociationsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists the associations between a service network and a VPC. You can filter the list either by VPC or service network. |
 | `ListServiceNetworkVpcEndpointAssociations` | `GET /servicenetworkvpcendpointassociations` | `readonly`, `paginated` | `serviceNetworkIdentifier` | - | `ListServiceNetworkVpcEndpointAssociationsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists the associations between a service network and a VPC endpoint. |
-| `ListServiceNetworks` | `GET /servicenetworks` | `readonly`, `paginated` | - | - | `ListServiceNetworksResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists the service networks owned by or shared with this account. The account ID in the ARN shows which account owns the service network. |
-| `ListServices` | `GET /services` | `readonly`, `paginated` | - | - | `ListServicesResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists the services owned by the caller account or shared with the caller account. |
 | `ListTagsForResource` | `GET /tags/{resourceArn}` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Lists the tags for the specified resource. |
-| `ListTargetGroups` | `GET /targetgroups` | `readonly`, `paginated` | - | - | `ListTargetGroupsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists your target groups. You can narrow your search by using the filters below in your request. |
-| `ListTargets` | `POST /targetgroups/{targetGroupIdentifier}/listtargets` | `readonly`, `paginated` | `targetGroupIdentifier` | - | `ListTargetsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the targets for the target group. By default, all targets are included. |
-| `PutAuthPolicy` | `PUT /authpolicy/{resourceIdentifier}` | - | `policy`, `resourceIdentifier` | - | `PutAuthPolicyResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates or updates the auth policy. The policy string in JSON must not contain newlines or blank lines. |
-| `PutResourcePolicy` | `PUT /resourcepolicy/{resourceArn}` | `idempotent` | `policy`, `resourceArn` | - | `PutResourcePolicyResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Attaches a resource-based permission policy to a service or service network. The policy must contain the same actions and condition statements as the Amazon Web Services Resource Access Manager permission for sharing services and service networks. |
-| `RegisterTargets` | `POST /targetgroups/{targetGroupIdentifier}/registertargets` | - | `targetGroupIdentifier`, `targets` | - | `RegisterTargetsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Registers the targets with the target group. If it's a Lambda target, you can only have one target in a target group. |
-| `StartDomainVerification` | `POST /domainverifications` | `idempotent`, `idempotency-token` | `domainName` | `clientToken` | `StartDomainVerificationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Starts the domain verification process for a custom domain name. |
+| `PutAuthPolicy` | `PUT /authpolicy/{resourceIdentifier}` | - | `resourceIdentifier`, `policy` | - | `PutAuthPolicyResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates or updates the auth policy. The policy string in JSON must not contain newlines or blank lines. For more information, see Auth policies in the Amazon VPC Lattice User Guide . |
+| `PutResourcePolicy` | `PUT /resourcepolicy/{resourceArn}` | `idempotent` | `resourceArn`, `policy` | - | `PutResourcePolicyResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Attaches a resource-based permission policy to a service or service network. The policy must contain the same actions and condition statements as the Amazon Web Services Resource Access Manager permission for sharing ... |
 | `TagResource` | `POST /tags/{resourceArn}` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Adds the specified tags to the specified resource. |
 | `UntagResource` | `DELETE /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Removes the specified tags from the specified resource. |
-| `UpdateAccessLogSubscription` | `PATCH /accesslogsubscriptions/{accessLogSubscriptionIdentifier}` | `idempotent` | `accessLogSubscriptionIdentifier`, `destinationArn` | - | `UpdateAccessLogSubscriptionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the specified access log subscription. |
-| `UpdateListener` | `PATCH /services/{serviceIdentifier}/listeners/{listenerIdentifier}` | `idempotent` | `defaultAction`, `listenerIdentifier`, `serviceIdentifier` | - | `UpdateListenerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates the specified listener for the specified service. |
-| `UpdateResourceConfiguration` | `PATCH /resourceconfigurations/{resourceConfigurationIdentifier}` | - | `resourceConfigurationIdentifier` | - | `UpdateResourceConfigurationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates the specified resource configuration. |
-| `UpdateResourceGateway` | `PATCH /resourcegateways/{resourceGatewayIdentifier}` | - | `resourceGatewayIdentifier` | - | `UpdateResourceGatewayResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the specified resource gateway. |
-| `UpdateRule` | `PATCH /services/{serviceIdentifier}/listeners/{listenerIdentifier}/rules/{ruleIdentifier}` | `idempotent` | `listenerIdentifier`, `ruleIdentifier`, `serviceIdentifier` | - | `UpdateRuleResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates a specified rule for the listener. You can't modify a default listener rule. |
-| `UpdateService` | `PATCH /services/{serviceIdentifier}` | - | `serviceIdentifier` | - | `UpdateServiceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates the specified service. |
-| `UpdateServiceNetwork` | `PATCH /servicenetworks/{serviceNetworkIdentifier}` | `idempotent` | `authType`, `serviceNetworkIdentifier` | - | `UpdateServiceNetworkResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the specified service network. |
-| `UpdateServiceNetworkVpcAssociation` | `PATCH /servicenetworkvpcassociations/{serviceNetworkVpcAssociationIdentifier}` | `idempotent` | `securityGroupIds`, `serviceNetworkVpcAssociationIdentifier` | - | `UpdateServiceNetworkVpcAssociationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the service network and VPC association. If you add a security group to the service network and VPC association, the association must continue to have at least one security group. |
-| `UpdateTargetGroup` | `PATCH /targetgroups/{targetGroupIdentifier}` | `idempotent` | `healthCheck`, `targetGroupIdentifier` | - | `UpdateTargetGroupResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates the specified target group. |
 
 ## HTTP Bindings
 
@@ -233,31 +142,35 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `message`, `retryAfterSeconds` | An unexpected error occurred while processing the request. |
-| `ValidationException` | `structure` | `fieldList`, `message`, `reason` | The input does not satisfy the constraints specified by an Amazon Web Services service. |
-| `AccessDeniedException` | `structure` | `message` | The user does not have sufficient access to perform this action. |
-| `ThrottlingException` | `structure` | `message`, `quotaCode`, `retryAfterSeconds`, `serviceCode` | The limit on the number of requests per second was exceeded. |
-| `ResourceNotFoundException` | `structure` | `message`, `resourceId`, `resourceType` | The request references a resource that does not exist. |
-| `ConflictException` | `structure` | `message`, `resourceId`, `resourceType` | The request conflicts with the current state of the resource. |
-| `ServiceQuotaExceededException` | `structure` | `message`, `quotaCode`, `resourceId`, `resourceType`, `serviceCode` | The request would cause a service quota to be exceeded. |
-| `BatchUpdateRuleRequest` | `structure` | `listenerIdentifier`, `rules`, `serviceIdentifier` | - |
-| `BatchUpdateRuleResponse` | `structure` | `successful`, `unsuccessful` | - |
-| `CreateAccessLogSubscriptionRequest` | `structure` | `clientToken`, `destinationArn`, `resourceIdentifier`, `serviceNetworkLogType`, `tags` | - |
-| `CreateAccessLogSubscriptionResponse` | `structure` | `arn`, `destinationArn`, `id`, `resourceArn`, `resourceId`, `serviceNetworkLogType` | - |
-| `CreateListenerRequest` | `structure` | `clientToken`, `defaultAction`, `name`, `port`, `protocol`, `serviceIdentifier`, `tags` | - |
-| `CreateListenerResponse` | `structure` | `arn`, `defaultAction`, `id`, `name`, `port`, `protocol`, `serviceArn`, `serviceId` | - |
-| `CreateResourceConfigurationRequest` | `structure` | `allowAssociationToShareableServiceNetwork`, `clientToken`, `customDomainName`, `domainVerificationIdentifier`, `groupDomain`, `name`, `portRanges`, `protocol`, `resourceConfigurationDefinition`, `resourceConfigurationGroupIdentifier`, `resourceGatewayIdentifier`, `tags`, ... (+1) | - |
-| `CreateResourceConfigurationResponse` | `structure` | `allowAssociationToShareableServiceNetwork`, `arn`, `createdAt`, `customDomainName`, `domainVerificationArn`, `domainVerificationId`, `failureReason`, `groupDomain`, `id`, `name`, `portRanges`, `protocol`, ... (+5) | - |
-| `CreateResourceGatewayRequest` | `structure` | `clientToken`, `ipAddressType`, `ipv4AddressesPerEni`, `name`, `securityGroupIds`, `subnetIds`, `tags`, `vpcIdentifier` | - |
-| `CreateResourceGatewayResponse` | `structure` | `arn`, `id`, `ipAddressType`, `ipv4AddressesPerEni`, `name`, `securityGroupIds`, `status`, `subnetIds`, `vpcIdentifier` | - |
-| `CreateRuleRequest` | `structure` | `action`, `clientToken`, `listenerIdentifier`, `match`, `name`, `priority`, `serviceIdentifier`, `tags` | - |
-| `CreateRuleResponse` | `structure` | `action`, `arn`, `id`, `match`, `name`, `priority` | - |
-| `CreateServiceRequest` | `structure` | `authType`, `certificateArn`, `clientToken`, `customDomainName`, `name`, `tags` | - |
-| `CreateServiceResponse` | `structure` | `arn`, `authType`, `certificateArn`, `customDomainName`, `dnsEntry`, `id`, `name`, `status` | - |
-| `CreateServiceNetworkRequest` | `structure` | `authType`, `clientToken`, `name`, `sharingConfig`, `tags` | - |
-| `CreateServiceNetworkResponse` | `structure` | `arn`, `authType`, `id`, `name`, `sharingConfig` | - |
-| `CreateServiceNetworkResourceAssociationRequest` | `structure` | `clientToken`, `privateDnsEnabled`, `resourceConfigurationIdentifier`, `serviceNetworkIdentifier`, `tags` | - |
-
+| `AccessDeniedException` | `structure` | message | The user does not have sufficient access to perform this action. |
+| `ConflictException` | `structure` | message, resourceId, resourceType | The request conflicts with the current state of the resource. Updating or deleting a resource can cause an inconsistent state. |
+| `InternalServerException` | `structure` | message, retryAfterSeconds | An unexpected error occurred while processing the request. |
+| `ResourceNotFoundException` | `structure` | message, resourceId, resourceType | The request references a resource that does not exist. |
+| `ServiceQuotaExceededException` | `structure` | message, resourceId, resourceType, serviceCode, quotaCode | The request would cause a service quota to be exceeded. |
+| `ThrottlingException` | `structure` | message, serviceCode, quotaCode, retryAfterSeconds | The limit on the number of requests per second was exceeded. |
+| `ValidationException` | `structure` | message, reason, fieldList | The input does not satisfy the constraints specified by an Amazon Web Services service. |
+| `BatchUpdateRuleRequest` | `structure` | serviceIdentifier, listenerIdentifier, rules | - |
+| `BatchUpdateRuleResponse` | `structure` | successful, unsuccessful | - |
+| `DeleteAuthPolicyRequest` | `structure` | resourceIdentifier | - |
+| `DeleteAuthPolicyResponse` | `structure` | **empty (no members)** | - |
+| `DeleteResourcePolicyRequest` | `structure` | resourceArn | - |
+| `DeleteResourcePolicyResponse` | `structure` | **empty (no members)** | - |
+| `GetAuthPolicyRequest` | `structure` | resourceIdentifier | - |
+| `GetAuthPolicyResponse` | `structure` | policy, state, createdAt, lastUpdatedAt | - |
+| `GetResourcePolicyRequest` | `structure` | resourceArn | - |
+| `GetResourcePolicyResponse` | `structure` | policy | - |
+| `ListServiceNetworkVpcEndpointAssociationsRequest` | `structure` | serviceNetworkIdentifier, maxResults, nextToken | - |
+| `ListServiceNetworkVpcEndpointAssociationsResponse` | `structure` | items, nextToken | - |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `PutAuthPolicyRequest` | `structure` | resourceIdentifier, policy | - |
+| `PutAuthPolicyResponse` | `structure` | policy, state | - |
+| `PutResourcePolicyRequest` | `structure` | resourceArn, policy | - |
+| `PutResourcePolicyResponse` | `structure` | **empty (no members)** | - |
+| `TagResourceRequest` | `structure` | resourceArn, tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | resourceArn, tagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

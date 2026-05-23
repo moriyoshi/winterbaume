@@ -49,43 +49,43 @@ Amazon Web Services IoT Core Device Advisor is a cloud-based, fully managed test
 
 - Operations: `ListSuiteDefinitions`, `ListSuiteRuns`, `ListTagsForResource`
 - Traits: `paginated` (2)
-- Common required input members in this group: `resourceArn`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateSuiteDefinition`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `suiteDefinitionConfiguration`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteSuiteDefinition`
-- Common required input members in this group: `suiteDefinitionId`
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartSuiteRun`
-- Common required input members in this group: `suiteDefinitionId`, `suiteRunConfiguration`
+- Common required input members in this group: -
 
 ### Stop
 
 - Operations: `StopSuiteRun`
-- Common required input members in this group: `suiteDefinitionId`, `suiteRunId`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateSuiteDefinition`
-- Common required input members in this group: `suiteDefinitionConfiguration`, `suiteDefinitionId`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
@@ -98,13 +98,13 @@ Amazon Web Services IoT Core Device Advisor is a cloud-based, fully managed test
 | `GetSuiteRun` | `GET /suiteDefinitions/{suiteDefinitionId}/suiteRuns/{suiteRunId}` | - | `suiteDefinitionId`, `suiteRunId` | - | `GetSuiteRunResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Gets information about a Device Advisor test suite run. Requires permission to access the GetSuiteRun action. |
 | `GetSuiteRunReport` | `GET /suiteDefinitions/{suiteDefinitionId}/suiteRuns/{suiteRunId}/report` | - | `suiteDefinitionId`, `suiteRunId` | - | `GetSuiteRunReportResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Gets a report download link for a successful Device Advisor qualifying test suite run. Requires permission to access the GetSuiteRunReport action. |
 | `ListSuiteDefinitions` | `GET /suiteDefinitions` | `paginated` | - | - | `ListSuiteDefinitionsResponse` | `InternalServerException`, `ValidationException` | Lists the Device Advisor test suites you have created. Requires permission to access the ListSuiteDefinitions action. |
-| `ListSuiteRuns` | `GET /suiteRuns` | `paginated` | - | - | `ListSuiteRunsResponse` | `InternalServerException`, `ValidationException` | Lists runs of the specified Device Advisor test suite. You can list all runs of the test suite, or the runs of a specific version of the test suite. |
+| `ListSuiteRuns` | `GET /suiteRuns` | `paginated` | - | - | `ListSuiteRunsResponse` | `InternalServerException`, `ValidationException` | Lists runs of the specified Device Advisor test suite. You can list all runs of the test suite, or the runs of a specific version of the test suite. Requires permission to access the ListSuiteRuns action. |
 | `ListTagsForResource` | `GET /tags/{resourceArn}` | - | `resourceArn` | - | `ListTagsForResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Lists the tags attached to an IoT Device Advisor resource. Requires permission to access the ListTagsForResource action. |
 | `StartSuiteRun` | `POST /suiteDefinitions/{suiteDefinitionId}/suiteRuns` | - | `suiteDefinitionId`, `suiteRunConfiguration` | - | `StartSuiteRunResponse` | `ConflictException`, `InternalServerException`, `ValidationException` | Starts a Device Advisor test suite run. Requires permission to access the StartSuiteRun action. |
 | `StopSuiteRun` | `POST /suiteDefinitions/{suiteDefinitionId}/suiteRuns/{suiteRunId}/stop` | - | `suiteDefinitionId`, `suiteRunId` | - | `StopSuiteRunResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Stops a Device Advisor test suite run that is currently running. Requires permission to access the StopSuiteRun action. |
 | `TagResource` | `POST /tags/{resourceArn}` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Adds to and modifies existing tags of an IoT Device Advisor resource. Requires permission to access the TagResource action. |
 | `UntagResource` | `DELETE /tags/{resourceArn}` | - | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Removes tags from an IoT Device Advisor resource. Requires permission to access the UntagResource action. |
-| `UpdateSuiteDefinition` | `PATCH /suiteDefinitions/{suiteDefinitionId}` | - | `suiteDefinitionConfiguration`, `suiteDefinitionId` | - | `UpdateSuiteDefinitionResponse` | `InternalServerException`, `ValidationException` | Updates a Device Advisor test suite. Requires permission to access the UpdateSuiteDefinition action. |
+| `UpdateSuiteDefinition` | `PATCH /suiteDefinitions/{suiteDefinitionId}` | - | `suiteDefinitionId`, `suiteDefinitionConfiguration` | - | `UpdateSuiteDefinitionResponse` | `InternalServerException`, `ValidationException` | Updates a Device Advisor test suite. Requires permission to access the UpdateSuiteDefinition action. |
 
 ## HTTP Bindings
 
@@ -122,31 +122,44 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `message` | Sends an Internal Failure exception. |
-| `ValidationException` | `structure` | `message` | Sends a validation exception. |
-| `ResourceNotFoundException` | `structure` | `message` | Sends a Resource Not Found exception. |
-| `CreateSuiteDefinitionRequest` | `structure` | `clientToken`, `suiteDefinitionConfiguration`, `tags` | - |
-| `CreateSuiteDefinitionResponse` | `structure` | `createdAt`, `suiteDefinitionArn`, `suiteDefinitionId`, `suiteDefinitionName` | - |
-| `DeleteSuiteDefinitionRequest` | `structure` | `suiteDefinitionId` | - |
-| `DeleteSuiteDefinitionResponse` | `structure` | - | - |
-| `GetEndpointRequest` | `structure` | `authenticationMethod`, `certificateArn`, `deviceRoleArn`, `thingArn` | - |
-| `GetEndpointResponse` | `structure` | `endpoint` | - |
-| `GetSuiteDefinitionRequest` | `structure` | `suiteDefinitionId`, `suiteDefinitionVersion` | - |
-| `GetSuiteDefinitionResponse` | `structure` | `createdAt`, `lastModifiedAt`, `latestVersion`, `suiteDefinitionArn`, `suiteDefinitionConfiguration`, `suiteDefinitionId`, `suiteDefinitionVersion`, `tags` | - |
-| `GetSuiteRunRequest` | `structure` | `suiteDefinitionId`, `suiteRunId` | - |
-| `GetSuiteRunResponse` | `structure` | `endTime`, `errorReason`, `startTime`, `status`, `suiteDefinitionId`, `suiteDefinitionVersion`, `suiteRunArn`, `suiteRunConfiguration`, `suiteRunId`, `tags`, `testResult` | - |
-| `GetSuiteRunReportRequest` | `structure` | `suiteDefinitionId`, `suiteRunId` | - |
-| `GetSuiteRunReportResponse` | `structure` | `qualificationReportDownloadUrl` | - |
-| `ListSuiteDefinitionsRequest` | `structure` | `maxResults`, `nextToken` | - |
-| `ListSuiteDefinitionsResponse` | `structure` | `nextToken`, `suiteDefinitionInformationList` | - |
-| `ListSuiteRunsRequest` | `structure` | `maxResults`, `nextToken`, `suiteDefinitionId`, `suiteDefinitionVersion` | - |
-| `ListSuiteRunsResponse` | `structure` | `nextToken`, `suiteRunsList` | - |
-| `ListTagsForResourceRequest` | `structure` | `resourceArn` | - |
-| `ListTagsForResourceResponse` | `structure` | `tags` | - |
-| `StartSuiteRunRequest` | `structure` | `suiteDefinitionId`, `suiteDefinitionVersion`, `suiteRunConfiguration`, `tags` | - |
-| `StartSuiteRunResponse` | `structure` | `createdAt`, `endpoint`, `suiteRunArn`, `suiteRunId` | - |
-| `ConflictException` | `structure` | `message` | Sends a Conflict Exception. |
-
+| `ConflictException` | `structure` | message | Sends a Conflict Exception. |
+| `InternalServerException` | `structure` | message | Sends an Internal Failure exception. |
+| `ResourceNotFoundException` | `structure` | message | Sends a Resource Not Found exception. |
+| `ValidationException` | `structure` | message | Sends a validation exception. |
+| `CreateSuiteDefinitionRequest` | `structure` | suiteDefinitionConfiguration, tags, clientToken | - |
+| `CreateSuiteDefinitionResponse` | `structure` | suiteDefinitionId, suiteDefinitionArn, suiteDefinitionName, createdAt | - |
+| `DeleteSuiteDefinitionRequest` | `structure` | suiteDefinitionId | - |
+| `DeleteSuiteDefinitionResponse` | `structure` | **empty (no members)** | - |
+| `GetEndpointRequest` | `structure` | thingArn, certificateArn, deviceRoleArn, authenticationMethod | - |
+| `GetEndpointResponse` | `structure` | endpoint | - |
+| `GetSuiteDefinitionRequest` | `structure` | suiteDefinitionId, suiteDefinitionVersion | - |
+| `GetSuiteDefinitionResponse` | `structure` | suiteDefinitionId, suiteDefinitionArn, suiteDefinitionVersion, latestVersion, suiteDefinitionConfiguration, createdAt, lastModifiedAt, tags | - |
+| `GetSuiteRunRequest` | `structure` | suiteDefinitionId, suiteRunId | - |
+| `GetSuiteRunResponse` | `structure` | suiteDefinitionId, suiteDefinitionVersion, suiteRunId, suiteRunArn, suiteRunConfiguration, testResult, startTime, endTime, status, errorReason, tags | - |
+| `GetSuiteRunReportRequest` | `structure` | suiteDefinitionId, suiteRunId | - |
+| `GetSuiteRunReportResponse` | `structure` | qualificationReportDownloadUrl | - |
+| `ListSuiteDefinitionsRequest` | `structure` | maxResults, nextToken | - |
+| `ListSuiteDefinitionsResponse` | `structure` | suiteDefinitionInformationList, nextToken | - |
+| `ListSuiteRunsRequest` | `structure` | suiteDefinitionId, suiteDefinitionVersion, maxResults, nextToken | - |
+| `ListSuiteRunsResponse` | `structure` | suiteRunsList, nextToken | - |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `StartSuiteRunRequest` | `structure` | suiteDefinitionId, suiteDefinitionVersion, suiteRunConfiguration, tags | - |
+| `StartSuiteRunResponse` | `structure` | suiteRunId, suiteRunArn, createdAt, endpoint | - |
+| `StopSuiteRunRequest` | `structure` | suiteDefinitionId, suiteRunId | - |
+| `StopSuiteRunResponse` | `structure` | **empty (no members)** | - |
+| `TagResourceRequest` | `structure` | resourceArn, tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | resourceArn, tagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UpdateSuiteDefinitionRequest` | `structure` | suiteDefinitionId, suiteDefinitionConfiguration | - |
+| `UpdateSuiteDefinitionResponse` | `structure` | suiteDefinitionId, suiteDefinitionArn, suiteDefinitionName, suiteDefinitionVersion, createdAt, lastUpdatedAt | - |
+| `AuthenticationMethod` | `enum` | X509ClientCertificate, SignatureVersion4 | - |
+| `Protocol` | `enum` | MqttV3_1_1, MqttV5, MqttV3_1_1_OverWebSocket, MqttV5_OverWebSocket | - |
+| `Status` | `enum` | PASS, FAIL, CANCELED, PENDING, RUNNING, STOPPING, STOPPED, PASS_WITH_WARNINGS, ERROR | - |
+| `SuiteRunStatus` | `enum` | PASS, FAIL, CANCELED, PENDING, RUNNING, STOPPING, STOPPED, PASS_WITH_WARNINGS, ERROR | - |
+| `TestCaseScenarioStatus` | `enum` | PASS, FAIL, CANCELED, PENDING, RUNNING, STOPPING, STOPPED, PASS_WITH_WARNINGS, ERROR | - |
+| `TestCaseScenarioType` | `enum` | Advanced, Basic | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

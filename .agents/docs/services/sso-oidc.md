@@ -61,24 +61,24 @@ Parity implications:
 ### Create
 
 - Operations: `CreateToken`, `CreateTokenWithIAM`
-- Common required input members in this group: `clientId`, `clientSecret`, `grantType`
+- Common required input members in this group: `clientId`, `grantType`
 
 ### Register
 
 - Operations: `RegisterClient`
-- Common required input members in this group: `clientName`, `clientType`
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartDeviceAuthorization`
-- Common required input members in this group: `clientId`, `clientSecret`, `startUrl`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateToken` | `POST /token` | - | `clientId`, `clientSecret`, `grantType` | - | `CreateTokenResponse` | `AccessDeniedException`, `AuthorizationPendingException`, `ExpiredTokenException`, `InternalServerException`, `InvalidClientException`, `InvalidGrantException`, `InvalidRequestException`, `InvalidScopeException`, ... (+3) | Creates and returns access and refresh tokens for clients that are authenticated using client secrets. The access token can be used to fetch short-lived credentials for the assigned AWS accounts or to access application APIs using `bearer` authentication. |
-| `CreateTokenWithIAM` | `POST /token?aws_iam=t` | - | `clientId`, `grantType` | - | `CreateTokenWithIAMResponse` | `AccessDeniedException`, `AuthorizationPendingException`, `ExpiredTokenException`, `InternalServerException`, `InvalidClientException`, `InvalidGrantException`, `InvalidRequestException`, `InvalidRequestRegionException`, ... (+4) | Creates and returns access and refresh tokens for authorized client applications that are authenticated using any IAM entity, such as a service role or user. These tokens might contain defined scopes that specify permissions such as `read:profile` or... |
+| `CreateToken` | `POST /token` | - | `clientId`, `clientSecret`, `grantType` | - | `CreateTokenResponse` | `AccessDeniedException`, `AuthorizationPendingException`, `ExpiredTokenException`, `InternalServerException`, `InvalidClientException`, `InvalidGrantException`, `InvalidRequestException`, `InvalidScopeException`, `SlowDownException`, `UnauthorizedClientException`, `UnsupportedGrantTypeException` | Creates and returns access and refresh tokens for clients that are authenticated using client secrets. The access token can be used to fetch short-lived credentials for the assigned AWS accounts or to access applicat ... |
+| `CreateTokenWithIAM` | `POST /token?aws_iam=t` | - | `clientId`, `grantType` | - | `CreateTokenWithIAMResponse` | `AccessDeniedException`, `AuthorizationPendingException`, `ExpiredTokenException`, `InternalServerException`, `InvalidClientException`, `InvalidGrantException`, `InvalidRequestException`, `InvalidRequestRegionException`, `InvalidScopeException`, `SlowDownException`, `UnauthorizedClientException`, `UnsupportedGrantTypeException` | Creates and returns access and refresh tokens for authorized client applications that are authenticated using any IAM entity, such as a service role or user. These tokens might contain defined scopes that specify per ... |
 | `RegisterClient` | `POST /client/register` | - | `clientName`, `clientType` | - | `RegisterClientResponse` | `InternalServerException`, `InvalidClientMetadataException`, `InvalidRedirectUriException`, `InvalidRequestException`, `InvalidScopeException`, `SlowDownException`, `UnsupportedGrantTypeException` | Registers a public client with IAM Identity Center. This allows clients to perform authorization using the authorization code grant with Proof Key for Code Exchange (PKCE) or the device code grant. |
 | `StartDeviceAuthorization` | `POST /device_authorization` | - | `clientId`, `clientSecret`, `startUrl` | - | `StartDeviceAuthorizationResponse` | `InternalServerException`, `InvalidClientException`, `InvalidRequestException`, `SlowDownException`, `UnauthorizedClientException` | Initiates device authorization by requesting a pair of verification codes from the authorization service. |
 
@@ -92,29 +92,30 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `error`, `error_description` | Indicates that an error from the service occurred while trying to process a request. |
-| `InvalidRequestException` | `structure` | `error`, `error_description`, `reason` | Indicates that something is wrong with the input to the request. |
-| `SlowDownException` | `structure` | `error`, `error_description` | Indicates that the client is making the request too frequently and is more than the service can handle. |
-| `InvalidClientException` | `structure` | `error`, `error_description` | Indicates that the `clientId` or `clientSecret` in the request is invalid. |
-| `InvalidScopeException` | `structure` | `error`, `error_description` | Indicates that the scope provided in the request is invalid. |
-| `UnauthorizedClientException` | `structure` | `error`, `error_description` | Indicates that the client is not currently authorized to make the request. |
-| `UnsupportedGrantTypeException` | `structure` | `error`, `error_description` | Indicates that the grant type in the request is not supported by the service. |
-| `AccessDeniedException` | `structure` | `error`, `error_description`, `reason` | You do not have sufficient access to perform this action. |
-| `AuthorizationPendingException` | `structure` | `error`, `error_description` | Indicates that a request to authorize a client with an access user session token is pending. |
-| `ExpiredTokenException` | `structure` | `error`, `error_description` | Indicates that the token issued by the service is expired and is no longer valid. |
-| `InvalidGrantException` | `structure` | `error`, `error_description` | Indicates that a request contains an invalid grant. |
-| `CreateTokenRequest` | `structure` | `clientId`, `clientSecret`, `code`, `codeVerifier`, `deviceCode`, `grantType`, `redirectUri`, `refreshToken`, `scope` | - |
-| `CreateTokenResponse` | `structure` | `accessToken`, `expiresIn`, `idToken`, `refreshToken`, `tokenType` | - |
-| `CreateTokenWithIAMRequest` | `structure` | `assertion`, `clientId`, `code`, `codeVerifier`, `grantType`, `redirectUri`, `refreshToken`, `requestedTokenType`, `scope`, `subjectToken`, `subjectTokenType` | - |
-| `CreateTokenWithIAMResponse` | `structure` | `accessToken`, `awsAdditionalDetails`, `expiresIn`, `idToken`, `issuedTokenType`, `refreshToken`, `scope`, `tokenType` | - |
-| `InvalidRequestRegionException` | `structure` | `endpoint`, `error`, `error_description`, `region` | Indicates that a token provided as input to the request was issued by and is only usable by calling IAM Identity Center endpoints in another region. |
-| `RegisterClientRequest` | `structure` | `clientName`, `clientType`, `entitledApplicationArn`, `grantTypes`, `issuerUrl`, `redirectUris`, `scopes` | - |
-| `RegisterClientResponse` | `structure` | `authorizationEndpoint`, `clientId`, `clientIdIssuedAt`, `clientSecret`, `clientSecretExpiresAt`, `tokenEndpoint` | - |
-| `InvalidClientMetadataException` | `structure` | `error`, `error_description` | Indicates that the client information sent in the request during registration is invalid. |
-| `InvalidRedirectUriException` | `structure` | `error`, `error_description` | Indicates that one or more redirect URI in the request is not supported for this operation. |
-| `StartDeviceAuthorizationRequest` | `structure` | `clientId`, `clientSecret`, `startUrl` | - |
-| `StartDeviceAuthorizationResponse` | `structure` | `deviceCode`, `expiresIn`, `interval`, `userCode`, `verificationUri`, `verificationUriComplete` | - |
-
+| `AccessDeniedException` | `structure` | error, reason, error_description | You do not have sufficient access to perform this action. |
+| `AuthorizationPendingException` | `structure` | error, error_description | Indicates that a request to authorize a client with an access user session token is pending. |
+| `ExpiredTokenException` | `structure` | error, error_description | Indicates that the token issued by the service is expired and is no longer valid. |
+| `InternalServerException` | `structure` | error, error_description | Indicates that an error from the service occurred while trying to process a request. |
+| `InvalidClientException` | `structure` | error, error_description | Indicates that the clientId or clientSecret in the request is invalid. For example, this can occur when a client sends an incorrect clientId or an expired c ... |
+| `InvalidClientMetadataException` | `structure` | error, error_description | Indicates that the client information sent in the request during registration is invalid. |
+| `InvalidGrantException` | `structure` | error, error_description | Indicates that a request contains an invalid grant. This can occur if a client makes a CreateToken request with an invalid grant type. |
+| `InvalidRedirectUriException` | `structure` | error, error_description | Indicates that one or more redirect URI in the request is not supported for this operation. |
+| `InvalidRequestException` | `structure` | error, reason, error_description | Indicates that something is wrong with the input to the request. For example, a required parameter might be missing or out of range. |
+| `InvalidRequestRegionException` | `structure` | error, error_description, endpoint, region | Indicates that a token provided as input to the request was issued by and is only usable by calling IAM Identity Center endpoints in another region. |
+| `InvalidScopeException` | `structure` | error, error_description | Indicates that the scope provided in the request is invalid. |
+| `SlowDownException` | `structure` | error, error_description | Indicates that the client is making the request too frequently and is more than the service can handle. |
+| `UnauthorizedClientException` | `structure` | error, error_description | Indicates that the client is not currently authorized to make the request. This can happen when a clientId is not issued for a public client. |
+| `UnsupportedGrantTypeException` | `structure` | error, error_description | Indicates that the grant type in the request is not supported by the service. |
+| `CreateTokenRequest` | `structure` | clientId, clientSecret, grantType, deviceCode, code, refreshToken, scope, redirectUri, codeVerifier | - |
+| `CreateTokenResponse` | `structure` | accessToken, tokenType, expiresIn, refreshToken, idToken | - |
+| `CreateTokenWithIAMRequest` | `structure` | clientId, grantType, code, refreshToken, assertion, scope, redirectUri, subjectToken, subjectTokenType, requestedTokenType, codeVerifier | - |
+| `CreateTokenWithIAMResponse` | `structure` | accessToken, tokenType, expiresIn, refreshToken, idToken, issuedTokenType, scope, awsAdditionalDetails | - |
+| `RegisterClientRequest` | `structure` | clientName, clientType, scopes, redirectUris, grantTypes, issuerUrl, entitledApplicationArn | - |
+| `RegisterClientResponse` | `structure` | clientId, clientSecret, clientIdIssuedAt, clientSecretExpiresAt, authorizationEndpoint, tokenEndpoint | - |
+| `StartDeviceAuthorizationRequest` | `structure` | clientId, clientSecret, startUrl | - |
+| `StartDeviceAuthorizationResponse` | `structure` | deviceCode, userCode, verificationUri, verificationUriComplete, expiresIn, interval | - |
+| `AccessDeniedExceptionReason` | `enum` | KMS_ACCESS_DENIED | - |
+| `InvalidRequestExceptionReason` | `enum` | KMS_KEY_NOT_FOUND, KMS_INVALID_KEY_USAGE, KMS_INVALID_STATE, KMS_DISABLED_KEY | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

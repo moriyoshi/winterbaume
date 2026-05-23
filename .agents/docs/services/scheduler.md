@@ -69,61 +69,28 @@ Parity implications:
 
 ### List
 
-- Operations: `ListScheduleGroups`, `ListSchedules`, `ListTagsForResource`
-- Traits: `paginated` (2), `readonly` (3)
-- Common required input members in this group: `ResourceArn`
-
-### Create
-
-- Operations: `CreateSchedule`, `CreateScheduleGroup`
-- Traits: `idempotency-token` (2), `idempotent` (2)
-- Common required input members in this group: `FlexibleTimeWindow`, `Name`, `ScheduleExpression`, `Target`
-
-### Delete
-
-- Operations: `DeleteSchedule`, `DeleteScheduleGroup`
-- Traits: `idempotency-token` (2), `idempotent` (2)
-- Common required input members in this group: `Name`
-
-### Get
-
-- Operations: `GetSchedule`, `GetScheduleGroup`
-- Traits: `readonly` (2)
-- Common required input members in this group: `Name`
+- Operations: `ListTagsForResource`
+- Traits: `readonly` (1)
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `ResourceArn`, `TagKeys`
-
-### Update
-
-- Operations: `UpdateSchedule`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `FlexibleTimeWindow`, `Name`, `ScheduleExpression`, `Target`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateSchedule` | `POST /schedules/{Name}` | `idempotent`, `idempotency-token` | `FlexibleTimeWindow`, `Name`, `ScheduleExpression`, `Target` | `ClientToken` | `CreateScheduleOutput` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates the specified schedule. |
-| `CreateScheduleGroup` | `POST /schedule-groups/{Name}` | `idempotent`, `idempotency-token` | `Name` | `ClientToken` | `CreateScheduleGroupOutput` | `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates the specified schedule group. |
-| `DeleteSchedule` | `DELETE /schedules/{Name}` | `idempotent`, `idempotency-token` | `Name` | `ClientToken` | `DeleteScheduleOutput` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the specified schedule. |
-| `DeleteScheduleGroup` | `DELETE /schedule-groups/{Name}` | `idempotent`, `idempotency-token` | `Name` | `ClientToken` | `DeleteScheduleGroupOutput` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the specified schedule group. Deleting a schedule group results in EventBridge Scheduler deleting all schedules associated with the group. |
-| `GetSchedule` | `GET /schedules/{Name}` | `readonly` | `Name` | - | `GetScheduleOutput` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves the specified schedule. |
-| `GetScheduleGroup` | `GET /schedule-groups/{Name}` | `readonly` | `Name` | - | `GetScheduleGroupOutput` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves the specified schedule group. |
-| `ListScheduleGroups` | `GET /schedule-groups` | `readonly`, `paginated` | - | - | `ListScheduleGroupsOutput` | `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a paginated list of your schedule groups. |
-| `ListSchedules` | `GET /schedules` | `readonly`, `paginated` | - | - | `ListSchedulesOutput` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a paginated list of your EventBridge Scheduler schedules. |
 | `ListTagsForResource` | `GET /tags/{ResourceArn}` | `readonly` | `ResourceArn` | - | `ListTagsForResourceOutput` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the tags associated with the Scheduler resource. |
 | `TagResource` | `POST /tags/{ResourceArn}` | - | `ResourceArn`, `Tags` | - | `TagResourceOutput` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Assigns one or more tags (key-value pairs) to the specified EventBridge Scheduler resource. You can only assign tags to schedule groups. |
 | `UntagResource` | `DELETE /tags/{ResourceArn}` | `idempotent` | `ResourceArn`, `TagKeys` | - | `UntagResourceOutput` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes one or more tags from the specified EventBridge Scheduler schedule group. |
-| `UpdateSchedule` | `PUT /schedules/{Name}` | `idempotent`, `idempotency-token` | `FlexibleTimeWindow`, `Name`, `ScheduleExpression`, `Target` | `ClientToken` | `UpdateScheduleOutput` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the specified schedule. When you call `UpdateSchedule`, EventBridge Scheduler uses all values, including empty values, specified in the request and overrides the existing schedule. |
 
 ## HTTP Bindings
 
@@ -137,31 +104,18 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `Message` | Unexpected error encountered while processing the request. |
-| `ThrottlingException` | `structure` | `Message` | The request was denied due to request throttling. |
-| `ValidationException` | `structure` | `Message` | The input fails to satisfy the constraints specified by an AWS service. |
-| `ResourceNotFoundException` | `structure` | `Message` | The request references a resource which does not exist. |
-| `ConflictException` | `structure` | `Message` | Updating or deleting the resource can cause an inconsistent state. |
-| `ServiceQuotaExceededException` | `structure` | `Message` | The request exceeds a service quota. |
-| `CreateScheduleInput` | `structure` | `ActionAfterCompletion`, `ClientToken`, `Description`, `EndDate`, `FlexibleTimeWindow`, `GroupName`, `KmsKeyArn`, `Name`, `ScheduleExpression`, `ScheduleExpressionTimezone`, `StartDate`, `State`, ... (+1) | - |
-| `CreateScheduleOutput` | `structure` | `ScheduleArn` | - |
-| `CreateScheduleGroupInput` | `structure` | `ClientToken`, `Name`, `Tags` | - |
-| `CreateScheduleGroupOutput` | `structure` | `ScheduleGroupArn` | - |
-| `DeleteScheduleInput` | `structure` | `ClientToken`, `GroupName`, `Name` | - |
-| `DeleteScheduleOutput` | `structure` | - | - |
-| `DeleteScheduleGroupInput` | `structure` | `ClientToken`, `Name` | - |
-| `DeleteScheduleGroupOutput` | `structure` | - | - |
-| `GetScheduleInput` | `structure` | `GroupName`, `Name` | - |
-| `GetScheduleOutput` | `structure` | `ActionAfterCompletion`, `Arn`, `CreationDate`, `Description`, `EndDate`, `FlexibleTimeWindow`, `GroupName`, `KmsKeyArn`, `LastModificationDate`, `Name`, `ScheduleExpression`, `ScheduleExpressionTimezone`, ... (+3) | - |
-| `GetScheduleGroupInput` | `structure` | `Name` | - |
-| `GetScheduleGroupOutput` | `structure` | `Arn`, `CreationDate`, `LastModificationDate`, `Name`, `State` | - |
-| `ListScheduleGroupsInput` | `structure` | `MaxResults`, `NamePrefix`, `NextToken` | - |
-| `ListScheduleGroupsOutput` | `structure` | `NextToken`, `ScheduleGroups` | - |
-| `ListSchedulesInput` | `structure` | `GroupName`, `MaxResults`, `NamePrefix`, `NextToken`, `State` | - |
-| `ListSchedulesOutput` | `structure` | `NextToken`, `Schedules` | - |
-| `ListTagsForResourceInput` | `structure` | `ResourceArn` | - |
-| `ListTagsForResourceOutput` | `structure` | `Tags` | - |
-
+| `ConflictException` | `structure` | Message | Updating or deleting the resource can cause an inconsistent state. |
+| `InternalServerException` | `structure` | Message | Unexpected error encountered while processing the request. |
+| `ResourceNotFoundException` | `structure` | Message | The request references a resource which does not exist. |
+| `ServiceQuotaExceededException` | `structure` | Message | The request exceeds a service quota. |
+| `ThrottlingException` | `structure` | Message | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | Message | The input fails to satisfy the constraints specified by an AWS service. |
+| `ListTagsForResourceInput` | `structure` | ResourceArn | - |
+| `ListTagsForResourceOutput` | `structure` | Tags | - |
+| `TagResourceInput` | `structure` | ResourceArn, Tags | - |
+| `TagResourceOutput` | `structure` | **empty (no members)** | - |
+| `UntagResourceInput` | `structure` | ResourceArn, TagKeys | - |
+| `UntagResourceOutput` | `structure` | **empty (no members)** | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

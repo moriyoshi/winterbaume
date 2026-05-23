@@ -39,30 +39,32 @@ The AWS Migration Hub home region APIs are available specifically for working wi
 ### Create
 
 - Operations: `CreateHomeRegionControl`
-- Common required input members in this group: `HomeRegion`, `Target`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteHomeRegionControl`
-- Common required input members in this group: `ControlId`
+- Common required input members in this group: -
 
 ### Describe
 
 - Operations: `DescribeHomeRegionControls`
 - Traits: `paginated` (1)
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetHomeRegion`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateHomeRegionControl` | - | - | `HomeRegion`, `Target` | - | `CreateHomeRegionControlResult` | `AccessDeniedException`, `DryRunOperation`, `InternalServerError`, `InvalidInputException`, `ServiceUnavailableException`, `ThrottlingException` | This API sets up the home region for the calling account only. |
-| `DeleteHomeRegionControl` | - | - | `ControlId` | - | `DeleteHomeRegionControlResult` | `AccessDeniedException`, `InternalServerError`, `InvalidInputException`, `ServiceUnavailableException`, `ThrottlingException` | This operation deletes the home region configuration for the calling account. The operation does not delete discovery or migration tracking data in the home region. |
-| `DescribeHomeRegionControls` | - | `paginated` | - | - | `DescribeHomeRegionControlsResult` | `AccessDeniedException`, `InternalServerError`, `InvalidInputException`, `ServiceUnavailableException`, `ThrottlingException` | This API permits filtering on the `ControlId` and `HomeRegion` fields. |
-| `GetHomeRegion` | - | - | - | - | `GetHomeRegionResult` | `AccessDeniedException`, `InternalServerError`, `InvalidInputException`, `ServiceUnavailableException`, `ThrottlingException` | Returns the calling account’s home region, if configured. This API is used by other AWS services to determine the regional endpoint for calling AWS Application Discovery Service and Migration Hub. |
+| `CreateHomeRegionControl` | `-` | - | `HomeRegion`, `Target` | - | `CreateHomeRegionControlResult` | `AccessDeniedException`, `DryRunOperation`, `InternalServerError`, `InvalidInputException`, `ServiceUnavailableException`, `ThrottlingException` | This API sets up the home region for the calling account only. |
+| `DeleteHomeRegionControl` | `-` | - | `ControlId` | - | `DeleteHomeRegionControlResult` | `AccessDeniedException`, `InternalServerError`, `InvalidInputException`, `ServiceUnavailableException`, `ThrottlingException` | This operation deletes the home region configuration for the calling account. The operation does not delete discovery or migration tracking data in the home region. |
+| `DescribeHomeRegionControls` | `-` | `paginated` | - | - | `DescribeHomeRegionControlsResult` | `AccessDeniedException`, `InternalServerError`, `InvalidInputException`, `ServiceUnavailableException`, `ThrottlingException` | This API permits filtering on the ControlId and HomeRegion fields. |
+| `GetHomeRegion` | `-` | - | - | - | `GetHomeRegionResult` | `AccessDeniedException`, `InternalServerError`, `InvalidInputException`, `ServiceUnavailableException`, `ThrottlingException` | Returns the calling account’s home region, if configured. This API is used by other AWS services to determine the regional endpoint for calling AWS Application Discovery Service and Migration Hub. You must call GetHo ... |
 
 ## HTTP Bindings
 
@@ -74,21 +76,21 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `Message` | You do not have sufficient access to perform this action. |
-| `InternalServerError` | `structure` | `Message` | Exception raised when an internal, configuration, or dependency error is encountered. |
-| `InvalidInputException` | `structure` | `Message` | Exception raised when the provided input violates a policy constraint or is entered in the wrong format or data type. |
-| `ServiceUnavailableException` | `structure` | `Message` | Exception raised when a request fails due to temporary unavailability of the service. |
-| `ThrottlingException` | `structure` | `Message`, `RetryAfterSeconds` | The request was denied due to request throttling. |
-| `CreateHomeRegionControlRequest` | `structure` | `DryRun`, `HomeRegion`, `Target` | - |
-| `CreateHomeRegionControlResult` | `structure` | `HomeRegionControl` | - |
-| `DryRunOperation` | `structure` | `Message` | Exception raised to indicate that authorization of an action was successful, when the `DryRun` flag is set to true. |
-| `DeleteHomeRegionControlRequest` | `structure` | `ControlId` | - |
-| `DeleteHomeRegionControlResult` | `structure` | - | - |
-| `DescribeHomeRegionControlsRequest` | `structure` | `ControlId`, `HomeRegion`, `MaxResults`, `NextToken`, `Target` | - |
-| `DescribeHomeRegionControlsResult` | `structure` | `HomeRegionControls`, `NextToken` | - |
-| `GetHomeRegionRequest` | `structure` | - | - |
-| `GetHomeRegionResult` | `structure` | `HomeRegion` | - |
-
+| `AccessDeniedException` | `structure` | Message | You do not have sufficient access to perform this action. |
+| `DryRunOperation` | `structure` | Message | Exception raised to indicate that authorization of an action was successful, when the DryRun flag is set to true. |
+| `InternalServerError` | `structure` | Message | Exception raised when an internal, configuration, or dependency error is encountered. |
+| `InvalidInputException` | `structure` | Message | Exception raised when the provided input violates a policy constraint or is entered in the wrong format or data type. |
+| `ServiceUnavailableException` | `structure` | Message | Exception raised when a request fails due to temporary unavailability of the service. |
+| `ThrottlingException` | `structure` | Message, RetryAfterSeconds | The request was denied due to request throttling. |
+| `CreateHomeRegionControlRequest` | `structure` | HomeRegion, Target, DryRun | - |
+| `CreateHomeRegionControlResult` | `structure` | HomeRegionControl | - |
+| `DeleteHomeRegionControlRequest` | `structure` | ControlId | - |
+| `DeleteHomeRegionControlResult` | `structure` | **empty (no members)** | - |
+| `DescribeHomeRegionControlsRequest` | `structure` | ControlId, HomeRegion, Target, MaxResults, NextToken | - |
+| `DescribeHomeRegionControlsResult` | `structure` | HomeRegionControls, NextToken | - |
+| `GetHomeRegionRequest` | `structure` | **empty (no members)** | - |
+| `GetHomeRegionResult` | `structure` | HomeRegion | - |
+| `TargetType` | `enum` | ACCOUNT | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

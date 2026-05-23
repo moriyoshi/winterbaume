@@ -62,94 +62,94 @@ Parity implications:
 ### List
 
 - Operations: `ListAppAuthorizations`, `ListAppBundles`, `ListIngestionDestinations`, `ListIngestions`, `ListTagsForResource`
-- Traits: `paginated` (4), `readonly` (5)
-- Common required input members in this group: `appBundleIdentifier`, `ingestionIdentifier`, `resourceArn`
+- Traits: `readonly` (5), `paginated` (4)
+- Common required input members in this group: `appBundleIdentifier`
 
 ### Create
 
 - Operations: `CreateAppAuthorization`, `CreateAppBundle`, `CreateIngestion`, `CreateIngestionDestination`
-- Traits: `idempotency-token` (4), `idempotent` (4)
-- Common required input members in this group: `app`, `appBundleIdentifier`, `authType`, `credential`, `destinationConfiguration`, `ingestionIdentifier`, `ingestionType`, `processingConfiguration`, `tenant`, `tenantId`
+- Traits: `idempotent` (4), `idempotency-token` (4)
+- Common required input members in this group: `appBundleIdentifier`, `app`
 
 ### Delete
 
 - Operations: `DeleteAppAuthorization`, `DeleteAppBundle`, `DeleteIngestion`, `DeleteIngestionDestination`
 - Traits: `idempotent` (4)
-- Common required input members in this group: `appAuthorizationIdentifier`, `appBundleIdentifier`, `ingestionDestinationIdentifier`, `ingestionIdentifier`
+- Common required input members in this group: `appBundleIdentifier`, `ingestionIdentifier`
 
 ### Get
 
 - Operations: `GetAppAuthorization`, `GetAppBundle`, `GetIngestion`, `GetIngestionDestination`
 - Traits: `readonly` (4)
-- Common required input members in this group: `appAuthorizationIdentifier`, `appBundleIdentifier`, `ingestionDestinationIdentifier`, `ingestionIdentifier`
+- Common required input members in this group: `appBundleIdentifier`, `ingestionIdentifier`
 
 ### Start
 
 - Operations: `StartIngestion`, `StartUserAccessTasks`
-- Common required input members in this group: `appBundleIdentifier`, `email`, `ingestionIdentifier`
+- Common required input members in this group: `appBundleIdentifier`
 
 ### Update
 
 - Operations: `UpdateAppAuthorization`, `UpdateIngestionDestination`
-- Common required input members in this group: `appAuthorizationIdentifier`, `appBundleIdentifier`, `destinationConfiguration`, `ingestionDestinationIdentifier`, `ingestionIdentifier`
+- Common required input members in this group: `appBundleIdentifier`
 
 ### Batch
 
 - Operations: `BatchGetUserAccessTasks`
 - Traits: `readonly` (1)
-- Common required input members in this group: `appBundleIdentifier`, `taskIdList`
+- Common required input members in this group: -
 
 ### Connect
 
 - Operations: `ConnectAppAuthorization`
-- Common required input members in this group: `appAuthorizationIdentifier`, `appBundleIdentifier`
+- Common required input members in this group: -
 
 ### Stop
 
 - Operations: `StopIngestion`
-- Common required input members in this group: `appBundleIdentifier`, `ingestionIdentifier`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `BatchGetUserAccessTasks` | `POST /useraccess/batchget` | `readonly` | `appBundleIdentifier`, `taskIdList` | - | `BatchGetUserAccessTasksResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets user access details in a batch request. This action polls data from the tasks that are kicked off by the `StartUserAccessTasks` action. |
-| `ConnectAppAuthorization` | `POST /appbundles/{appBundleIdentifier}/appauthorizations/{appAuthorizationIdentifier}/connect` | - | `appAuthorizationIdentifier`, `appBundleIdentifier` | - | `ConnectAppAuthorizationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Establishes a connection between Amazon Web Services AppFabric and an application, which allows AppFabric to call the APIs of the application. |
-| `CreateAppAuthorization` | `POST /appbundles/{appBundleIdentifier}/appauthorizations` | `idempotent`, `idempotency-token` | `app`, `appBundleIdentifier`, `authType`, `credential`, `tenant` | `clientToken` | `CreateAppAuthorizationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates an app authorization within an app bundle, which allows AppFabric to connect to an application. |
+| `BatchGetUserAccessTasks` | `POST /useraccess/batchget` | `readonly` | `appBundleIdentifier`, `taskIdList` | - | `BatchGetUserAccessTasksResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets user access details in a batch request. This action polls data from the tasks that are kicked off by the StartUserAccessTasks action. |
+| `ConnectAppAuthorization` | `POST /appbundles/{appBundleIdentifier}/appauthorizations/{appAuthorizationIdentifier}/connect` | - | `appBundleIdentifier`, `appAuthorizationIdentifier` | - | `ConnectAppAuthorizationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Establishes a connection between Amazon Web Services AppFabric and an application, which allows AppFabric to call the APIs of the application. |
+| `CreateAppAuthorization` | `POST /appbundles/{appBundleIdentifier}/appauthorizations` | `idempotent`, `idempotency-token` | `appBundleIdentifier`, `app`, `credential`, `tenant`, `authType` | `clientToken` | `CreateAppAuthorizationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates an app authorization within an app bundle, which allows AppFabric to connect to an application. |
 | `CreateAppBundle` | `POST /appbundles` | `idempotent`, `idempotency-token` | - | `clientToken` | `CreateAppBundleResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates an app bundle to collect data from an application using AppFabric. |
-| `CreateIngestion` | `POST /appbundles/{appBundleIdentifier}/ingestions` | `idempotent`, `idempotency-token` | `app`, `appBundleIdentifier`, `ingestionType`, `tenantId` | `clientToken` | `CreateIngestionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a data ingestion for an application. |
-| `CreateIngestionDestination` | `POST /appbundles/{appBundleIdentifier}/ingestions/{ingestionIdentifier}/ingestiondestinations` | `idempotent`, `idempotency-token` | `appBundleIdentifier`, `destinationConfiguration`, `ingestionIdentifier`, `processingConfiguration` | `clientToken` | `CreateIngestionDestinationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates an ingestion destination, which specifies how an application's ingested data is processed by Amazon Web Services AppFabric and where it's delivered. |
-| `DeleteAppAuthorization` | `DELETE /appbundles/{appBundleIdentifier}/appauthorizations/{appAuthorizationIdentifier}` | `idempotent` | `appAuthorizationIdentifier`, `appBundleIdentifier` | - | `DeleteAppAuthorizationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an app authorization. You must delete the associated ingestion before you can delete an app authorization. |
+| `CreateIngestion` | `POST /appbundles/{appBundleIdentifier}/ingestions` | `idempotent`, `idempotency-token` | `appBundleIdentifier`, `app`, `tenantId`, `ingestionType` | `clientToken` | `CreateIngestionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a data ingestion for an application. |
+| `CreateIngestionDestination` | `POST /appbundles/{appBundleIdentifier}/ingestions/{ingestionIdentifier}/ingestiondestinations` | `idempotent`, `idempotency-token` | `appBundleIdentifier`, `ingestionIdentifier`, `processingConfiguration`, `destinationConfiguration` | `clientToken` | `CreateIngestionDestinationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates an ingestion destination, which specifies how an application's ingested data is processed by Amazon Web Services AppFabric and where it's delivered. |
+| `DeleteAppAuthorization` | `DELETE /appbundles/{appBundleIdentifier}/appauthorizations/{appAuthorizationIdentifier}` | `idempotent` | `appBundleIdentifier`, `appAuthorizationIdentifier` | - | `DeleteAppAuthorizationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an app authorization. You must delete the associated ingestion before you can delete an app authorization. |
 | `DeleteAppBundle` | `DELETE /appbundles/{appBundleIdentifier}` | `idempotent` | `appBundleIdentifier` | - | `DeleteAppBundleResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Deletes an app bundle. You must delete all associated app authorizations before you can delete an app bundle. |
 | `DeleteIngestion` | `DELETE /appbundles/{appBundleIdentifier}/ingestions/{ingestionIdentifier}` | `idempotent` | `appBundleIdentifier`, `ingestionIdentifier` | - | `DeleteIngestionResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an ingestion. You must stop (disable) the ingestion and you must delete all associated ingestion destinations before you can delete an app ingestion. |
-| `DeleteIngestionDestination` | `DELETE /appbundles/{appBundleIdentifier}/ingestions/{ingestionIdentifier}/ingestiondestinations/{ingestionDestinationIdentifier}` | `idempotent` | `appBundleIdentifier`, `ingestionDestinationIdentifier`, `ingestionIdentifier` | - | `DeleteIngestionDestinationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an ingestion destination. This deletes the association between an ingestion and it's destination. |
-| `GetAppAuthorization` | `GET /appbundles/{appBundleIdentifier}/appauthorizations/{appAuthorizationIdentifier}` | `readonly` | `appAuthorizationIdentifier`, `appBundleIdentifier` | - | `GetAppAuthorizationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about an app authorization. |
+| `DeleteIngestionDestination` | `DELETE /appbundles/{appBundleIdentifier}/ingestions/{ingestionIdentifier}/ingestiondestinations/{ingestionDestinationIdentifier}` | `idempotent` | `appBundleIdentifier`, `ingestionIdentifier`, `ingestionDestinationIdentifier` | - | `DeleteIngestionDestinationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an ingestion destination. This deletes the association between an ingestion and it's destination. It doesn't delete previously ingested data or the storage destination, such as the Amazon S3 bucket where the ... |
+| `GetAppAuthorization` | `GET /appbundles/{appBundleIdentifier}/appauthorizations/{appAuthorizationIdentifier}` | `readonly` | `appBundleIdentifier`, `appAuthorizationIdentifier` | - | `GetAppAuthorizationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about an app authorization. |
 | `GetAppBundle` | `GET /appbundles/{appBundleIdentifier}` | `readonly` | `appBundleIdentifier` | - | `GetAppBundleResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about an app bundle. |
 | `GetIngestion` | `GET /appbundles/{appBundleIdentifier}/ingestions/{ingestionIdentifier}` | `readonly` | `appBundleIdentifier`, `ingestionIdentifier` | - | `GetIngestionResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about an ingestion. |
-| `GetIngestionDestination` | `GET /appbundles/{appBundleIdentifier}/ingestions/{ingestionIdentifier}/ingestiondestinations/{ingestionDestinationIdentifier}` | `readonly` | `appBundleIdentifier`, `ingestionDestinationIdentifier`, `ingestionIdentifier` | - | `GetIngestionDestinationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about an ingestion destination. |
+| `GetIngestionDestination` | `GET /appbundles/{appBundleIdentifier}/ingestions/{ingestionIdentifier}/ingestiondestinations/{ingestionDestinationIdentifier}` | `readonly` | `appBundleIdentifier`, `ingestionIdentifier`, `ingestionDestinationIdentifier` | - | `GetIngestionDestinationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about an ingestion destination. |
 | `ListAppAuthorizations` | `GET /appbundles/{appBundleIdentifier}/appauthorizations` | `readonly`, `paginated` | `appBundleIdentifier` | - | `ListAppAuthorizationsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of all app authorizations configured for an app bundle. |
 | `ListAppBundles` | `GET /appbundles` | `readonly`, `paginated` | - | - | `ListAppBundlesResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of app bundles. |
 | `ListIngestionDestinations` | `GET /appbundles/{appBundleIdentifier}/ingestions/{ingestionIdentifier}/ingestiondestinations` | `readonly`, `paginated` | `appBundleIdentifier`, `ingestionIdentifier` | - | `ListIngestionDestinationsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of all ingestion destinations configured for an ingestion. |
 | `ListIngestions` | `GET /appbundles/{appBundleIdentifier}/ingestions` | `readonly`, `paginated` | `appBundleIdentifier` | - | `ListIngestionsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of all ingestions configured for an app bundle. |
 | `ListTagsForResource` | `GET /tags/{resourceArn}` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of tags for a resource. |
-| `StartIngestion` | `POST /appbundles/{appBundleIdentifier}/ingestions/{ingestionIdentifier}/start` | - | `appBundleIdentifier`, `ingestionIdentifier` | - | `StartIngestionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Starts (enables) an ingestion, which collects data from an application. |
-| `StartUserAccessTasks` | `POST /useraccess/start` | - | `appBundleIdentifier`, `email` | - | `StartUserAccessTasksResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Starts the tasks to search user access status for a specific email address. The tasks are stopped when the user access status data is found. |
-| `StopIngestion` | `POST /appbundles/{appBundleIdentifier}/ingestions/{ingestionIdentifier}/stop` | - | `appBundleIdentifier`, `ingestionIdentifier` | - | `StopIngestionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Stops (disables) an ingestion. |
+| `StartIngestion` | `POST /appbundles/{appBundleIdentifier}/ingestions/{ingestionIdentifier}/start` | - | `ingestionIdentifier`, `appBundleIdentifier` | - | `StartIngestionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Starts (enables) an ingestion, which collects data from an application. |
+| `StartUserAccessTasks` | `POST /useraccess/start` | - | `appBundleIdentifier`, `email` | - | `StartUserAccessTasksResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Starts the tasks to search user access status for a specific email address. The tasks are stopped when the user access status data is found. The tasks are terminated when the API calls to the application time out. |
+| `StopIngestion` | `POST /appbundles/{appBundleIdentifier}/ingestions/{ingestionIdentifier}/stop` | - | `ingestionIdentifier`, `appBundleIdentifier` | - | `StopIngestionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Stops (disables) an ingestion. |
 | `TagResource` | `POST /tags/{resourceArn}` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Assigns one or more tags (key-value pairs) to the specified resource. |
 | `UntagResource` | `DELETE /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes a tag or tags from a resource. |
-| `UpdateAppAuthorization` | `PATCH /appbundles/{appBundleIdentifier}/appauthorizations/{appAuthorizationIdentifier}` | - | `appAuthorizationIdentifier`, `appBundleIdentifier` | - | `UpdateAppAuthorizationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates an app authorization within an app bundle, which allows AppFabric to connect to an application. If the app authorization was in a `connected` state, updating the app authorization will set it back to a `PendingConnect` state. |
-| `UpdateIngestionDestination` | `PATCH /appbundles/{appBundleIdentifier}/ingestions/{ingestionIdentifier}/ingestiondestinations/{ingestionDestinationIdentifier}` | - | `appBundleIdentifier`, `destinationConfiguration`, `ingestionDestinationIdentifier`, `ingestionIdentifier` | - | `UpdateIngestionDestinationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates an ingestion destination, which specifies how an application's ingested data is processed by Amazon Web Services AppFabric and where it's delivered. |
+| `UpdateAppAuthorization` | `PATCH /appbundles/{appBundleIdentifier}/appauthorizations/{appAuthorizationIdentifier}` | - | `appBundleIdentifier`, `appAuthorizationIdentifier` | - | `UpdateAppAuthorizationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates an app authorization within an app bundle, which allows AppFabric to connect to an application. If the app authorization was in a connected state, updating the app authorization will set it back to a PendingC ... |
+| `UpdateIngestionDestination` | `PATCH /appbundles/{appBundleIdentifier}/ingestions/{ingestionIdentifier}/ingestiondestinations/{ingestionDestinationIdentifier}` | - | `appBundleIdentifier`, `ingestionIdentifier`, `ingestionDestinationIdentifier`, `destinationConfiguration` | - | `UpdateIngestionDestinationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates an ingestion destination, which specifies how an application's ingested data is processed by Amazon Web Services AppFabric and where it's delivered. |
 
 ## HTTP Bindings
 
@@ -167,31 +167,56 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | You are not authorized to perform this operation. |
-| `InternalServerException` | `structure` | `message`, `retryAfterSeconds` | The request processing has failed because of an unknown error, exception, or failure with an internal server. |
-| `ThrottlingException` | `structure` | `message`, `quotaCode`, `retryAfterSeconds`, `serviceCode` | The request rate exceeds the limit. |
-| `ValidationException` | `structure` | `fieldList`, `message`, `reason` | The request has invalid or missing parameters. |
-| `ResourceNotFoundException` | `structure` | `message`, `resourceId`, `resourceType` | The specified resource does not exist. |
-| `ConflictException` | `structure` | `message`, `resourceId`, `resourceType` | The request has created a conflict. |
-| `ServiceQuotaExceededException` | `structure` | `message`, `quotaCode`, `resourceId`, `resourceType`, `serviceCode` | The request exceeds a service quota. |
-| `BatchGetUserAccessTasksRequest` | `structure` | `appBundleIdentifier`, `taskIdList` | - |
-| `BatchGetUserAccessTasksResponse` | `structure` | `userAccessResultsList` | - |
-| `ConnectAppAuthorizationRequest` | `structure` | `appAuthorizationIdentifier`, `appBundleIdentifier`, `authRequest` | - |
-| `ConnectAppAuthorizationResponse` | `structure` | `appAuthorizationSummary` | - |
-| `CreateAppAuthorizationRequest` | `structure` | `app`, `appBundleIdentifier`, `authType`, `clientToken`, `credential`, `tags`, `tenant` | - |
-| `CreateAppAuthorizationResponse` | `structure` | `appAuthorization` | - |
-| `CreateAppBundleRequest` | `structure` | `clientToken`, `customerManagedKeyIdentifier`, `tags` | - |
-| `CreateAppBundleResponse` | `structure` | `appBundle` | - |
-| `CreateIngestionRequest` | `structure` | `app`, `appBundleIdentifier`, `clientToken`, `ingestionType`, `tags`, `tenantId` | - |
-| `CreateIngestionResponse` | `structure` | `ingestion` | - |
-| `CreateIngestionDestinationRequest` | `structure` | `appBundleIdentifier`, `clientToken`, `destinationConfiguration`, `ingestionIdentifier`, `processingConfiguration`, `tags` | - |
-| `CreateIngestionDestinationResponse` | `structure` | `ingestionDestination` | - |
-| `DeleteAppAuthorizationRequest` | `structure` | `appAuthorizationIdentifier`, `appBundleIdentifier` | - |
-| `DeleteAppAuthorizationResponse` | `structure` | - | - |
-| `DeleteAppBundleRequest` | `structure` | `appBundleIdentifier` | - |
-| `DeleteAppBundleResponse` | `structure` | - | - |
-| `DeleteIngestionRequest` | `structure` | `appBundleIdentifier`, `ingestionIdentifier` | - |
-
+| `AccessDeniedException` | `structure` | message | You are not authorized to perform this operation. |
+| `ConflictException` | `structure` | message, resourceId, resourceType | The request has created a conflict. Check the request parameters and try again. |
+| `InternalServerException` | `structure` | message, retryAfterSeconds | The request processing has failed because of an unknown error, exception, or failure with an internal server. |
+| `ResourceNotFoundException` | `structure` | message, resourceId, resourceType | The specified resource does not exist. |
+| `ServiceQuotaExceededException` | `structure` | message, resourceId, resourceType, serviceCode, quotaCode | The request exceeds a service quota. |
+| `ThrottlingException` | `structure` | message, serviceCode, quotaCode, retryAfterSeconds | The request rate exceeds the limit. |
+| `ValidationException` | `structure` | message, reason, fieldList | The request has invalid or missing parameters. |
+| `BatchGetUserAccessTasksRequest` | `structure` | appBundleIdentifier, taskIdList | - |
+| `BatchGetUserAccessTasksResponse` | `structure` | userAccessResultsList | - |
+| `ConnectAppAuthorizationRequest` | `structure` | appBundleIdentifier, appAuthorizationIdentifier, authRequest | - |
+| `ConnectAppAuthorizationResponse` | `structure` | appAuthorizationSummary | - |
+| `CreateAppAuthorizationRequest` | `structure` | appBundleIdentifier, app, credential, tenant, authType, clientToken, tags | - |
+| `CreateAppAuthorizationResponse` | `structure` | appAuthorization | - |
+| `CreateAppBundleRequest` | `structure` | clientToken, customerManagedKeyIdentifier, tags | - |
+| `CreateAppBundleResponse` | `structure` | appBundle | - |
+| `CreateIngestionRequest` | `structure` | appBundleIdentifier, app, tenantId, ingestionType, clientToken, tags | - |
+| `CreateIngestionResponse` | `structure` | ingestion | - |
+| `CreateIngestionDestinationRequest` | `structure` | appBundleIdentifier, ingestionIdentifier, processingConfiguration, destinationConfiguration, clientToken, tags | - |
+| `CreateIngestionDestinationResponse` | `structure` | ingestionDestination | - |
+| `DeleteAppAuthorizationRequest` | `structure` | appBundleIdentifier, appAuthorizationIdentifier | - |
+| `DeleteAppAuthorizationResponse` | `structure` | **empty (no members)** | - |
+| `DeleteAppBundleRequest` | `structure` | appBundleIdentifier | - |
+| `DeleteAppBundleResponse` | `structure` | **empty (no members)** | - |
+| `DeleteIngestionRequest` | `structure` | appBundleIdentifier, ingestionIdentifier | - |
+| `DeleteIngestionResponse` | `structure` | **empty (no members)** | - |
+| `DeleteIngestionDestinationRequest` | `structure` | appBundleIdentifier, ingestionIdentifier, ingestionDestinationIdentifier | - |
+| `DeleteIngestionDestinationResponse` | `structure` | **empty (no members)** | - |
+| `GetAppAuthorizationRequest` | `structure` | appBundleIdentifier, appAuthorizationIdentifier | - |
+| `GetAppAuthorizationResponse` | `structure` | appAuthorization | - |
+| `GetAppBundleRequest` | `structure` | appBundleIdentifier | - |
+| `GetAppBundleResponse` | `structure` | appBundle | - |
+| `GetIngestionRequest` | `structure` | appBundleIdentifier, ingestionIdentifier | - |
+| `GetIngestionResponse` | `structure` | ingestion | - |
+| `GetIngestionDestinationRequest` | `structure` | appBundleIdentifier, ingestionIdentifier, ingestionDestinationIdentifier | - |
+| `GetIngestionDestinationResponse` | `structure` | ingestionDestination | - |
+| `ListAppAuthorizationsRequest` | `structure` | appBundleIdentifier, maxResults, nextToken | - |
+| `ListAppAuthorizationsResponse` | `structure` | appAuthorizationSummaryList, nextToken | - |
+| `ListAppBundlesRequest` | `structure` | maxResults, nextToken | - |
+| `ListAppBundlesResponse` | `structure` | appBundleSummaryList, nextToken | - |
+| `ListIngestionDestinationsRequest` | `structure` | appBundleIdentifier, ingestionIdentifier, maxResults, nextToken | - |
+| `AppAuthorizationStatus` | `enum` | PENDING_CONNECT, CONNECTED, CONNECTION_VALIDATION_FAILED, TOKEN_AUTO_ROTATION_FAILED | - |
+| `AuthType` | `enum` | OAUTH2, API_KEY | - |
+| `Format` | `enum` | JSON, PARQUET | - |
+| `IngestionDestinationStatus` | `enum` | ACTIVE, FAILED | - |
+| `IngestionState` | `enum` | ENABLED, DISABLED | - |
+| `IngestionType` | `enum` | AUDIT_LOG | - |
+| `Persona` | `enum` | ADMIN, ENDUSER | - |
+| `ResultStatus` | `enum` | IN_PROGRESS, COMPLETED, FAILED, EXPIRED | - |
+| `Schema` | `enum` | OCSF, RAW | - |
+| `ValidationExceptionReason` | `enum` | UNKNOWN_OPERATION, CANNOT_PARSE, FIELD_VALIDATION_FAILED, OTHER | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

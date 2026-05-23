@@ -67,100 +67,102 @@ Parity implications:
 
 - Operations: `DescribeConnector`, `DescribeConnectorEntity`, `DescribeConnectorProfiles`, `DescribeConnectors`, `DescribeFlow`, `DescribeFlowExecutionRecords`
 - Traits: `paginated` (3)
-- Common required input members in this group: `connectorEntityName`, `connectorType`, `flowName`
+- Common required input members in this group: `flowName`
 
 ### List
 
 - Operations: `ListConnectorEntities`, `ListConnectors`, `ListFlows`, `ListTagsForResource`
 - Traits: `paginated` (2)
-- Common required input members in this group: `resourceArn`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateConnectorProfile`, `UpdateConnectorRegistration`, `UpdateFlow`
 - Traits: `idempotency-token` (3)
-- Common required input members in this group: `connectionMode`, `connectorLabel`, `connectorProfileConfig`, `connectorProfileName`, `destinationFlowConfigList`, `flowName`, `sourceFlowConfig`, `tasks`, `triggerConfig`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateConnectorProfile`, `CreateFlow`
 - Traits: `idempotency-token` (2)
-- Common required input members in this group: `connectionMode`, `connectorProfileConfig`, `connectorProfileName`, `connectorType`, `destinationFlowConfigList`, `flowName`, `sourceFlowConfig`, `tasks`, `triggerConfig`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteConnectorProfile`, `DeleteFlow`
-- Common required input members in this group: `connectorProfileName`, `flowName`
+- Common required input members in this group: -
 
 ### Cancel
 
 - Operations: `CancelFlowExecutions`
-- Common required input members in this group: `flowName`
+- Common required input members in this group: -
 
 ### Register
 
 - Operations: `RegisterConnector`
 - Traits: `idempotency-token` (1)
+- Common required input members in this group: -
 
 ### Reset
 
 - Operations: `ResetConnectorMetadataCache`
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartFlow`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `flowName`
+- Common required input members in this group: -
 
 ### Stop
 
 - Operations: `StopFlow`
-- Common required input members in this group: `flowName`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Unregister
 
 - Operations: `UnregisterConnector`
-- Common required input members in this group: `connectorLabel`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CancelFlowExecutions` | `POST /cancel-flow-executions` | - | `flowName` | - | `CancelFlowExecutionsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Cancels active runs for a flow. You can cancel all of the active runs for a flow, or you can cancel specific runs by providing their IDs. |
-| `CreateConnectorProfile` | `POST /create-connector-profile` | `idempotency-token` | `connectionMode`, `connectorProfileConfig`, `connectorProfileName`, `connectorType` | `clientToken` | `CreateConnectorProfileResponse` | `ConflictException`, `ConnectorAuthenticationException`, `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a new connector profile associated with your Amazon Web Services account. There is a soft quota of 100 connector profiles per Amazon Web Services account. |
-| `CreateFlow` | `POST /create-flow` | `idempotency-token` | `destinationFlowConfigList`, `flowName`, `sourceFlowConfig`, `tasks`, `triggerConfig` | `clientToken` | `CreateFlowResponse` | `AccessDeniedException`, `ConflictException`, `ConnectorAuthenticationException`, `ConnectorServerException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Enables your application to create a new flow using Amazon AppFlow. You must create a connector profile before calling this API. |
+| `CancelFlowExecutions` | `POST /cancel-flow-executions` | - | `flowName` | - | `CancelFlowExecutionsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Cancels active runs for a flow. You can cancel all of the active runs for a flow, or you can cancel specific runs by providing their IDs. You can cancel a flow run only when the run is in progress. You can't cancel a ... |
+| `CreateConnectorProfile` | `POST /create-connector-profile` | `idempotency-token` | `connectorProfileName`, `connectorType`, `connectionMode`, `connectorProfileConfig` | `clientToken` | `CreateConnectorProfileResponse` | `ConflictException`, `ConnectorAuthenticationException`, `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a new connector profile associated with your Amazon Web Services account. There is a soft quota of 100 connector profiles per Amazon Web Services account. If you need more connector profiles than this quota a ... |
+| `CreateFlow` | `POST /create-flow` | `idempotency-token` | `flowName`, `triggerConfig`, `sourceFlowConfig`, `destinationFlowConfigList`, `tasks` | `clientToken` | `CreateFlowResponse` | `AccessDeniedException`, `ConflictException`, `ConnectorAuthenticationException`, `ConnectorServerException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Enables your application to create a new flow using Amazon AppFlow. You must create a connector profile before calling this API. Please note that the Request Syntax below shows syntax for multiple destinations, howev ... |
 | `DeleteConnectorProfile` | `POST /delete-connector-profile` | - | `connectorProfileName` | - | `DeleteConnectorProfileResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException` | Enables you to delete an existing connector profile. |
-| `DeleteFlow` | `POST /delete-flow` | - | `flowName` | - | `DeleteFlowResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException` | Enables your application to delete an existing flow. Before deleting the flow, Amazon AppFlow validates the request by checking the flow configuration and status. |
+| `DeleteFlow` | `POST /delete-flow` | - | `flowName` | - | `DeleteFlowResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException` | Enables your application to delete an existing flow. Before deleting the flow, Amazon AppFlow validates the request by checking the flow configuration and status. You can delete flows one at a time. |
 | `DescribeConnector` | `POST /describe-connector` | - | `connectorType` | - | `DescribeConnectorResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Describes the given custom connector registered in your Amazon Web Services account. This API can be used for custom connectors that are registered in your account and also for Amazon authored connectors. |
 | `DescribeConnectorEntity` | `POST /describe-connector-entity` | - | `connectorEntityName` | - | `DescribeConnectorEntityResponse` | `ConnectorAuthenticationException`, `ConnectorServerException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Provides details regarding the entity used with the connector, with a description of the data model for each field in that entity. |
-| `DescribeConnectorProfiles` | `POST /describe-connector-profiles` | `paginated` | - | - | `DescribeConnectorProfilesResponse` | `InternalServerException`, `ValidationException` | Returns a list of `connector-profile` details matching the provided `connector-profile` names and `connector-types`. Both input lists are optional, and you can use them to filter the result. |
-| `DescribeConnectors` | `POST /describe-connectors` | `paginated` | - | - | `DescribeConnectorsResponse` | `InternalServerException`, `ValidationException` | Describes the connectors vended by Amazon AppFlow for specified connector types. If you don't specify a connector type, this operation describes all connectors vended by Amazon AppFlow. |
+| `DescribeConnectorProfiles` | `POST /describe-connector-profiles` | `paginated` | - | - | `DescribeConnectorProfilesResponse` | `InternalServerException`, `ValidationException` | Returns a list of connector-profile details matching the provided connector-profile names and connector-types . Both input lists are optional, and you can use them to filter the result. If no names or connector-types ... |
+| `DescribeConnectors` | `POST /describe-connectors` | `paginated` | - | - | `DescribeConnectorsResponse` | `InternalServerException`, `ValidationException` | Describes the connectors vended by Amazon AppFlow for specified connector types. If you don't specify a connector type, this operation describes all connectors vended by Amazon AppFlow. If there are more connectors t ... |
 | `DescribeFlow` | `POST /describe-flow` | - | `flowName` | - | `DescribeFlowResponse` | `InternalServerException`, `ResourceNotFoundException` | Provides a description of the specified flow. |
 | `DescribeFlowExecutionRecords` | `POST /describe-flow-execution-records` | `paginated` | `flowName` | - | `DescribeFlowExecutionRecordsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Fetches the execution history of the flow. |
 | `ListConnectorEntities` | `POST /list-connector-entities` | - | - | - | `ListConnectorEntitiesResponse` | `ConnectorAuthenticationException`, `ConnectorServerException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns the list of available connector entities supported by Amazon AppFlow. For example, you can query Salesforce for Account and Opportunity entities, or query ServiceNow for the Incident entity. |
 | `ListConnectors` | `POST /list-connectors` | `paginated` | - | - | `ListConnectorsResponse` | `InternalServerException`, `ValidationException` | Returns the list of all registered custom connectors in your Amazon Web Services account. This API lists only custom connectors registered in this account, not the Amazon Web Services authored connectors. |
 | `ListFlows` | `POST /list-flows` | `paginated` | - | - | `ListFlowsResponse` | `InternalServerException`, `ValidationException` | Lists all of the flows associated with your account. |
 | `ListTagsForResource` | `GET /tags/{resourceArn}` | - | `resourceArn` | - | `ListTagsForResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Retrieves the tags that are associated with a specified flow. |
-| `RegisterConnector` | `POST /register-connector` | `idempotency-token` | - | `clientToken` | `RegisterConnectorResponse` | `AccessDeniedException`, `ConflictException`, `ConnectorAuthenticationException`, `ConnectorServerException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, ... (+1) | Registers a new custom connector with your Amazon Web Services account. Before you can register the connector, you must deploy the associated AWS lambda function in your account. |
-| `ResetConnectorMetadataCache` | `POST /reset-connector-metadata-cache` | - | - | - | `ResetConnectorMetadataCacheResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Resets metadata about your connector entities that Amazon AppFlow stored in its cache. Use this action when you want Amazon AppFlow to return the latest information about the data that you have in a source application. |
-| `StartFlow` | `POST /start-flow` | `idempotency-token` | `flowName` | `clientToken` | `StartFlowResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException` | Activates an existing flow. For on-demand flows, this operation runs the flow immediately. |
-| `StopFlow` | `POST /stop-flow` | - | `flowName` | - | `StopFlowResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `UnsupportedOperationException` | Deactivates the existing flow. For on-demand flows, this operation returns an `unsupportedOperationException` error message. |
+| `RegisterConnector` | `POST /register-connector` | `idempotency-token` | - | `clientToken` | `RegisterConnectorResponse` | `AccessDeniedException`, `ConflictException`, `ConnectorAuthenticationException`, `ConnectorServerException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Registers a new custom connector with your Amazon Web Services account. Before you can register the connector, you must deploy the associated AWS lambda function in your account. |
+| `ResetConnectorMetadataCache` | `POST /reset-connector-metadata-cache` | - | - | - | `ResetConnectorMetadataCacheResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Resets metadata about your connector entities that Amazon AppFlow stored in its cache. Use this action when you want Amazon AppFlow to return the latest information about the data that you have in a source applicatio ... |
+| `StartFlow` | `POST /start-flow` | `idempotency-token` | `flowName` | `clientToken` | `StartFlowResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException` | Activates an existing flow. For on-demand flows, this operation runs the flow immediately. For schedule and event-triggered flows, this operation activates the flow. |
+| `StopFlow` | `POST /stop-flow` | - | `flowName` | - | `StopFlowResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `UnsupportedOperationException` | Deactivates the existing flow. For on-demand flows, this operation returns an unsupportedOperationException error message. For schedule and event-triggered flows, this operation deactivates the flow. |
 | `TagResource` | `POST /tags/{resourceArn}` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Applies a tag to the specified flow. |
 | `UnregisterConnector` | `POST /unregister-connector` | - | `connectorLabel` | - | `UnregisterConnectorResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException` | Unregisters the custom connector registered in your account that matches the connector label provided in the request. |
 | `UntagResource` | `DELETE /tags/{resourceArn}` | - | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Removes a tag from the specified flow. |
-| `UpdateConnectorProfile` | `POST /update-connector-profile` | `idempotency-token` | `connectionMode`, `connectorProfileConfig`, `connectorProfileName` | `clientToken` | `UpdateConnectorProfileResponse` | `ConflictException`, `ConnectorAuthenticationException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Updates a given connector profile associated with your account. |
-| `UpdateConnectorRegistration` | `POST /update-connector-registration` | `idempotency-token` | `connectorLabel` | `clientToken` | `UpdateConnectorRegistrationResponse` | `AccessDeniedException`, `ConflictException`, `ConnectorAuthenticationException`, `ConnectorServerException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, ... (+1) | Updates a custom connector that you've previously registered. This operation updates the connector with one of the following: The latest version of the AWS Lambda function that's assigned to the connector A new AWS Lambda function that you specify |
-| `UpdateFlow` | `POST /update-flow` | `idempotency-token` | `destinationFlowConfigList`, `flowName`, `sourceFlowConfig`, `tasks`, `triggerConfig` | `clientToken` | `UpdateFlowResponse` | `AccessDeniedException`, `ConflictException`, `ConnectorAuthenticationException`, `ConnectorServerException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Updates an existing flow. |
+| `UpdateConnectorProfile` | `POST /update-connector-profile` | `idempotency-token` | `connectorProfileName`, `connectionMode`, `connectorProfileConfig` | `clientToken` | `UpdateConnectorProfileResponse` | `ConflictException`, `ConnectorAuthenticationException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Updates a given connector profile associated with your account. |
+| `UpdateConnectorRegistration` | `POST /update-connector-registration` | `idempotency-token` | `connectorLabel` | `clientToken` | `UpdateConnectorRegistrationResponse` | `AccessDeniedException`, `ConflictException`, `ConnectorAuthenticationException`, `ConnectorServerException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates a custom connector that you've previously registered. This operation updates the connector with one of the following: The latest version of the AWS Lambda function that's assigned to the connector A new AWS L ... |
+| `UpdateFlow` | `POST /update-flow` | `idempotency-token` | `flowName`, `triggerConfig`, `sourceFlowConfig`, `destinationFlowConfigList`, `tasks` | `clientToken` | `UpdateFlowResponse` | `AccessDeniedException`, `ConflictException`, `ConnectorAuthenticationException`, `ConnectorServerException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Updates an existing flow. |
 
 ## HTTP Bindings
 
@@ -174,31 +176,56 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `message` | An internal service error occurred during the processing of your request. |
-| `ResourceNotFoundException` | `structure` | `message` | The resource specified in the request (such as the source or destination connector profile) is not found. |
-| `ValidationException` | `structure` | `message` | The request has invalid or missing parameters. |
-| `ConflictException` | `structure` | `message` | There was a conflict when processing the request (for example, a flow with the given name already exists within the account. |
-| `ConnectorAuthenticationException` | `structure` | `message` | An error occurred when authenticating with the connector endpoint. |
-| `ServiceQuotaExceededException` | `structure` | `message` | The request would cause a service quota (such as the number of flows) to be exceeded. |
-| `ConnectorServerException` | `structure` | `message` | An error occurred when retrieving data from the connector endpoint. |
-| `AccessDeniedException` | `structure` | `message` | AppFlow/Requester has invalid or missing permissions. |
-| `ThrottlingException` | `structure` | `message` | API calls have exceeded the maximum allowed API request rate per account and per Region. |
-| `CancelFlowExecutionsRequest` | `structure` | `executionIds`, `flowName` | - |
-| `CancelFlowExecutionsResponse` | `structure` | `invalidExecutions` | - |
-| `CreateConnectorProfileRequest` | `structure` | `clientToken`, `connectionMode`, `connectorLabel`, `connectorProfileConfig`, `connectorProfileName`, `connectorType`, `kmsArn` | - |
-| `CreateConnectorProfileResponse` | `structure` | `connectorProfileArn` | - |
-| `CreateFlowRequest` | `structure` | `clientToken`, `description`, `destinationFlowConfigList`, `flowName`, `kmsArn`, `metadataCatalogConfig`, `sourceFlowConfig`, `tags`, `tasks`, `triggerConfig` | - |
-| `CreateFlowResponse` | `structure` | `flowArn`, `flowStatus` | - |
-| `DeleteConnectorProfileRequest` | `structure` | `connectorProfileName`, `forceDelete` | - |
-| `DeleteConnectorProfileResponse` | `structure` | - | - |
-| `DeleteFlowRequest` | `structure` | `flowName`, `forceDelete` | - |
-| `DeleteFlowResponse` | `structure` | - | - |
-| `DescribeConnectorRequest` | `structure` | `connectorLabel`, `connectorType` | - |
-| `DescribeConnectorResponse` | `structure` | `connectorConfiguration` | - |
-| `DescribeConnectorEntityRequest` | `structure` | `apiVersion`, `connectorEntityName`, `connectorProfileName`, `connectorType` | - |
-| `DescribeConnectorEntityResponse` | `structure` | `connectorEntityFields` | - |
-| `DescribeConnectorProfilesRequest` | `structure` | `connectorLabel`, `connectorProfileNames`, `connectorType`, `maxResults`, `nextToken` | - |
-
+| `AccessDeniedException` | `structure` | message | AppFlow/Requester has invalid or missing permissions. |
+| `ConflictException` | `structure` | message | There was a conflict when processing the request (for example, a flow with the given name already exists within the account. Check for conflicting resource ... |
+| `ConnectorAuthenticationException` | `structure` | message | An error occurred when authenticating with the connector endpoint. |
+| `ConnectorServerException` | `structure` | message | An error occurred when retrieving data from the connector endpoint. |
+| `InternalServerException` | `structure` | message | An internal service error occurred during the processing of your request. Try again later. |
+| `ResourceNotFoundException` | `structure` | message | The resource specified in the request (such as the source or destination connector profile) is not found. |
+| `ServiceQuotaExceededException` | `structure` | message | The request would cause a service quota (such as the number of flows) to be exceeded. |
+| `ThrottlingException` | `structure` | message | API calls have exceeded the maximum allowed API request rate per account and per Region. |
+| `UnsupportedOperationException` | `structure` | message | The requested operation is not supported for the current flow. |
+| `ValidationException` | `structure` | message | The request has invalid or missing parameters. |
+| `CancelFlowExecutionsRequest` | `structure` | flowName, executionIds | - |
+| `CancelFlowExecutionsResponse` | `structure` | invalidExecutions | - |
+| `CreateConnectorProfileRequest` | `structure` | connectorProfileName, kmsArn, connectorType, connectorLabel, connectionMode, connectorProfileConfig, clientToken | - |
+| `CreateConnectorProfileResponse` | `structure` | connectorProfileArn | - |
+| `CreateFlowRequest` | `structure` | flowName, description, kmsArn, triggerConfig, sourceFlowConfig, destinationFlowConfigList, tasks, tags, metadataCatalogConfig, clientToken | - |
+| `CreateFlowResponse` | `structure` | flowArn, flowStatus | - |
+| `DeleteConnectorProfileRequest` | `structure` | connectorProfileName, forceDelete | - |
+| `DeleteConnectorProfileResponse` | `structure` | **empty (no members)** | - |
+| `DeleteFlowRequest` | `structure` | flowName, forceDelete | - |
+| `DeleteFlowResponse` | `structure` | **empty (no members)** | - |
+| `DescribeConnectorRequest` | `structure` | connectorType, connectorLabel | - |
+| `DescribeConnectorResponse` | `structure` | connectorConfiguration | - |
+| `DescribeConnectorEntityRequest` | `structure` | connectorEntityName, connectorType, connectorProfileName, apiVersion | - |
+| `DescribeConnectorEntityResponse` | `structure` | connectorEntityFields | - |
+| `DescribeConnectorProfilesRequest` | `structure` | connectorProfileNames, connectorType, connectorLabel, maxResults, nextToken | - |
+| `DescribeConnectorProfilesResponse` | `structure` | connectorProfileDetails, nextToken | - |
+| `DescribeConnectorsRequest` | `structure` | connectorTypes, maxResults, nextToken | - |
+| `DescribeConnectorsResponse` | `structure` | connectorConfigurations, connectors, nextToken | - |
+| `DescribeFlowRequest` | `structure` | flowName | - |
+| `DescribeFlowResponse` | `structure` | flowArn, description, flowName, kmsArn, flowStatus, flowStatusMessage, sourceFlowConfig, destinationFlowConfigList, lastRunExecutionDetails, triggerConfig, tasks, createdAt, ... (+7) | - |
+| `DescribeFlowExecutionRecordsRequest` | `structure` | flowName, maxResults, nextToken | - |
+| `DescribeFlowExecutionRecordsResponse` | `structure` | flowExecutions, nextToken | - |
+| `ListConnectorEntitiesRequest` | `structure` | connectorProfileName, connectorType, entitiesPath, apiVersion, maxResults, nextToken | - |
+| `ListConnectorEntitiesResponse` | `structure` | connectorEntityMap, nextToken | - |
+| `ListConnectorsRequest` | `structure` | maxResults, nextToken | - |
+| `ListConnectorsResponse` | `structure` | connectors, nextToken | - |
+| `ListFlowsRequest` | `structure` | maxResults, nextToken | - |
+| `ListFlowsResponse` | `structure` | flows, nextToken | - |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `AggregationType` | `enum` | NONE, SINGLE_FILE | - |
+| `AmplitudeConnectorOperator` | `enum` | BETWEEN | - |
+| `AuthenticationType` | `enum` | OAUTH2, APIKEY, BASIC, CUSTOM | - |
+| `CatalogType` | `enum` | GLUE | - |
+| `ConnectionMode` | `enum` | PUBLIC, PRIVATE | - |
+| `ConnectorProvisioningType` | `enum` | LAMBDA | The type of provisioning that the connector supports, such as Lambda. |
+| `ConnectorType` | `enum` | SALESFORCE, SINGULAR, SLACK, REDSHIFT, S3, MARKETO, GOOGLEANALYTICS, ZENDESK, SERVICENOW, DATADOG, TRENDMICRO, SNOWFLAKE, ... (+12) | - |
+| `DataPullMode` | `enum` | INCREMENTAL, COMPLETE | - |
+| `DataTransferApiType` | `enum` | SYNC, ASYNC, AUTOMATIC | - |
+| `DatadogConnectorOperator` | `enum` | PROJECTION, BETWEEN, EQUAL_TO, ADDITION, MULTIPLICATION, DIVISION, SUBTRACTION, MASK_ALL, MASK_FIRST_N, MASK_LAST_N, VALIDATE_NON_NULL, VALIDATE_NON_ZERO, ... (+3) | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

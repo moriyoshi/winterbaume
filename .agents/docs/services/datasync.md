@@ -68,106 +68,106 @@ Parity implications:
 ### Describe
 
 - Operations: `DescribeAgent`, `DescribeLocationAzureBlob`, `DescribeLocationEfs`, `DescribeLocationFsxLustre`, `DescribeLocationFsxOntap`, `DescribeLocationFsxOpenZfs`, `DescribeLocationFsxWindows`, `DescribeLocationHdfs`, `DescribeLocationNfs`, `DescribeLocationObjectStorage`, `DescribeLocationS3`, `DescribeLocationSmb`, `DescribeTask`, `DescribeTaskExecution`
-- Common required input members in this group: `AgentArn`, `LocationArn`, `TaskArn`, `TaskExecutionArn`
+- Common required input members in this group: `LocationArn`
 
 ### Update
 
 - Operations: `UpdateAgent`, `UpdateLocationAzureBlob`, `UpdateLocationEfs`, `UpdateLocationFsxLustre`, `UpdateLocationFsxOntap`, `UpdateLocationFsxOpenZfs`, `UpdateLocationFsxWindows`, `UpdateLocationHdfs`, `UpdateLocationNfs`, `UpdateLocationObjectStorage`, `UpdateLocationS3`, `UpdateLocationSmb`, `UpdateTask`, `UpdateTaskExecution`
-- Common required input members in this group: `AgentArn`, `LocationArn`, `Options`, `TaskArn`, `TaskExecutionArn`
+- Common required input members in this group: `LocationArn`
 
 ### Create
 
 - Operations: `CreateAgent`, `CreateLocationAzureBlob`, `CreateLocationEfs`, `CreateLocationFsxLustre`, `CreateLocationFsxOntap`, `CreateLocationFsxOpenZfs`, `CreateLocationFsxWindows`, `CreateLocationHdfs`, `CreateLocationNfs`, `CreateLocationObjectStorage`, `CreateLocationS3`, `CreateLocationSmb`, `CreateTask`
-- Common required input members in this group: `ActivationKey`, `AgentArns`, `AuthenticationType`, `BucketName`, `ContainerUrl`, `DestinationLocationArn`, `Ec2Config`, `EfsFilesystemArn`, `FsxFilesystemArn`, `NameNodes`, `OnPremConfig`, `Protocol`, `S3BucketArn`, `S3Config`, `SecurityGroupArns`, `ServerHostname`, `SourceLocationArn`, `StorageVirtualMachineArn`, `Subdirectory`, `User`
+- Common required input members in this group: `AuthenticationType`, `FsxFilesystemArn`, `SecurityGroupArns`, `Protocol`, `AgentArns`, `Subdirectory`, `ServerHostname`
 
 ### List
 
 - Operations: `ListAgents`, `ListLocations`, `ListTagsForResource`, `ListTaskExecutions`, `ListTasks`
 - Traits: `paginated` (5)
-- Common required input members in this group: `ResourceArn`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteAgent`, `DeleteLocation`, `DeleteTask`
-- Common required input members in this group: `AgentArn`, `LocationArn`, `TaskArn`
+- Common required input members in this group: -
 
 ### Cancel
 
 - Operations: `CancelTaskExecution`
-- Common required input members in this group: `TaskExecutionArn`
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartTaskExecution`
-- Common required input members in this group: `TaskArn`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `Keys`, `ResourceArn`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CancelTaskExecution` | - | - | `TaskExecutionArn` | - | `CancelTaskExecutionResponse` | `InternalException`, `InvalidRequestException` | Stops an DataSync task execution that's in progress. The transfer of some files are abruptly interrupted. |
-| `CreateAgent` | - | - | `ActivationKey` | - | `CreateAgentResponse` | `InternalException`, `InvalidRequestException` | Activates an DataSync agent that you deploy in your storage environment. The activation process associates the agent with your Amazon Web Services account. |
-| `CreateLocationAzureBlob` | - | - | `AuthenticationType`, `ContainerUrl` | - | `CreateLocationAzureBlobResponse` | `InternalException`, `InvalidRequestException` | Creates a transfer location for a Microsoft Azure Blob Storage container. DataSync can use this location as a transfer source or destination. |
-| `CreateLocationEfs` | - | - | `Ec2Config`, `EfsFilesystemArn` | - | `CreateLocationEfsResponse` | `InternalException`, `InvalidRequestException` | Creates a transfer location for an Amazon EFS file system. DataSync can use this location as a source or destination for transferring data. |
-| `CreateLocationFsxLustre` | - | - | `FsxFilesystemArn`, `SecurityGroupArns` | - | `CreateLocationFsxLustreResponse` | `InternalException`, `InvalidRequestException` | Creates a transfer location for an Amazon FSx for Lustre file system. DataSync can use this location as a source or destination for transferring data. |
-| `CreateLocationFsxOntap` | - | - | `Protocol`, `SecurityGroupArns`, `StorageVirtualMachineArn` | - | `CreateLocationFsxOntapResponse` | `InternalException`, `InvalidRequestException` | Creates a transfer location for an Amazon FSx for NetApp ONTAP file system. DataSync can use this location as a source or destination for transferring data. |
-| `CreateLocationFsxOpenZfs` | - | - | `FsxFilesystemArn`, `Protocol`, `SecurityGroupArns` | - | `CreateLocationFsxOpenZfsResponse` | `InternalException`, `InvalidRequestException` | Creates a transfer location for an Amazon FSx for OpenZFS file system. DataSync can use this location as a source or destination for transferring data. |
-| `CreateLocationFsxWindows` | - | - | `FsxFilesystemArn`, `SecurityGroupArns`, `User` | - | `CreateLocationFsxWindowsResponse` | `InternalException`, `InvalidRequestException` | Creates a transfer location for an Amazon FSx for Windows File Server file system. DataSync can use this location as a source or destination for transferring data. |
-| `CreateLocationHdfs` | - | - | `AgentArns`, `AuthenticationType`, `NameNodes` | - | `CreateLocationHdfsResponse` | `InternalException`, `InvalidRequestException` | Creates a transfer location for a Hadoop Distributed File System (HDFS). DataSync can use this location as a source or destination for transferring data. |
-| `CreateLocationNfs` | - | - | `OnPremConfig`, `ServerHostname`, `Subdirectory` | - | `CreateLocationNfsResponse` | `InternalException`, `InvalidRequestException` | Creates a transfer location for a Network File System (NFS) file server. DataSync can use this location as a source or destination for transferring data. |
-| `CreateLocationObjectStorage` | - | - | `BucketName`, `ServerHostname` | - | `CreateLocationObjectStorageResponse` | `InternalException`, `InvalidRequestException` | Creates a transfer location for an object storage system. DataSync can use this location as a source or destination for transferring data. |
-| `CreateLocationS3` | - | - | `S3BucketArn`, `S3Config` | - | `CreateLocationS3Response` | `InternalException`, `InvalidRequestException` | Creates a transfer location for an Amazon S3 bucket. DataSync can use this location as a source or destination for transferring data. |
-| `CreateLocationSmb` | - | - | `AgentArns`, `ServerHostname`, `Subdirectory` | - | `CreateLocationSmbResponse` | `InternalException`, `InvalidRequestException` | Creates a transfer location for a Server Message Block (SMB) file server. DataSync can use this location as a source or destination for transferring data. |
-| `CreateTask` | - | - | `DestinationLocationArn`, `SourceLocationArn` | - | `CreateTaskResponse` | `InternalException`, `InvalidRequestException` | Configures a task , which defines where and how DataSync transfers your data. A task includes a source location, destination location, and transfer options (such as bandwidth limits, scheduling, and more). |
-| `DeleteAgent` | - | - | `AgentArn` | - | `DeleteAgentResponse` | `InternalException`, `InvalidRequestException` | Removes an DataSync agent resource from your Amazon Web Services account. Keep in mind that this operation (which can't be undone) doesn't remove the agent's virtual machine (VM) or Amazon EC2 instance from your storage environment. |
-| `DeleteLocation` | - | - | `LocationArn` | - | `DeleteLocationResponse` | `InternalException`, `InvalidRequestException` | Deletes a transfer location resource from DataSync. |
-| `DeleteTask` | - | - | `TaskArn` | - | `DeleteTaskResponse` | `InternalException`, `InvalidRequestException` | Deletes a transfer task resource from DataSync. |
-| `DescribeAgent` | - | - | `AgentArn` | - | `DescribeAgentResponse` | `InternalException`, `InvalidRequestException` | Returns information about an DataSync agent, such as its name, service endpoint type, and status. |
-| `DescribeLocationAzureBlob` | - | - | `LocationArn` | - | `DescribeLocationAzureBlobResponse` | `InternalException`, `InvalidRequestException` | Provides details about how an DataSync transfer location for Microsoft Azure Blob Storage is configured. |
-| `DescribeLocationEfs` | - | - | `LocationArn` | - | `DescribeLocationEfsResponse` | `InternalException`, `InvalidRequestException` | Provides details about how an DataSync transfer location for an Amazon EFS file system is configured. |
-| `DescribeLocationFsxLustre` | - | - | `LocationArn` | - | `DescribeLocationFsxLustreResponse` | `InternalException`, `InvalidRequestException` | Provides details about how an DataSync transfer location for an Amazon FSx for Lustre file system is configured. |
-| `DescribeLocationFsxOntap` | - | - | `LocationArn` | - | `DescribeLocationFsxOntapResponse` | `InternalException`, `InvalidRequestException` | Provides details about how an DataSync transfer location for an Amazon FSx for NetApp ONTAP file system is configured. If your location uses SMB, the `DescribeLocationFsxOntap` operation doesn't actually return a `Password`. |
-| `DescribeLocationFsxOpenZfs` | - | - | `LocationArn` | - | `DescribeLocationFsxOpenZfsResponse` | `InternalException`, `InvalidRequestException` | Provides details about how an DataSync transfer location for an Amazon FSx for OpenZFS file system is configured. Response elements related to `SMB` aren't supported with the `DescribeLocationFsxOpenZfs` operation. |
-| `DescribeLocationFsxWindows` | - | - | `LocationArn` | - | `DescribeLocationFsxWindowsResponse` | `InternalException`, `InvalidRequestException` | Provides details about how an DataSync transfer location for an Amazon FSx for Windows File Server file system is configured. |
-| `DescribeLocationHdfs` | - | - | `LocationArn` | - | `DescribeLocationHdfsResponse` | `InternalException`, `InvalidRequestException` | Provides details about how an DataSync transfer location for a Hadoop Distributed File System (HDFS) is configured. |
-| `DescribeLocationNfs` | - | - | `LocationArn` | - | `DescribeLocationNfsResponse` | `InternalException`, `InvalidRequestException` | Provides details about how an DataSync transfer location for a Network File System (NFS) file server is configured. |
-| `DescribeLocationObjectStorage` | - | - | `LocationArn` | - | `DescribeLocationObjectStorageResponse` | `InternalException`, `InvalidRequestException` | Provides details about how an DataSync transfer location for an object storage system is configured. |
-| `DescribeLocationS3` | - | - | `LocationArn` | - | `DescribeLocationS3Response` | `InternalException`, `InvalidRequestException` | Provides details about how an DataSync transfer location for an S3 bucket is configured. |
-| `DescribeLocationSmb` | - | - | `LocationArn` | - | `DescribeLocationSmbResponse` | `InternalException`, `InvalidRequestException` | Provides details about how an DataSync transfer location for a Server Message Block (SMB) file server is configured. |
-| `DescribeTask` | - | - | `TaskArn` | - | `DescribeTaskResponse` | `InternalException`, `InvalidRequestException` | Provides information about a task , which defines where and how DataSync transfers your data. |
-| `DescribeTaskExecution` | - | - | `TaskExecutionArn` | - | `DescribeTaskExecutionResponse` | `InternalException`, `InvalidRequestException` | Provides information about an execution of your DataSync task. You can use this operation to help monitor the progress of an ongoing data transfer or check the results of the transfer. |
-| `ListAgents` | - | `paginated` | - | - | `ListAgentsResponse` | `InternalException`, `InvalidRequestException` | Returns a list of DataSync agents that belong to an Amazon Web Services account in the Amazon Web Services Region specified in the request. With pagination, you can reduce the number of agents returned in a response. |
-| `ListLocations` | - | `paginated` | - | - | `ListLocationsResponse` | `InternalException`, `InvalidRequestException` | Returns a list of source and destination locations. If you have more locations than are returned in a response (that is, the response returns only a truncated list of your agents), the response contains a token that you can specify in your next request to... |
-| `ListTagsForResource` | - | `paginated` | `ResourceArn` | - | `ListTagsForResourceResponse` | `InternalException`, `InvalidRequestException` | Returns all the tags associated with an Amazon Web Services resource. |
-| `ListTaskExecutions` | - | `paginated` | - | - | `ListTaskExecutionsResponse` | `InternalException`, `InvalidRequestException` | Returns a list of executions for an DataSync transfer task. |
-| `ListTasks` | - | `paginated` | - | - | `ListTasksResponse` | `InternalException`, `InvalidRequestException` | Returns a list of the DataSync tasks you created. |
-| `StartTaskExecution` | - | - | `TaskArn` | - | `StartTaskExecutionResponse` | `InternalException`, `InvalidRequestException` | Starts an DataSync transfer task. For each task, you can only run one task execution at a time. |
-| `TagResource` | - | - | `ResourceArn`, `Tags` | - | `TagResourceResponse` | `InternalException`, `InvalidRequestException` | Applies a tag to an Amazon Web Services resource. Tags are key-value pairs that can help you manage, filter, and search for your resources. |
-| `UntagResource` | - | - | `Keys`, `ResourceArn` | - | `UntagResourceResponse` | `InternalException`, `InvalidRequestException` | Removes tags from an Amazon Web Services resource. |
-| `UpdateAgent` | - | - | `AgentArn` | - | `UpdateAgentResponse` | `InternalException`, `InvalidRequestException` | Updates the name of an DataSync agent. |
-| `UpdateLocationAzureBlob` | - | - | `LocationArn` | - | `UpdateLocationAzureBlobResponse` | `InternalException`, `InvalidRequestException` | Modifies the following configurations of the Microsoft Azure Blob Storage transfer location that you're using with DataSync. For more information, see Configuring DataSync transfers with Azure Blob Storage. |
-| `UpdateLocationEfs` | - | - | `LocationArn` | - | `UpdateLocationEfsResponse` | `InternalException`, `InvalidRequestException` | Modifies the following configuration parameters of the Amazon EFS transfer location that you're using with DataSync. For more information, see Configuring DataSync transfers with Amazon EFS. |
-| `UpdateLocationFsxLustre` | - | - | `LocationArn` | - | `UpdateLocationFsxLustreResponse` | `InternalException`, `InvalidRequestException` | Modifies the following configuration parameters of the Amazon FSx for Lustre transfer location that you're using with DataSync. For more information, see Configuring DataSync transfers with FSx for Lustre. |
-| `UpdateLocationFsxOntap` | - | - | `LocationArn` | - | `UpdateLocationFsxOntapResponse` | `InternalException`, `InvalidRequestException` | Modifies the following configuration parameters of the Amazon FSx for NetApp ONTAP transfer location that you're using with DataSync. For more information, see Configuring DataSync transfers with FSx for ONTAP. |
-| `UpdateLocationFsxOpenZfs` | - | - | `LocationArn` | - | `UpdateLocationFsxOpenZfsResponse` | `InternalException`, `InvalidRequestException` | Modifies the following configuration parameters of the Amazon FSx for OpenZFS transfer location that you're using with DataSync. For more information, see Configuring DataSync transfers with FSx for OpenZFS. |
-| `UpdateLocationFsxWindows` | - | - | `LocationArn` | - | `UpdateLocationFsxWindowsResponse` | `InternalException`, `InvalidRequestException` | Modifies the following configuration parameters of the Amazon FSx for Windows File Server transfer location that you're using with DataSync. For more information, see Configuring DataSync transfers with FSx for Windows File Server. |
-| `UpdateLocationHdfs` | - | - | `LocationArn` | - | `UpdateLocationHdfsResponse` | `InternalException`, `InvalidRequestException` | Modifies the following configuration parameters of the Hadoop Distributed File System (HDFS) transfer location that you're using with DataSync. For more information, see Configuring DataSync transfers with an HDFS cluster. |
-| `UpdateLocationNfs` | - | - | `LocationArn` | - | `UpdateLocationNfsResponse` | `InternalException`, `InvalidRequestException` | Modifies the following configuration parameters of the Network File System (NFS) transfer location that you're using with DataSync. For more information, see Configuring transfers with an NFS file server. |
-| `UpdateLocationObjectStorage` | - | - | `LocationArn` | - | `UpdateLocationObjectStorageResponse` | `InternalException`, `InvalidRequestException` | Modifies the following configuration parameters of the object storage transfer location that you're using with DataSync. For more information, see Configuring DataSync transfers with an object storage system. |
-| `UpdateLocationS3` | - | - | `LocationArn` | - | `UpdateLocationS3Response` | `InternalException`, `InvalidRequestException` | Modifies the following configuration parameters of the Amazon S3 transfer location that you're using with DataSync. Before you begin, make sure that you read the following topics: Storage class considerations with Amazon S3 locations Evaluating S3 request... |
-| `UpdateLocationSmb` | - | - | `LocationArn` | - | `UpdateLocationSmbResponse` | `InternalException`, `InvalidRequestException` | Modifies the following configuration parameters of the Server Message Block (SMB) transfer location that you're using with DataSync. For more information, see Configuring DataSync transfers with an SMB file server. |
-| `UpdateTask` | - | - | `TaskArn` | - | `UpdateTaskResponse` | `InternalException`, `InvalidRequestException` | Updates the configuration of a task , which defines where and how DataSync transfers your data. |
-| `UpdateTaskExecution` | - | - | `Options`, `TaskExecutionArn` | - | `UpdateTaskExecutionResponse` | `InternalException`, `InvalidRequestException` | Updates the configuration of a running DataSync task execution. Currently, the only `Option` that you can modify with `UpdateTaskExecution` is ` BytesPerSecond `, which throttles bandwidth for a running or queued task execution. |
+| `CancelTaskExecution` | `-` | - | `TaskExecutionArn` | - | `CancelTaskExecutionResponse` | `InternalException`, `InvalidRequestException` | Stops an DataSync task execution that's in progress. The transfer of some files are abruptly interrupted. File contents that're transferred to the destination might be incomplete or inconsistent with the source files ... |
+| `CreateAgent` | `-` | - | `ActivationKey` | - | `CreateAgentResponse` | `InternalException`, `InvalidRequestException` | Activates an DataSync agent that you deploy in your storage environment. The activation process associates the agent with your Amazon Web Services account. If you haven't deployed an agent yet, see Do I need a DataSy ... |
+| `CreateLocationAzureBlob` | `-` | - | `ContainerUrl`, `AuthenticationType` | - | `CreateLocationAzureBlobResponse` | `InternalException`, `InvalidRequestException` | Creates a transfer location for a Microsoft Azure Blob Storage container. DataSync can use this location as a transfer source or destination. You can make transfers with or without a DataSync agent that connects to y ... |
+| `CreateLocationEfs` | `-` | - | `EfsFilesystemArn`, `Ec2Config` | - | `CreateLocationEfsResponse` | `InternalException`, `InvalidRequestException` | Creates a transfer location for an Amazon EFS file system. DataSync can use this location as a source or destination for transferring data. Before you begin, make sure that you understand how DataSync accesses Amazon ... |
+| `CreateLocationFsxLustre` | `-` | - | `FsxFilesystemArn`, `SecurityGroupArns` | - | `CreateLocationFsxLustreResponse` | `InternalException`, `InvalidRequestException` | Creates a transfer location for an Amazon FSx for Lustre file system. DataSync can use this location as a source or destination for transferring data. Before you begin, make sure that you understand how DataSync acce ... |
+| `CreateLocationFsxOntap` | `-` | - | `Protocol`, `SecurityGroupArns`, `StorageVirtualMachineArn` | - | `CreateLocationFsxOntapResponse` | `InternalException`, `InvalidRequestException` | Creates a transfer location for an Amazon FSx for NetApp ONTAP file system. DataSync can use this location as a source or destination for transferring data. Before you begin, make sure that you understand how DataSyn ... |
+| `CreateLocationFsxOpenZfs` | `-` | - | `FsxFilesystemArn`, `Protocol`, `SecurityGroupArns` | - | `CreateLocationFsxOpenZfsResponse` | `InternalException`, `InvalidRequestException` | Creates a transfer location for an Amazon FSx for OpenZFS file system. DataSync can use this location as a source or destination for transferring data. Before you begin, make sure that you understand how DataSync acc ... |
+| `CreateLocationFsxWindows` | `-` | - | `FsxFilesystemArn`, `SecurityGroupArns`, `User` | - | `CreateLocationFsxWindowsResponse` | `InternalException`, `InvalidRequestException` | Creates a transfer location for an Amazon FSx for Windows File Server file system. DataSync can use this location as a source or destination for transferring data. Before you begin, make sure that you understand how ... |
+| `CreateLocationHdfs` | `-` | - | `NameNodes`, `AuthenticationType`, `AgentArns` | - | `CreateLocationHdfsResponse` | `InternalException`, `InvalidRequestException` | Creates a transfer location for a Hadoop Distributed File System (HDFS). DataSync can use this location as a source or destination for transferring data. Before you begin, make sure that you understand how DataSync a ... |
+| `CreateLocationNfs` | `-` | - | `Subdirectory`, `ServerHostname`, `OnPremConfig` | - | `CreateLocationNfsResponse` | `InternalException`, `InvalidRequestException` | Creates a transfer location for a Network File System (NFS) file server. DataSync can use this location as a source or destination for transferring data. Before you begin, make sure that you understand how DataSync a ... |
+| `CreateLocationObjectStorage` | `-` | - | `ServerHostname`, `BucketName` | - | `CreateLocationObjectStorageResponse` | `InternalException`, `InvalidRequestException` | Creates a transfer location for an object storage system. DataSync can use this location as a source or destination for transferring data. You can make transfers with or without a DataSync agent . Before you begin, m ... |
+| `CreateLocationS3` | `-` | - | `S3BucketArn`, `S3Config` | - | `CreateLocationS3Response` | `InternalException`, `InvalidRequestException` | Creates a transfer location for an Amazon S3 bucket. DataSync can use this location as a source or destination for transferring data. Before you begin, make sure that you read the following topics: Storage class cons ... |
+| `CreateLocationSmb` | `-` | - | `Subdirectory`, `ServerHostname`, `AgentArns` | - | `CreateLocationSmbResponse` | `InternalException`, `InvalidRequestException` | Creates a transfer location for a Server Message Block (SMB) file server. DataSync can use this location as a source or destination for transferring data. Before you begin, make sure that you understand how DataSync ... |
+| `CreateTask` | `-` | - | `SourceLocationArn`, `DestinationLocationArn` | - | `CreateTaskResponse` | `InternalException`, `InvalidRequestException` | Configures a task , which defines where and how DataSync transfers your data. A task includes a source location, destination location, and transfer options (such as bandwidth limits, scheduling, and more). If you're ... |
+| `DeleteAgent` | `-` | - | `AgentArn` | - | `DeleteAgentResponse` | `InternalException`, `InvalidRequestException` | Removes an DataSync agent resource from your Amazon Web Services account. Keep in mind that this operation (which can't be undone) doesn't remove the agent's virtual machine (VM) or Amazon EC2 instance from your stor ... |
+| `DeleteLocation` | `-` | - | `LocationArn` | - | `DeleteLocationResponse` | `InternalException`, `InvalidRequestException` | Deletes a transfer location resource from DataSync. |
+| `DeleteTask` | `-` | - | `TaskArn` | - | `DeleteTaskResponse` | `InternalException`, `InvalidRequestException` | Deletes a transfer task resource from DataSync. |
+| `DescribeAgent` | `-` | - | `AgentArn` | - | `DescribeAgentResponse` | `InternalException`, `InvalidRequestException` | Returns information about an DataSync agent, such as its name, service endpoint type, and status. |
+| `DescribeLocationAzureBlob` | `-` | - | `LocationArn` | - | `DescribeLocationAzureBlobResponse` | `InternalException`, `InvalidRequestException` | Provides details about how an DataSync transfer location for Microsoft Azure Blob Storage is configured. |
+| `DescribeLocationEfs` | `-` | - | `LocationArn` | - | `DescribeLocationEfsResponse` | `InternalException`, `InvalidRequestException` | Provides details about how an DataSync transfer location for an Amazon EFS file system is configured. |
+| `DescribeLocationFsxLustre` | `-` | - | `LocationArn` | - | `DescribeLocationFsxLustreResponse` | `InternalException`, `InvalidRequestException` | Provides details about how an DataSync transfer location for an Amazon FSx for Lustre file system is configured. |
+| `DescribeLocationFsxOntap` | `-` | - | `LocationArn` | - | `DescribeLocationFsxOntapResponse` | `InternalException`, `InvalidRequestException` | Provides details about how an DataSync transfer location for an Amazon FSx for NetApp ONTAP file system is configured. If your location uses SMB, the DescribeLocationFsxOntap operation doesn't actually return a Passw ... |
+| `DescribeLocationFsxOpenZfs` | `-` | - | `LocationArn` | - | `DescribeLocationFsxOpenZfsResponse` | `InternalException`, `InvalidRequestException` | Provides details about how an DataSync transfer location for an Amazon FSx for OpenZFS file system is configured. Response elements related to SMB aren't supported with the DescribeLocationFsxOpenZfs operation. |
+| `DescribeLocationFsxWindows` | `-` | - | `LocationArn` | - | `DescribeLocationFsxWindowsResponse` | `InternalException`, `InvalidRequestException` | Provides details about how an DataSync transfer location for an Amazon FSx for Windows File Server file system is configured. |
+| `DescribeLocationHdfs` | `-` | - | `LocationArn` | - | `DescribeLocationHdfsResponse` | `InternalException`, `InvalidRequestException` | Provides details about how an DataSync transfer location for a Hadoop Distributed File System (HDFS) is configured. |
+| `DescribeLocationNfs` | `-` | - | `LocationArn` | - | `DescribeLocationNfsResponse` | `InternalException`, `InvalidRequestException` | Provides details about how an DataSync transfer location for a Network File System (NFS) file server is configured. |
+| `DescribeLocationObjectStorage` | `-` | - | `LocationArn` | - | `DescribeLocationObjectStorageResponse` | `InternalException`, `InvalidRequestException` | Provides details about how an DataSync transfer location for an object storage system is configured. |
+| `DescribeLocationS3` | `-` | - | `LocationArn` | - | `DescribeLocationS3Response` | `InternalException`, `InvalidRequestException` | Provides details about how an DataSync transfer location for an S3 bucket is configured. |
+| `DescribeLocationSmb` | `-` | - | `LocationArn` | - | `DescribeLocationSmbResponse` | `InternalException`, `InvalidRequestException` | Provides details about how an DataSync transfer location for a Server Message Block (SMB) file server is configured. |
+| `DescribeTask` | `-` | - | `TaskArn` | - | `DescribeTaskResponse` | `InternalException`, `InvalidRequestException` | Provides information about a task , which defines where and how DataSync transfers your data. |
+| `DescribeTaskExecution` | `-` | - | `TaskExecutionArn` | - | `DescribeTaskExecutionResponse` | `InternalException`, `InvalidRequestException` | Provides information about an execution of your DataSync task. You can use this operation to help monitor the progress of an ongoing data transfer or check the results of the transfer. Some DescribeTaskExecution resp ... |
+| `ListAgents` | `-` | `paginated` | - | - | `ListAgentsResponse` | `InternalException`, `InvalidRequestException` | Returns a list of DataSync agents that belong to an Amazon Web Services account in the Amazon Web Services Region specified in the request. With pagination, you can reduce the number of agents returned in a response. ... |
+| `ListLocations` | `-` | `paginated` | - | - | `ListLocationsResponse` | `InternalException`, `InvalidRequestException` | Returns a list of source and destination locations. If you have more locations than are returned in a response (that is, the response returns only a truncated list of your agents), the response contains a token that ... |
+| `ListTagsForResource` | `-` | `paginated` | `ResourceArn` | - | `ListTagsForResourceResponse` | `InternalException`, `InvalidRequestException` | Returns all the tags associated with an Amazon Web Services resource. |
+| `ListTaskExecutions` | `-` | `paginated` | - | - | `ListTaskExecutionsResponse` | `InternalException`, `InvalidRequestException` | Returns a list of executions for an DataSync transfer task. |
+| `ListTasks` | `-` | `paginated` | - | - | `ListTasksResponse` | `InternalException`, `InvalidRequestException` | Returns a list of the DataSync tasks you created. |
+| `StartTaskExecution` | `-` | - | `TaskArn` | - | `StartTaskExecutionResponse` | `InternalException`, `InvalidRequestException` | Starts an DataSync transfer task. For each task, you can only run one task execution at a time. There are several steps to a task execution. For more information, see Task execution statuses . If you're planning to t ... |
+| `TagResource` | `-` | - | `ResourceArn`, `Tags` | - | `TagResourceResponse` | `InternalException`, `InvalidRequestException` | Applies a tag to an Amazon Web Services resource. Tags are key-value pairs that can help you manage, filter, and search for your resources. These include DataSync resources, such as locations, tasks, and task executions. |
+| `UntagResource` | `-` | - | `ResourceArn`, `Keys` | - | `UntagResourceResponse` | `InternalException`, `InvalidRequestException` | Removes tags from an Amazon Web Services resource. |
+| `UpdateAgent` | `-` | - | `AgentArn` | - | `UpdateAgentResponse` | `InternalException`, `InvalidRequestException` | Updates the name of an DataSync agent. |
+| `UpdateLocationAzureBlob` | `-` | - | `LocationArn` | - | `UpdateLocationAzureBlobResponse` | `InternalException`, `InvalidRequestException` | Modifies the following configurations of the Microsoft Azure Blob Storage transfer location that you're using with DataSync. For more information, see Configuring DataSync transfers with Azure Blob Storage . |
+| `UpdateLocationEfs` | `-` | - | `LocationArn` | - | `UpdateLocationEfsResponse` | `InternalException`, `InvalidRequestException` | Modifies the following configuration parameters of the Amazon EFS transfer location that you're using with DataSync. For more information, see Configuring DataSync transfers with Amazon EFS . |
+| `UpdateLocationFsxLustre` | `-` | - | `LocationArn` | - | `UpdateLocationFsxLustreResponse` | `InternalException`, `InvalidRequestException` | Modifies the following configuration parameters of the Amazon FSx for Lustre transfer location that you're using with DataSync. For more information, see Configuring DataSync transfers with FSx for Lustre . |
+| `UpdateLocationFsxOntap` | `-` | - | `LocationArn` | - | `UpdateLocationFsxOntapResponse` | `InternalException`, `InvalidRequestException` | Modifies the following configuration parameters of the Amazon FSx for NetApp ONTAP transfer location that you're using with DataSync. For more information, see Configuring DataSync transfers with FSx for ONTAP . |
+| `UpdateLocationFsxOpenZfs` | `-` | - | `LocationArn` | - | `UpdateLocationFsxOpenZfsResponse` | `InternalException`, `InvalidRequestException` | Modifies the following configuration parameters of the Amazon FSx for OpenZFS transfer location that you're using with DataSync. For more information, see Configuring DataSync transfers with FSx for OpenZFS . Request ... |
+| `UpdateLocationFsxWindows` | `-` | - | `LocationArn` | - | `UpdateLocationFsxWindowsResponse` | `InternalException`, `InvalidRequestException` | Modifies the following configuration parameters of the Amazon FSx for Windows File Server transfer location that you're using with DataSync. For more information, see Configuring DataSync transfers with FSx for Windo ... |
+| `UpdateLocationHdfs` | `-` | - | `LocationArn` | - | `UpdateLocationHdfsResponse` | `InternalException`, `InvalidRequestException` | Modifies the following configuration parameters of the Hadoop Distributed File System (HDFS) transfer location that you're using with DataSync. For more information, see Configuring DataSync transfers with an HDFS cl ... |
+| `UpdateLocationNfs` | `-` | - | `LocationArn` | - | `UpdateLocationNfsResponse` | `InternalException`, `InvalidRequestException` | Modifies the following configuration parameters of the Network File System (NFS) transfer location that you're using with DataSync. For more information, see Configuring transfers with an NFS file server . |
+| `UpdateLocationObjectStorage` | `-` | - | `LocationArn` | - | `UpdateLocationObjectStorageResponse` | `InternalException`, `InvalidRequestException` | Modifies the following configuration parameters of the object storage transfer location that you're using with DataSync. For more information, see Configuring DataSync transfers with an object storage system . |
+| `UpdateLocationS3` | `-` | - | `LocationArn` | - | `UpdateLocationS3Response` | `InternalException`, `InvalidRequestException` | Modifies the following configuration parameters of the Amazon S3 transfer location that you're using with DataSync. Before you begin, make sure that you read the following topics: Storage class considerations with Am ... |
+| `UpdateLocationSmb` | `-` | - | `LocationArn` | - | `UpdateLocationSmbResponse` | `InternalException`, `InvalidRequestException` | Modifies the following configuration parameters of the Server Message Block (SMB) transfer location that you're using with DataSync. For more information, see Configuring DataSync transfers with an SMB file server . |
+| `UpdateTask` | `-` | - | `TaskArn` | - | `UpdateTaskResponse` | `InternalException`, `InvalidRequestException` | Updates the configuration of a task , which defines where and how DataSync transfers your data. |
+| `UpdateTaskExecution` | `-` | - | `TaskExecutionArn`, `Options` | - | `UpdateTaskExecutionResponse` | `InternalException`, `InvalidRequestException` | Updates the configuration of a running DataSync task execution. Currently, the only Option that you can modify with UpdateTaskExecution is BytesPerSecond , which throttles bandwidth for a running or queued task execu ... |
 
 ## HTTP Bindings
 
@@ -179,31 +179,56 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalException` | `structure` | `errorCode`, `message` | This exception is thrown when an error occurs in the DataSync service. |
-| `InvalidRequestException` | `structure` | `datasyncErrorCode`, `errorCode`, `message` | This exception is thrown when the client submits a malformed request. |
-| `CancelTaskExecutionRequest` | `structure` | `TaskExecutionArn` | CancelTaskExecutionRequest |
-| `CancelTaskExecutionResponse` | `structure` | - | - |
-| `CreateAgentRequest` | `structure` | `ActivationKey`, `AgentName`, `SecurityGroupArns`, `SubnetArns`, `Tags`, `VpcEndpointId` | CreateAgentRequest |
-| `CreateAgentResponse` | `structure` | `AgentArn` | CreateAgentResponse |
-| `CreateLocationAzureBlobRequest` | `structure` | `AccessTier`, `AgentArns`, `AuthenticationType`, `BlobType`, `CmkSecretConfig`, `ContainerUrl`, `CustomSecretConfig`, `SasConfiguration`, `Subdirectory`, `Tags` | - |
-| `CreateLocationAzureBlobResponse` | `structure` | `LocationArn` | - |
-| `CreateLocationEfsRequest` | `structure` | `AccessPointArn`, `Ec2Config`, `EfsFilesystemArn`, `FileSystemAccessRoleArn`, `InTransitEncryption`, `Subdirectory`, `Tags` | CreateLocationEfsRequest |
-| `CreateLocationEfsResponse` | `structure` | `LocationArn` | CreateLocationEfs |
-| `CreateLocationFsxLustreRequest` | `structure` | `FsxFilesystemArn`, `SecurityGroupArns`, `Subdirectory`, `Tags` | - |
-| `CreateLocationFsxLustreResponse` | `structure` | `LocationArn` | - |
-| `CreateLocationFsxOntapRequest` | `structure` | `Protocol`, `SecurityGroupArns`, `StorageVirtualMachineArn`, `Subdirectory`, `Tags` | - |
-| `CreateLocationFsxOntapResponse` | `structure` | `LocationArn` | - |
-| `CreateLocationFsxOpenZfsRequest` | `structure` | `FsxFilesystemArn`, `Protocol`, `SecurityGroupArns`, `Subdirectory`, `Tags` | - |
-| `CreateLocationFsxOpenZfsResponse` | `structure` | `LocationArn` | - |
-| `CreateLocationFsxWindowsRequest` | `structure` | `CmkSecretConfig`, `CustomSecretConfig`, `Domain`, `FsxFilesystemArn`, `Password`, `SecurityGroupArns`, `Subdirectory`, `Tags`, `User` | - |
-| `CreateLocationFsxWindowsResponse` | `structure` | `LocationArn` | - |
-| `CreateLocationHdfsRequest` | `structure` | `AgentArns`, `AuthenticationType`, `BlockSize`, `CmkSecretConfig`, `CustomSecretConfig`, `KerberosKeytab`, `KerberosKrb5Conf`, `KerberosPrincipal`, `KmsKeyProviderUri`, `NameNodes`, `QopConfiguration`, `ReplicationFactor`, ... (+3) | - |
-| `CreateLocationHdfsResponse` | `structure` | `LocationArn` | - |
-| `CreateLocationNfsRequest` | `structure` | `MountOptions`, `OnPremConfig`, `ServerHostname`, `Subdirectory`, `Tags` | CreateLocationNfsRequest |
-| `CreateLocationNfsResponse` | `structure` | `LocationArn` | CreateLocationNfsResponse |
-| `CreateLocationObjectStorageRequest` | `structure` | `AccessKey`, `AgentArns`, `BucketName`, `CmkSecretConfig`, `CustomSecretConfig`, `SecretKey`, `ServerCertificate`, `ServerHostname`, `ServerPort`, `ServerProtocol`, `Subdirectory`, `Tags` | CreateLocationObjectStorageRequest |
-| `CreateLocationObjectStorageResponse` | `structure` | `LocationArn` | CreateLocationObjectStorageResponse |
-
+| `InternalException` | `structure` | message, errorCode | This exception is thrown when an error occurs in the DataSync service. |
+| `InvalidRequestException` | `structure` | message, errorCode, datasyncErrorCode | This exception is thrown when the client submits a malformed request. |
+| `CancelTaskExecutionRequest` | `structure` | TaskExecutionArn | CancelTaskExecutionRequest |
+| `CancelTaskExecutionResponse` | `structure` | **empty (no members)** | - |
+| `CreateAgentRequest` | `structure` | ActivationKey, AgentName, Tags, VpcEndpointId, SubnetArns, SecurityGroupArns | CreateAgentRequest |
+| `CreateAgentResponse` | `structure` | AgentArn | CreateAgentResponse |
+| `CreateLocationAzureBlobRequest` | `structure` | ContainerUrl, AuthenticationType, SasConfiguration, BlobType, AccessTier, Subdirectory, AgentArns, Tags, CmkSecretConfig, CustomSecretConfig | - |
+| `CreateLocationAzureBlobResponse` | `structure` | LocationArn | - |
+| `CreateLocationEfsRequest` | `structure` | Subdirectory, EfsFilesystemArn, Ec2Config, Tags, AccessPointArn, FileSystemAccessRoleArn, InTransitEncryption | CreateLocationEfsRequest |
+| `CreateLocationEfsResponse` | `structure` | LocationArn | CreateLocationEfs |
+| `CreateLocationFsxLustreRequest` | `structure` | FsxFilesystemArn, SecurityGroupArns, Subdirectory, Tags | - |
+| `CreateLocationFsxLustreResponse` | `structure` | LocationArn | - |
+| `CreateLocationFsxOntapRequest` | `structure` | Protocol, SecurityGroupArns, StorageVirtualMachineArn, Subdirectory, Tags | - |
+| `CreateLocationFsxOntapResponse` | `structure` | LocationArn | - |
+| `CreateLocationFsxOpenZfsRequest` | `structure` | FsxFilesystemArn, Protocol, SecurityGroupArns, Subdirectory, Tags | - |
+| `CreateLocationFsxOpenZfsResponse` | `structure` | LocationArn | - |
+| `CreateLocationFsxWindowsRequest` | `structure` | Subdirectory, FsxFilesystemArn, SecurityGroupArns, Tags, User, Domain, Password, CmkSecretConfig, CustomSecretConfig | - |
+| `CreateLocationFsxWindowsResponse` | `structure` | LocationArn | - |
+| `CreateLocationHdfsRequest` | `structure` | Subdirectory, NameNodes, BlockSize, ReplicationFactor, KmsKeyProviderUri, QopConfiguration, AuthenticationType, SimpleUser, KerberosPrincipal, KerberosKeytab, KerberosKrb5Conf, AgentArns, ... (+3) | - |
+| `CreateLocationHdfsResponse` | `structure` | LocationArn | - |
+| `CreateLocationNfsRequest` | `structure` | Subdirectory, ServerHostname, OnPremConfig, MountOptions, Tags | CreateLocationNfsRequest |
+| `CreateLocationNfsResponse` | `structure` | LocationArn | CreateLocationNfsResponse |
+| `CreateLocationObjectStorageRequest` | `structure` | ServerHostname, ServerPort, ServerProtocol, Subdirectory, BucketName, AccessKey, SecretKey, AgentArns, Tags, ServerCertificate, CmkSecretConfig, CustomSecretConfig | CreateLocationObjectStorageRequest |
+| `CreateLocationObjectStorageResponse` | `structure` | LocationArn | CreateLocationObjectStorageResponse |
+| `CreateLocationS3Request` | `structure` | Subdirectory, S3BucketArn, S3StorageClass, S3Config, AgentArns, Tags | CreateLocationS3Request |
+| `CreateLocationS3Response` | `structure` | LocationArn | CreateLocationS3Response |
+| `CreateLocationSmbRequest` | `structure` | Subdirectory, ServerHostname, User, Domain, Password, CmkSecretConfig, CustomSecretConfig, AgentArns, MountOptions, Tags, AuthenticationType, DnsIpAddresses, ... (+3) | CreateLocationSmbRequest |
+| `CreateLocationSmbResponse` | `structure` | LocationArn | CreateLocationSmbResponse |
+| `CreateTaskRequest` | `structure` | SourceLocationArn, DestinationLocationArn, CloudWatchLogGroupArn, Name, Options, Excludes, Schedule, Tags, Includes, ManifestConfig, TaskReportConfig, TaskMode | CreateTaskRequest |
+| `CreateTaskResponse` | `structure` | TaskArn | CreateTaskResponse |
+| `DeleteAgentRequest` | `structure` | AgentArn | DeleteAgentRequest |
+| `DeleteAgentResponse` | `structure` | **empty (no members)** | - |
+| `DeleteLocationRequest` | `structure` | LocationArn | DeleteLocation |
+| `DeleteLocationResponse` | `structure` | **empty (no members)** | - |
+| `DeleteTaskRequest` | `structure` | TaskArn | DeleteTask |
+| `DeleteTaskResponse` | `structure` | **empty (no members)** | - |
+| `DescribeAgentRequest` | `structure` | AgentArn | DescribeAgent |
+| `DescribeAgentResponse` | `structure` | AgentArn, Name, Status, LastConnectionTime, CreationTime, EndpointType, PrivateLinkConfig, Platform | DescribeAgentResponse |
+| `DescribeLocationAzureBlobRequest` | `structure` | LocationArn | - |
+| `DescribeLocationAzureBlobResponse` | `structure` | LocationArn, LocationUri, AuthenticationType, BlobType, AccessTier, AgentArns, CreationTime, ManagedSecretConfig, CmkSecretConfig, CustomSecretConfig | - |
+| `AgentStatus` | `enum` | ONLINE, OFFLINE | - |
+| `Atime` | `enum` | NONE, BEST_EFFORT | - |
+| `AzureAccessTier` | `enum` | HOT, COOL, ARCHIVE | - |
+| `AzureBlobAuthenticationType` | `enum` | SAS, NONE | - |
+| `AzureBlobType` | `enum` | BLOCK | - |
+| `EfsInTransitEncryption` | `enum` | NONE, TLS1_2 | - |
+| `EndpointType` | `enum` | PUBLIC, PRIVATE_LINK, FIPS, FIPS_PRIVATE_LINK | - |
+| `FilterType` | `enum` | SIMPLE_PATTERN | - |
+| `Gid` | `enum` | NONE, INT_VALUE, NAME, BOTH | - |
+| `HdfsAuthenticationType` | `enum` | SIMPLE, KERBEROS | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

@@ -69,54 +69,54 @@ Parity implications:
 ### Describe
 
 - Operations: `DescribeBackup`, `DescribeContinuousBackups`, `DescribeContributorInsights`, `DescribeEndpoints`, `DescribeExport`, `DescribeGlobalTable`, `DescribeGlobalTableSettings`, `DescribeImport`, `DescribeKinesisStreamingDestination`, `DescribeLimits`, `DescribeTable`, `DescribeTableReplicaAutoScaling`, `DescribeTimeToLive`
-- Common required input members in this group: `BackupArn`, `ExportArn`, `GlobalTableName`, `ImportArn`, `TableName`
+- Common required input members in this group: `TableName`, `GlobalTableName`
 
 ### Update
 
 - Operations: `UpdateContinuousBackups`, `UpdateContributorInsights`, `UpdateGlobalTable`, `UpdateGlobalTableSettings`, `UpdateItem`, `UpdateKinesisStreamingDestination`, `UpdateTable`, `UpdateTableReplicaAutoScaling`, `UpdateTimeToLive`
-- Common required input members in this group: `ContributorInsightsAction`, `GlobalTableName`, `Key`, `PointInTimeRecoverySpecification`, `ReplicaUpdates`, `StreamArn`, `TableName`, `TimeToLiveSpecification`
+- Common required input members in this group: `TableName`, `GlobalTableName`
 
 ### List
 
 - Operations: `ListBackups`, `ListContributorInsights`, `ListExports`, `ListGlobalTables`, `ListImports`, `ListTables`, `ListTagsOfResource`
 - Traits: `paginated` (4)
-- Common required input members in this group: `ResourceArn`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteBackup`, `DeleteItem`, `DeleteResourcePolicy`, `DeleteTable`
-- Common required input members in this group: `BackupArn`, `Key`, `ResourceArn`, `TableName`
+- Common required input members in this group: `TableName`
 
 ### Batch
 
 - Operations: `BatchExecuteStatement`, `BatchGetItem`, `BatchWriteItem`
-- Common required input members in this group: `RequestItems`, `Statements`
+- Common required input members in this group: `RequestItems`
 
 ### Create
 
 - Operations: `CreateBackup`, `CreateGlobalTable`, `CreateTable`
-- Common required input members in this group: `BackupName`, `GlobalTableName`, `ReplicationGroup`, `TableName`
+- Common required input members in this group: `TableName`
 
 ### Execute
 
 - Operations: `ExecuteStatement`, `ExecuteTransaction`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `Statement`, `TransactStatements`
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetItem`, `GetResourcePolicy`
-- Common required input members in this group: `Key`, `ResourceArn`, `TableName`
+- Common required input members in this group: -
 
 ### Put
 
 - Operations: `PutItem`, `PutResourcePolicy`
-- Common required input members in this group: `Item`, `Policy`, `ResourceArn`, `TableName`
+- Common required input members in this group: -
 
 ### Restore
 
 - Operations: `RestoreTableFromBackup`, `RestoreTableToPointInTime`
-- Common required input members in this group: `BackupArn`, `TargetTableName`
+- Common required input members in this group: `TargetTableName`
 
 ### Transact
 
@@ -127,108 +127,108 @@ Parity implications:
 ### Disable
 
 - Operations: `DisableKinesisStreamingDestination`
-- Common required input members in this group: `StreamArn`, `TableName`
+- Common required input members in this group: -
 
 ### Enable
 
 - Operations: `EnableKinesisStreamingDestination`
-- Common required input members in this group: `StreamArn`, `TableName`
+- Common required input members in this group: -
 
 ### Export
 
 - Operations: `ExportTableToPointInTime`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `S3Bucket`, `TableArn`
+- Common required input members in this group: -
 
 ### Import
 
 - Operations: `ImportTable`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `InputFormat`, `S3BucketSource`, `TableCreationParameters`
+- Common required input members in this group: -
 
 ### Query
 
 - Operations: `Query`
 - Traits: `paginated` (1)
-- Common required input members in this group: `TableName`
+- Common required input members in this group: -
 
 ### Scan
 
 - Operations: `Scan`
 - Traits: `paginated` (1)
-- Common required input members in this group: `TableName`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `BatchExecuteStatement` | - | - | `Statements` | - | `BatchExecuteStatementOutput` | `InternalServerError`, `RequestLimitExceeded`, `ThrottlingException` | This operation allows you to perform batch reads or writes on data stored in DynamoDB, using PartiQL. Each read statement in a `BatchExecuteStatement` must specify an equality condition on all key attributes. |
-| `BatchGetItem` | - | - | `RequestItems` | - | `BatchGetItemOutput` | `InternalServerError`, `InvalidEndpointException`, `ProvisionedThroughputExceededException`, `RequestLimitExceeded`, `ResourceNotFoundException`, `ThrottlingException` | The `BatchGetItem` operation returns the attributes of one or more items from one or more tables. You identify requested items by primary key. |
-| `BatchWriteItem` | - | - | `RequestItems` | - | `BatchWriteItemOutput` | `InternalServerError`, `InvalidEndpointException`, `ItemCollectionSizeLimitExceededException`, `ProvisionedThroughputExceededException`, `ReplicatedWriteConflictException`, `RequestLimitExceeded`, `ResourceNotFoundException`, `ThrottlingException` | The `BatchWriteItem` operation puts or deletes multiple items in one or more tables. A single call to `BatchWriteItem` can transmit up to 16MB of data over the network, consisting of up to 25 item put or delete operations. |
-| `CreateBackup` | - | - | `BackupName`, `TableName` | - | `CreateBackupOutput` | `BackupInUseException`, `ContinuousBackupsUnavailableException`, `InternalServerError`, `InvalidEndpointException`, `LimitExceededException`, `TableInUseException`, `TableNotFoundException` | Creates a backup for an existing table. Each time you create an on-demand backup, the entire table data is backed up. |
-| `CreateGlobalTable` | - | - | `GlobalTableName`, `ReplicationGroup` | - | `CreateGlobalTableOutput` | `GlobalTableAlreadyExistsException`, `InternalServerError`, `InvalidEndpointException`, `LimitExceededException`, `TableNotFoundException` | Creates a global table from an existing table. A global table creates a replication relationship between two or more DynamoDB tables with the same table name in the provided Regions. |
-| `CreateTable` | - | - | `TableName` | - | `CreateTableOutput` | `InternalServerError`, `InvalidEndpointException`, `LimitExceededException`, `ResourceInUseException` | The `CreateTable` operation adds a new table to your account. In an Amazon Web Services account, table names must be unique within each Region. |
-| `DeleteBackup` | - | - | `BackupArn` | - | `DeleteBackupOutput` | `BackupInUseException`, `BackupNotFoundException`, `InternalServerError`, `InvalidEndpointException`, `LimitExceededException` | Deletes an existing backup of a table. You can call `DeleteBackup` at a maximum rate of 10 times per second. |
-| `DeleteItem` | - | - | `Key`, `TableName` | - | `DeleteItemOutput` | `ConditionalCheckFailedException`, `InternalServerError`, `InvalidEndpointException`, `ItemCollectionSizeLimitExceededException`, `ProvisionedThroughputExceededException`, `ReplicatedWriteConflictException`, `RequestLimitExceeded`, `ResourceNotFoundException`, ... (+2) | Deletes a single item in a table by primary key. You can perform a conditional delete operation that deletes the item if it exists, or if it has an expected attribute value. |
-| `DeleteResourcePolicy` | - | - | `ResourceArn` | - | `DeleteResourcePolicyOutput` | `InternalServerError`, `InvalidEndpointException`, `LimitExceededException`, `PolicyNotFoundException`, `ResourceInUseException`, `ResourceNotFoundException` | Deletes the resource-based policy attached to the resource, which can be a table or stream. `DeleteResourcePolicy` is an idempotent operation; running it multiple times on the same resource doesn't result in an error response, unless you specify an... |
-| `DeleteTable` | - | - | `TableName` | - | `DeleteTableOutput` | `InternalServerError`, `InvalidEndpointException`, `LimitExceededException`, `ResourceInUseException`, `ResourceNotFoundException` | The `DeleteTable` operation deletes a table and all of its items. After a `DeleteTable` request, the specified table is in the `DELETING` state until DynamoDB completes the deletion. |
-| `DescribeBackup` | - | - | `BackupArn` | - | `DescribeBackupOutput` | `BackupNotFoundException`, `InternalServerError`, `InvalidEndpointException` | Describes an existing backup of a table. You can call `DescribeBackup` at a maximum rate of 10 times per second. |
-| `DescribeContinuousBackups` | - | - | `TableName` | - | `DescribeContinuousBackupsOutput` | `InternalServerError`, `InvalidEndpointException`, `TableNotFoundException` | Checks the status of continuous backups and point in time recovery on the specified table. Continuous backups are `ENABLED` on all tables at table creation. |
-| `DescribeContributorInsights` | - | - | `TableName` | - | `DescribeContributorInsightsOutput` | `InternalServerError`, `ResourceNotFoundException` | Returns information about contributor insights for a given table or global secondary index. |
-| `DescribeEndpoints` | - | - | - | - | `DescribeEndpointsResponse` | - | Returns the regional endpoint information. For more information on policy permissions, please see Internetwork traffic privacy. |
-| `DescribeExport` | - | - | `ExportArn` | - | `DescribeExportOutput` | `ExportNotFoundException`, `InternalServerError`, `LimitExceededException` | Describes an existing table export. |
-| `DescribeGlobalTable` | - | - | `GlobalTableName` | - | `DescribeGlobalTableOutput` | `GlobalTableNotFoundException`, `InternalServerError`, `InvalidEndpointException` | Returns information about the specified global table. This documentation is for version 2017.11.29 (Legacy) of global tables, which should be avoided for new global tables. |
-| `DescribeGlobalTableSettings` | - | - | `GlobalTableName` | - | `DescribeGlobalTableSettingsOutput` | `GlobalTableNotFoundException`, `InternalServerError`, `InvalidEndpointException` | Describes Region-specific settings for a global table. This documentation is for version 2017.11.29 (Legacy) of global tables, which should be avoided for new global tables. |
-| `DescribeImport` | - | - | `ImportArn` | - | `DescribeImportOutput` | `ImportNotFoundException` | Represents the properties of the import. |
-| `DescribeKinesisStreamingDestination` | - | - | `TableName` | - | `DescribeKinesisStreamingDestinationOutput` | `InternalServerError`, `InvalidEndpointException`, `ResourceNotFoundException` | Returns information about the status of Kinesis streaming. |
-| `DescribeLimits` | - | - | - | - | `DescribeLimitsOutput` | `InternalServerError`, `InvalidEndpointException` | Returns the current provisioned-capacity quotas for your Amazon Web Services account in a Region, both for the Region as a whole and for any one DynamoDB table that you create there. When you establish an Amazon Web Services account, the account has initial... |
-| `DescribeTable` | - | - | `TableName` | - | `DescribeTableOutput` | `InternalServerError`, `InvalidEndpointException`, `ResourceNotFoundException` | Returns information about the table, including the current status of the table, when it was created, the primary key schema, and any indexes on the table. If you issue a `DescribeTable` request immediately after a `CreateTable` request, DynamoDB might return... |
-| `DescribeTableReplicaAutoScaling` | - | - | `TableName` | - | `DescribeTableReplicaAutoScalingOutput` | `InternalServerError`, `ResourceNotFoundException` | Describes auto scaling settings across replicas of the global table at once. |
-| `DescribeTimeToLive` | - | - | `TableName` | - | `DescribeTimeToLiveOutput` | `InternalServerError`, `InvalidEndpointException`, `ResourceNotFoundException` | Gives a description of the Time to Live (TTL) status on the specified table. |
-| `DisableKinesisStreamingDestination` | - | - | `StreamArn`, `TableName` | - | `KinesisStreamingDestinationOutput` | `InternalServerError`, `InvalidEndpointException`, `LimitExceededException`, `ResourceInUseException`, `ResourceNotFoundException` | Stops replication from the DynamoDB table to the Kinesis data stream. This is done without deleting either of the resources. |
-| `EnableKinesisStreamingDestination` | - | - | `StreamArn`, `TableName` | - | `KinesisStreamingDestinationOutput` | `InternalServerError`, `InvalidEndpointException`, `LimitExceededException`, `ResourceInUseException`, `ResourceNotFoundException` | Starts table data replication to the specified Kinesis data stream at a timestamp chosen during the enable workflow. If this operation doesn't return results immediately, use DescribeKinesisStreamingDestination to check if streaming to the Kinesis data stream... |
-| `ExecuteStatement` | - | - | `Statement` | - | `ExecuteStatementOutput` | `ConditionalCheckFailedException`, `DuplicateItemException`, `InternalServerError`, `ItemCollectionSizeLimitExceededException`, `ProvisionedThroughputExceededException`, `RequestLimitExceeded`, `ResourceNotFoundException`, `ThrottlingException`, ... (+1) | This operation allows you to perform reads and singleton writes on data stored in DynamoDB, using PartiQL. For PartiQL reads (`SELECT` statement), if the total number of processed items exceeds the maximum dataset size limit of 1 MB, the read stops and... |
-| `ExecuteTransaction` | - | `idempotency-token` | `TransactStatements` | `ClientRequestToken` | `ExecuteTransactionOutput` | `IdempotentParameterMismatchException`, `InternalServerError`, `ProvisionedThroughputExceededException`, `RequestLimitExceeded`, `ResourceNotFoundException`, `ThrottlingException`, `TransactionCanceledException`, `TransactionInProgressException` | This operation allows you to perform transactional reads or writes on data stored in DynamoDB, using PartiQL. The entire transaction must consist of either read statements or write statements, you cannot mix both in one transaction. |
-| `ExportTableToPointInTime` | - | `idempotency-token` | `S3Bucket`, `TableArn` | `ClientToken` | `ExportTableToPointInTimeOutput` | `ExportConflictException`, `InternalServerError`, `InvalidExportTimeException`, `LimitExceededException`, `PointInTimeRecoveryUnavailableException`, `TableNotFoundException` | Exports table data to an S3 bucket. The table must have point in time recovery enabled, and you can export data from any time within the point in time recovery window. |
-| `GetItem` | - | - | `Key`, `TableName` | - | `GetItemOutput` | `InternalServerError`, `InvalidEndpointException`, `ProvisionedThroughputExceededException`, `RequestLimitExceeded`, `ResourceNotFoundException`, `ThrottlingException` | The `GetItem` operation returns a set of attributes for the item with the given primary key. If there is no matching item, `GetItem` does not return any data and there will be no `Item` element in the response. |
-| `GetResourcePolicy` | - | - | `ResourceArn` | - | `GetResourcePolicyOutput` | `InternalServerError`, `InvalidEndpointException`, `PolicyNotFoundException`, `ResourceNotFoundException` | Returns the resource-based policy document attached to the resource, which can be a table or stream, in JSON format. `GetResourcePolicy` follows an eventually consistent model. |
-| `ImportTable` | - | `idempotency-token` | `InputFormat`, `S3BucketSource`, `TableCreationParameters` | `ClientToken` | `ImportTableOutput` | `ImportConflictException`, `LimitExceededException`, `ResourceInUseException` | Imports table data from an S3 bucket. |
-| `ListBackups` | - | - | - | - | `ListBackupsOutput` | `InternalServerError`, `InvalidEndpointException` | List DynamoDB backups that are associated with an Amazon Web Services account and weren't made with Amazon Web Services Backup. To list these backups for a given table, specify `TableName`. |
-| `ListContributorInsights` | - | `paginated` | - | - | `ListContributorInsightsOutput` | `InternalServerError`, `ResourceNotFoundException` | Returns a list of ContributorInsightsSummary for a table and all its global secondary indexes. |
-| `ListExports` | - | `paginated` | - | - | `ListExportsOutput` | `InternalServerError`, `LimitExceededException` | Lists completed exports within the past 90 days, in reverse alphanumeric order of `ExportArn`. |
-| `ListGlobalTables` | - | - | - | - | `ListGlobalTablesOutput` | `InternalServerError`, `InvalidEndpointException` | Lists all global tables that have a replica in the specified Region. This documentation is for version 2017.11.29 (Legacy) of global tables, which should be avoided for new global tables. |
-| `ListImports` | - | `paginated` | - | - | `ListImportsOutput` | `LimitExceededException` | Lists completed imports within the past 90 days. |
-| `ListTables` | - | `paginated` | - | - | `ListTablesOutput` | `InternalServerError`, `InvalidEndpointException` | Returns an array of table names associated with the current account and endpoint. The output from `ListTables` is paginated, with each page returning a maximum of 100 table names. |
-| `ListTagsOfResource` | - | - | `ResourceArn` | - | `ListTagsOfResourceOutput` | `InternalServerError`, `InvalidEndpointException`, `ResourceNotFoundException` | List all tags on an Amazon DynamoDB resource. You can call ListTagsOfResource up to 10 times per second, per account. |
-| `PutItem` | - | - | `Item`, `TableName` | - | `PutItemOutput` | `ConditionalCheckFailedException`, `InternalServerError`, `InvalidEndpointException`, `ItemCollectionSizeLimitExceededException`, `ProvisionedThroughputExceededException`, `ReplicatedWriteConflictException`, `RequestLimitExceeded`, `ResourceNotFoundException`, ... (+2) | Creates a new item, or replaces an old item with a new item. If an item that has the same primary key as the new item already exists in the specified table, the new item completely replaces the existing item. |
-| `PutResourcePolicy` | - | - | `Policy`, `ResourceArn` | - | `PutResourcePolicyOutput` | `InternalServerError`, `InvalidEndpointException`, `LimitExceededException`, `PolicyNotFoundException`, `ResourceInUseException`, `ResourceNotFoundException` | Attaches a resource-based policy document to the resource, which can be a table or stream. When you attach a resource-based policy using this API, the policy application is eventually consistent . |
-| `Query` | - | `paginated` | `TableName` | - | `QueryOutput` | `InternalServerError`, `InvalidEndpointException`, `ProvisionedThroughputExceededException`, `RequestLimitExceeded`, `ResourceNotFoundException`, `ThrottlingException` | You must provide the name of the partition key attribute and a single value for that attribute. `Query` returns all items with that partition key value. |
-| `RestoreTableFromBackup` | - | - | `BackupArn`, `TargetTableName` | - | `RestoreTableFromBackupOutput` | `BackupInUseException`, `BackupNotFoundException`, `InternalServerError`, `InvalidEndpointException`, `LimitExceededException`, `TableAlreadyExistsException`, `TableInUseException` | Creates a new table from an existing backup. Any number of users can execute up to 50 concurrent restores (any type of restore) in a given account. |
-| `RestoreTableToPointInTime` | - | - | `TargetTableName` | - | `RestoreTableToPointInTimeOutput` | `InternalServerError`, `InvalidEndpointException`, `InvalidRestoreTimeException`, `LimitExceededException`, `PointInTimeRecoveryUnavailableException`, `TableAlreadyExistsException`, `TableInUseException`, `TableNotFoundException` | Restores the specified table to the specified point in time within `EarliestRestorableDateTime` and `LatestRestorableDateTime`. You can restore your table to any point in time in the last 35 days. |
-| `Scan` | - | `paginated` | `TableName` | - | `ScanOutput` | `InternalServerError`, `InvalidEndpointException`, `ProvisionedThroughputExceededException`, `RequestLimitExceeded`, `ResourceNotFoundException`, `ThrottlingException` | The `Scan` operation returns one or more items and item attributes by accessing every item in a table or a secondary index. To have DynamoDB return fewer items, you can provide a `FilterExpression` operation. |
-| `TagResource` | - | - | `ResourceArn`, `Tags` | - | `Unit` | `InternalServerError`, `InvalidEndpointException`, `LimitExceededException`, `ResourceInUseException`, `ResourceNotFoundException` | Associate a set of tags with an Amazon DynamoDB resource. You can then activate these user-defined tags so that they appear on the Billing and Cost Management console for cost allocation tracking. |
-| `TransactGetItems` | - | - | `TransactItems` | - | `TransactGetItemsOutput` | `InternalServerError`, `InvalidEndpointException`, `ProvisionedThroughputExceededException`, `RequestLimitExceeded`, `ResourceNotFoundException`, `ThrottlingException`, `TransactionCanceledException` | `TransactGetItems` is a synchronous operation that atomically retrieves multiple items from one or more tables (but not from indexes) in a single account and Region. A `TransactGetItems` call can contain up to 100 `TransactGetItem` objects, each of which... |
-| `TransactWriteItems` | - | `idempotency-token` | `TransactItems` | `ClientRequestToken` | `TransactWriteItemsOutput` | `IdempotentParameterMismatchException`, `InternalServerError`, `InvalidEndpointException`, `ProvisionedThroughputExceededException`, `RequestLimitExceeded`, `ResourceNotFoundException`, `ThrottlingException`, `TransactionCanceledException`, ... (+1) | `TransactWriteItems` is a synchronous write operation that groups up to 100 action requests. These actions can target items in different tables, but not in different Amazon Web Services accounts or Regions, and no two actions can target the same item. |
-| `UntagResource` | - | - | `ResourceArn`, `TagKeys` | - | `Unit` | `InternalServerError`, `InvalidEndpointException`, `LimitExceededException`, `ResourceInUseException`, `ResourceNotFoundException` | Removes the association of tags from an Amazon DynamoDB resource. You can call `UntagResource` up to five times per second, per account. |
-| `UpdateContinuousBackups` | - | - | `PointInTimeRecoverySpecification`, `TableName` | - | `UpdateContinuousBackupsOutput` | `ContinuousBackupsUnavailableException`, `InternalServerError`, `InvalidEndpointException`, `TableNotFoundException` | `UpdateContinuousBackups` enables or disables point in time recovery for the specified table. A successful `UpdateContinuousBackups` call returns the current `ContinuousBackupsDescription`. |
-| `UpdateContributorInsights` | - | - | `ContributorInsightsAction`, `TableName` | - | `UpdateContributorInsightsOutput` | `InternalServerError`, `ResourceNotFoundException` | Updates the status for contributor insights for a specific table or index. CloudWatch Contributor Insights for DynamoDB graphs display the partition key and (if applicable) sort key of frequently accessed items and frequently throttled items in plaintext. |
-| `UpdateGlobalTable` | - | - | `GlobalTableName`, `ReplicaUpdates` | - | `UpdateGlobalTableOutput` | `GlobalTableNotFoundException`, `InternalServerError`, `InvalidEndpointException`, `ReplicaAlreadyExistsException`, `ReplicaNotFoundException`, `TableNotFoundException` | Adds or removes replicas in the specified global table. The global table must already exist to be able to use this operation. |
-| `UpdateGlobalTableSettings` | - | - | `GlobalTableName` | - | `UpdateGlobalTableSettingsOutput` | `GlobalTableNotFoundException`, `IndexNotFoundException`, `InternalServerError`, `InvalidEndpointException`, `LimitExceededException`, `ReplicaNotFoundException`, `ResourceInUseException` | Updates settings for a global table. This documentation is for version 2017.11.29 (Legacy) of global tables, which should be avoided for new global tables. |
-| `UpdateItem` | - | - | `Key`, `TableName` | - | `UpdateItemOutput` | `ConditionalCheckFailedException`, `InternalServerError`, `InvalidEndpointException`, `ItemCollectionSizeLimitExceededException`, `ProvisionedThroughputExceededException`, `ReplicatedWriteConflictException`, `RequestLimitExceeded`, `ResourceNotFoundException`, ... (+2) | Edits an existing item's attributes, or adds a new item to the table if it does not already exist. You can put, delete, or add attribute values. |
-| `UpdateKinesisStreamingDestination` | - | - | `StreamArn`, `TableName` | - | `UpdateKinesisStreamingDestinationOutput` | `InternalServerError`, `InvalidEndpointException`, `LimitExceededException`, `ResourceInUseException`, `ResourceNotFoundException` | The command to update the Kinesis stream destination. |
-| `UpdateTable` | - | - | `TableName` | - | `UpdateTableOutput` | `InternalServerError`, `InvalidEndpointException`, `LimitExceededException`, `ResourceInUseException`, `ResourceNotFoundException` | Modifies the provisioned throughput settings, global secondary indexes, or DynamoDB Streams settings for a given table. You can only perform one of the following operations at once: Modify the provisioned throughput settings of the table. |
-| `UpdateTableReplicaAutoScaling` | - | - | `TableName` | - | `UpdateTableReplicaAutoScalingOutput` | `InternalServerError`, `LimitExceededException`, `ResourceInUseException`, `ResourceNotFoundException` | Updates auto scaling settings on your global tables at once. |
-| `UpdateTimeToLive` | - | - | `TableName`, `TimeToLiveSpecification` | - | `UpdateTimeToLiveOutput` | `InternalServerError`, `InvalidEndpointException`, `LimitExceededException`, `ResourceInUseException`, `ResourceNotFoundException` | The `UpdateTimeToLive` method enables or disables Time to Live (TTL) for the specified table. A successful `UpdateTimeToLive` call returns the current `TimeToLiveSpecification`. |
+| `BatchExecuteStatement` | `-` | - | `Statements` | - | `BatchExecuteStatementOutput` | `InternalServerError`, `RequestLimitExceeded`, `ThrottlingException` | This operation allows you to perform batch reads or writes on data stored in DynamoDB, using PartiQL. Each read statement in a BatchExecuteStatement must specify an equality condition on all key attributes. This enfo ... |
+| `BatchGetItem` | `-` | - | `RequestItems` | - | `BatchGetItemOutput` | `InternalServerError`, `InvalidEndpointException`, `ProvisionedThroughputExceededException`, `RequestLimitExceeded`, `ResourceNotFoundException`, `ThrottlingException` | The BatchGetItem operation returns the attributes of one or more items from one or more tables. You identify requested items by primary key. A single operation can retrieve up to 16 MB of data, which can contain as m ... |
+| `BatchWriteItem` | `-` | - | `RequestItems` | - | `BatchWriteItemOutput` | `InternalServerError`, `InvalidEndpointException`, `ItemCollectionSizeLimitExceededException`, `ProvisionedThroughputExceededException`, `ReplicatedWriteConflictException`, `RequestLimitExceeded`, `ResourceNotFoundException`, `ThrottlingException` | The BatchWriteItem operation puts or deletes multiple items in one or more tables. A single call to BatchWriteItem can transmit up to 16MB of data over the network, consisting of up to 25 item put or delete operation ... |
+| `CreateBackup` | `-` | - | `TableName`, `BackupName` | - | `CreateBackupOutput` | `BackupInUseException`, `ContinuousBackupsUnavailableException`, `InternalServerError`, `InvalidEndpointException`, `LimitExceededException`, `TableInUseException`, `TableNotFoundException` | Creates a backup for an existing table. Each time you create an on-demand backup, the entire table data is backed up. There is no limit to the number of on-demand backups that can be taken. When you create an on-dema ... |
+| `CreateGlobalTable` | `-` | - | `GlobalTableName`, `ReplicationGroup` | - | `CreateGlobalTableOutput` | `GlobalTableAlreadyExistsException`, `InternalServerError`, `InvalidEndpointException`, `LimitExceededException`, `TableNotFoundException` | Creates a global table from an existing table. A global table creates a replication relationship between two or more DynamoDB tables with the same table name in the provided Regions. This documentation is for version ... |
+| `CreateTable` | `-` | - | `TableName` | - | `CreateTableOutput` | `InternalServerError`, `InvalidEndpointException`, `LimitExceededException`, `ResourceInUseException` | The CreateTable operation adds a new table to your account. In an Amazon Web Services account, table names must be unique within each Region. That is, you can have two tables with same name if you create the tables i ... |
+| `DeleteBackup` | `-` | - | `BackupArn` | - | `DeleteBackupOutput` | `BackupInUseException`, `BackupNotFoundException`, `InternalServerError`, `InvalidEndpointException`, `LimitExceededException` | Deletes an existing backup of a table. You can call DeleteBackup at a maximum rate of 10 times per second. |
+| `DeleteItem` | `-` | - | `TableName`, `Key` | - | `DeleteItemOutput` | `ConditionalCheckFailedException`, `InternalServerError`, `InvalidEndpointException`, `ItemCollectionSizeLimitExceededException`, `ProvisionedThroughputExceededException`, `ReplicatedWriteConflictException`, `RequestLimitExceeded`, `ResourceNotFoundException`, `ThrottlingException`, `TransactionConflictException` | Deletes a single item in a table by primary key. You can perform a conditional delete operation that deletes the item if it exists, or if it has an expected attribute value. In addition to deleting an item, you can a ... |
+| `DeleteResourcePolicy` | `-` | - | `ResourceArn` | - | `DeleteResourcePolicyOutput` | `InternalServerError`, `InvalidEndpointException`, `LimitExceededException`, `PolicyNotFoundException`, `ResourceInUseException`, `ResourceNotFoundException` | Deletes the resource-based policy attached to the resource, which can be a table or stream. DeleteResourcePolicy is an idempotent operation; running it multiple times on the same resource doesn't result in an error r ... |
+| `DeleteTable` | `-` | - | `TableName` | - | `DeleteTableOutput` | `InternalServerError`, `InvalidEndpointException`, `LimitExceededException`, `ResourceInUseException`, `ResourceNotFoundException` | The DeleteTable operation deletes a table and all of its items. After a DeleteTable request, the specified table is in the DELETING state until DynamoDB completes the deletion. If the table is in the ACTIVE state, yo ... |
+| `DescribeBackup` | `-` | - | `BackupArn` | - | `DescribeBackupOutput` | `BackupNotFoundException`, `InternalServerError`, `InvalidEndpointException` | Describes an existing backup of a table. You can call DescribeBackup at a maximum rate of 10 times per second. |
+| `DescribeContinuousBackups` | `-` | - | `TableName` | - | `DescribeContinuousBackupsOutput` | `InternalServerError`, `InvalidEndpointException`, `TableNotFoundException` | Checks the status of continuous backups and point in time recovery on the specified table. Continuous backups are ENABLED on all tables at table creation. If point in time recovery is enabled, PointInTimeRecoveryStat ... |
+| `DescribeContributorInsights` | `-` | - | `TableName` | - | `DescribeContributorInsightsOutput` | `InternalServerError`, `ResourceNotFoundException` | Returns information about contributor insights for a given table or global secondary index. |
+| `DescribeEndpoints` | `-` | - | - | - | `DescribeEndpointsResponse` | - | Returns the regional endpoint information. For more information on policy permissions, please see Internetwork traffic privacy . |
+| `DescribeExport` | `-` | - | `ExportArn` | - | `DescribeExportOutput` | `ExportNotFoundException`, `InternalServerError`, `LimitExceededException` | Describes an existing table export. |
+| `DescribeGlobalTable` | `-` | - | `GlobalTableName` | - | `DescribeGlobalTableOutput` | `GlobalTableNotFoundException`, `InternalServerError`, `InvalidEndpointException` | Returns information about the specified global table. This documentation is for version 2017.11.29 (Legacy) of global tables, which should be avoided for new global tables. Customers should use Global Tables version ... |
+| `DescribeGlobalTableSettings` | `-` | - | `GlobalTableName` | - | `DescribeGlobalTableSettingsOutput` | `GlobalTableNotFoundException`, `InternalServerError`, `InvalidEndpointException` | Describes Region-specific settings for a global table. This documentation is for version 2017.11.29 (Legacy) of global tables, which should be avoided for new global tables. Customers should use Global Tables version ... |
+| `DescribeImport` | `-` | - | `ImportArn` | - | `DescribeImportOutput` | `ImportNotFoundException` | Represents the properties of the import. |
+| `DescribeKinesisStreamingDestination` | `-` | - | `TableName` | - | `DescribeKinesisStreamingDestinationOutput` | `InternalServerError`, `InvalidEndpointException`, `ResourceNotFoundException` | Returns information about the status of Kinesis streaming. |
+| `DescribeLimits` | `-` | - | - | - | `DescribeLimitsOutput` | `InternalServerError`, `InvalidEndpointException` | Returns the current provisioned-capacity quotas for your Amazon Web Services account in a Region, both for the Region as a whole and for any one DynamoDB table that you create there. When you establish an Amazon Web ... |
+| `DescribeTable` | `-` | - | `TableName` | - | `DescribeTableOutput` | `InternalServerError`, `InvalidEndpointException`, `ResourceNotFoundException` | Returns information about the table, including the current status of the table, when it was created, the primary key schema, and any indexes on the table. If you issue a DescribeTable request immediately after a Crea ... |
+| `DescribeTableReplicaAutoScaling` | `-` | - | `TableName` | - | `DescribeTableReplicaAutoScalingOutput` | `InternalServerError`, `ResourceNotFoundException` | Describes auto scaling settings across replicas of the global table at once. |
+| `DescribeTimeToLive` | `-` | - | `TableName` | - | `DescribeTimeToLiveOutput` | `InternalServerError`, `InvalidEndpointException`, `ResourceNotFoundException` | Gives a description of the Time to Live (TTL) status on the specified table. |
+| `DisableKinesisStreamingDestination` | `-` | - | `TableName`, `StreamArn` | - | `KinesisStreamingDestinationOutput` | `InternalServerError`, `InvalidEndpointException`, `LimitExceededException`, `ResourceInUseException`, `ResourceNotFoundException` | Stops replication from the DynamoDB table to the Kinesis data stream. This is done without deleting either of the resources. |
+| `EnableKinesisStreamingDestination` | `-` | - | `TableName`, `StreamArn` | - | `KinesisStreamingDestinationOutput` | `InternalServerError`, `InvalidEndpointException`, `LimitExceededException`, `ResourceInUseException`, `ResourceNotFoundException` | Starts table data replication to the specified Kinesis data stream at a timestamp chosen during the enable workflow. If this operation doesn't return results immediately, use DescribeKinesisStreamingDestination to ch ... |
+| `ExecuteStatement` | `-` | - | `Statement` | - | `ExecuteStatementOutput` | `ConditionalCheckFailedException`, `DuplicateItemException`, `InternalServerError`, `ItemCollectionSizeLimitExceededException`, `ProvisionedThroughputExceededException`, `RequestLimitExceeded`, `ResourceNotFoundException`, `ThrottlingException`, `TransactionConflictException` | This operation allows you to perform reads and singleton writes on data stored in DynamoDB, using PartiQL. For PartiQL reads ( SELECT statement), if the total number of processed items exceeds the maximum dataset siz ... |
+| `ExecuteTransaction` | `-` | `idempotency-token` | `TransactStatements` | `ClientRequestToken` | `ExecuteTransactionOutput` | `IdempotentParameterMismatchException`, `InternalServerError`, `ProvisionedThroughputExceededException`, `RequestLimitExceeded`, `ResourceNotFoundException`, `ThrottlingException`, `TransactionCanceledException`, `TransactionInProgressException` | This operation allows you to perform transactional reads or writes on data stored in DynamoDB, using PartiQL. The entire transaction must consist of either read statements or write statements, you cannot mix both in ... |
+| `ExportTableToPointInTime` | `-` | `idempotency-token` | `TableArn`, `S3Bucket` | `ClientToken` | `ExportTableToPointInTimeOutput` | `ExportConflictException`, `InternalServerError`, `InvalidExportTimeException`, `LimitExceededException`, `PointInTimeRecoveryUnavailableException`, `TableNotFoundException` | Exports table data to an S3 bucket. The table must have point in time recovery enabled, and you can export data from any time within the point in time recovery window. |
+| `GetItem` | `-` | - | `TableName`, `Key` | - | `GetItemOutput` | `InternalServerError`, `InvalidEndpointException`, `ProvisionedThroughputExceededException`, `RequestLimitExceeded`, `ResourceNotFoundException`, `ThrottlingException` | The GetItem operation returns a set of attributes for the item with the given primary key. If there is no matching item, GetItem does not return any data and there will be no Item element in the response. GetItem pro ... |
+| `GetResourcePolicy` | `-` | - | `ResourceArn` | - | `GetResourcePolicyOutput` | `InternalServerError`, `InvalidEndpointException`, `PolicyNotFoundException`, `ResourceNotFoundException` | Returns the resource-based policy document attached to the resource, which can be a table or stream, in JSON format. GetResourcePolicy follows an eventually consistent model. The following list describes the outcomes ... |
+| `ImportTable` | `-` | `idempotency-token` | `S3BucketSource`, `InputFormat`, `TableCreationParameters` | `ClientToken` | `ImportTableOutput` | `ImportConflictException`, `LimitExceededException`, `ResourceInUseException` | Imports table data from an S3 bucket. |
+| `ListBackups` | `-` | - | - | - | `ListBackupsOutput` | `InternalServerError`, `InvalidEndpointException` | List DynamoDB backups that are associated with an Amazon Web Services account and weren't made with Amazon Web Services Backup. To list these backups for a given table, specify TableName . ListBackups returns a pagin ... |
+| `ListContributorInsights` | `-` | `paginated` | - | - | `ListContributorInsightsOutput` | `InternalServerError`, `ResourceNotFoundException` | Returns a list of ContributorInsightsSummary for a table and all its global secondary indexes. |
+| `ListExports` | `-` | `paginated` | - | - | `ListExportsOutput` | `InternalServerError`, `LimitExceededException` | Lists completed exports within the past 90 days, in reverse alphanumeric order of ExportArn . |
+| `ListGlobalTables` | `-` | - | - | - | `ListGlobalTablesOutput` | `InternalServerError`, `InvalidEndpointException` | Lists all global tables that have a replica in the specified Region. This documentation is for version 2017.11.29 (Legacy) of global tables, which should be avoided for new global tables. Customers should use Global ... |
+| `ListImports` | `-` | `paginated` | - | - | `ListImportsOutput` | `LimitExceededException` | Lists completed imports within the past 90 days. |
+| `ListTables` | `-` | `paginated` | - | - | `ListTablesOutput` | `InternalServerError`, `InvalidEndpointException` | Returns an array of table names associated with the current account and endpoint. The output from ListTables is paginated, with each page returning a maximum of 100 table names. |
+| `ListTagsOfResource` | `-` | - | `ResourceArn` | - | `ListTagsOfResourceOutput` | `InternalServerError`, `InvalidEndpointException`, `ResourceNotFoundException` | List all tags on an Amazon DynamoDB resource. You can call ListTagsOfResource up to 10 times per second, per account. For an overview on tagging DynamoDB resources, see Tagging for DynamoDB in the Amazon DynamoDB Dev ... |
+| `PutItem` | `-` | - | `TableName`, `Item` | - | `PutItemOutput` | `ConditionalCheckFailedException`, `InternalServerError`, `InvalidEndpointException`, `ItemCollectionSizeLimitExceededException`, `ProvisionedThroughputExceededException`, `ReplicatedWriteConflictException`, `RequestLimitExceeded`, `ResourceNotFoundException`, `ThrottlingException`, `TransactionConflictException` | Creates a new item, or replaces an old item with a new item. If an item that has the same primary key as the new item already exists in the specified table, the new item completely replaces the existing item. You can ... |
+| `PutResourcePolicy` | `-` | - | `ResourceArn`, `Policy` | - | `PutResourcePolicyOutput` | `InternalServerError`, `InvalidEndpointException`, `LimitExceededException`, `PolicyNotFoundException`, `ResourceInUseException`, `ResourceNotFoundException` | Attaches a resource-based policy document to the resource, which can be a table or stream. When you attach a resource-based policy using this API, the policy application is eventually consistent . PutResourcePolicy i ... |
+| `Query` | `-` | `paginated` | `TableName` | - | `QueryOutput` | `InternalServerError`, `InvalidEndpointException`, `ProvisionedThroughputExceededException`, `RequestLimitExceeded`, `ResourceNotFoundException`, `ThrottlingException` | You must provide the name of the partition key attribute and a single value for that attribute. Query returns all items with that partition key value. Optionally, you can provide a sort key attribute and use a compar ... |
+| `RestoreTableFromBackup` | `-` | - | `TargetTableName`, `BackupArn` | - | `RestoreTableFromBackupOutput` | `BackupInUseException`, `BackupNotFoundException`, `InternalServerError`, `InvalidEndpointException`, `LimitExceededException`, `TableAlreadyExistsException`, `TableInUseException` | Creates a new table from an existing backup. Any number of users can execute up to 50 concurrent restores (any type of restore) in a given account. You can call RestoreTableFromBackup at a maximum rate of 10 times pe ... |
+| `RestoreTableToPointInTime` | `-` | - | `TargetTableName` | - | `RestoreTableToPointInTimeOutput` | `InternalServerError`, `InvalidEndpointException`, `InvalidRestoreTimeException`, `LimitExceededException`, `PointInTimeRecoveryUnavailableException`, `TableAlreadyExistsException`, `TableInUseException`, `TableNotFoundException` | Restores the specified table to the specified point in time within EarliestRestorableDateTime and LatestRestorableDateTime . You can restore your table to any point in time in the last 35 days. You can set the recove ... |
+| `Scan` | `-` | `paginated` | `TableName` | - | `ScanOutput` | `InternalServerError`, `InvalidEndpointException`, `ProvisionedThroughputExceededException`, `RequestLimitExceeded`, `ResourceNotFoundException`, `ThrottlingException` | The Scan operation returns one or more items and item attributes by accessing every item in a table or a secondary index. To have DynamoDB return fewer items, you can provide a FilterExpression operation. If the tota ... |
+| `TagResource` | `-` | - | `ResourceArn`, `Tags` | - | `Unit` | `InternalServerError`, `InvalidEndpointException`, `LimitExceededException`, `ResourceInUseException`, `ResourceNotFoundException` | Associate a set of tags with an Amazon DynamoDB resource. You can then activate these user-defined tags so that they appear on the Billing and Cost Management console for cost allocation tracking. You can call TagRes ... |
+| `TransactGetItems` | `-` | - | `TransactItems` | - | `TransactGetItemsOutput` | `InternalServerError`, `InvalidEndpointException`, `ProvisionedThroughputExceededException`, `RequestLimitExceeded`, `ResourceNotFoundException`, `ThrottlingException`, `TransactionCanceledException` | TransactGetItems is a synchronous operation that atomically retrieves multiple items from one or more tables (but not from indexes) in a single account and Region. A TransactGetItems call can contain up to 100 Transa ... |
+| `TransactWriteItems` | `-` | `idempotency-token` | `TransactItems` | `ClientRequestToken` | `TransactWriteItemsOutput` | `IdempotentParameterMismatchException`, `InternalServerError`, `InvalidEndpointException`, `ProvisionedThroughputExceededException`, `RequestLimitExceeded`, `ResourceNotFoundException`, `ThrottlingException`, `TransactionCanceledException`, `TransactionInProgressException` | TransactWriteItems is a synchronous write operation that groups up to 100 action requests. These actions can target items in different tables, but not in different Amazon Web Services accounts or Regions, and no two ... |
+| `UntagResource` | `-` | - | `ResourceArn`, `TagKeys` | - | `Unit` | `InternalServerError`, `InvalidEndpointException`, `LimitExceededException`, `ResourceInUseException`, `ResourceNotFoundException` | Removes the association of tags from an Amazon DynamoDB resource. You can call UntagResource up to five times per second, per account. UntagResource is an asynchronous operation. If you issue a ListTagsOfResource req ... |
+| `UpdateContinuousBackups` | `-` | - | `TableName`, `PointInTimeRecoverySpecification` | - | `UpdateContinuousBackupsOutput` | `ContinuousBackupsUnavailableException`, `InternalServerError`, `InvalidEndpointException`, `TableNotFoundException` | UpdateContinuousBackups enables or disables point in time recovery for the specified table. A successful UpdateContinuousBackups call returns the current ContinuousBackupsDescription . Continuous backups are ENABLED ... |
+| `UpdateContributorInsights` | `-` | - | `TableName`, `ContributorInsightsAction` | - | `UpdateContributorInsightsOutput` | `InternalServerError`, `ResourceNotFoundException` | Updates the status for contributor insights for a specific table or index. CloudWatch Contributor Insights for DynamoDB graphs display the partition key and (if applicable) sort key of frequently accessed items and f ... |
+| `UpdateGlobalTable` | `-` | - | `GlobalTableName`, `ReplicaUpdates` | - | `UpdateGlobalTableOutput` | `GlobalTableNotFoundException`, `InternalServerError`, `InvalidEndpointException`, `ReplicaAlreadyExistsException`, `ReplicaNotFoundException`, `TableNotFoundException` | Adds or removes replicas in the specified global table. The global table must already exist to be able to use this operation. Any replica to be added must be empty, have the same name as the global table, have the sa ... |
+| `UpdateGlobalTableSettings` | `-` | - | `GlobalTableName` | - | `UpdateGlobalTableSettingsOutput` | `GlobalTableNotFoundException`, `IndexNotFoundException`, `InternalServerError`, `InvalidEndpointException`, `LimitExceededException`, `ReplicaNotFoundException`, `ResourceInUseException` | Updates settings for a global table. This documentation is for version 2017.11.29 (Legacy) of global tables, which should be avoided for new global tables. Customers should use Global Tables version 2019.11.21 (Curre ... |
+| `UpdateItem` | `-` | - | `TableName`, `Key` | - | `UpdateItemOutput` | `ConditionalCheckFailedException`, `InternalServerError`, `InvalidEndpointException`, `ItemCollectionSizeLimitExceededException`, `ProvisionedThroughputExceededException`, `ReplicatedWriteConflictException`, `RequestLimitExceeded`, `ResourceNotFoundException`, `ThrottlingException`, `TransactionConflictException` | Edits an existing item's attributes, or adds a new item to the table if it does not already exist. You can put, delete, or add attribute values. You can also perform a conditional update on an existing item (insert a ... |
+| `UpdateKinesisStreamingDestination` | `-` | - | `TableName`, `StreamArn` | - | `UpdateKinesisStreamingDestinationOutput` | `InternalServerError`, `InvalidEndpointException`, `LimitExceededException`, `ResourceInUseException`, `ResourceNotFoundException` | The command to update the Kinesis stream destination. |
+| `UpdateTable` | `-` | - | `TableName` | - | `UpdateTableOutput` | `InternalServerError`, `InvalidEndpointException`, `LimitExceededException`, `ResourceInUseException`, `ResourceNotFoundException` | Modifies the provisioned throughput settings, global secondary indexes, or DynamoDB Streams settings for a given table. You can only perform one of the following operations at once: Modify the provisioned throughput ... |
+| `UpdateTableReplicaAutoScaling` | `-` | - | `TableName` | - | `UpdateTableReplicaAutoScalingOutput` | `InternalServerError`, `LimitExceededException`, `ResourceInUseException`, `ResourceNotFoundException` | Updates auto scaling settings on your global tables at once. |
+| `UpdateTimeToLive` | `-` | - | `TableName`, `TimeToLiveSpecification` | - | `UpdateTimeToLiveOutput` | `InternalServerError`, `InvalidEndpointException`, `LimitExceededException`, `ResourceInUseException`, `ResourceNotFoundException` | The UpdateTimeToLive method enables or disables Time to Live (TTL) for the specified table. A successful UpdateTimeToLive call returns the current TimeToLiveSpecification . It can take up to one hour for the change t ... |
 
 ## HTTP Bindings
 
@@ -242,31 +242,56 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerError` | `structure` | `message` | An error occurred on the server side. |
-| `InvalidEndpointException` | `structure` | `Message` | - |
-| `ResourceNotFoundException` | `structure` | `message` | The operation tried to access a nonexistent table or index. |
-| `LimitExceededException` | `structure` | `message` | There is no limit to the number of daily on-demand backups that can be taken. |
-| `ResourceInUseException` | `structure` | `message` | The operation conflicts with the resource's availability. |
-| `RequestLimitExceeded` | `structure` | `ThrottlingReasons`, `message` | Throughput exceeds the current throughput quota for your account. |
-| `ThrottlingException` | `structure` | `message`, `throttlingReasons` | The request was denied due to request throttling. |
-| `ProvisionedThroughputExceededException` | `structure` | `ThrottlingReasons`, `message` | The request was denied due to request throttling. |
-| `TableNotFoundException` | `structure` | `message` | A source table with the name `TableName` does not currently exist within the subscriber's account or the subscriber is operating in the wrong Amazon Web Services Region. |
-| `ItemCollectionSizeLimitExceededException` | `structure` | `message` | An item collection is too large. |
-| `ReplicatedWriteConflictException` | `structure` | `message` | The request was rejected because one or more items in the request are being modified by a request in another Region. |
-| `ConditionalCheckFailedException` | `structure` | `Item`, `message` | A condition specified in the operation failed to be evaluated. |
-| `TransactionConflictException` | `structure` | `message` | Operation was rejected because there is an ongoing transaction for the item. |
-| `GlobalTableNotFoundException` | `structure` | `message` | The specified global table does not exist. |
-| `BackupInUseException` | `structure` | `message` | There is another ongoing conflicting backup control plane operation on the table. |
-| `TableInUseException` | `structure` | `message` | A target table with the specified name is either being created or deleted. |
-| `BackupNotFoundException` | `structure` | `message` | Backup not found for the given BackupARN. |
-| `PolicyNotFoundException` | `structure` | `message` | The operation tried to access a nonexistent resource-based policy. |
-| `TransactionCanceledException` | `structure` | `CancellationReasons`, `Message` | The entire transaction request was canceled. |
-| `ContinuousBackupsUnavailableException` | `structure` | `message` | Backups have not yet been enabled for this table. |
-| `KinesisStreamingDestinationInput` | `structure` | `EnableKinesisStreamingConfiguration`, `StreamArn`, `TableName` | - |
-| `KinesisStreamingDestinationOutput` | `structure` | `DestinationStatus`, `EnableKinesisStreamingConfiguration`, `StreamArn`, `TableName` | - |
-| `IdempotentParameterMismatchException` | `structure` | `Message` | DynamoDB rejected the request because you retried a request with a different payload but with an idempotent token that was already used. |
-| `TransactionInProgressException` | `structure` | `Message` | The transaction with the given request token is already in progress. |
-
+| `BackupInUseException` | `structure` | message | There is another ongoing conflicting backup control plane operation on the table. The backup is either being created, deleted or restored to a table. |
+| `BackupNotFoundException` | `structure` | message | Backup not found for the given BackupARN. |
+| `ConditionalCheckFailedException` | `structure` | message, Item | A condition specified in the operation failed to be evaluated. |
+| `ContinuousBackupsUnavailableException` | `structure` | message | Backups have not yet been enabled for this table. |
+| `DuplicateItemException` | `structure` | message | There was an attempt to insert an item with the same primary key as an item that already exists in the DynamoDB table. |
+| `ExportConflictException` | `structure` | message | There was a conflict when writing to the specified S3 bucket. |
+| `ExportNotFoundException` | `structure` | message | The specified export was not found. |
+| `GlobalTableAlreadyExistsException` | `structure` | message | The specified global table already exists. |
+| `GlobalTableNotFoundException` | `structure` | message | The specified global table does not exist. |
+| `IdempotentParameterMismatchException` | `structure` | Message | DynamoDB rejected the request because you retried a request with a different payload but with an idempotent token that was already used. |
+| `ImportConflictException` | `structure` | message | There was a conflict when importing from the specified S3 source. This can occur when the current import conflicts with a previous import request that had t ... |
+| `ImportNotFoundException` | `structure` | message | The specified import was not found. |
+| `IndexNotFoundException` | `structure` | message | The operation tried to access a nonexistent index. |
+| `InternalServerError` | `structure` | message | An error occurred on the server side. |
+| `InvalidEndpointException` | `structure` | Message | - |
+| `InvalidExportTimeException` | `structure` | message | The specified ExportTime is outside of the point in time recovery window. |
+| `InvalidRestoreTimeException` | `structure` | message | An invalid restore time was specified. RestoreDateTime must be between EarliestRestorableDateTime and LatestRestorableDateTime. |
+| `ItemCollectionSizeLimitExceededException` | `structure` | message | An item collection is too large. This exception is only returned for tables that have one or more local secondary indexes. |
+| `LimitExceededException` | `structure` | message | There is no limit to the number of daily on-demand backups that can be taken. For most purposes, up to 500 simultaneous table operations are allowed per acc ... |
+| `PointInTimeRecoveryUnavailableException` | `structure` | message | Point in time recovery has not yet been enabled for this source table. |
+| `PolicyNotFoundException` | `structure` | message | The operation tried to access a nonexistent resource-based policy. If you specified an ExpectedRevisionId , it's possible that a policy is present for the r ... |
+| `ProvisionedThroughputExceededException` | `structure` | message, ThrottlingReasons | The request was denied due to request throttling. For detailed information about why the request was throttled and the ARN of the impacted resource, find th ... |
+| `ReplicaAlreadyExistsException` | `structure` | message | The specified replica is already part of the global table. |
+| `ReplicaNotFoundException` | `structure` | message | The specified replica is no longer part of the global table. |
+| `ReplicatedWriteConflictException` | `structure` | message | The request was rejected because one or more items in the request are being modified by a request in another Region. |
+| `RequestLimitExceeded` | `structure` | message, ThrottlingReasons | Throughput exceeds the current throughput quota for your account. For detailed information about why the request was throttled and the ARN of the impacted r ... |
+| `ResourceInUseException` | `structure` | message | The operation conflicts with the resource's availability. For example: You attempted to recreate an existing table. You tried to delete a table currently in ... |
+| `ResourceNotFoundException` | `structure` | message | The operation tried to access a nonexistent table or index. The resource might not be specified correctly, or its status might not be ACTIVE . |
+| `TableAlreadyExistsException` | `structure` | message | A target table with the specified name already exists. |
+| `TableInUseException` | `structure` | message | A target table with the specified name is either being created or deleted. |
+| `TableNotFoundException` | `structure` | message | A source table with the name TableName does not currently exist within the subscriber's account or the subscriber is operating in the wrong Amazon Web Servi ... |
+| `ThrottlingException` | `structure` | message, throttlingReasons | The request was denied due to request throttling. For detailed information about why the request was throttled and the ARN of the impacted resource, find th ... |
+| `TransactionCanceledException` | `structure` | Message, CancellationReasons | The entire transaction request was canceled. DynamoDB cancels a TransactWriteItems request under the following circumstances: A condition in one of the cond ... |
+| `TransactionConflictException` | `structure` | message | Operation was rejected because there is an ongoing transaction for the item. |
+| `TransactionInProgressException` | `structure` | Message | The transaction with the given request token is already in progress. Recommended Settings This is a general recommendation for handling the TransactionInPro ... |
+| `BatchExecuteStatementInput` | `structure` | Statements, ReturnConsumedCapacity | - |
+| `BatchExecuteStatementOutput` | `structure` | Responses, ConsumedCapacity | - |
+| `BatchGetItemInput` | `structure` | RequestItems, ReturnConsumedCapacity | Represents the input of a BatchGetItem operation. |
+| `BatchGetItemOutput` | `structure` | Responses, UnprocessedKeys, ConsumedCapacity | Represents the output of a BatchGetItem operation. |
+| `BatchWriteItemInput` | `structure` | RequestItems, ReturnConsumedCapacity, ReturnItemCollectionMetrics | Represents the input of a BatchWriteItem operation. |
+| `ApproximateCreationDateTimePrecision` | `enum` | MILLISECOND, MICROSECOND | - |
+| `AttributeAction` | `enum` | ADD, PUT, DELETE | - |
+| `BackupStatus` | `enum` | CREATING, DELETED, AVAILABLE | - |
+| `BackupType` | `enum` | USER, SYSTEM, AWS_BACKUP | - |
+| `BackupTypeFilter` | `enum` | USER, SYSTEM, AWS_BACKUP, ALL | - |
+| `BatchStatementErrorCodeEnum` | `enum` | ConditionalCheckFailed, ItemCollectionSizeLimitExceeded, RequestLimitExceeded, ValidationError, ProvisionedThroughputExceeded, TransactionConflict, ThrottlingError, InternalServerError, ResourceNotFound, AccessDenied, DuplicateItem | - |
+| `BillingMode` | `enum` | PROVISIONED, PAY_PER_REQUEST | - |
+| `ComparisonOperator` | `enum` | EQ, NE, IN, LE, LT, GE, GT, BETWEEN, NOT_NULL, NULL, CONTAINS, NOT_CONTAINS, ... (+1) | - |
+| `ConditionalOperator` | `enum` | AND, OR | - |
+| `ContinuousBackupsStatus` | `enum` | ENABLED, DISABLED | - |
 ## Winterbaume LTM Notes
 
 Sources: .agents/docs/LTM/dynamodb-partiql-integration.md, .agents/docs/LTM/pluggable-backends-and-query-execution-synthesis.md, .agents/docs/LTM/aws-inter-service-integration-priorities.md, .agents/docs/LTM/cross-service-integration-and-engine-boundaries-synthesis.md.

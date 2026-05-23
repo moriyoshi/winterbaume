@@ -62,38 +62,40 @@ Parity implications:
 
 ### Describe
 
-- Operations: `DescribeAffectedAccountsForOrganization`, `DescribeAffectedEntities`, `DescribeAffectedEntitiesForOrganization`, `DescribeEntityAggregates`, `DescribeEntityAggregatesForOrganization`, `DescribeEventAggregates`, `DescribeEventDetails`, `DescribeEventDetailsForOrganization`, `DescribeEventTypes`, `DescribeEvents`, `DescribeEventsForOrganization`, `DescribeHealthServiceStatusForOrganization`
+- Operations: `DescribeAffectedAccountsForOrganization`, `DescribeAffectedEntities`, `DescribeAffectedEntitiesForOrganization`, `DescribeEntityAggregates`, `DescribeEntityAggregatesForOrganization`, `DescribeEventAggregates`, `DescribeEventDetails`, `DescribeEventDetailsForOrganization`, `DescribeEvents`, `DescribeEventsForOrganization`, `DescribeEventTypes`, `DescribeHealthServiceStatusForOrganization`
 - Traits: `idempotent` (12), `paginated` (7)
-- Common required input members in this group: `aggregateField`, `eventArn`, `eventArns`, `filter`, `organizationEventDetailFilters`
+- Common required input members in this group: `eventArns`
 
 ### Disable
 
 - Operations: `DisableHealthServiceAccessForOrganization`
 - Traits: `idempotent` (1)
+- Common required input members in this group: -
 
 ### Enable
 
 - Operations: `EnableHealthServiceAccessForOrganization`
 - Traits: `idempotent` (1)
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `DescribeAffectedAccountsForOrganization` | - | `idempotent`, `paginated` | `eventArn` | - | `DescribeAffectedAccountsForOrganizationResponse` | `InvalidPaginationToken` | Returns a list of accounts in the organization from Organizations that are affected by the provided event. For more information about the different types of Health events, see Event. |
-| `DescribeAffectedEntities` | - | `idempotent`, `paginated` | `filter` | - | `DescribeAffectedEntitiesResponse` | `InvalidPaginationToken`, `UnsupportedLocale` | Returns a list of entities that have been affected by the specified events, based on the specified filter criteria. Entities can refer to individual customer resources, groups of customer resources, or any other construct, depending on the Amazon Web Services... |
-| `DescribeAffectedEntitiesForOrganization` | - | `idempotent`, `paginated` | - | - | `DescribeAffectedEntitiesForOrganizationResponse` | `InvalidPaginationToken`, `UnsupportedLocale` | Returns a list of entities that have been affected by one or more events for one or more accounts in your organization in Organizations, based on the filter criteria. Entities can refer to individual customer resources, groups of customer resources, or any... |
-| `DescribeEntityAggregates` | - | `idempotent` | - | - | `DescribeEntityAggregatesResponse` | - | Returns the number of entities that are affected by each of the specified events. |
-| `DescribeEntityAggregatesForOrganization` | - | `idempotent` | `eventArns` | - | `DescribeEntityAggregatesForOrganizationResponse` | - | Returns a list of entity aggregates for your Organizations that are affected by each of the specified events. |
-| `DescribeEventAggregates` | - | `idempotent`, `paginated` | `aggregateField` | - | `DescribeEventAggregatesResponse` | `InvalidPaginationToken` | Returns the number of events of each event type (issue, scheduled change, and account notification). If no filter is specified, the counts of all events in each category are returned. |
-| `DescribeEventDetails` | - | `idempotent` | `eventArns` | - | `DescribeEventDetailsResponse` | `UnsupportedLocale` | Returns detailed information about one or more specified events. Information includes standard event data (Amazon Web Services Region, service, and so on, as returned by DescribeEvents), a detailed event description, and possible additional metadata that... |
-| `DescribeEventDetailsForOrganization` | - | `idempotent` | `organizationEventDetailFilters` | - | `DescribeEventDetailsForOrganizationResponse` | `UnsupportedLocale` | Returns detailed information about one or more specified events for one or more Amazon Web Services accounts in your organization. This information includes standard event data (such as the Amazon Web Services Region and service), an event description, and... |
-| `DescribeEventTypes` | - | `idempotent`, `paginated` | - | - | `DescribeEventTypesResponse` | `InvalidPaginationToken`, `UnsupportedLocale` | Returns the event types that meet the specified filter criteria. You can use this API operation to find information about the Health event, such as the category, Amazon Web Services service, and event code. |
-| `DescribeEvents` | - | `idempotent`, `paginated` | - | - | `DescribeEventsResponse` | `InvalidPaginationToken`, `UnsupportedLocale` | Returns information about events that meet the specified filter criteria. Events are returned in a summary form and do not include the detailed description, any additional metadata that depends on the event type, or any affected resources. |
-| `DescribeEventsForOrganization` | - | `idempotent`, `paginated` | - | - | `DescribeEventsForOrganizationResponse` | `InvalidPaginationToken`, `UnsupportedLocale` | Returns information about events across your organization in Organizations. You can use the`filters` parameter to specify the events that you want to return. |
-| `DescribeHealthServiceStatusForOrganization` | - | `idempotent` | - | - | `DescribeHealthServiceStatusForOrganizationResponse` | - | This operation provides status information on enabling or disabling Health to work with your organization. To call this operation, you must use the organization's management account. |
-| `DisableHealthServiceAccessForOrganization` | - | `idempotent` | - | - | `Unit` | `ConcurrentModificationException` | Disables Health from working with Organizations. To call this operation, you must sign in to the organization's management account. |
-| `EnableHealthServiceAccessForOrganization` | - | `idempotent` | - | - | `Unit` | `ConcurrentModificationException` | Enables Health to work with Organizations. You can use the organizational view feature to aggregate events from all Amazon Web Services accounts in your organization in a centralized location. |
+| `DescribeAffectedAccountsForOrganization` | `-` | `idempotent`, `paginated` | `eventArn` | - | `DescribeAffectedAccountsForOrganizationResponse` | `InvalidPaginationToken` | Returns a list of accounts in the organization from Organizations that are affected by the provided event. For more information about the different types of Health events, see Event . Before you can call this operati ... |
+| `DescribeAffectedEntities` | `-` | `idempotent`, `paginated` | `filter` | - | `DescribeAffectedEntitiesResponse` | `InvalidPaginationToken`, `UnsupportedLocale` | Returns a list of entities that have been affected by the specified events, based on the specified filter criteria. Entities can refer to individual customer resources, groups of customer resources, or any other cons ... |
+| `DescribeAffectedEntitiesForOrganization` | `-` | `idempotent`, `paginated` | - | - | `DescribeAffectedEntitiesForOrganizationResponse` | `InvalidPaginationToken`, `UnsupportedLocale` | Returns a list of entities that have been affected by one or more events for one or more accounts in your organization in Organizations, based on the filter criteria. Entities can refer to individual customer resourc ... |
+| `DescribeEntityAggregates` | `-` | `idempotent` | - | - | `DescribeEntityAggregatesResponse` | - | Returns the number of entities that are affected by each of the specified events. |
+| `DescribeEntityAggregatesForOrganization` | `-` | `idempotent` | `eventArns` | - | `DescribeEntityAggregatesForOrganizationResponse` | - | Returns a list of entity aggregates for your Organizations that are affected by each of the specified events. |
+| `DescribeEventAggregates` | `-` | `idempotent`, `paginated` | `aggregateField` | - | `DescribeEventAggregatesResponse` | `InvalidPaginationToken` | Returns the number of events of each event type (issue, scheduled change, and account notification). If no filter is specified, the counts of all events in each category are returned. This API operation uses paginati ... |
+| `DescribeEventDetails` | `-` | `idempotent` | `eventArns` | - | `DescribeEventDetailsResponse` | `UnsupportedLocale` | Returns detailed information about one or more specified events. Information includes standard event data (Amazon Web Services Region, service, and so on, as returned by DescribeEvents ), a detailed event description ... |
+| `DescribeEventDetailsForOrganization` | `-` | `idempotent` | `organizationEventDetailFilters` | - | `DescribeEventDetailsForOrganizationResponse` | `UnsupportedLocale` | Returns detailed information about one or more specified events for one or more Amazon Web Services accounts in your organization. This information includes standard event data (such as the Amazon Web Services Region ... |
+| `DescribeEvents` | `-` | `idempotent`, `paginated` | - | - | `DescribeEventsResponse` | `InvalidPaginationToken`, `UnsupportedLocale` | Returns information about events that meet the specified filter criteria. Events are returned in a summary form and do not include the detailed description, any additional metadata that depends on the event type, or ... |
+| `DescribeEventsForOrganization` | `-` | `idempotent`, `paginated` | - | - | `DescribeEventsForOrganizationResponse` | `InvalidPaginationToken`, `UnsupportedLocale` | Returns information about events across your organization in Organizations. You can use the filters parameter to specify the events that you want to return. Events are returned in a summary form and don't include the ... |
+| `DescribeEventTypes` | `-` | `idempotent`, `paginated` | - | - | `DescribeEventTypesResponse` | `InvalidPaginationToken`, `UnsupportedLocale` | Returns the event types that meet the specified filter criteria. You can use this API operation to find information about the Health event, such as the category, Amazon Web Services service, and event code. The metad ... |
+| `DescribeHealthServiceStatusForOrganization` | `-` | `idempotent` | - | - | `DescribeHealthServiceStatusForOrganizationResponse` | - | This operation provides status information on enabling or disabling Health to work with your organization. To call this operation, you must use the organization's management account. |
+| `DisableHealthServiceAccessForOrganization` | `-` | `idempotent` | - | - | `Unit` | `ConcurrentModificationException` | Disables Health from working with Organizations. To call this operation, you must sign in to the organization's management account. For more information, see Aggregating Health events in the Health User Guide . This ... |
+| `EnableHealthServiceAccessForOrganization` | `-` | `idempotent` | - | - | `Unit` | `ConcurrentModificationException` | Enables Health to work with Organizations. You can use the organizational view feature to aggregate events from all Amazon Web Services accounts in your organization in a centralized location. This operation also cre ... |
 
 ## HTTP Bindings
 
@@ -105,30 +107,41 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InvalidPaginationToken` | `structure` | `message` | The specified pagination token (`nextToken`) is not valid. |
-| `UnsupportedLocale` | `structure` | `message` | The specified locale is not supported. |
-| `ConcurrentModificationException` | `structure` | `message` | EnableHealthServiceAccessForOrganization is already in progress. |
-| `DescribeAffectedAccountsForOrganizationRequest` | `structure` | `eventArn`, `maxResults`, `nextToken` | - |
-| `DescribeAffectedAccountsForOrganizationResponse` | `structure` | `affectedAccounts`, `eventScopeCode`, `nextToken` | - |
-| `DescribeAffectedEntitiesRequest` | `structure` | `filter`, `locale`, `maxResults`, `nextToken` | - |
-| `DescribeAffectedEntitiesResponse` | `structure` | `entities`, `nextToken` | - |
-| `DescribeAffectedEntitiesForOrganizationRequest` | `structure` | `locale`, `maxResults`, `nextToken`, `organizationEntityAccountFilters`, `organizationEntityFilters` | - |
-| `DescribeAffectedEntitiesForOrganizationResponse` | `structure` | `entities`, `failedSet`, `nextToken` | - |
-| `DescribeEntityAggregatesRequest` | `structure` | `eventArns` | - |
-| `DescribeEntityAggregatesResponse` | `structure` | `entityAggregates` | - |
-| `DescribeEntityAggregatesForOrganizationRequest` | `structure` | `awsAccountIds`, `eventArns` | - |
-| `DescribeEntityAggregatesForOrganizationResponse` | `structure` | `organizationEntityAggregates` | - |
-| `DescribeEventAggregatesRequest` | `structure` | `aggregateField`, `filter`, `maxResults`, `nextToken` | - |
-| `DescribeEventAggregatesResponse` | `structure` | `eventAggregates`, `nextToken` | - |
-| `DescribeEventDetailsRequest` | `structure` | `eventArns`, `locale` | - |
-| `DescribeEventDetailsResponse` | `structure` | `failedSet`, `successfulSet` | - |
-| `DescribeEventDetailsForOrganizationRequest` | `structure` | `locale`, `organizationEventDetailFilters` | - |
-| `DescribeEventDetailsForOrganizationResponse` | `structure` | `failedSet`, `successfulSet` | - |
-| `DescribeEventTypesRequest` | `structure` | `filter`, `locale`, `maxResults`, `nextToken` | - |
-| `DescribeEventTypesResponse` | `structure` | `eventTypes`, `nextToken` | - |
-| `DescribeEventsRequest` | `structure` | `filter`, `locale`, `maxResults`, `nextToken` | - |
-| `DescribeEventsResponse` | `structure` | `events`, `nextToken` | - |
-
+| `ConcurrentModificationException` | `structure` | message | EnableHealthServiceAccessForOrganization is already in progress. Wait for the action to complete before trying again. To get the current status, use the Des ... |
+| `InvalidPaginationToken` | `structure` | message | The specified pagination token ( nextToken ) is not valid. |
+| `UnsupportedLocale` | `structure` | message | The specified locale is not supported. |
+| `DescribeAffectedAccountsForOrganizationRequest` | `structure` | eventArn, nextToken, maxResults | - |
+| `DescribeAffectedAccountsForOrganizationResponse` | `structure` | affectedAccounts, eventScopeCode, nextToken | - |
+| `DescribeAffectedEntitiesRequest` | `structure` | filter, locale, nextToken, maxResults | - |
+| `DescribeAffectedEntitiesResponse` | `structure` | entities, nextToken | - |
+| `DescribeAffectedEntitiesForOrganizationRequest` | `structure` | organizationEntityFilters, locale, nextToken, maxResults, organizationEntityAccountFilters | - |
+| `DescribeAffectedEntitiesForOrganizationResponse` | `structure` | entities, failedSet, nextToken | - |
+| `DescribeEntityAggregatesRequest` | `structure` | eventArns | - |
+| `DescribeEntityAggregatesResponse` | `structure` | entityAggregates | - |
+| `DescribeEntityAggregatesForOrganizationRequest` | `structure` | eventArns, awsAccountIds | - |
+| `DescribeEntityAggregatesForOrganizationResponse` | `structure` | organizationEntityAggregates | - |
+| `DescribeEventAggregatesRequest` | `structure` | filter, aggregateField, maxResults, nextToken | - |
+| `DescribeEventAggregatesResponse` | `structure` | eventAggregates, nextToken | - |
+| `DescribeEventDetailsRequest` | `structure` | eventArns, locale | - |
+| `DescribeEventDetailsResponse` | `structure` | successfulSet, failedSet | - |
+| `DescribeEventDetailsForOrganizationRequest` | `structure` | organizationEventDetailFilters, locale | - |
+| `DescribeEventDetailsForOrganizationResponse` | `structure` | successfulSet, failedSet | - |
+| `DescribeEventsRequest` | `structure` | filter, nextToken, maxResults, locale | - |
+| `DescribeEventsResponse` | `structure` | events, nextToken | - |
+| `DescribeEventsForOrganizationRequest` | `structure` | filter, nextToken, maxResults, locale | - |
+| `DescribeEventsForOrganizationResponse` | `structure` | events, nextToken | - |
+| `DescribeEventTypesRequest` | `structure` | filter, locale, nextToken, maxResults | - |
+| `DescribeEventTypesResponse` | `structure` | eventTypes, nextToken | - |
+| `DescribeHealthServiceStatusForOrganizationResponse` | `structure` | healthServiceAccessStatusForOrganization | - |
+| `EventActionability` | `enum` | ACTION_REQUIRED, ACTION_MAY_BE_REQUIRED, INFORMATIONAL | - |
+| `EventPersona` | `enum` | OPERATIONS, SECURITY, BILLING | - |
+| `EventTypeActionability` | `enum` | ACTION_REQUIRED, ACTION_MAY_BE_REQUIRED, INFORMATIONAL | - |
+| `EventTypePersona` | `enum` | OPERATIONS, SECURITY, BILLING | - |
+| `entityStatusCode` | `enum` | IMPAIRED, UNIMPAIRED, UNKNOWN, PENDING, RESOLVED | - |
+| `eventAggregateField` | `enum` | EventTypeCategory | - |
+| `eventScopeCode` | `enum` | PUBLIC, ACCOUNT_SPECIFIC, NONE | - |
+| `eventStatusCode` | `enum` | OPEN, CLOSED, UPCOMING | - |
+| `eventTypeCategory` | `enum` | ISSUE, ACCOUNT_NOTIFICATION, SCHEDULED_CHANGE, INVESTIGATION | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

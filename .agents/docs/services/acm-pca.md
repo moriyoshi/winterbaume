@@ -68,18 +68,18 @@ Parity implications:
 ### Get
 
 - Operations: `GetCertificate`, `GetCertificateAuthorityCertificate`, `GetCertificateAuthorityCsr`, `GetPolicy`
-- Common required input members in this group: `CertificateArn`, `CertificateAuthorityArn`, `ResourceArn`
+- Common required input members in this group: `CertificateAuthorityArn`
 
 ### Create
 
 - Operations: `CreateCertificateAuthority`, `CreateCertificateAuthorityAuditReport`, `CreatePermission`
 - Traits: `idempotent` (2)
-- Common required input members in this group: `Actions`, `AuditReportResponseFormat`, `CertificateAuthorityArn`, `CertificateAuthorityConfiguration`, `CertificateAuthorityType`, `Principal`, `S3BucketName`
+- Common required input members in this group: `CertificateAuthorityArn`
 
 ### Delete
 
 - Operations: `DeleteCertificateAuthority`, `DeletePermission`, `DeletePolicy`
-- Common required input members in this group: `CertificateAuthorityArn`, `Principal`, `ResourceArn`
+- Common required input members in this group: `CertificateAuthorityArn`
 
 ### List
 
@@ -90,76 +90,76 @@ Parity implications:
 ### Describe
 
 - Operations: `DescribeCertificateAuthority`, `DescribeCertificateAuthorityAuditReport`
-- Common required input members in this group: `AuditReportId`, `CertificateAuthorityArn`
+- Common required input members in this group: `CertificateAuthorityArn`
 
 ### Import
 
 - Operations: `ImportCertificateAuthorityCertificate`
-- Common required input members in this group: `Certificate`, `CertificateAuthorityArn`
+- Common required input members in this group: -
 
 ### Issue
 
 - Operations: `IssueCertificate`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `CertificateAuthorityArn`, `Csr`, `SigningAlgorithm`, `Validity`
+- Common required input members in this group: -
 
 ### Put
 
 - Operations: `PutPolicy`
-- Common required input members in this group: `Policy`, `ResourceArn`
+- Common required input members in this group: -
 
 ### Restore
 
 - Operations: `RestoreCertificateAuthority`
-- Common required input members in this group: `CertificateAuthorityArn`
+- Common required input members in this group: -
 
 ### Revoke
 
 - Operations: `RevokeCertificate`
-- Common required input members in this group: `CertificateAuthorityArn`, `CertificateSerial`, `RevocationReason`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagCertificateAuthority`
-- Common required input members in this group: `CertificateAuthorityArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagCertificateAuthority`
-- Common required input members in this group: `CertificateAuthorityArn`, `Tags`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateCertificateAuthority`
-- Common required input members in this group: `CertificateAuthorityArn`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateCertificateAuthority` | - | `idempotent` | `CertificateAuthorityConfiguration`, `CertificateAuthorityType` | - | `CreateCertificateAuthorityResponse` | `InvalidArgsException`, `InvalidPolicyException`, `InvalidTagException`, `LimitExceededException` | Creates a root or subordinate private certificate authority (CA). You must specify the CA configuration, an optional configuration for Online Certificate Status Protocol (OCSP) and/or a certificate revocation list (CRL), the CA type, and an optional... |
-| `CreateCertificateAuthorityAuditReport` | - | `idempotent` | `AuditReportResponseFormat`, `CertificateAuthorityArn`, `S3BucketName` | - | `CreateCertificateAuthorityAuditReportResponse` | `InvalidArgsException`, `InvalidArnException`, `InvalidStateException`, `RequestFailedException`, `RequestInProgressException`, `ResourceNotFoundException` | Creates an audit report that lists every time that your CA private key is used to issue a certificate. The IssueCertificate and RevokeCertificate actions use the private key. |
-| `CreatePermission` | - | - | `Actions`, `CertificateAuthorityArn`, `Principal` | - | `Unit` | `InvalidArnException`, `InvalidStateException`, `LimitExceededException`, `PermissionAlreadyExistsException`, `RequestFailedException`, `ResourceNotFoundException` | Grants one or more permissions on a private CA to the Certificate Manager (ACM) service principal (`acm.amazonaws.com`). These permissions allow ACM to issue and renew ACM certificates that reside in the same Amazon Web Services account as the CA. |
-| `DeleteCertificateAuthority` | - | - | `CertificateAuthorityArn` | - | `Unit` | `ConcurrentModificationException`, `InvalidArnException`, `InvalidStateException`, `ResourceNotFoundException` | Deletes a private certificate authority (CA). You must provide the Amazon Resource Name (ARN) of the private CA that you want to delete. |
-| `DeletePermission` | - | - | `CertificateAuthorityArn`, `Principal` | - | `Unit` | `InvalidArnException`, `InvalidStateException`, `RequestFailedException`, `ResourceNotFoundException` | Revokes permissions on a private CA granted to the Certificate Manager (ACM) service principal (acm.amazonaws.com). These permissions allow ACM to issue and renew ACM certificates that reside in the same Amazon Web Services account as the CA. |
-| `DeletePolicy` | - | - | `ResourceArn` | - | `Unit` | `ConcurrentModificationException`, `InvalidArnException`, `InvalidStateException`, `LockoutPreventedException`, `RequestFailedException`, `ResourceNotFoundException` | Deletes the resource-based policy attached to a private CA. Deletion will remove any access that the policy has granted. |
-| `DescribeCertificateAuthority` | - | - | `CertificateAuthorityArn` | - | `DescribeCertificateAuthorityResponse` | `InvalidArnException`, `ResourceNotFoundException` | Lists information about your private certificate authority (CA) or one that has been shared with you. You specify the private CA on input by its ARN (Amazon Resource Name). |
-| `DescribeCertificateAuthorityAuditReport` | - | - | `AuditReportId`, `CertificateAuthorityArn` | - | `DescribeCertificateAuthorityAuditReportResponse` | `InvalidArgsException`, `InvalidArnException`, `ResourceNotFoundException` | Lists information about a specific audit report created by calling the CreateCertificateAuthorityAuditReport action. Audit information is created every time the certificate authority (CA) private key is used. |
-| `GetCertificate` | - | - | `CertificateArn`, `CertificateAuthorityArn` | - | `GetCertificateResponse` | `InvalidArnException`, `InvalidStateException`, `RequestFailedException`, `RequestInProgressException`, `ResourceNotFoundException` | Retrieves a certificate from your private CA or one that has been shared with you. The ARN of the certificate is returned when you call the IssueCertificate action. |
-| `GetCertificateAuthorityCertificate` | - | - | `CertificateAuthorityArn` | - | `GetCertificateAuthorityCertificateResponse` | `InvalidArnException`, `InvalidStateException`, `ResourceNotFoundException` | Retrieves the certificate and certificate chain for your private certificate authority (CA) or one that has been shared with you. Both the certificate and the chain are base64 PEM-encoded. |
-| `GetCertificateAuthorityCsr` | - | - | `CertificateAuthorityArn` | - | `GetCertificateAuthorityCsrResponse` | `InvalidArnException`, `InvalidStateException`, `RequestFailedException`, `RequestInProgressException`, `ResourceNotFoundException` | Retrieves the certificate signing request (CSR) for your private certificate authority (CA). The CSR is created when you call the CreateCertificateAuthority action. |
-| `GetPolicy` | - | - | `ResourceArn` | - | `GetPolicyResponse` | `InvalidArnException`, `InvalidStateException`, `RequestFailedException`, `ResourceNotFoundException` | Retrieves the resource-based policy attached to a private CA. If either the private CA resource or the policy cannot be found, this action returns a `ResourceNotFoundException`. |
-| `ImportCertificateAuthorityCertificate` | - | - | `Certificate`, `CertificateAuthorityArn` | - | `Unit` | `CertificateMismatchException`, `ConcurrentModificationException`, `InvalidArnException`, `InvalidRequestException`, `InvalidStateException`, `MalformedCertificateException`, `RequestFailedException`, `RequestInProgressException`, ... (+1) | Imports a signed private CA certificate into Amazon Web Services Private CA. This action is used when you are using a chain of trust whose root is located outside Amazon Web Services Private CA. |
-| `IssueCertificate` | - | `idempotent` | `CertificateAuthorityArn`, `Csr`, `SigningAlgorithm`, `Validity` | - | `IssueCertificateResponse` | `InvalidArgsException`, `InvalidArnException`, `InvalidStateException`, `LimitExceededException`, `MalformedCSRException`, `ResourceNotFoundException` | Uses your private certificate authority (CA), or one that has been shared with you, to issue a client certificate. This action returns the Amazon Resource Name (ARN) of the certificate. |
-| `ListCertificateAuthorities` | - | `paginated` | - | - | `ListCertificateAuthoritiesResponse` | `InvalidNextTokenException` | Lists the private certificate authorities that you created by using the CreateCertificateAuthority action. |
-| `ListPermissions` | - | `paginated` | `CertificateAuthorityArn` | - | `ListPermissionsResponse` | `InvalidArnException`, `InvalidNextTokenException`, `InvalidStateException`, `RequestFailedException`, `ResourceNotFoundException` | List all permissions on a private CA, if any, granted to the Certificate Manager (ACM) service principal (acm.amazonaws.com). These permissions allow ACM to issue and renew ACM certificates that reside in the same Amazon Web Services account as the CA. |
-| `ListTags` | - | `paginated` | `CertificateAuthorityArn` | - | `ListTagsResponse` | `InvalidArnException`, `InvalidStateException`, `RequestFailedException`, `ResourceNotFoundException` | Lists the tags, if any, that are associated with your private CA or one that has been shared with you. Tags are labels that you can use to identify and organize your CAs. |
-| `PutPolicy` | - | - | `Policy`, `ResourceArn` | - | `Unit` | `ConcurrentModificationException`, `InvalidArnException`, `InvalidPolicyException`, `InvalidStateException`, `LockoutPreventedException`, `RequestFailedException`, `ResourceNotFoundException` | Attaches a resource-based policy to a private CA. A policy can also be applied by sharing a private CA through Amazon Web Services Resource Access Manager (RAM). |
-| `RestoreCertificateAuthority` | - | - | `CertificateAuthorityArn` | - | `Unit` | `InvalidArnException`, `InvalidStateException`, `ResourceNotFoundException` | Restores a certificate authority (CA) that is in the `DELETED` state. You can restore a CA during the period that you defined in the PermanentDeletionTimeInDays parameter of the DeleteCertificateAuthority action. |
-| `RevokeCertificate` | - | - | `CertificateAuthorityArn`, `CertificateSerial`, `RevocationReason` | - | `Unit` | `ConcurrentModificationException`, `InvalidArnException`, `InvalidRequestException`, `InvalidStateException`, `LimitExceededException`, `RequestAlreadyProcessedException`, `RequestFailedException`, `RequestInProgressException`, ... (+1) | Revokes a certificate that was issued inside Amazon Web Services Private CA. If you enable a certificate revocation list (CRL) when you create or update your private CA, information about the revoked certificates will be included in the CRL. |
-| `TagCertificateAuthority` | - | - | `CertificateAuthorityArn`, `Tags` | - | `Unit` | `InvalidArnException`, `InvalidStateException`, `InvalidTagException`, `ResourceNotFoundException`, `TooManyTagsException` | Adds one or more tags to your private CA. Tags are labels that you can use to identify and organize your Amazon Web Services resources. |
-| `UntagCertificateAuthority` | - | - | `CertificateAuthorityArn`, `Tags` | - | `Unit` | `InvalidArnException`, `InvalidStateException`, `InvalidTagException`, `ResourceNotFoundException` | Remove one or more tags from your private CA. A tag consists of a key-value pair. |
-| `UpdateCertificateAuthority` | - | - | `CertificateAuthorityArn` | - | `Unit` | `ConcurrentModificationException`, `InvalidArgsException`, `InvalidArnException`, `InvalidPolicyException`, `InvalidStateException`, `ResourceNotFoundException` | Updates the status or configuration of a private certificate authority (CA). Your private CA must be in the `ACTIVE` or `DISABLED` state before you can update it. |
+| `CreateCertificateAuthority` | `-` | `idempotent` | `CertificateAuthorityConfiguration`, `CertificateAuthorityType` | - | `CreateCertificateAuthorityResponse` | `InvalidArgsException`, `InvalidPolicyException`, `InvalidTagException`, `LimitExceededException` | Creates a root or subordinate private certificate authority (CA). You must specify the CA configuration, an optional configuration for Online Certificate Status Protocol (OCSP) and/or a certificate revocation list (C ... |
+| `CreateCertificateAuthorityAuditReport` | `-` | `idempotent` | `CertificateAuthorityArn`, `S3BucketName`, `AuditReportResponseFormat` | - | `CreateCertificateAuthorityAuditReportResponse` | `InvalidArgsException`, `InvalidArnException`, `InvalidStateException`, `RequestFailedException`, `RequestInProgressException`, `ResourceNotFoundException` | Creates an audit report that lists every time that your CA private key is used to issue a certificate. The IssueCertificate and RevokeCertificate actions use the private key. To save the audit report to your designat ... |
+| `CreatePermission` | `-` | - | `CertificateAuthorityArn`, `Principal`, `Actions` | - | `Unit` | `InvalidArnException`, `InvalidStateException`, `LimitExceededException`, `PermissionAlreadyExistsException`, `RequestFailedException`, `ResourceNotFoundException` | Grants one or more permissions on a private CA to the Certificate Manager (ACM) service principal ( acm.amazonaws.com ). These permissions allow ACM to issue and renew ACM certificates that reside in the same Amazon ... |
+| `DeleteCertificateAuthority` | `-` | - | `CertificateAuthorityArn` | - | `Unit` | `ConcurrentModificationException`, `InvalidArnException`, `InvalidStateException`, `ResourceNotFoundException` | Deletes a private certificate authority (CA). You must provide the Amazon Resource Name (ARN) of the private CA that you want to delete. You can find the ARN by calling the ListCertificateAuthorities action. Deleting ... |
+| `DeletePermission` | `-` | - | `CertificateAuthorityArn`, `Principal` | - | `Unit` | `InvalidArnException`, `InvalidStateException`, `RequestFailedException`, `ResourceNotFoundException` | Revokes permissions on a private CA granted to the Certificate Manager (ACM) service principal (acm.amazonaws.com). These permissions allow ACM to issue and renew ACM certificates that reside in the same Amazon Web S ... |
+| `DeletePolicy` | `-` | - | `ResourceArn` | - | `Unit` | `ConcurrentModificationException`, `InvalidArnException`, `InvalidStateException`, `LockoutPreventedException`, `RequestFailedException`, `ResourceNotFoundException` | Deletes the resource-based policy attached to a private CA. Deletion will remove any access that the policy has granted. If there is no policy attached to the private CA, this action will return successful. If you de ... |
+| `DescribeCertificateAuthority` | `-` | - | `CertificateAuthorityArn` | - | `DescribeCertificateAuthorityResponse` | `InvalidArnException`, `ResourceNotFoundException` | Lists information about your private certificate authority (CA) or one that has been shared with you. You specify the private CA on input by its ARN (Amazon Resource Name). The output contains the status of your CA. ... |
+| `DescribeCertificateAuthorityAuditReport` | `-` | - | `CertificateAuthorityArn`, `AuditReportId` | - | `DescribeCertificateAuthorityAuditReportResponse` | `InvalidArgsException`, `InvalidArnException`, `ResourceNotFoundException` | Lists information about a specific audit report created by calling the CreateCertificateAuthorityAuditReport action. Audit information is created every time the certificate authority (CA) private key is used. The pri ... |
+| `GetCertificate` | `-` | - | `CertificateAuthorityArn`, `CertificateArn` | - | `GetCertificateResponse` | `InvalidArnException`, `InvalidStateException`, `RequestFailedException`, `RequestInProgressException`, `ResourceNotFoundException` | Retrieves a certificate from your private CA or one that has been shared with you. The ARN of the certificate is returned when you call the IssueCertificate action. You must specify both the ARN of your private CA an ... |
+| `GetCertificateAuthorityCertificate` | `-` | - | `CertificateAuthorityArn` | - | `GetCertificateAuthorityCertificateResponse` | `InvalidArnException`, `InvalidStateException`, `ResourceNotFoundException` | Retrieves the certificate and certificate chain for your private certificate authority (CA) or one that has been shared with you. Both the certificate and the chain are base64 PEM-encoded. The chain does not include ... |
+| `GetCertificateAuthorityCsr` | `-` | - | `CertificateAuthorityArn` | - | `GetCertificateAuthorityCsrResponse` | `InvalidArnException`, `InvalidStateException`, `RequestFailedException`, `RequestInProgressException`, `ResourceNotFoundException` | Retrieves the certificate signing request (CSR) for your private certificate authority (CA). The CSR is created when you call the CreateCertificateAuthority action. Sign the CSR with your Amazon Web Services Private ... |
+| `GetPolicy` | `-` | - | `ResourceArn` | - | `GetPolicyResponse` | `InvalidArnException`, `InvalidStateException`, `RequestFailedException`, `ResourceNotFoundException` | Retrieves the resource-based policy attached to a private CA. If either the private CA resource or the policy cannot be found, this action returns a ResourceNotFoundException . The policy can be attached or updated w ... |
+| `ImportCertificateAuthorityCertificate` | `-` | - | `CertificateAuthorityArn`, `Certificate` | - | `Unit` | `CertificateMismatchException`, `ConcurrentModificationException`, `InvalidArnException`, `InvalidRequestException`, `InvalidStateException`, `MalformedCertificateException`, `RequestFailedException`, `RequestInProgressException`, `ResourceNotFoundException` | Imports a signed private CA certificate into Amazon Web Services Private CA. This action is used when you are using a chain of trust whose root is located outside Amazon Web Services Private CA. Before you can call t ... |
+| `IssueCertificate` | `-` | `idempotent` | `CertificateAuthorityArn`, `Csr`, `SigningAlgorithm`, `Validity` | - | `IssueCertificateResponse` | `InvalidArgsException`, `InvalidArnException`, `InvalidStateException`, `LimitExceededException`, `MalformedCSRException`, `ResourceNotFoundException` | Uses your private certificate authority (CA), or one that has been shared with you, to issue a client certificate. This action returns the Amazon Resource Name (ARN) of the certificate. You can retrieve the certifica ... |
+| `ListCertificateAuthorities` | `-` | `paginated` | - | - | `ListCertificateAuthoritiesResponse` | `InvalidNextTokenException` | Lists the private certificate authorities that you created by using the CreateCertificateAuthority action. |
+| `ListPermissions` | `-` | `paginated` | `CertificateAuthorityArn` | - | `ListPermissionsResponse` | `InvalidArnException`, `InvalidNextTokenException`, `InvalidStateException`, `RequestFailedException`, `ResourceNotFoundException` | List all permissions on a private CA, if any, granted to the Certificate Manager (ACM) service principal (acm.amazonaws.com). These permissions allow ACM to issue and renew ACM certificates that reside in the same Am ... |
+| `ListTags` | `-` | `paginated` | `CertificateAuthorityArn` | - | `ListTagsResponse` | `InvalidArnException`, `InvalidStateException`, `RequestFailedException`, `ResourceNotFoundException` | Lists the tags, if any, that are associated with your private CA or one that has been shared with you. Tags are labels that you can use to identify and organize your CAs. Each tag consists of a key and an optional va ... |
+| `PutPolicy` | `-` | - | `ResourceArn`, `Policy` | - | `Unit` | `ConcurrentModificationException`, `InvalidArnException`, `InvalidPolicyException`, `InvalidStateException`, `LockoutPreventedException`, `RequestFailedException`, `ResourceNotFoundException` | Attaches a resource-based policy to a private CA. A policy can also be applied by sharing a private CA through Amazon Web Services Resource Access Manager (RAM). For more information, see Attach a Policy for Cross-Ac ... |
+| `RestoreCertificateAuthority` | `-` | - | `CertificateAuthorityArn` | - | `Unit` | `InvalidArnException`, `InvalidStateException`, `ResourceNotFoundException` | Restores a certificate authority (CA) that is in the DELETED state. You can restore a CA during the period that you defined in the PermanentDeletionTimeInDays parameter of the DeleteCertificateAuthority action. Curre ... |
+| `RevokeCertificate` | `-` | - | `CertificateAuthorityArn`, `CertificateSerial`, `RevocationReason` | - | `Unit` | `ConcurrentModificationException`, `InvalidArnException`, `InvalidRequestException`, `InvalidStateException`, `LimitExceededException`, `RequestAlreadyProcessedException`, `RequestFailedException`, `RequestInProgressException`, `ResourceNotFoundException` | Revokes a certificate that was issued inside Amazon Web Services Private CA. If you enable a certificate revocation list (CRL) when you create or update your private CA, information about the revoked certificates wil ... |
+| `TagCertificateAuthority` | `-` | - | `CertificateAuthorityArn`, `Tags` | - | `Unit` | `InvalidArnException`, `InvalidStateException`, `InvalidTagException`, `ResourceNotFoundException`, `TooManyTagsException` | Adds one or more tags to your private CA. Tags are labels that you can use to identify and organize your Amazon Web Services resources. Each tag consists of a key and an optional value. You specify the private CA on ... |
+| `UntagCertificateAuthority` | `-` | - | `CertificateAuthorityArn`, `Tags` | - | `Unit` | `InvalidArnException`, `InvalidStateException`, `InvalidTagException`, `ResourceNotFoundException` | Remove one or more tags from your private CA. A tag consists of a key-value pair. If you do not specify the value portion of the tag when calling this action, the tag will be removed regardless of value. If you speci ... |
+| `UpdateCertificateAuthority` | `-` | - | `CertificateAuthorityArn` | - | `Unit` | `ConcurrentModificationException`, `InvalidArgsException`, `InvalidArnException`, `InvalidPolicyException`, `InvalidStateException`, `ResourceNotFoundException` | Updates the status or configuration of a private certificate authority (CA). Your private CA must be in the ACTIVE or DISABLED state before you can update it. You can disable a private CA that is in the ACTIVE state ... |
 
 ## HTTP Bindings
 
@@ -171,30 +171,56 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InvalidArnException` | `structure` | `message` | The requested Amazon Resource Name (ARN) does not refer to an existing resource. |
-| `ResourceNotFoundException` | `structure` | `message` | A resource such as a private CA, S3 bucket, certificate, audit report, or policy cannot be found. |
-| `InvalidStateException` | `structure` | `message` | The state of the private CA does not allow this action to occur. |
-| `RequestFailedException` | `structure` | `message` | The request has failed for an unspecified reason. |
-| `ConcurrentModificationException` | `structure` | `message` | A previous update to your private CA is still ongoing. |
-| `InvalidArgsException` | `structure` | `message` | One or more of the specified arguments was not valid. |
-| `RequestInProgressException` | `structure` | `message` | Your request is already in progress. |
-| `LimitExceededException` | `structure` | `message` | An Amazon Web Services Private CA quota has been exceeded. |
-| `InvalidPolicyException` | `structure` | `message` | The resource policy is invalid or is missing a required statement. |
-| `InvalidTagException` | `structure` | `message` | The tag associated with the CA is not valid. |
-| `LockoutPreventedException` | `structure` | `message` | The current action was prevented because it would lock the caller out from performing subsequent actions. |
-| `InvalidRequestException` | `structure` | `message` | The request action cannot be performed or is prohibited. |
-| `InvalidNextTokenException` | `structure` | `message` | The token specified in the `NextToken` argument is not valid. |
-| `CreateCertificateAuthorityRequest` | `structure` | `CertificateAuthorityConfiguration`, `CertificateAuthorityType`, `IdempotencyToken`, `KeyStorageSecurityStandard`, `RevocationConfiguration`, `Tags`, `UsageMode` | - |
-| `CreateCertificateAuthorityResponse` | `structure` | `CertificateAuthorityArn` | - |
-| `CreateCertificateAuthorityAuditReportRequest` | `structure` | `AuditReportResponseFormat`, `CertificateAuthorityArn`, `S3BucketName` | - |
-| `CreateCertificateAuthorityAuditReportResponse` | `structure` | `AuditReportId`, `S3Key` | - |
-| `CreatePermissionRequest` | `structure` | `Actions`, `CertificateAuthorityArn`, `Principal`, `SourceAccount` | - |
-| `PermissionAlreadyExistsException` | `structure` | `message` | The designated permission has already been given to the user. |
-| `DeleteCertificateAuthorityRequest` | `structure` | `CertificateAuthorityArn`, `PermanentDeletionTimeInDays` | - |
-| `DeletePermissionRequest` | `structure` | `CertificateAuthorityArn`, `Principal`, `SourceAccount` | - |
-| `DeletePolicyRequest` | `structure` | `ResourceArn` | - |
-| `DescribeCertificateAuthorityRequest` | `structure` | `CertificateAuthorityArn` | - |
-
+| `CertificateMismatchException` | `structure` | message | The certificate authority certificate you are importing does not comply with conditions specified in the certificate that signed it. |
+| `ConcurrentModificationException` | `structure` | message | A previous update to your private CA is still ongoing. |
+| `InvalidArgsException` | `structure` | message | One or more of the specified arguments was not valid. |
+| `InvalidArnException` | `structure` | message | The requested Amazon Resource Name (ARN) does not refer to an existing resource. |
+| `InvalidNextTokenException` | `structure` | message | The token specified in the NextToken argument is not valid. Use the token returned from your previous call to ListCertificateAuthorities . |
+| `InvalidPolicyException` | `structure` | message | The resource policy is invalid or is missing a required statement. For general information about IAM policy and statement structure, see Overview of JSON Po ... |
+| `InvalidRequestException` | `structure` | message | The request action cannot be performed or is prohibited. |
+| `InvalidStateException` | `structure` | message | The state of the private CA does not allow this action to occur. |
+| `InvalidTagException` | `structure` | message | The tag associated with the CA is not valid. The invalid argument is contained in the message field. |
+| `LimitExceededException` | `structure` | message | An Amazon Web Services Private CA quota has been exceeded. See the exception message returned to determine the quota that was exceeded. |
+| `LockoutPreventedException` | `structure` | message | The current action was prevented because it would lock the caller out from performing subsequent actions. Verify that the specified parameters would not res ... |
+| `MalformedCSRException` | `structure` | message | The certificate signing request is invalid. |
+| `MalformedCertificateException` | `structure` | message | One or more fields in the certificate are invalid. |
+| `PermissionAlreadyExistsException` | `structure` | message | The designated permission has already been given to the user. |
+| `RequestAlreadyProcessedException` | `structure` | message | Your request has already been completed. |
+| `RequestFailedException` | `structure` | message | The request has failed for an unspecified reason. |
+| `RequestInProgressException` | `structure` | message | Your request is already in progress. |
+| `ResourceNotFoundException` | `structure` | message | A resource such as a private CA, S3 bucket, certificate, audit report, or policy cannot be found. |
+| `TooManyTagsException` | `structure` | message | You can associate up to 50 tags with a private CA. Exception information is contained in the exception message field. |
+| `CreateCertificateAuthorityRequest` | `structure` | CertificateAuthorityConfiguration, RevocationConfiguration, CertificateAuthorityType, IdempotencyToken, KeyStorageSecurityStandard, Tags, UsageMode | - |
+| `CreateCertificateAuthorityResponse` | `structure` | CertificateAuthorityArn | - |
+| `CreateCertificateAuthorityAuditReportRequest` | `structure` | CertificateAuthorityArn, S3BucketName, AuditReportResponseFormat | - |
+| `CreateCertificateAuthorityAuditReportResponse` | `structure` | AuditReportId, S3Key | - |
+| `CreatePermissionRequest` | `structure` | CertificateAuthorityArn, Principal, SourceAccount, Actions | - |
+| `DeleteCertificateAuthorityRequest` | `structure` | CertificateAuthorityArn, PermanentDeletionTimeInDays | - |
+| `DeletePermissionRequest` | `structure` | CertificateAuthorityArn, Principal, SourceAccount | - |
+| `DeletePolicyRequest` | `structure` | ResourceArn | - |
+| `DescribeCertificateAuthorityRequest` | `structure` | CertificateAuthorityArn | - |
+| `DescribeCertificateAuthorityResponse` | `structure` | CertificateAuthority | - |
+| `DescribeCertificateAuthorityAuditReportRequest` | `structure` | CertificateAuthorityArn, AuditReportId | - |
+| `DescribeCertificateAuthorityAuditReportResponse` | `structure` | AuditReportStatus, S3BucketName, S3Key, CreatedAt | - |
+| `GetCertificateRequest` | `structure` | CertificateAuthorityArn, CertificateArn | - |
+| `GetCertificateResponse` | `structure` | Certificate, CertificateChain | - |
+| `GetCertificateAuthorityCertificateRequest` | `structure` | CertificateAuthorityArn | - |
+| `GetCertificateAuthorityCertificateResponse` | `structure` | Certificate, CertificateChain | - |
+| `GetCertificateAuthorityCsrRequest` | `structure` | CertificateAuthorityArn | - |
+| `GetCertificateAuthorityCsrResponse` | `structure` | Csr | - |
+| `GetPolicyRequest` | `structure` | ResourceArn | - |
+| `GetPolicyResponse` | `structure` | Policy | - |
+| `ImportCertificateAuthorityCertificateRequest` | `structure` | CertificateAuthorityArn, Certificate, CertificateChain | - |
+| `AccessMethodType` | `enum` | CA_REPOSITORY, RESOURCE_PKI_MANIFEST, RESOURCE_PKI_NOTIFY | - |
+| `ActionType` | `enum` | IssueCertificate, GetCertificate, ListPermissions | - |
+| `AuditReportResponseFormat` | `enum` | JSON, CSV | - |
+| `AuditReportStatus` | `enum` | CREATING, SUCCESS, FAILED | - |
+| `CertificateAuthorityStatus` | `enum` | CREATING, PENDING_CERTIFICATE, ACTIVE, DELETED, DISABLED, EXPIRED, FAILED | - |
+| `CertificateAuthorityType` | `enum` | ROOT, SUBORDINATE | - |
+| `CertificateAuthorityUsageMode` | `enum` | GENERAL_PURPOSE, SHORT_LIVED_CERTIFICATE | - |
+| `CrlType` | `enum` | COMPLETE, PARTITIONED | - |
+| `ExtendedKeyUsageType` | `enum` | SERVER_AUTH, CLIENT_AUTH, CODE_SIGNING, EMAIL_PROTECTION, TIME_STAMPING, OCSP_SIGNING, SMART_CARD_LOGIN, DOCUMENT_SIGNING, CERTIFICATE_TRANSPARENCY | - |
+| `FailureReason` | `enum` | REQUEST_TIMED_OUT, UNSUPPORTED_ALGORITHM, OTHER | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

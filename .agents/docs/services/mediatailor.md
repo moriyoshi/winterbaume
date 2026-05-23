@@ -54,125 +54,38 @@ Use the AWS Elemental MediaTailor SDKs and CLI to configure scalable ad insertio
 | `VodSourceResource` | `SourceLocationName`, `VodSourceName` | put: `CreateVodSource`; read: `DescribeVodSource`; update: `UpdateVodSource`; delete: `DeleteVodSource`; list: `ListVodSources` | - | - |
 ## Operation Groups
 
-### Delete
-
-- Operations: `DeleteChannel`, `DeleteChannelPolicy`, `DeleteLiveSource`, `DeletePlaybackConfiguration`, `DeletePrefetchSchedule`, `DeleteProgram`, `DeleteSourceLocation`, `DeleteVodSource`
-- Traits: `idempotent` (8)
-- Common required input members in this group: `ChannelName`, `LiveSourceName`, `Name`, `PlaybackConfigurationName`, `ProgramName`, `SourceLocationName`, `VodSourceName`
-
 ### List
 
-- Operations: `ListAlerts`, `ListChannels`, `ListLiveSources`, `ListPlaybackConfigurations`, `ListPrefetchSchedules`, `ListSourceLocations`, `ListTagsForResource`, `ListVodSources`
-- Traits: `paginated` (7), `readonly` (8)
-- Common required input members in this group: `PlaybackConfigurationName`, `ResourceArn`, `SourceLocationName`
-
-### Create
-
-- Operations: `CreateChannel`, `CreateLiveSource`, `CreatePrefetchSchedule`, `CreateProgram`, `CreateSourceLocation`, `CreateVodSource`
-- Traits: `idempotent` (6)
-- Common required input members in this group: `ChannelName`, `HttpConfiguration`, `HttpPackageConfigurations`, `LiveSourceName`, `Name`, `Outputs`, `PlaybackConfigurationName`, `PlaybackMode`, `ProgramName`, `ScheduleConfiguration`, `SourceLocationName`, `VodSourceName`
-
-### Describe
-
-- Operations: `DescribeChannel`, `DescribeLiveSource`, `DescribeProgram`, `DescribeSourceLocation`, `DescribeVodSource`
-- Traits: `readonly` (5)
-- Common required input members in this group: `ChannelName`, `LiveSourceName`, `ProgramName`, `SourceLocationName`, `VodSourceName`
-
-### Update
-
-- Operations: `UpdateChannel`, `UpdateLiveSource`, `UpdateProgram`, `UpdateSourceLocation`, `UpdateVodSource`
-- Traits: `idempotent` (5)
-- Common required input members in this group: `ChannelName`, `HttpConfiguration`, `HttpPackageConfigurations`, `LiveSourceName`, `Outputs`, `ProgramName`, `ScheduleConfiguration`, `SourceLocationName`, `VodSourceName`
-
-### Get
-
-- Operations: `GetChannelPolicy`, `GetChannelSchedule`, `GetPlaybackConfiguration`, `GetPrefetchSchedule`
-- Traits: `paginated` (1), `readonly` (4)
-- Common required input members in this group: `ChannelName`, `Name`, `PlaybackConfigurationName`
+- Operations: `ListAlerts`, `ListTagsForResource`
+- Traits: `readonly` (2), `paginated` (1)
+- Common required input members in this group: `ResourceArn`
 
 ### Configure
 
-- Operations: `ConfigureLogsForChannel`, `ConfigureLogsForPlaybackConfiguration`
+- Operations: `ConfigureLogsForPlaybackConfiguration`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `ChannelName`, `LogTypes`, `PercentEnabled`, `PlaybackConfigurationName`
-
-### Put
-
-- Operations: `PutChannelPolicy`, `PutPlaybackConfiguration`
-- Traits: `idempotent` (2)
-- Common required input members in this group: `ChannelName`, `Name`, `Policy`
-
-### Start
-
-- Operations: `StartChannel`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `ChannelName`
-
-### Stop
-
-- Operations: `StopChannel`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `ChannelName`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `ConfigureLogsForChannel` | `PUT /configureLogs/channel` | - | `ChannelName`, `LogTypes` | - | `ConfigureLogsForChannelResponse` | - | Configures Amazon CloudWatch log settings for a channel. |
 | `ConfigureLogsForPlaybackConfiguration` | `PUT /configureLogs/playbackConfiguration` | `idempotent` | `PercentEnabled`, `PlaybackConfigurationName` | - | `ConfigureLogsForPlaybackConfigurationResponse` | - | Defines where AWS Elemental MediaTailor sends logs for the playback configuration. |
-| `CreateChannel` | `POST /channel/{ChannelName}` | `idempotent` | `ChannelName`, `Outputs`, `PlaybackMode` | - | `CreateChannelResponse` | - | Creates a channel. For information about MediaTailor channels, see Working with channels in the MediaTailor User Guide . |
-| `CreateLiveSource` | `POST /sourceLocation/{SourceLocationName}/liveSource/{LiveSourceName}` | `idempotent` | `HttpPackageConfigurations`, `LiveSourceName`, `SourceLocationName` | - | `CreateLiveSourceResponse` | - | The live source configuration. |
-| `CreatePrefetchSchedule` | `POST /prefetchSchedule/{PlaybackConfigurationName}/{Name}` | `idempotent` | `Name`, `PlaybackConfigurationName` | - | `CreatePrefetchScheduleResponse` | - | Creates a prefetch schedule for a playback configuration. A prefetch schedule allows you to tell MediaTailor to fetch and prepare certain ads before an ad break happens. |
-| `CreateProgram` | `POST /channel/{ChannelName}/program/{ProgramName}` | `idempotent` | `ChannelName`, `ProgramName`, `ScheduleConfiguration`, `SourceLocationName` | - | `CreateProgramResponse` | - | Creates a program within a channel. For information about programs, see Working with programs in the MediaTailor User Guide . |
-| `CreateSourceLocation` | `POST /sourceLocation/{SourceLocationName}` | `idempotent` | `HttpConfiguration`, `SourceLocationName` | - | `CreateSourceLocationResponse` | - | Creates a source location. A source location is a container for sources. |
-| `CreateVodSource` | `POST /sourceLocation/{SourceLocationName}/vodSource/{VodSourceName}` | `idempotent` | `HttpPackageConfigurations`, `SourceLocationName`, `VodSourceName` | - | `CreateVodSourceResponse` | - | The VOD source configuration parameters. |
-| `DeleteChannel` | `DELETE /channel/{ChannelName}` | `idempotent` | `ChannelName` | - | `DeleteChannelResponse` | - | Deletes a channel. For information about MediaTailor channels, see Working with channels in the MediaTailor User Guide . |
-| `DeleteChannelPolicy` | `DELETE /channel/{ChannelName}/policy` | `idempotent` | `ChannelName` | - | `DeleteChannelPolicyResponse` | - | The channel policy to delete. |
-| `DeleteLiveSource` | `DELETE /sourceLocation/{SourceLocationName}/liveSource/{LiveSourceName}` | `idempotent` | `LiveSourceName`, `SourceLocationName` | - | `DeleteLiveSourceResponse` | - | The live source to delete. |
-| `DeletePlaybackConfiguration` | `DELETE /playbackConfiguration/{Name}` | `idempotent` | `Name` | - | `DeletePlaybackConfigurationResponse` | - | Deletes a playback configuration. For information about MediaTailor configurations, see Working with configurations in AWS Elemental MediaTailor. |
-| `DeletePrefetchSchedule` | `DELETE /prefetchSchedule/{PlaybackConfigurationName}/{Name}` | `idempotent` | `Name`, `PlaybackConfigurationName` | - | `DeletePrefetchScheduleResponse` | - | Deletes a prefetch schedule for a specific playback configuration. If you call `DeletePrefetchSchedule` on an expired prefetch schedule, MediaTailor returns an HTTP 404 status code. |
-| `DeleteProgram` | `DELETE /channel/{ChannelName}/program/{ProgramName}` | `idempotent` | `ChannelName`, `ProgramName` | - | `DeleteProgramResponse` | - | Deletes a program within a channel. For information about programs, see Working with programs in the MediaTailor User Guide . |
-| `DeleteSourceLocation` | `DELETE /sourceLocation/{SourceLocationName}` | `idempotent` | `SourceLocationName` | - | `DeleteSourceLocationResponse` | - | Deletes a source location. A source location is a container for sources. |
-| `DeleteVodSource` | `DELETE /sourceLocation/{SourceLocationName}/vodSource/{VodSourceName}` | `idempotent` | `SourceLocationName`, `VodSourceName` | - | `DeleteVodSourceResponse` | - | The video on demand (VOD) source to delete. |
-| `DescribeChannel` | `GET /channel/{ChannelName}` | `readonly` | `ChannelName` | - | `DescribeChannelResponse` | - | Describes a channel. For information about MediaTailor channels, see Working with channels in the MediaTailor User Guide . |
-| `DescribeLiveSource` | `GET /sourceLocation/{SourceLocationName}/liveSource/{LiveSourceName}` | `readonly` | `LiveSourceName`, `SourceLocationName` | - | `DescribeLiveSourceResponse` | - | The live source to describe. |
-| `DescribeProgram` | `GET /channel/{ChannelName}/program/{ProgramName}` | `readonly` | `ChannelName`, `ProgramName` | - | `DescribeProgramResponse` | - | Describes a program within a channel. For information about programs, see Working with programs in the MediaTailor User Guide . |
-| `DescribeSourceLocation` | `GET /sourceLocation/{SourceLocationName}` | `readonly` | `SourceLocationName` | - | `DescribeSourceLocationResponse` | - | Describes a source location. A source location is a container for sources. |
-| `DescribeVodSource` | `GET /sourceLocation/{SourceLocationName}/vodSource/{VodSourceName}` | `readonly` | `SourceLocationName`, `VodSourceName` | - | `DescribeVodSourceResponse` | - | Provides details about a specific video on demand (VOD) source in a specific source location. |
-| `GetChannelPolicy` | `GET /channel/{ChannelName}/policy` | `readonly` | `ChannelName` | - | `GetChannelPolicyResponse` | - | Returns the channel's IAM policy. IAM policies are used to control access to your channel. |
-| `GetChannelSchedule` | `GET /channel/{ChannelName}/schedule` | `readonly`, `paginated` | `ChannelName` | - | `GetChannelScheduleResponse` | - | Retrieves information about your channel's schedule. |
-| `GetPlaybackConfiguration` | `GET /playbackConfiguration/{Name}` | `readonly` | `Name` | - | `GetPlaybackConfigurationResponse` | - | Retrieves a playback configuration. For information about MediaTailor configurations, see Working with configurations in AWS Elemental MediaTailor. |
-| `GetPrefetchSchedule` | `GET /prefetchSchedule/{PlaybackConfigurationName}/{Name}` | `readonly` | `Name`, `PlaybackConfigurationName` | - | `GetPrefetchScheduleResponse` | - | Retrieves a prefetch schedule for a playback configuration. A prefetch schedule allows you to tell MediaTailor to fetch and prepare certain ads before an ad break happens. |
 | `ListAlerts` | `GET /alerts` | `readonly`, `paginated` | `ResourceArn` | - | `ListAlertsResponse` | - | Lists the alerts that are associated with a MediaTailor channel assembly resource. |
-| `ListChannels` | `GET /channels` | `readonly`, `paginated` | - | - | `ListChannelsResponse` | - | Retrieves information about the channels that are associated with the current AWS account. |
-| `ListLiveSources` | `GET /sourceLocation/{SourceLocationName}/liveSources` | `readonly`, `paginated` | `SourceLocationName` | - | `ListLiveSourcesResponse` | - | Lists the live sources contained in a source location. A source represents a piece of content. |
-| `ListPlaybackConfigurations` | `GET /playbackConfigurations` | `readonly`, `paginated` | - | - | `ListPlaybackConfigurationsResponse` | - | Retrieves existing playback configurations. For information about MediaTailor configurations, see Working with Configurations in AWS Elemental MediaTailor. |
-| `ListPrefetchSchedules` | `POST /prefetchSchedule/{PlaybackConfigurationName}` | `readonly`, `paginated` | `PlaybackConfigurationName` | - | `ListPrefetchSchedulesResponse` | - | Lists the prefetch schedules for a playback configuration. |
-| `ListSourceLocations` | `GET /sourceLocations` | `readonly`, `paginated` | - | - | `ListSourceLocationsResponse` | - | Lists the source locations for a channel. A source location defines the host server URL, and contains a list of sources. |
-| `ListTagsForResource` | `GET /tags/{ResourceArn}` | `readonly` | `ResourceArn` | - | `ListTagsForResourceResponse` | `BadRequestException` | A list of tags that are associated with this resource. Tags are key-value pairs that you can associate with Amazon resources to help with organization, access control, and cost tracking. |
-| `ListVodSources` | `GET /sourceLocation/{SourceLocationName}/vodSources` | `readonly`, `paginated` | `SourceLocationName` | - | `ListVodSourcesResponse` | - | Lists the VOD sources contained in a source location. A source represents a piece of content. |
-| `PutChannelPolicy` | `PUT /channel/{ChannelName}/policy` | `idempotent` | `ChannelName`, `Policy` | - | `PutChannelPolicyResponse` | - | Creates an IAM policy for the channel. IAM policies are used to control access to your channel. |
-| `PutPlaybackConfiguration` | `PUT /playbackConfiguration` | `idempotent` | `Name` | - | `PutPlaybackConfigurationResponse` | - | Creates a playback configuration. For information about MediaTailor configurations, see Working with configurations in AWS Elemental MediaTailor. |
-| `StartChannel` | `PUT /channel/{ChannelName}/start` | `idempotent` | `ChannelName` | - | `StartChannelResponse` | - | Starts a channel. For information about MediaTailor channels, see Working with channels in the MediaTailor User Guide . |
-| `StopChannel` | `PUT /channel/{ChannelName}/stop` | `idempotent` | `ChannelName` | - | `StopChannelResponse` | - | Stops a channel. For information about MediaTailor channels, see Working with channels in the MediaTailor User Guide . |
-| `TagResource` | `POST /tags/{ResourceArn}` | - | `ResourceArn`, `Tags` | - | `Unit` | `BadRequestException` | The resource to tag. Tags are key-value pairs that you can associate with Amazon resources to help with organization, access control, and cost tracking. |
+| `ListTagsForResource` | `GET /tags/{ResourceArn}` | `readonly` | `ResourceArn` | - | `ListTagsForResourceResponse` | `BadRequestException` | A list of tags that are associated with this resource. Tags are key-value pairs that you can associate with Amazon resources to help with organization, access control, and cost tracking. For more information, see Tag ... |
+| `TagResource` | `POST /tags/{ResourceArn}` | - | `ResourceArn`, `Tags` | - | `Unit` | `BadRequestException` | The resource to tag. Tags are key-value pairs that you can associate with Amazon resources to help with organization, access control, and cost tracking. For more information, see Tagging AWS Elemental MediaTailor Res ... |
 | `UntagResource` | `DELETE /tags/{ResourceArn}` | `idempotent` | `ResourceArn`, `TagKeys` | - | `Unit` | `BadRequestException` | The resource to untag. |
-| `UpdateChannel` | `PUT /channel/{ChannelName}` | `idempotent` | `ChannelName`, `Outputs` | - | `UpdateChannelResponse` | - | Updates a channel. For information about MediaTailor channels, see Working with channels in the MediaTailor User Guide . |
-| `UpdateLiveSource` | `PUT /sourceLocation/{SourceLocationName}/liveSource/{LiveSourceName}` | `idempotent` | `HttpPackageConfigurations`, `LiveSourceName`, `SourceLocationName` | - | `UpdateLiveSourceResponse` | - | Updates a live source's configuration. |
-| `UpdateProgram` | `PUT /channel/{ChannelName}/program/{ProgramName}` | `idempotent` | `ChannelName`, `ProgramName`, `ScheduleConfiguration` | - | `UpdateProgramResponse` | - | Updates a program within a channel. |
-| `UpdateSourceLocation` | `PUT /sourceLocation/{SourceLocationName}` | `idempotent` | `HttpConfiguration`, `SourceLocationName` | - | `UpdateSourceLocationResponse` | - | Updates a source location. A source location is a container for sources. |
-| `UpdateVodSource` | `PUT /sourceLocation/{SourceLocationName}/vodSource/{VodSourceName}` | `idempotent` | `HttpPackageConfigurations`, `SourceLocationName`, `VodSourceName` | - | `UpdateVodSourceResponse` | - | Updates a VOD source's configuration. |
 
 ## HTTP Bindings
 
@@ -187,30 +100,41 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `BadRequestException` | `structure` | `Message` | A request contains unexpected data. |
-| `ConfigureLogsForChannelRequest` | `structure` | `ChannelName`, `LogTypes` | - |
-| `ConfigureLogsForChannelResponse` | `structure` | `ChannelName`, `LogTypes` | - |
-| `ConfigureLogsForPlaybackConfigurationRequest` | `structure` | `AdsInteractionLog`, `EnabledLoggingStrategies`, `ManifestServiceInteractionLog`, `PercentEnabled`, `PlaybackConfigurationName` | Configures Amazon CloudWatch log settings for a playback configuration. |
-| `ConfigureLogsForPlaybackConfigurationResponse` | `structure` | `AdsInteractionLog`, `EnabledLoggingStrategies`, `ManifestServiceInteractionLog`, `PercentEnabled`, `PlaybackConfigurationName` | - |
-| `CreateChannelRequest` | `structure` | `Audiences`, `ChannelName`, `FillerSlate`, `Outputs`, `PlaybackMode`, `Tags`, `Tier`, `TimeShiftConfiguration` | - |
-| `CreateChannelResponse` | `structure` | `Arn`, `Audiences`, `ChannelName`, `ChannelState`, `CreationTime`, `FillerSlate`, `LastModifiedTime`, `Outputs`, `PlaybackMode`, `Tags`, `Tier`, `TimeShiftConfiguration` | - |
-| `CreateLiveSourceRequest` | `structure` | `HttpPackageConfigurations`, `LiveSourceName`, `SourceLocationName`, `Tags` | - |
-| `CreateLiveSourceResponse` | `structure` | `Arn`, `CreationTime`, `HttpPackageConfigurations`, `LastModifiedTime`, `LiveSourceName`, `SourceLocationName`, `Tags` | - |
-| `CreatePrefetchScheduleRequest` | `structure` | `Consumption`, `Name`, `PlaybackConfigurationName`, `RecurringPrefetchConfiguration`, `Retrieval`, `ScheduleType`, `StreamId` | - |
-| `CreatePrefetchScheduleResponse` | `structure` | `Arn`, `Consumption`, `Name`, `PlaybackConfigurationName`, `RecurringPrefetchConfiguration`, `Retrieval`, `ScheduleType`, `StreamId` | - |
-| `CreateProgramRequest` | `structure` | `AdBreaks`, `AudienceMedia`, `ChannelName`, `LiveSourceName`, `ProgramName`, `ScheduleConfiguration`, `SourceLocationName`, `VodSourceName` | - |
-| `CreateProgramResponse` | `structure` | `AdBreaks`, `Arn`, `AudienceMedia`, `ChannelName`, `ClipRange`, `CreationTime`, `DurationMillis`, `LiveSourceName`, `ProgramName`, `ScheduledStartTime`, `SourceLocationName`, `VodSourceName` | - |
-| `CreateSourceLocationRequest` | `structure` | `AccessConfiguration`, `DefaultSegmentDeliveryConfiguration`, `HttpConfiguration`, `SegmentDeliveryConfigurations`, `SourceLocationName`, `Tags` | - |
-| `CreateSourceLocationResponse` | `structure` | `AccessConfiguration`, `Arn`, `CreationTime`, `DefaultSegmentDeliveryConfiguration`, `HttpConfiguration`, `LastModifiedTime`, `SegmentDeliveryConfigurations`, `SourceLocationName`, `Tags` | - |
-| `CreateVodSourceRequest` | `structure` | `HttpPackageConfigurations`, `SourceLocationName`, `Tags`, `VodSourceName` | - |
-| `CreateVodSourceResponse` | `structure` | `Arn`, `CreationTime`, `HttpPackageConfigurations`, `LastModifiedTime`, `SourceLocationName`, `Tags`, `VodSourceName` | - |
-| `DeleteChannelRequest` | `structure` | `ChannelName` | - |
-| `DeleteChannelResponse` | `structure` | - | - |
-| `DeleteChannelPolicyRequest` | `structure` | `ChannelName` | - |
-| `DeleteChannelPolicyResponse` | `structure` | - | - |
-| `DeleteLiveSourceRequest` | `structure` | `LiveSourceName`, `SourceLocationName` | - |
-| `DeleteLiveSourceResponse` | `structure` | - | - |
-
+| `BadRequestException` | `structure` | Message | A request contains unexpected data. |
+| `ConfigureLogsForPlaybackConfigurationRequest` | `structure` | PercentEnabled, PlaybackConfigurationName, EnabledLoggingStrategies, AdsInteractionLog, ManifestServiceInteractionLog | Configures Amazon CloudWatch log settings for a playback configuration. |
+| `ConfigureLogsForPlaybackConfigurationResponse` | `structure` | PercentEnabled, PlaybackConfigurationName, EnabledLoggingStrategies, AdsInteractionLog, ManifestServiceInteractionLog | - |
+| `ListAlertsRequest` | `structure` | MaxResults, NextToken, ResourceArn | - |
+| `ListAlertsResponse` | `structure` | Items, NextToken | - |
+| `ListTagsForResourceRequest` | `structure` | ResourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | Tags | - |
+| `TagResourceRequest` | `structure` | ResourceArn, Tags | - |
+| `UntagResourceRequest` | `structure` | ResourceArn, TagKeys | - |
+| `AccessType` | `enum` | S3_SIGV4, SECRETS_MANAGER_ACCESS_TOKEN, AUTODETECT_SIGV4 | - |
+| `AdMarkupType` | `enum` | DATERANGE, SCTE35_ENHANCED | - |
+| `AdsInteractionExcludeEventType` | `enum` | AD_MARKER_FOUND, NON_AD_MARKER_FOUND, MAKING_ADS_REQUEST, MODIFIED_TARGET_URL, VAST_REDIRECT, EMPTY_VAST_RESPONSE, EMPTY_VMAP_RESPONSE, VAST_RESPONSE, REDIRECTED_VAST_RESPONSE, FILLED_AVAIL, FILLED_OVERLAY_AVAIL, BEACON_FIRED, ... (+29) | - |
+| `AdsInteractionPublishOptInEventType` | `enum` | RAW_ADS_RESPONSE, RAW_ADS_REQUEST | - |
+| `AlertCategory` | `enum` | SCHEDULING_ERROR, PLAYBACK_WARNING, INFO | - |
+| `ChannelState` | `enum` | RUNNING, STOPPED | - |
+| `CompressionMethod` | `enum` | NONE, GZIP | - |
+| `FillPolicy` | `enum` | FULL_AVAIL_ONLY, PARTIAL_AVAIL | - |
+| `InsertionMode` | `enum` | STITCHED_ONLY, PLAYER_SELECT | Insertion Mode controls whether players can use stitched or guided ad insertion. |
+| `ListPrefetchScheduleType` | `enum` | SINGLE, RECURRING, ALL | - |
+| `LogType` | `enum` | AS_RUN | - |
+| `LoggingStrategy` | `enum` | VENDED_LOGS, LEGACY_CLOUDWATCH | - |
+| `ManifestServiceExcludeEventType` | `enum` | GENERATED_MANIFEST, ORIGIN_MANIFEST, SESSION_INITIALIZED, TRACKING_RESPONSE, CONFIG_SYNTAX_ERROR, CONFIG_SECURITY_ERROR, UNKNOWN_HOST, TIMEOUT_ERROR, CONNECTION_ERROR, IO_ERROR, UNKNOWN_ERROR, HOST_DISALLOWED, ... (+20) | - |
+| `MessageType` | `enum` | SPLICE_INSERT, TIME_SIGNAL | - |
+| `Method` | `enum` | GET, POST | - |
+| `Mode` | `enum` | OFF, BEHIND_LIVE_EDGE, AFTER_LIVE_EDGE | - |
+| `Operator` | `enum` | EQUALS | - |
+| `OriginManifestType` | `enum` | SINGLE_PERIOD, MULTI_PERIOD | - |
+| `PlaybackMode` | `enum` | LOOP, LINEAR | - |
+| `PrefetchScheduleType` | `enum` | SINGLE, RECURRING | - |
+| `RelativePosition` | `enum` | BEFORE_PROGRAM, AFTER_PROGRAM | - |
+| `ScheduleEntryType` | `enum` | PROGRAM, FILLER_SLATE, ALTERNATE_MEDIA | - |
+| `StreamingMediaFileConditioning` | `enum` | TRANSCODE, NONE | - |
+| `Tier` | `enum` | BASIC, STANDARD | - |
+| `TrafficShapingType` | `enum` | RETRIEVAL_WINDOW, TPS | - |
+| `Type` | `enum` | DASH, HLS | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

@@ -45,41 +45,32 @@ Amazon Bedrock Data Automation Runtime
 
 ### Invoke
 
-- Operations: `InvokeDataAutomation`, `InvokeDataAutomationAsync`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `dataAutomationProfileArn`, `inputConfiguration`, `outputConfiguration`
-
-### Get
-
-- Operations: `GetDataAutomationStatus`
-- Traits: `readonly` (1)
-- Common required input members in this group: `invocationArn`
+- Operations: `InvokeDataAutomation`
+- Common required input members in this group: -
 
 ### List
 
 - Operations: `ListTagsForResource`
-- Common required input members in this group: `resourceARN`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceARN`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `resourceARN`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `GetDataAutomationStatus` | - | `readonly` | `invocationArn` | - | `GetDataAutomationStatusResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | API used to get data automation status. |
-| `InvokeDataAutomation` | - | - | `dataAutomationProfileArn`, `inputConfiguration` | - | `InvokeDataAutomationResponse` | `AccessDeniedException`, `InternalServerException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Sync API: Invoke data automation. |
-| `InvokeDataAutomationAsync` | - | `idempotent`, `idempotency-token` | `dataAutomationProfileArn`, `inputConfiguration`, `outputConfiguration` | `clientToken` | `InvokeDataAutomationAsyncResponse` | `AccessDeniedException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Async API: Invoke data automation. |
-| `ListTagsForResource` | - | - | `resourceARN` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | List tags for an Amazon Bedrock Data Automation resource |
-| `TagResource` | - | - | `resourceARN`, `tags` | - | `TagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Tag an Amazon Bedrock Data Automation resource |
-| `UntagResource` | - | - | `resourceARN`, `tagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Untag an Amazon Bedrock Data Automation resource |
+| `InvokeDataAutomation` | `-` | - | `inputConfiguration`, `dataAutomationProfileArn` | - | `InvokeDataAutomationResponse` | `AccessDeniedException`, `InternalServerException`, `ServiceUnavailableException`, `ThrottlingException`, `ValidationException` | Sync API: Invoke data automation. |
+| `ListTagsForResource` | `-` | - | `resourceARN` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | List tags for an Amazon Bedrock Data Automation resource |
+| `TagResource` | `-` | - | `resourceARN`, `tags` | - | `TagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Tag an Amazon Bedrock Data Automation resource |
+| `UntagResource` | `-` | - | `resourceARN`, `tagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Untag an Amazon Bedrock Data Automation resource |
 
 ## HTTP Bindings
 
@@ -91,26 +82,26 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | This exception will be thrown when customer does not have access to API. |
-| `InternalServerException` | `structure` | `message` | This exception is for any internal un-expected service errors. |
-| `ThrottlingException` | `structure` | `message` | This exception will be thrown when customer reached API TPS limit. |
-| `ValidationException` | `structure` | `message` | This exception will be thrown when customer provided invalid parameters. |
-| `ResourceNotFoundException` | `structure` | `message` | This exception will be thrown when resource provided from customer not found. |
-| `ServiceQuotaExceededException` | `structure` | `message` | This exception will be thrown when service quota is exceeded. |
-| `GetDataAutomationStatusRequest` | `structure` | `invocationArn` | Structure for request of GetDataAutomationStatus API. |
-| `GetDataAutomationStatusResponse` | `structure` | `errorMessage`, `errorType`, `jobCompletionTime`, `jobDurationInSeconds`, `jobSubmissionTime`, `outputConfiguration`, `status` | Response of GetDataAutomationStatus API. |
-| `InvokeDataAutomationRequest` | `structure` | `blueprints`, `dataAutomationConfiguration`, `dataAutomationProfileArn`, `encryptionConfiguration`, `inputConfiguration`, `outputConfiguration` | Invoke Data Automation Request |
-| `InvokeDataAutomationResponse` | `structure` | `outputConfiguration`, `outputSegments`, `semanticModality` | Invoke Data Automation Response |
-| `ServiceUnavailableException` | `structure` | `message` | This exception will be thrown when service is temporarily unavailable. |
-| `InvokeDataAutomationAsyncRequest` | `structure` | `blueprints`, `clientToken`, `dataAutomationConfiguration`, `dataAutomationProfileArn`, `encryptionConfiguration`, `inputConfiguration`, `notificationConfiguration`, `outputConfiguration`, `tags` | Invoke Data Automation Async Request |
-| `InvokeDataAutomationAsyncResponse` | `structure` | `invocationArn` | Invoke Data Automation Async Response |
-| `ListTagsForResourceRequest` | `structure` | `resourceARN` | - |
-| `ListTagsForResourceResponse` | `structure` | `tags` | - |
-| `TagResourceRequest` | `structure` | `resourceARN`, `tags` | - |
-| `TagResourceResponse` | `structure` | - | - |
-| `UntagResourceRequest` | `structure` | `resourceARN`, `tagKeys` | - |
-| `UntagResourceResponse` | `structure` | - | - |
-
+| `AccessDeniedException` | `structure` | message | This exception will be thrown when customer does not have access to API. |
+| `InternalServerException` | `structure` | message | This exception is for any internal un-expected service errors. |
+| `ResourceNotFoundException` | `structure` | message | This exception will be thrown when resource provided from customer not found. |
+| `ServiceQuotaExceededException` | `structure` | message | This exception will be thrown when service quota is exceeded. |
+| `ServiceUnavailableException` | `structure` | message | This exception will be thrown when service is temporarily unavailable. |
+| `ThrottlingException` | `structure` | message | This exception will be thrown when customer reached API TPS limit. |
+| `ValidationException` | `structure` | message | This exception will be thrown when customer provided invalid parameters. |
+| `InvokeDataAutomationRequest` | `structure` | inputConfiguration, dataAutomationConfiguration, blueprints, dataAutomationProfileArn, encryptionConfiguration, outputConfiguration | Invoke Data Automation Request |
+| `InvokeDataAutomationResponse` | `structure` | outputConfiguration, semanticModality, outputSegments | Invoke Data Automation Response |
+| `ListTagsForResourceRequest` | `structure` | resourceARN | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `TagResourceRequest` | `structure` | resourceARN, tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | resourceARN, tagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `AutomationJobStatus` | `enum` | CREATED, IN_PROGRESS, SUCCESS, SERVICE_ERROR, CLIENT_ERROR | List of status supported by automation jobs |
+| `BlueprintStage` | `enum` | DEVELOPMENT, LIVE | Blueprint stage enum. |
+| `CustomOutputStatus` | `enum` | MATCH, NO_MATCH | Custom output status enum |
+| `DataAutomationStage` | `enum` | LIVE, DEVELOPMENT | Data automation stage. |
+| `SemanticModality` | `enum` | DOCUMENT, IMAGE, AUDIO, VIDEO | Semantic modality enum |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

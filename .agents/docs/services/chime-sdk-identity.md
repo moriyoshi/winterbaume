@@ -60,96 +60,96 @@ Parity implications:
 
 ### List
 
-- Operations: `ListAppInstanceAdmins`, `ListAppInstanceBots`, `ListAppInstanceUserEndpoints`, `ListAppInstanceUsers`, `ListAppInstances`, `ListTagsForResource`
+- Operations: `ListAppInstanceAdmins`, `ListAppInstanceBots`, `ListAppInstances`, `ListAppInstanceUserEndpoints`, `ListAppInstanceUsers`, `ListTagsForResource`
 - Traits: `paginated` (5)
-- Common required input members in this group: `AppInstanceArn`, `AppInstanceUserArn`, `ResourceARN`
+- Common required input members in this group: `AppInstanceArn`
 
 ### Describe
 
 - Operations: `DescribeAppInstance`, `DescribeAppInstanceAdmin`, `DescribeAppInstanceBot`, `DescribeAppInstanceUser`, `DescribeAppInstanceUserEndpoint`
-- Common required input members in this group: `AppInstanceAdminArn`, `AppInstanceArn`, `AppInstanceBotArn`, `AppInstanceUserArn`, `EndpointId`
+- Common required input members in this group: `AppInstanceArn`, `AppInstanceUserArn`
 
 ### Create
 
 - Operations: `CreateAppInstance`, `CreateAppInstanceAdmin`, `CreateAppInstanceBot`, `CreateAppInstanceUser`
 - Traits: `idempotency-token` (3)
-- Common required input members in this group: `AppInstanceAdminArn`, `AppInstanceArn`, `AppInstanceUserId`, `ClientRequestToken`, `Configuration`, `Name`
+- Common required input members in this group: `Name`, `ClientRequestToken`, `AppInstanceArn`
 
 ### Delete
 
 - Operations: `DeleteAppInstance`, `DeleteAppInstanceAdmin`, `DeleteAppInstanceBot`, `DeleteAppInstanceUser`
-- Common required input members in this group: `AppInstanceAdminArn`, `AppInstanceArn`, `AppInstanceBotArn`, `AppInstanceUserArn`
+- Common required input members in this group: `AppInstanceArn`
 
 ### Update
 
 - Operations: `UpdateAppInstance`, `UpdateAppInstanceBot`, `UpdateAppInstanceUser`, `UpdateAppInstanceUserEndpoint`
-- Common required input members in this group: `AppInstanceArn`, `AppInstanceBotArn`, `AppInstanceUserArn`, `EndpointId`, `Metadata`, `Name`
+- Common required input members in this group: `Name`, `Metadata`, `AppInstanceUserArn`
 
 ### Put
 
 - Operations: `PutAppInstanceRetentionSettings`, `PutAppInstanceUserExpirationSettings`
-- Common required input members in this group: `AppInstanceArn`, `AppInstanceRetentionSettings`, `AppInstanceUserArn`
+- Common required input members in this group: -
 
 ### Deregister
 
 - Operations: `DeregisterAppInstanceUserEndpoint`
-- Common required input members in this group: `AppInstanceUserArn`, `EndpointId`
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetAppInstanceRetentionSettings`
-- Common required input members in this group: `AppInstanceArn`
+- Common required input members in this group: -
 
 ### Register
 
 - Operations: `RegisterAppInstanceUserEndpoint`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `AppInstanceUserArn`, `ClientRequestToken`, `EndpointAttributes`, `ResourceArn`, `Type`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceARN`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceARN`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateAppInstance` | `POST /app-instances` | `idempotency-token` | `ClientRequestToken`, `Name` | `ClientRequestToken` | `CreateAppInstanceResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Creates an Amazon Chime SDK messaging `AppInstance` under an AWS account. Only SDK messaging customers use this API. |
-| `CreateAppInstanceAdmin` | `POST /app-instances/{AppInstanceArn}/admins` | - | `AppInstanceAdminArn`, `AppInstanceArn` | - | `CreateAppInstanceAdminResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Promotes an `AppInstanceUser` or `AppInstanceBot` to an `AppInstanceAdmin`. The promoted entity can perform the following actions. |
-| `CreateAppInstanceBot` | `POST /app-instance-bots` | `idempotency-token` | `AppInstanceArn`, `ClientRequestToken`, `Configuration` | `ClientRequestToken` | `CreateAppInstanceBotResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Creates a bot under an Amazon Chime `AppInstance`. The request consists of a unique `Configuration` and `Name` for that bot. |
-| `CreateAppInstanceUser` | `POST /app-instance-users` | `idempotency-token` | `AppInstanceArn`, `AppInstanceUserId`, `ClientRequestToken`, `Name` | `ClientRequestToken` | `CreateAppInstanceUserResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Creates a user under an Amazon Chime `AppInstance`. The request consists of a unique `appInstanceUserId` and `Name` for that user. |
-| `DeleteAppInstance` | `DELETE /app-instances/{AppInstanceArn}` | - | `AppInstanceArn` | - | `Unit` | `BadRequestException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Deletes an `AppInstance` and all associated data asynchronously. |
-| `DeleteAppInstanceAdmin` | `DELETE /app-instances/{AppInstanceArn}/admins/{AppInstanceAdminArn}` | - | `AppInstanceAdminArn`, `AppInstanceArn` | - | `Unit` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Demotes an `AppInstanceAdmin` to an `AppInstanceUser` or `AppInstanceBot`. This action does not delete the user. |
-| `DeleteAppInstanceBot` | `DELETE /app-instance-bots/{AppInstanceBotArn}` | - | `AppInstanceBotArn` | - | `Unit` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Deletes an `AppInstanceBot`. |
-| `DeleteAppInstanceUser` | `DELETE /app-instance-users/{AppInstanceUserArn}` | - | `AppInstanceUserArn` | - | `Unit` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Deletes an `AppInstanceUser`. |
-| `DeregisterAppInstanceUserEndpoint` | `DELETE /app-instance-users/{AppInstanceUserArn}/endpoints/{EndpointId}` | - | `AppInstanceUserArn`, `EndpointId` | - | `Unit` | `BadRequestException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Deregisters an `AppInstanceUserEndpoint`. |
-| `DescribeAppInstance` | `GET /app-instances/{AppInstanceArn}` | - | `AppInstanceArn` | - | `DescribeAppInstanceResponse` | `BadRequestException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Returns the full details of an `AppInstance`. |
-| `DescribeAppInstanceAdmin` | `GET /app-instances/{AppInstanceArn}/admins/{AppInstanceAdminArn}` | - | `AppInstanceAdminArn`, `AppInstanceArn` | - | `DescribeAppInstanceAdminResponse` | `BadRequestException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Returns the full details of an `AppInstanceAdmin`. |
-| `DescribeAppInstanceBot` | `GET /app-instance-bots/{AppInstanceBotArn}` | - | `AppInstanceBotArn` | - | `DescribeAppInstanceBotResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | The `AppInstanceBot's` information. |
-| `DescribeAppInstanceUser` | `GET /app-instance-users/{AppInstanceUserArn}` | - | `AppInstanceUserArn` | - | `DescribeAppInstanceUserResponse` | `BadRequestException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Returns the full details of an `AppInstanceUser`. |
-| `DescribeAppInstanceUserEndpoint` | `GET /app-instance-users/{AppInstanceUserArn}/endpoints/{EndpointId}` | - | `AppInstanceUserArn`, `EndpointId` | - | `DescribeAppInstanceUserEndpointResponse` | `BadRequestException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Returns the full details of an `AppInstanceUserEndpoint`. |
-| `GetAppInstanceRetentionSettings` | `GET /app-instances/{AppInstanceArn}/retention-settings` | - | `AppInstanceArn` | - | `GetAppInstanceRetentionSettingsResponse` | `BadRequestException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Gets the retention settings for an `AppInstance`. |
-| `ListAppInstanceAdmins` | `GET /app-instances/{AppInstanceArn}/admins` | `paginated` | `AppInstanceArn` | - | `ListAppInstanceAdminsResponse` | `BadRequestException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Returns a list of the administrators in the `AppInstance`. |
-| `ListAppInstanceBots` | `GET /app-instance-bots` | `paginated` | `AppInstanceArn` | - | `ListAppInstanceBotsResponse` | `BadRequestException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Lists all `AppInstanceBots` created under a single `AppInstance`. |
-| `ListAppInstanceUserEndpoints` | `GET /app-instance-users/{AppInstanceUserArn}/endpoints` | `paginated` | `AppInstanceUserArn` | - | `ListAppInstanceUserEndpointsResponse` | `BadRequestException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Lists all the `AppInstanceUserEndpoints` created under a single `AppInstanceUser`. |
-| `ListAppInstanceUsers` | `GET /app-instance-users` | `paginated` | `AppInstanceArn` | - | `ListAppInstanceUsersResponse` | `BadRequestException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | List all `AppInstanceUsers` created under a single `AppInstance`. |
-| `ListAppInstances` | `GET /app-instances` | `paginated` | - | - | `ListAppInstancesResponse` | `BadRequestException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Lists all Amazon Chime `AppInstance`s created under a single AWS account. |
+| `CreateAppInstance` | `POST /app-instances` | `idempotency-token` | `Name`, `ClientRequestToken` | `ClientRequestToken` | `CreateAppInstanceResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Creates an Amazon Chime SDK messaging AppInstance under an AWS account. Only SDK messaging customers use this API. CreateAppInstance supports idempotency behavior as described in the AWS API Standard. identity |
+| `CreateAppInstanceAdmin` | `POST /app-instances/{AppInstanceArn}/admins` | - | `AppInstanceAdminArn`, `AppInstanceArn` | - | `CreateAppInstanceAdminResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Promotes an AppInstanceUser or AppInstanceBot to an AppInstanceAdmin . The promoted entity can perform the following actions. ChannelModerator actions across all channels in the AppInstance . DeleteChannelMessage act ... |
+| `CreateAppInstanceBot` | `POST /app-instance-bots` | `idempotency-token` | `AppInstanceArn`, `ClientRequestToken`, `Configuration` | `ClientRequestToken` | `CreateAppInstanceBotResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Creates a bot under an Amazon Chime AppInstance . The request consists of a unique Configuration and Name for that bot. |
+| `CreateAppInstanceUser` | `POST /app-instance-users` | `idempotency-token` | `AppInstanceArn`, `AppInstanceUserId`, `Name`, `ClientRequestToken` | `ClientRequestToken` | `CreateAppInstanceUserResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Creates a user under an Amazon Chime AppInstance . The request consists of a unique appInstanceUserId and Name for that user. |
+| `DeleteAppInstance` | `DELETE /app-instances/{AppInstanceArn}` | - | `AppInstanceArn` | - | `Unit` | `BadRequestException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Deletes an AppInstance and all associated data asynchronously. |
+| `DeleteAppInstanceAdmin` | `DELETE /app-instances/{AppInstanceArn}/admins/{AppInstanceAdminArn}` | - | `AppInstanceAdminArn`, `AppInstanceArn` | - | `Unit` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Demotes an AppInstanceAdmin to an AppInstanceUser or AppInstanceBot . This action does not delete the user. |
+| `DeleteAppInstanceBot` | `DELETE /app-instance-bots/{AppInstanceBotArn}` | - | `AppInstanceBotArn` | - | `Unit` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Deletes an AppInstanceBot . |
+| `DeleteAppInstanceUser` | `DELETE /app-instance-users/{AppInstanceUserArn}` | - | `AppInstanceUserArn` | - | `Unit` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Deletes an AppInstanceUser . |
+| `DeregisterAppInstanceUserEndpoint` | `DELETE /app-instance-users/{AppInstanceUserArn}/endpoints/{EndpointId}` | - | `AppInstanceUserArn`, `EndpointId` | - | `Unit` | `BadRequestException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Deregisters an AppInstanceUserEndpoint . |
+| `DescribeAppInstance` | `GET /app-instances/{AppInstanceArn}` | - | `AppInstanceArn` | - | `DescribeAppInstanceResponse` | `BadRequestException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Returns the full details of an AppInstance . |
+| `DescribeAppInstanceAdmin` | `GET /app-instances/{AppInstanceArn}/admins/{AppInstanceAdminArn}` | - | `AppInstanceAdminArn`, `AppInstanceArn` | - | `DescribeAppInstanceAdminResponse` | `BadRequestException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Returns the full details of an AppInstanceAdmin . |
+| `DescribeAppInstanceBot` | `GET /app-instance-bots/{AppInstanceBotArn}` | - | `AppInstanceBotArn` | - | `DescribeAppInstanceBotResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | The AppInstanceBot's information. |
+| `DescribeAppInstanceUser` | `GET /app-instance-users/{AppInstanceUserArn}` | - | `AppInstanceUserArn` | - | `DescribeAppInstanceUserResponse` | `BadRequestException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Returns the full details of an AppInstanceUser . |
+| `DescribeAppInstanceUserEndpoint` | `GET /app-instance-users/{AppInstanceUserArn}/endpoints/{EndpointId}` | - | `AppInstanceUserArn`, `EndpointId` | - | `DescribeAppInstanceUserEndpointResponse` | `BadRequestException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Returns the full details of an AppInstanceUserEndpoint . |
+| `GetAppInstanceRetentionSettings` | `GET /app-instances/{AppInstanceArn}/retention-settings` | - | `AppInstanceArn` | - | `GetAppInstanceRetentionSettingsResponse` | `BadRequestException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Gets the retention settings for an AppInstance . |
+| `ListAppInstanceAdmins` | `GET /app-instances/{AppInstanceArn}/admins` | `paginated` | `AppInstanceArn` | - | `ListAppInstanceAdminsResponse` | `BadRequestException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Returns a list of the administrators in the AppInstance . |
+| `ListAppInstanceBots` | `GET /app-instance-bots` | `paginated` | `AppInstanceArn` | - | `ListAppInstanceBotsResponse` | `BadRequestException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Lists all AppInstanceBots created under a single AppInstance . |
+| `ListAppInstances` | `GET /app-instances` | `paginated` | - | - | `ListAppInstancesResponse` | `BadRequestException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Lists all Amazon Chime AppInstance s created under a single AWS account. |
+| `ListAppInstanceUserEndpoints` | `GET /app-instance-users/{AppInstanceUserArn}/endpoints` | `paginated` | `AppInstanceUserArn` | - | `ListAppInstanceUserEndpointsResponse` | `BadRequestException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Lists all the AppInstanceUserEndpoints created under a single AppInstanceUser . |
+| `ListAppInstanceUsers` | `GET /app-instance-users` | `paginated` | `AppInstanceArn` | - | `ListAppInstanceUsersResponse` | `BadRequestException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | List all AppInstanceUsers created under a single AppInstance . |
 | `ListTagsForResource` | `GET /tags` | - | `ResourceARN` | - | `ListTagsForResourceResponse` | `BadRequestException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Lists the tags applied to an Amazon Chime SDK identity resource. |
-| `PutAppInstanceRetentionSettings` | `PUT /app-instances/{AppInstanceArn}/retention-settings` | - | `AppInstanceArn`, `AppInstanceRetentionSettings` | - | `PutAppInstanceRetentionSettingsResponse` | `BadRequestException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Sets the amount of time in days that a given `AppInstance` retains data. |
-| `PutAppInstanceUserExpirationSettings` | `PUT /app-instance-users/{AppInstanceUserArn}/expiration-settings` | - | `AppInstanceUserArn` | - | `PutAppInstanceUserExpirationSettingsResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Sets the number of days before the `AppInstanceUser` is automatically deleted. A background process deletes expired `AppInstanceUsers` within 6 hours of expiration. |
-| `RegisterAppInstanceUserEndpoint` | `POST /app-instance-users/{AppInstanceUserArn}/endpoints` | `idempotency-token` | `AppInstanceUserArn`, `ClientRequestToken`, `EndpointAttributes`, `ResourceArn`, `Type` | `ClientRequestToken` | `RegisterAppInstanceUserEndpointResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Registers an endpoint under an Amazon Chime `AppInstanceUser`. The endpoint receives messages for a user. |
+| `PutAppInstanceRetentionSettings` | `PUT /app-instances/{AppInstanceArn}/retention-settings` | - | `AppInstanceArn`, `AppInstanceRetentionSettings` | - | `PutAppInstanceRetentionSettingsResponse` | `BadRequestException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Sets the amount of time in days that a given AppInstance retains data. |
+| `PutAppInstanceUserExpirationSettings` | `PUT /app-instance-users/{AppInstanceUserArn}/expiration-settings` | - | `AppInstanceUserArn` | - | `PutAppInstanceUserExpirationSettingsResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Sets the number of days before the AppInstanceUser is automatically deleted. A background process deletes expired AppInstanceUsers within 6 hours of expiration. Actual deletion times may vary. Expired AppInstanceUser ... |
+| `RegisterAppInstanceUserEndpoint` | `POST /app-instance-users/{AppInstanceUserArn}/endpoints` | `idempotency-token` | `AppInstanceUserArn`, `Type`, `ResourceArn`, `EndpointAttributes`, `ClientRequestToken` | `ClientRequestToken` | `RegisterAppInstanceUserEndpointResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Registers an endpoint under an Amazon Chime AppInstanceUser . The endpoint receives messages for a user. For push notifications, the endpoint is a mobile device used to receive mobile push notifications for a user. |
 | `TagResource` | `POST /tags?operation=tag-resource` | - | `ResourceARN`, `Tags` | - | `Unit` | `BadRequestException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Applies the specified tags to the specified Amazon Chime SDK identity resource. |
 | `UntagResource` | `POST /tags?operation=untag-resource` | - | `ResourceARN`, `TagKeys` | - | `Unit` | `BadRequestException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Removes the specified tags from the specified Amazon Chime SDK identity resource. |
-| `UpdateAppInstance` | `PUT /app-instances/{AppInstanceArn}` | - | `AppInstanceArn`, `Metadata`, `Name` | - | `UpdateAppInstanceResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates `AppInstance` metadata. |
-| `UpdateAppInstanceBot` | `PUT /app-instance-bots/{AppInstanceBotArn}` | - | `AppInstanceBotArn`, `Metadata`, `Name` | - | `UpdateAppInstanceBotResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates the name and metadata of an `AppInstanceBot`. |
-| `UpdateAppInstanceUser` | `PUT /app-instance-users/{AppInstanceUserArn}` | - | `AppInstanceUserArn`, `Metadata`, `Name` | - | `UpdateAppInstanceUserResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates the details of an `AppInstanceUser`. You can update names and metadata. |
-| `UpdateAppInstanceUserEndpoint` | `PUT /app-instance-users/{AppInstanceUserArn}/endpoints/{EndpointId}` | - | `AppInstanceUserArn`, `EndpointId` | - | `UpdateAppInstanceUserEndpointResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates the details of an `AppInstanceUserEndpoint`. You can update the name and `AllowMessage` values. |
+| `UpdateAppInstance` | `PUT /app-instances/{AppInstanceArn}` | - | `AppInstanceArn`, `Name`, `Metadata` | - | `UpdateAppInstanceResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates AppInstance metadata. |
+| `UpdateAppInstanceBot` | `PUT /app-instance-bots/{AppInstanceBotArn}` | - | `AppInstanceBotArn`, `Name`, `Metadata` | - | `UpdateAppInstanceBotResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates the name and metadata of an AppInstanceBot . |
+| `UpdateAppInstanceUser` | `PUT /app-instance-users/{AppInstanceUserArn}` | - | `AppInstanceUserArn`, `Name`, `Metadata` | - | `UpdateAppInstanceUserResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates the details of an AppInstanceUser . You can update names and metadata. |
+| `UpdateAppInstanceUserEndpoint` | `PUT /app-instance-users/{AppInstanceUserArn}/endpoints/{EndpointId}` | - | `AppInstanceUserArn`, `EndpointId` | - | `UpdateAppInstanceUserEndpointResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates the details of an AppInstanceUserEndpoint . You can update the name and AllowMessage values. |
 
 ## HTTP Bindings
 
@@ -168,30 +168,55 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `BadRequestException` | `structure` | `Code`, `Message` | The input parameters don't match the service's restrictions. |
-| `ForbiddenException` | `structure` | `Code`, `Message` | The client is permanently forbidden from making the request. |
-| `ServiceFailureException` | `structure` | `Code`, `Message` | The service encountered an unexpected error. |
-| `ServiceUnavailableException` | `structure` | `Code`, `Message` | The service is currently unavailable. |
-| `ThrottledClientException` | `structure` | `Code`, `Message` | The client exceeded its request rate limit. |
-| `UnauthorizedClientException` | `structure` | `Code`, `Message` | The client is not currently authorized to make the request. |
-| `ResourceLimitExceededException` | `structure` | `Code`, `Message` | The request exceeds the resource limit. |
-| `ConflictException` | `structure` | `Code`, `Message` | The request could not be processed because of conflict in the current state of the resource. |
-| `CreateAppInstanceRequest` | `structure` | `ClientRequestToken`, `Metadata`, `Name`, `Tags` | - |
-| `CreateAppInstanceResponse` | `structure` | `AppInstanceArn` | - |
-| `CreateAppInstanceAdminRequest` | `structure` | `AppInstanceAdminArn`, `AppInstanceArn` | - |
-| `CreateAppInstanceAdminResponse` | `structure` | `AppInstanceAdmin`, `AppInstanceArn` | - |
-| `CreateAppInstanceBotRequest` | `structure` | `AppInstanceArn`, `ClientRequestToken`, `Configuration`, `Metadata`, `Name`, `Tags` | - |
-| `CreateAppInstanceBotResponse` | `structure` | `AppInstanceBotArn` | - |
-| `CreateAppInstanceUserRequest` | `structure` | `AppInstanceArn`, `AppInstanceUserId`, `ClientRequestToken`, `ExpirationSettings`, `Metadata`, `Name`, `Tags` | - |
-| `CreateAppInstanceUserResponse` | `structure` | `AppInstanceUserArn` | - |
-| `DeleteAppInstanceRequest` | `structure` | `AppInstanceArn` | - |
-| `DeleteAppInstanceAdminRequest` | `structure` | `AppInstanceAdminArn`, `AppInstanceArn` | - |
-| `DeleteAppInstanceBotRequest` | `structure` | `AppInstanceBotArn` | - |
-| `DeleteAppInstanceUserRequest` | `structure` | `AppInstanceUserArn` | - |
-| `DeregisterAppInstanceUserEndpointRequest` | `structure` | `AppInstanceUserArn`, `EndpointId` | - |
-| `DescribeAppInstanceRequest` | `structure` | `AppInstanceArn` | - |
-| `DescribeAppInstanceResponse` | `structure` | `AppInstance` | - |
-
+| `BadRequestException` | `structure` | Code, Message | The input parameters don't match the service's restrictions. |
+| `ConflictException` | `structure` | Code, Message | The request could not be processed because of conflict in the current state of the resource. |
+| `ForbiddenException` | `structure` | Code, Message | The client is permanently forbidden from making the request. |
+| `NotFoundException` | `structure` | Code, Message | One or more of the resources in the request does not exist in the system. |
+| `ResourceLimitExceededException` | `structure` | Code, Message | The request exceeds the resource limit. |
+| `ServiceFailureException` | `structure` | Code, Message | The service encountered an unexpected error. |
+| `ServiceUnavailableException` | `structure` | Code, Message | The service is currently unavailable. |
+| `ThrottledClientException` | `structure` | Code, Message | The client exceeded its request rate limit. |
+| `UnauthorizedClientException` | `structure` | Code, Message | The client is not currently authorized to make the request. |
+| `CreateAppInstanceRequest` | `structure` | Name, Metadata, ClientRequestToken, Tags | - |
+| `CreateAppInstanceResponse` | `structure` | AppInstanceArn | - |
+| `CreateAppInstanceAdminRequest` | `structure` | AppInstanceAdminArn, AppInstanceArn | - |
+| `CreateAppInstanceAdminResponse` | `structure` | AppInstanceAdmin, AppInstanceArn | - |
+| `CreateAppInstanceBotRequest` | `structure` | AppInstanceArn, Name, Metadata, ClientRequestToken, Tags, Configuration | - |
+| `CreateAppInstanceBotResponse` | `structure` | AppInstanceBotArn | - |
+| `CreateAppInstanceUserRequest` | `structure` | AppInstanceArn, AppInstanceUserId, Name, Metadata, ClientRequestToken, Tags, ExpirationSettings | - |
+| `CreateAppInstanceUserResponse` | `structure` | AppInstanceUserArn | - |
+| `DeleteAppInstanceRequest` | `structure` | AppInstanceArn | - |
+| `DeleteAppInstanceAdminRequest` | `structure` | AppInstanceAdminArn, AppInstanceArn | - |
+| `DeleteAppInstanceBotRequest` | `structure` | AppInstanceBotArn | - |
+| `DeleteAppInstanceUserRequest` | `structure` | AppInstanceUserArn | - |
+| `DeregisterAppInstanceUserEndpointRequest` | `structure` | AppInstanceUserArn, EndpointId | - |
+| `DescribeAppInstanceRequest` | `structure` | AppInstanceArn | - |
+| `DescribeAppInstanceResponse` | `structure` | AppInstance | - |
+| `DescribeAppInstanceAdminRequest` | `structure` | AppInstanceAdminArn, AppInstanceArn | - |
+| `DescribeAppInstanceAdminResponse` | `structure` | AppInstanceAdmin | - |
+| `DescribeAppInstanceBotRequest` | `structure` | AppInstanceBotArn | - |
+| `DescribeAppInstanceBotResponse` | `structure` | AppInstanceBot | - |
+| `DescribeAppInstanceUserRequest` | `structure` | AppInstanceUserArn | - |
+| `DescribeAppInstanceUserResponse` | `structure` | AppInstanceUser | - |
+| `DescribeAppInstanceUserEndpointRequest` | `structure` | AppInstanceUserArn, EndpointId | - |
+| `DescribeAppInstanceUserEndpointResponse` | `structure` | AppInstanceUserEndpoint | - |
+| `GetAppInstanceRetentionSettingsRequest` | `structure` | AppInstanceArn | - |
+| `GetAppInstanceRetentionSettingsResponse` | `structure` | AppInstanceRetentionSettings, InitiateDeletionTimestamp | - |
+| `ListAppInstanceAdminsRequest` | `structure` | AppInstanceArn, MaxResults, NextToken | - |
+| `ListAppInstanceAdminsResponse` | `structure` | AppInstanceArn, AppInstanceAdmins, NextToken | - |
+| `ListAppInstanceBotsRequest` | `structure` | AppInstanceArn, MaxResults, NextToken | - |
+| `ListAppInstanceBotsResponse` | `structure` | AppInstanceArn, AppInstanceBots, NextToken | - |
+| `ListAppInstancesRequest` | `structure` | MaxResults, NextToken | - |
+| `ListAppInstancesResponse` | `structure` | AppInstances, NextToken | - |
+| `AllowMessages` | `enum` | ALL, NONE | - |
+| `AppInstanceUserEndpointType` | `enum` | APNS, APNS_SANDBOX, GCM | - |
+| `EndpointStatus` | `enum` | ACTIVE, INACTIVE | - |
+| `EndpointStatusReason` | `enum` | INVALID_DEVICE_TOKEN, INVALID_PINPOINT_ARN | - |
+| `ErrorCode` | `enum` | BadRequest, Conflict, Forbidden, NotFound, PreconditionFailed, ResourceLimitExceeded, ServiceFailure, AccessDenied, ServiceUnavailable, Throttled, Throttling, Unauthorized, ... (+3) | - |
+| `ExpirationCriterion` | `enum` | CREATED_TIMESTAMP | - |
+| `RespondsTo` | `enum` | STANDARD_MESSAGES | - |
+| `StandardMessages` | `enum` | AUTO, ALL, MENTIONS, NONE | - |
+| `TargetedMessages` | `enum` | ALL, NONE | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

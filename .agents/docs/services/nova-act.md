@@ -48,61 +48,10 @@ The Nova Act service provides a REST API for managing AI-powered workflow automa
 | `WorkflowRunResource` | `workflowDefinitionName`, `workflowRunId` | create: `CreateWorkflowRun`; read: `GetWorkflowRun`; update: `UpdateWorkflowRun`; delete: `DeleteWorkflowRun`; list: `ListWorkflowRuns` | - | - |
 ## Operation Groups
 
-### List
-
-- Operations: `ListActs`, `ListModels`, `ListSessions`, `ListWorkflowDefinitions`, `ListWorkflowRuns`
-- Traits: `paginated` (4), `readonly` (5)
-- Common required input members in this group: `clientCompatibilityVersion`, `workflowDefinitionName`, `workflowRunId`
-
-### Create
-
-- Operations: `CreateAct`, `CreateSession`, `CreateWorkflowDefinition`, `CreateWorkflowRun`
-- Traits: `idempotency-token` (4), `idempotent` (4)
-- Common required input members in this group: `clientInfo`, `modelId`, `name`, `sessionId`, `task`, `workflowDefinitionName`, `workflowRunId`
-
-### Delete
-
-- Operations: `DeleteWorkflowDefinition`, `DeleteWorkflowRun`
-- Traits: `idempotent` (2)
-- Common required input members in this group: `workflowDefinitionName`, `workflowRunId`
-
-### Get
-
-- Operations: `GetWorkflowDefinition`, `GetWorkflowRun`
-- Traits: `readonly` (2)
-- Common required input members in this group: `workflowDefinitionName`, `workflowRunId`
-
-### Update
-
-- Operations: `UpdateAct`, `UpdateWorkflowRun`
-- Traits: `idempotent` (2)
-- Common required input members in this group: `actId`, `sessionId`, `status`, `workflowDefinitionName`, `workflowRunId`
-
-### Invoke
-
-- Operations: `InvokeActStep`
-- Common required input members in this group: `actId`, `callResults`, `sessionId`, `workflowDefinitionName`, `workflowRunId`
-
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateAct` | `PUT /workflow-definitions/{workflowDefinitionName}/workflow-runs/{workflowRunId}/sessions/{sessionId}/acts` | `idempotent`, `idempotency-token` | `sessionId`, `task`, `workflowDefinitionName`, `workflowRunId` | `clientToken` | `CreateActResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a new AI task (act) within a session that can interact with tools and perform specific actions. |
-| `CreateSession` | `PUT /workflow-definitions/{workflowDefinitionName}/workflow-runs/{workflowRunId}/sessions` | `idempotent`, `idempotency-token` | `workflowDefinitionName`, `workflowRunId` | `clientToken` | `CreateSessionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a new session context within a workflow run to manage conversation state and acts. |
-| `CreateWorkflowDefinition` | `PUT /workflow-definitions` | `idempotent`, `idempotency-token` | `name` | `clientToken` | `CreateWorkflowDefinitionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a new workflow definition template that can be used to execute multiple workflow runs. |
-| `CreateWorkflowRun` | `PUT /workflow-definitions/{workflowDefinitionName}/workflow-runs` | `idempotent`, `idempotency-token` | `clientInfo`, `modelId`, `workflowDefinitionName` | `clientToken` | `CreateWorkflowRunResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a new execution instance of a workflow definition with specified parameters. |
-| `DeleteWorkflowDefinition` | `DELETE /workflow-definitions/{workflowDefinitionName}` | `idempotent` | `workflowDefinitionName` | - | `DeleteWorkflowDefinitionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a workflow definition and all associated resources. This operation cannot be undone. |
-| `DeleteWorkflowRun` | `DELETE /workflow-definitions/{workflowDefinitionName}/workflow-runs/{workflowRunId}` | `idempotent` | `workflowDefinitionName`, `workflowRunId` | - | `DeleteWorkflowRunResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Terminates and cleans up a workflow run, stopping all associated acts and sessions. |
-| `GetWorkflowDefinition` | `GET /workflow-definitions/{workflowDefinitionName}` | `readonly` | `workflowDefinitionName` | - | `GetWorkflowDefinitionResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves the details and configuration of a specific workflow definition. |
-| `GetWorkflowRun` | `GET /workflow-definitions/{workflowDefinitionName}/workflow-runs/{workflowRunId}` | `readonly` | `workflowDefinitionName`, `workflowRunId` | - | `GetWorkflowRunResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves the current state, configuration, and execution details of a workflow run. |
-| `InvokeActStep` | `PUT /workflow-definitions/{workflowDefinitionName}/workflow-runs/{workflowRunId}/sessions/{sessionId}/acts/{actId}/invoke-step/` | - | `actId`, `callResults`, `sessionId`, `workflowDefinitionName`, `workflowRunId` | - | `InvokeActStepResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Executes the next step of an act, processing tool call results and returning new tool calls if needed. |
-| `ListActs` | `POST /workflow-definitions/{workflowDefinitionName}/acts` | `readonly`, `paginated` | `workflowDefinitionName` | - | `ListActsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all acts within a specific session with their current status and execution details. |
-| `ListModels` | `POST /models` | `readonly` | `clientCompatibilityVersion` | - | `ListModelsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException` | Lists all available AI models that can be used for workflow execution, including their status and compatibility information. |
-| `ListSessions` | `POST /workflow-definitions/{workflowDefinitionName}/workflow-runs/{workflowRunId}` | `readonly`, `paginated` | `workflowDefinitionName`, `workflowRunId` | - | `ListSessionsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all sessions within a specific workflow run. |
-| `ListWorkflowDefinitions` | `POST /workflow-definitions` | `readonly`, `paginated` | - | - | `ListWorkflowDefinitionsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists all workflow definitions in your account with optional filtering and pagination. |
-| `ListWorkflowRuns` | `POST /workflow-definitions/{workflowDefinitionName}/workflow-runs` | `readonly`, `paginated` | `workflowDefinitionName` | - | `ListWorkflowRunsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all workflow runs for a specific workflow definition with optional filtering and pagination. |
-| `UpdateAct` | `PUT /workflow-definitions/{workflowDefinitionName}/workflow-runs/{workflowRunId}/sessions/{sessionId}/acts/{actId}` | `idempotent` | `actId`, `sessionId`, `status`, `workflowDefinitionName`, `workflowRunId` | - | `UpdateActResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates an existing act's configuration, status, or error information. |
-| `UpdateWorkflowRun` | `PUT /workflow-definitions/{workflowDefinitionName}/workflow-runs/{workflowRunId}` | `idempotent` | `status`, `workflowDefinitionName`, `workflowRunId` | - | `UpdateWorkflowRunResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the configuration or state of an active workflow run. |
 
 ## HTTP Bindings
 
@@ -114,31 +63,21 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | You don't have sufficient permissions to perform this action. |
-| `InternalServerException` | `structure` | `message`, `reason`, `retryAfterSeconds` | An internal server error occurred. |
-| `ThrottlingException` | `structure` | `message`, `quotaCode`, `retryAfterSeconds`, `serviceCode` | The request was throttled due to too many requests. |
-| `ValidationException` | `structure` | `fieldList`, `message`, `reason` | The input parameters for the request are invalid. |
-| `ConflictException` | `structure` | `message`, `resourceId`, `resourceType` | The request could not be completed due to a conflict with the current state of the resource. |
-| `ResourceNotFoundException` | `structure` | `message`, `resourceId`, `resourceType` | The requested resource was not found. |
-| `ServiceQuotaExceededException` | `structure` | `message`, `quotaCode`, `resourceId`, `resourceType`, `serviceCode` | The request would exceed a service quota limit. |
-| `CreateActRequest` | `structure` | `clientToken`, `sessionId`, `task`, `toolSpecs`, `workflowDefinitionName`, `workflowRunId` | - |
-| `CreateActResponse` | `structure` | `actId`, `status` | - |
-| `CreateSessionRequest` | `structure` | `clientToken`, `workflowDefinitionName`, `workflowRunId` | - |
-| `CreateSessionResponse` | `structure` | `sessionId` | - |
-| `CreateWorkflowDefinitionRequest` | `structure` | `clientToken`, `description`, `exportConfig`, `name` | - |
-| `CreateWorkflowDefinitionResponse` | `structure` | `status` | - |
-| `CreateWorkflowRunRequest` | `structure` | `clientInfo`, `clientToken`, `logGroupName`, `modelId`, `workflowDefinitionName` | - |
-| `CreateWorkflowRunResponse` | `structure` | `status`, `workflowRunId` | - |
-| `DeleteWorkflowDefinitionRequest` | `structure` | `workflowDefinitionName` | - |
-| `DeleteWorkflowDefinitionResponse` | `structure` | `status` | - |
-| `DeleteWorkflowRunRequest` | `structure` | `workflowDefinitionName`, `workflowRunId` | - |
-| `DeleteWorkflowRunResponse` | `structure` | `status` | - |
-| `GetWorkflowDefinitionRequest` | `structure` | `workflowDefinitionName` | - |
-| `GetWorkflowDefinitionResponse` | `structure` | `arn`, `createdAt`, `description`, `exportConfig`, `name`, `status` | - |
-| `GetWorkflowRunRequest` | `structure` | `workflowDefinitionName`, `workflowRunId` | - |
-| `GetWorkflowRunResponse` | `structure` | `endedAt`, `logGroupName`, `modelId`, `startedAt`, `status`, `workflowRunArn`, `workflowRunId` | - |
-| `InvokeActStepRequest` | `structure` | `actId`, `callResults`, `previousStepId`, `sessionId`, `workflowDefinitionName`, `workflowRunId` | - |
-
+| `AccessDeniedException` | `structure` | message | You don't have sufficient permissions to perform this action. |
+| `ConflictException` | `structure` | message, resourceId, resourceType | The request could not be completed due to a conflict with the current state of the resource. |
+| `InternalServerException` | `structure` | message, retryAfterSeconds, reason | An internal server error occurred. Please try again later. |
+| `ResourceNotFoundException` | `structure` | message, resourceId, resourceType | The requested resource was not found. |
+| `ServiceQuotaExceededException` | `structure` | message, resourceId, resourceType, serviceCode, quotaCode | The request would exceed a service quota limit. |
+| `ThrottlingException` | `structure` | message, serviceCode, quotaCode, retryAfterSeconds | The request was throttled due to too many requests. Please try again later. |
+| `ValidationException` | `structure` | message, reason, fieldList | The input parameters for the request are invalid. |
+| `ActStatus` | `enum` | RUNNING, PENDING_CLIENT_ACTION, PENDING_HUMAN_ACTION, SUCCEEDED, FAILED, TIMED_OUT | - |
+| `InternalServerExceptionReason` | `enum` | INVALID_MODEL_GENERATION, TOKEN_LIMIT_EXCEEDED | - |
+| `ModelStatus` | `enum` | ACTIVE, LEGACY, DEPRECATED, PREVIEW | - |
+| `SortOrder` | `enum` | ASC, DESC | - |
+| `TraceLocationType` | `enum` | S3 | - |
+| `ValidationExceptionReason` | `enum` | FIELD_VALIDATION_FAILED, INVALID_STATUS, GUARDRAIL_INTERVENED | - |
+| `WorkflowDefinitionStatus` | `enum` | ACTIVE, DELETING | - |
+| `WorkflowRunStatus` | `enum` | RUNNING, SUCCEEDED, FAILED, TIMED_OUT, DELETING | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

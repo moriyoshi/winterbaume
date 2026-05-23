@@ -92,162 +92,62 @@ ECS currently stores `awsvpc`-style placement inputs as task and service metadat
 
 ### List
 
-- Operations: `ListAccountSettings`, `ListAttributes`, `ListClusters`, `ListContainerInstances`, `ListServiceDeployments`, `ListServices`, `ListServicesByNamespace`, `ListTagsForResource`, `ListTaskDefinitionFamilies`, `ListTaskDefinitions`, `ListTasks`
-- Traits: `paginated` (9), `readonly` (11)
-- Common required input members in this group: `namespace`, `resourceArn`, `service`, `targetType`
-
-### Describe
-
-- Operations: `DescribeCapacityProviders`, `DescribeClusters`, `DescribeContainerInstances`, `DescribeExpressGatewayService`, `DescribeServiceDeployments`, `DescribeServiceRevisions`, `DescribeServices`, `DescribeTaskDefinition`, `DescribeTaskSets`, `DescribeTasks`
-- Traits: `readonly` (10)
-- Common required input members in this group: `cluster`, `containerInstances`, `service`, `serviceArn`, `serviceDeploymentArns`, `serviceRevisionArns`, `services`, `taskDefinition`, `tasks`
-
-### Update
-
-- Operations: `UpdateCapacityProvider`, `UpdateCluster`, `UpdateClusterSettings`, `UpdateContainerAgent`, `UpdateContainerInstancesState`, `UpdateExpressGatewayService`, `UpdateService`, `UpdateServicePrimaryTaskSet`, `UpdateTaskProtection`, `UpdateTaskSet`
-- Common required input members in this group: `cluster`, `containerInstance`, `containerInstances`, `name`, `primaryTaskSet`, `protectionEnabled`, `scale`, `service`, `serviceArn`, `settings`, `status`, `taskSet`, `tasks`
-
-### Delete
-
-- Operations: `DeleteAccountSetting`, `DeleteAttributes`, `DeleteCapacityProvider`, `DeleteCluster`, `DeleteExpressGatewayService`, `DeleteService`, `DeleteTaskDefinitions`, `DeleteTaskSet`
-- Traits: `idempotent` (4)
-- Common required input members in this group: `attributes`, `capacityProvider`, `cluster`, `name`, `service`, `serviceArn`, `taskDefinitions`, `taskSet`
-
-### Create
-
-- Operations: `CreateCapacityProvider`, `CreateCluster`, `CreateExpressGatewayService`, `CreateService`, `CreateTaskSet`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `cluster`, `executionRoleArn`, `infrastructureRoleArn`, `name`, `primaryContainer`, `service`, `serviceName`, `taskDefinition`
+- Operations: `ListAccountSettings`, `ListServicesByNamespace`, `ListTagsForResource`, `ListTaskDefinitionFamilies`
+- Traits: `readonly` (4), `paginated` (3)
+- Common required input members in this group: -
 
 ### Put
 
-- Operations: `PutAccountSetting`, `PutAccountSettingDefault`, `PutAttributes`, `PutClusterCapacityProviders`
-- Common required input members in this group: `attributes`, `capacityProviders`, `cluster`, `defaultCapacityProviderStrategy`, `name`, `value`
+- Operations: `PutAccountSetting`, `PutAccountSettingDefault`
+- Common required input members in this group: `name`, `value`
 
-### Submit
+### Delete
 
-- Operations: `SubmitAttachmentStateChanges`, `SubmitContainerStateChange`, `SubmitTaskStateChange`
-- Common required input members in this group: `attachments`
+- Operations: `DeleteAccountSetting`
+- Common required input members in this group: -
 
 ### Deregister
 
-- Operations: `DeregisterContainerInstance`, `DeregisterTaskDefinition`
-- Common required input members in this group: `containerInstance`, `taskDefinition`
+- Operations: `DeregisterTaskDefinition`
+- Common required input members in this group: -
 
-### Register
+### Describe
 
-- Operations: `RegisterContainerInstance`, `RegisterTaskDefinition`
-- Common required input members in this group: `containerDefinitions`, `family`
-
-### Stop
-
-- Operations: `StopServiceDeployment`, `StopTask`
-- Common required input members in this group: `serviceDeploymentArn`, `task`
+- Operations: `DescribeTaskDefinition`
+- Traits: `readonly` (1)
+- Common required input members in this group: -
 
 ### Discover
 
 - Operations: `DiscoverPollEndpoint`
-
-### Execute
-
-- Operations: `ExecuteCommand`
-- Common required input members in this group: `command`, `interactive`, `task`
-
-### Get
-
-- Operations: `GetTaskProtection`
-- Traits: `readonly` (1)
-- Common required input members in this group: `cluster`
-
-### Run
-
-- Operations: `RunTask`
-- Traits: `idempotency-token` (1)
-- Common required input members in this group: `taskDefinition`
-
-### Start
-
-- Operations: `StartTask`
-- Common required input members in this group: `containerInstances`, `taskDefinition`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateCapacityProvider` | - | `idempotent` | `name` | - | `CreateCapacityProviderResponse` | `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `LimitExceededException`, `ServerException`, `UnsupportedFeatureException`, `UpdateInProgressException` | Creates a capacity provider. Capacity providers are associated with a cluster and are used in capacity provider strategies to facilitate cluster auto scaling. |
-| `CreateCluster` | - | - | - | - | `CreateClusterResponse` | `ClientException`, `InvalidParameterException`, `NamespaceNotFoundException`, `ServerException` | Creates a new Amazon ECS cluster. By default, your account receives a `default` cluster when you launch your first container instance. |
-| `CreateExpressGatewayService` | - | - | `executionRoleArn`, `infrastructureRoleArn`, `primaryContainer` | - | `CreateExpressGatewayServiceResponse` | `AccessDeniedException`, `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `PlatformTaskDefinitionIncompatibilityException`, `PlatformUnknownException`, `ServerException`, `UnsupportedFeatureException` | Creates an Express service that simplifies deploying containerized web applications on Amazon ECS with managed Amazon Web Services infrastructure. This operation provisions and configures Application Load Balancers, target groups, security groups, and... |
-| `CreateService` | - | - | `serviceName` | - | `CreateServiceResponse` | `AccessDeniedException`, `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `NamespaceNotFoundException`, `PlatformTaskDefinitionIncompatibilityException`, `PlatformUnknownException`, `ServerException`, ... (+1) | Runs and maintains your desired number of tasks from a specified task definition. If the number of tasks running in a service drops below the `desiredCount`, Amazon ECS runs another copy of the task in the specified cluster. |
-| `CreateTaskSet` | - | - | `cluster`, `service`, `taskDefinition` | - | `CreateTaskSetResponse` | `AccessDeniedException`, `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `NamespaceNotFoundException`, `PlatformTaskDefinitionIncompatibilityException`, `PlatformUnknownException`, `ServerException`, ... (+3) | Create a task set in the specified cluster and service. This is used when a service uses the `EXTERNAL` deployment controller type. |
-| `DeleteAccountSetting` | - | - | `name` | - | `DeleteAccountSettingResponse` | `ClientException`, `InvalidParameterException`, `ServerException` | Disables an account setting for a specified user, role, or the root user for an account. |
-| `DeleteAttributes` | - | - | `attributes` | - | `DeleteAttributesResponse` | `ClusterNotFoundException`, `InvalidParameterException`, `TargetNotFoundException` | Deletes one or more custom attributes from an Amazon ECS resource. |
-| `DeleteCapacityProvider` | - | `idempotent` | `capacityProvider` | - | `DeleteCapacityProviderResponse` | `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ServerException`, `UnsupportedFeatureException` | Deletes the specified capacity provider. The `FARGATE` and `FARGATE_SPOT` capacity providers are reserved and can't be deleted. |
-| `DeleteCluster` | - | `idempotent` | `cluster` | - | `DeleteClusterResponse` | `ClientException`, `ClusterContainsCapacityProviderException`, `ClusterContainsContainerInstancesException`, `ClusterContainsServicesException`, `ClusterContainsTasksException`, `ClusterNotFoundException`, `InvalidParameterException`, `ServerException`, ... (+1) | Deletes the specified cluster. The cluster transitions to the `INACTIVE` state. |
-| `DeleteExpressGatewayService` | - | - | `serviceArn` | - | `DeleteExpressGatewayServiceResponse` | `AccessDeniedException`, `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ServerException`, `ServiceNotActiveException`, `ServiceNotFoundException`, `UnsupportedFeatureException` | Deletes an Express service and removes all associated Amazon Web Services resources. This operation stops service tasks, removes the Application Load Balancer, target groups, security groups, auto-scaling policies, and other managed infrastructure components. |
-| `DeleteService` | - | `idempotent` | `service` | - | `DeleteServiceResponse` | `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ServerException`, `ServiceNotFoundException` | Deletes a specified service within a cluster. You can delete a service if you have no running tasks in it and the desired task count is zero. |
-| `DeleteTaskDefinitions` | - | - | `taskDefinitions` | - | `DeleteTaskDefinitionsResponse` | `AccessDeniedException`, `ClientException`, `InvalidParameterException`, `ServerException` | Deletes one or more task definitions. You must deregister a task definition revision before you delete it. |
-| `DeleteTaskSet` | - | `idempotent` | `cluster`, `service`, `taskSet` | - | `DeleteTaskSetResponse` | `AccessDeniedException`, `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ServerException`, `ServiceNotActiveException`, `ServiceNotFoundException`, `TaskSetNotFoundException`, ... (+1) | Deletes a specified task set within a service. This is used when a service uses the `EXTERNAL` deployment controller type. |
-| `DeregisterContainerInstance` | - | - | `containerInstance` | - | `DeregisterContainerInstanceResponse` | `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ServerException` | Deregisters an Amazon ECS container instance from the specified cluster. This instance is no longer available to run tasks. |
-| `DeregisterTaskDefinition` | - | - | `taskDefinition` | - | `DeregisterTaskDefinitionResponse` | `ClientException`, `InvalidParameterException`, `ServerException` | Deregisters the specified task definition by family and revision. Upon deregistration, the task definition is marked as `INACTIVE`. |
-| `DescribeCapacityProviders` | - | `readonly` | - | - | `DescribeCapacityProvidersResponse` | `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ServerException`, `UnsupportedFeatureException` | Describes one or more of your capacity providers. |
-| `DescribeClusters` | - | `readonly` | - | - | `DescribeClustersResponse` | `ClientException`, `InvalidParameterException`, `ServerException` | Describes one or more of your clusters. For CLI examples, see describe-clusters.rst on GitHub. |
-| `DescribeContainerInstances` | - | `readonly` | `containerInstances` | - | `DescribeContainerInstancesResponse` | `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ServerException` | Describes one or more container instances. Returns metadata about each container instance requested. |
-| `DescribeExpressGatewayService` | - | `readonly` | `serviceArn` | - | `DescribeExpressGatewayServiceResponse` | `AccessDeniedException`, `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ResourceNotFoundException`, `ServerException`, `UnsupportedFeatureException` | Retrieves detailed information about an Express service, including current status, configuration, managed infrastructure, and service revisions. Returns comprehensive service details, active service revisions, ingress paths with endpoints, and managed Amazon... |
-| `DescribeServiceDeployments` | - | `readonly` | `serviceDeploymentArns` | - | `DescribeServiceDeploymentsResponse` | `AccessDeniedException`, `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ServerException`, `ServiceNotFoundException`, `UnsupportedFeatureException` | Describes one or more of your service deployments. A service deployment happens when you release a software update for the service. |
-| `DescribeServiceRevisions` | - | `readonly` | `serviceRevisionArns` | - | `DescribeServiceRevisionsResponse` | `AccessDeniedException`, `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ServerException`, `ServiceNotFoundException`, `UnsupportedFeatureException` | Describes one or more service revisions. A service revision is a version of the service that includes the values for the Amazon ECS resources (for example, task definition) and the environment resources (for example, load balancers, subnets, and security... |
-| `DescribeServices` | - | `readonly` | `services` | - | `DescribeServicesResponse` | `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ServerException` | Describes the specified services running in your cluster. |
-| `DescribeTaskDefinition` | - | `readonly` | `taskDefinition` | - | `DescribeTaskDefinitionResponse` | `ClientException`, `InvalidParameterException`, `ServerException` | Describes a task definition. You can specify a `family` and `revision` to find information about a specific task definition, or you can simply specify the family to find the latest `ACTIVE` revision in that family. |
-| `DescribeTaskSets` | - | `readonly` | `cluster`, `service` | - | `DescribeTaskSetsResponse` | `AccessDeniedException`, `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ServerException`, `ServiceNotActiveException`, `ServiceNotFoundException`, `UnsupportedFeatureException` | Describes the task sets in the specified cluster and service. This is used when a service uses the `EXTERNAL` deployment controller type. |
-| `DescribeTasks` | - | `readonly` | `tasks` | - | `DescribeTasksResponse` | `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ServerException` | Describes a specified task or tasks. Currently, stopped tasks appear in the returned results for at least one hour. |
-| `DiscoverPollEndpoint` | - | - | - | - | `DiscoverPollEndpointResponse` | `ClientException`, `ServerException` | This action is only used by the Amazon ECS agent, and it is not intended for use outside of the agent. Returns an endpoint for the Amazon ECS agent to poll for updates. |
-| `ExecuteCommand` | - | - | `command`, `interactive`, `task` | - | `ExecuteCommandResponse` | `AccessDeniedException`, `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ServerException`, `TargetNotConnectedException` | Runs a command remotely on a container within a task. If you use a condition key in your IAM policy to refine the conditions for the policy statement, for example limit the actions to a specific cluster, you receive an `AccessDeniedException` when there is a... |
-| `GetTaskProtection` | - | `readonly` | `cluster` | - | `GetTaskProtectionResponse` | `AccessDeniedException`, `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ResourceNotFoundException`, `ServerException`, `UnsupportedFeatureException` | Retrieves the protection status of tasks in an Amazon ECS service. |
-| `ListAccountSettings` | - | `readonly`, `paginated` | - | - | `ListAccountSettingsResponse` | `ClientException`, `InvalidParameterException`, `ServerException` | Lists the account settings for a specified principal. |
-| `ListAttributes` | - | `readonly`, `paginated` | `targetType` | - | `ListAttributesResponse` | `ClusterNotFoundException`, `InvalidParameterException` | Lists the attributes for Amazon ECS resources within a specified target type and cluster. When you specify a target type and cluster, `ListAttributes` returns a list of attribute objects, one for each attribute on each resource. |
-| `ListClusters` | - | `readonly`, `paginated` | - | - | `ListClustersResponse` | `ClientException`, `InvalidParameterException`, `ServerException` | Returns a list of existing clusters. |
-| `ListContainerInstances` | - | `readonly`, `paginated` | - | - | `ListContainerInstancesResponse` | `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ServerException` | Returns a list of container instances in a specified cluster. You can filter the results of a `ListContainerInstances` operation with cluster query language statements inside the `filter` parameter. |
-| `ListServiceDeployments` | - | `readonly` | `service` | - | `ListServiceDeploymentsResponse` | `AccessDeniedException`, `ClientException`, `InvalidParameterException`, `ServerException`, `ServiceNotFoundException`, `UnsupportedFeatureException` | This operation lists all the service deployments that meet the specified filter criteria. A service deployment happens when you release a software update for the service. |
-| `ListServices` | - | `readonly`, `paginated` | - | - | `ListServicesResponse` | `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ServerException` | Returns a list of services. You can filter the results by cluster, launch type, and scheduling strategy. |
-| `ListServicesByNamespace` | - | `readonly`, `paginated` | `namespace` | - | `ListServicesByNamespaceResponse` | `ClientException`, `InvalidParameterException`, `NamespaceNotFoundException`, `ServerException` | This operation lists all of the services that are associated with a Cloud Map namespace. This list might include services in different clusters. |
-| `ListTagsForResource` | - | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ServerException` | List the tags for an Amazon ECS resource. |
-| `ListTaskDefinitionFamilies` | - | `readonly`, `paginated` | - | - | `ListTaskDefinitionFamiliesResponse` | `ClientException`, `InvalidParameterException`, `ServerException` | Returns a list of task definition families that are registered to your account. This list includes task definition families that no longer have any `ACTIVE` task definition revisions. |
-| `ListTaskDefinitions` | - | `readonly`, `paginated` | - | - | `ListTaskDefinitionsResponse` | `ClientException`, `InvalidParameterException`, `ServerException` | Returns a list of task definitions that are registered to your account. You can filter the results by family name with the `familyPrefix` parameter or by status with the `status` parameter. |
-| `ListTasks` | - | `readonly`, `paginated` | - | - | `ListTasksResponse` | `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ServerException`, `ServiceNotFoundException` | Returns a list of tasks. You can filter the results by cluster, task definition family, container instance, launch type, what IAM principal started the task, or by the desired status of the task. |
-| `PutAccountSetting` | - | - | `name`, `value` | - | `PutAccountSettingResponse` | `ClientException`, `InvalidParameterException`, `ServerException` | Modifies an account setting. Account settings are set on a per-Region basis. |
-| `PutAccountSettingDefault` | - | - | `name`, `value` | - | `PutAccountSettingDefaultResponse` | `ClientException`, `InvalidParameterException`, `ServerException` | Modifies an account setting for all users on an account for whom no individual account setting has been specified. Account settings are set on a per-Region basis. |
-| `PutAttributes` | - | - | `attributes` | - | `PutAttributesResponse` | `AttributeLimitExceededException`, `ClusterNotFoundException`, `InvalidParameterException`, `TargetNotFoundException` | Create or update an attribute on an Amazon ECS resource. If the attribute doesn't exist, it's created. |
-| `PutClusterCapacityProviders` | - | - | `capacityProviders`, `cluster`, `defaultCapacityProviderStrategy` | - | `PutClusterCapacityProvidersResponse` | `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ResourceInUseException`, `ServerException`, `UpdateInProgressException` | Modifies the available capacity providers and the default capacity provider strategy for a cluster. You must specify both the available capacity providers and a default capacity provider strategy for the cluster. |
-| `RegisterContainerInstance` | - | - | - | - | `RegisterContainerInstanceResponse` | `ClientException`, `InvalidParameterException`, `ServerException` | This action is only used by the Amazon ECS agent, and it is not intended for use outside of the agent. Registers an EC2 instance into the specified cluster. |
-| `RegisterTaskDefinition` | - | - | `containerDefinitions`, `family` | - | `RegisterTaskDefinitionResponse` | `ClientException`, `InvalidParameterException`, `ServerException` | Registers a new task definition from the supplied `family` and `containerDefinitions`. Optionally, you can add data volumes to your containers with the `volumes` parameter. |
-| `RunTask` | - | `idempotency-token` | `taskDefinition` | `clientToken` | `RunTaskResponse` | `AccessDeniedException`, `BlockedException`, `ClientException`, `ClusterNotFoundException`, `ConflictException`, `InvalidParameterException`, `PlatformTaskDefinitionIncompatibilityException`, `PlatformUnknownException`, ... (+2) | Starts a new task using the specified task definition. On March 21, 2024, a change was made to resolve the task definition revision before authorization. |
-| `StartTask` | - | - | `containerInstances`, `taskDefinition` | - | `StartTaskResponse` | `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ServerException`, `UnsupportedFeatureException` | Starts a new task from the specified task definition on the specified container instance or instances. On March 21, 2024, a change was made to resolve the task definition revision before authorization. |
-| `StopServiceDeployment` | - | - | `serviceDeploymentArn` | - | `StopServiceDeploymentResponse` | `AccessDeniedException`, `ClientException`, `ConflictException`, `InvalidParameterException`, `ServerException`, `ServiceDeploymentNotFoundException`, `UnsupportedFeatureException` | Stops an ongoing service deployment. The following stop types are avaiable: ROLLBACK - This option rolls back the service deployment to the previous service revision. |
-| `StopTask` | - | - | `task` | - | `StopTaskResponse` | `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ServerException` | Stops a running task. Any tags associated with the task will be deleted. |
-| `SubmitAttachmentStateChanges` | - | - | `attachments` | - | `SubmitAttachmentStateChangesResponse` | `AccessDeniedException`, `ClientException`, `InvalidParameterException`, `ServerException` | This action is only used by the Amazon ECS agent, and it is not intended for use outside of the agent. Sent to acknowledge that an attachment changed states. |
-| `SubmitContainerStateChange` | - | - | - | - | `SubmitContainerStateChangeResponse` | `AccessDeniedException`, `ClientException`, `ServerException` | This action is only used by the Amazon ECS agent, and it is not intended for use outside of the agent. Sent to acknowledge that a container changed states. |
-| `SubmitTaskStateChange` | - | - | - | - | `SubmitTaskStateChangeResponse` | `AccessDeniedException`, `ClientException`, `InvalidParameterException`, `ServerException` | This action is only used by the Amazon ECS agent, and it is not intended for use outside of the agent. Sent to acknowledge that a task changed states. |
-| `TagResource` | - | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ResourceNotFoundException`, `ServerException` | Associates the specified tags to a resource with the specified `resourceArn`. If existing tags on a resource aren't specified in the request parameters, they aren't changed. |
-| `UntagResource` | - | - | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ResourceNotFoundException`, `ServerException` | Deletes specified tags from a resource. |
-| `UpdateCapacityProvider` | - | - | `name` | - | `UpdateCapacityProviderResponse` | `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ServerException`, `UnsupportedFeatureException` | Modifies the parameters for a capacity provider. These changes only apply to new Amazon ECS Managed Instances, or EC2 instances, not existing ones. |
-| `UpdateCluster` | - | - | `cluster` | - | `UpdateClusterResponse` | `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `NamespaceNotFoundException`, `ServerException` | Updates the cluster. |
-| `UpdateClusterSettings` | - | - | `cluster`, `settings` | - | `UpdateClusterSettingsResponse` | `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ServerException` | Modifies the settings to use for a cluster. |
-| `UpdateContainerAgent` | - | - | `containerInstance` | - | `UpdateContainerAgentResponse` | `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `MissingVersionException`, `NoUpdateAvailableException`, `ServerException`, `UpdateInProgressException` | Updates the Amazon ECS container agent on a specified container instance. Updating the Amazon ECS container agent doesn't interrupt running tasks or services on the container instance. |
-| `UpdateContainerInstancesState` | - | - | `containerInstances`, `status` | - | `UpdateContainerInstancesStateResponse` | `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ServerException` | Modifies the status of an Amazon ECS container instance. Once a container instance has reached an `ACTIVE` state, you can change the status of a container instance to `DRAINING` to manually remove an instance from a cluster, for example to perform system... |
-| `UpdateExpressGatewayService` | - | - | `serviceArn` | - | `UpdateExpressGatewayServiceResponse` | `AccessDeniedException`, `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ServerException`, `ServiceNotActiveException`, `ServiceNotFoundException`, `UnsupportedFeatureException` | Updates an existing Express service configuration. Modifies container settings, resource allocation, auto-scaling configuration, and other service parameters without recreating the service. |
-| `UpdateService` | - | - | `service` | - | `UpdateServiceResponse` | `AccessDeniedException`, `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `NamespaceNotFoundException`, `PlatformTaskDefinitionIncompatibilityException`, `PlatformUnknownException`, `ServerException`, ... (+3) | Modifies the parameters of a service. On March 21, 2024, a change was made to resolve the task definition revision before authorization. |
-| `UpdateServicePrimaryTaskSet` | - | - | `cluster`, `primaryTaskSet`, `service` | - | `UpdateServicePrimaryTaskSetResponse` | `AccessDeniedException`, `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ServerException`, `ServiceNotActiveException`, `ServiceNotFoundException`, `TaskSetNotFoundException`, ... (+1) | Modifies which task set in a service is the primary task set. Any parameters that are updated on the primary task set in a service will transition to the service. |
-| `UpdateTaskProtection` | - | - | `cluster`, `protectionEnabled`, `tasks` | - | `UpdateTaskProtectionResponse` | `AccessDeniedException`, `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ResourceNotFoundException`, `ServerException`, `UnsupportedFeatureException` | Updates the protection status of a task. You can set `protectionEnabled` to `true` to protect your task from termination during scale-in events from Service Autoscaling or deployments. |
-| `UpdateTaskSet` | - | - | `cluster`, `scale`, `service`, `taskSet` | - | `UpdateTaskSetResponse` | `AccessDeniedException`, `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ServerException`, `ServiceNotActiveException`, `ServiceNotFoundException`, `TaskSetNotFoundException`, ... (+1) | Modifies a task set. This is used when a service uses the `EXTERNAL` deployment controller type. |
+| `DeleteAccountSetting` | `-` | - | `name` | - | `DeleteAccountSettingResponse` | `AccessDeniedException`, `ClientException`, `InvalidParameterException`, `ServerException` | Disables an account setting for a specified user, role, or the root user for an account. |
+| `DeregisterTaskDefinition` | `-` | - | `taskDefinition` | - | `DeregisterTaskDefinitionResponse` | `AccessDeniedException`, `ClientException`, `InvalidParameterException`, `ServerException` | Deregisters the specified task definition by family and revision. Upon deregistration, the task definition is marked as INACTIVE . Existing tasks and services that reference an INACTIVE task definition continue to ru ... |
+| `DescribeTaskDefinition` | `-` | `readonly` | `taskDefinition` | - | `DescribeTaskDefinitionResponse` | `AccessDeniedException`, `ClientException`, `InvalidParameterException`, `ServerException` | Describes a task definition. You can specify a family and revision to find information about a specific task definition, or you can simply specify the family to find the latest ACTIVE revision in that family. You can ... |
+| `DiscoverPollEndpoint` | `-` | - | - | - | `DiscoverPollEndpointResponse` | `AccessDeniedException`, `ClientException`, `InvalidParameterException`, `ServerException` | This action is only used by the Amazon ECS agent, and it is not intended for use outside of the agent. Returns an endpoint for the Amazon ECS agent to poll for updates. |
+| `ListAccountSettings` | `-` | `readonly`, `paginated` | - | - | `ListAccountSettingsResponse` | `AccessDeniedException`, `ClientException`, `InvalidParameterException`, `ServerException` | Lists the account settings for a specified principal. |
+| `ListServicesByNamespace` | `-` | `readonly`, `paginated` | `namespace` | - | `ListServicesByNamespaceResponse` | `AccessDeniedException`, `ClientException`, `InvalidParameterException`, `NamespaceNotFoundException`, `ServerException` | This operation lists all of the services that are associated with a Cloud Map namespace. This list might include services in different clusters. In contrast, ListServices can only list services in one cluster at a ti ... |
+| `ListTagsForResource` | `-` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ServerException` | List the tags for an Amazon ECS resource. |
+| `ListTaskDefinitionFamilies` | `-` | `readonly`, `paginated` | - | - | `ListTaskDefinitionFamiliesResponse` | `AccessDeniedException`, `ClientException`, `InvalidParameterException`, `ServerException` | Returns a list of task definition families that are registered to your account. This list includes task definition families that no longer have any ACTIVE task definition revisions. You can filter out task definition ... |
+| `PutAccountSetting` | `-` | - | `name`, `value` | - | `PutAccountSettingResponse` | `AccessDeniedException`, `ClientException`, `InvalidParameterException`, `ServerException` | Modifies an account setting. Account settings are set on a per-Region basis. If you change the root user account setting, the default settings are reset for users and roles that do not have specified individual accou ... |
+| `PutAccountSettingDefault` | `-` | - | `name`, `value` | - | `PutAccountSettingDefaultResponse` | `AccessDeniedException`, `ClientException`, `InvalidParameterException`, `ServerException` | Modifies an account setting for all users on an account for whom no individual account setting has been specified. Account settings are set on a per-Region basis. |
+| `TagResource` | `-` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `AccessDeniedException`, `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `LimitExceededException`, `ResourceNotFoundException`, `ServerException` | Associates the specified tags to a resource with the specified resourceArn . If existing tags on a resource aren't specified in the request parameters, they aren't changed. When a resource is deleted, the tags that a ... |
+| `UntagResource` | `-` | - | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ResourceNotFoundException`, `ServerException` | Deletes specified tags from a resource. |
 
 ## HTTP Bindings
 
@@ -259,31 +159,56 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InvalidParameterException` | `structure` | `message` | The specified parameter isn't valid. |
-| `ClientException` | `structure` | `message` | These errors are usually caused by a client action. |
-| `ServerException` | `structure` | `message` | These errors are usually caused by a server issue. |
-| `ClusterNotFoundException` | `structure` | `message` | The specified cluster wasn't found. |
-| `UnsupportedFeatureException` | `structure` | `message` | The specified task isn't supported in this Region. |
-| `AccessDeniedException` | `structure` | `message` | You don't have authorization to perform the requested action. |
-| `ServiceNotFoundException` | `structure` | `message` | The specified service wasn't found. |
-| `ServiceNotActiveException` | `structure` | `message` | The specified service isn't active. |
-| `NamespaceNotFoundException` | `structure` | `message` | The specified namespace wasn't found. |
-| `PlatformTaskDefinitionIncompatibilityException` | `structure` | `message` | The specified platform version doesn't satisfy the required capabilities of the task definition. |
-| `PlatformUnknownException` | `structure` | `message` | The specified platform version doesn't exist. |
-| `ResourceNotFoundException` | `structure` | `message` | The specified resource wasn't found. |
-| `UpdateInProgressException` | `structure` | `message` | There's already a current Amazon ECS container agent update in progress on the container instance that's specified. |
-| `TaskSetNotFoundException` | `structure` | `message` | The specified task set wasn't found. |
-| `TargetNotFoundException` | `structure` | `message` | The specified target wasn't found. |
-| `ConflictException` | `structure` | `message`, `resourceIds` | The request could not be processed because of conflict in the current state of the resource. |
-| `CreateCapacityProviderRequest` | `structure` | `autoScalingGroupProvider`, `cluster`, `managedInstancesProvider`, `name`, `tags` | - |
-| `CreateCapacityProviderResponse` | `structure` | `capacityProvider` | - |
-| `LimitExceededException` | `structure` | `message` | The limit for the resource was exceeded. |
-| `CreateClusterRequest` | `structure` | `capacityProviders`, `clusterName`, `configuration`, `defaultCapacityProviderStrategy`, `serviceConnectDefaults`, `settings`, `tags` | - |
-| `CreateClusterResponse` | `structure` | `cluster` | - |
-| `CreateExpressGatewayServiceRequest` | `structure` | `cluster`, `cpu`, `executionRoleArn`, `healthCheckPath`, `infrastructureRoleArn`, `memory`, `networkConfiguration`, `primaryContainer`, `scalingTarget`, `serviceName`, `tags`, `taskRoleArn` | - |
-| `CreateExpressGatewayServiceResponse` | `structure` | `service` | - |
-| `CreateServiceRequest` | `structure` | `availabilityZoneRebalancing`, `capacityProviderStrategy`, `clientToken`, `cluster`, `deploymentConfiguration`, `deploymentController`, `desiredCount`, `enableECSManagedTags`, `enableExecuteCommand`, `healthCheckGracePeriodSeconds`, `launchType`, `loadBalancers`, ... (+14) | - |
-
+| `AccessDeniedException` | `structure` | message | You don't have authorization to perform the requested action. |
+| `AttributeLimitExceededException` | `structure` | message | You can apply up to 10 custom attributes for each resource. You can view the attributes of a resource with ListAttributes . You can remove existing attribut ... |
+| `BlockedException` | `structure` | message | Your Amazon Web Services account was blocked. For more information, contact Amazon Web Services Support . |
+| `ClientException` | `structure` | message | These errors are usually caused by a client action. This client action might be using an action or resource on behalf of a user that doesn't have permission ... |
+| `ClusterContainsCapacityProviderException` | `structure` | message | The cluster contains one or more capacity providers that prevent the requested operation. This exception occurs when you try to delete a cluster that still ... |
+| `ClusterContainsContainerInstancesException` | `structure` | message | You can't delete a cluster that has registered container instances. First, deregister the container instances before you can delete the cluster. For more in ... |
+| `ClusterContainsServicesException` | `structure` | message | You can't delete a cluster that contains services. First, update the service to reduce its desired task count to 0, and then delete the service. For more in ... |
+| `ClusterContainsTasksException` | `structure` | message | You can't delete a cluster that has active tasks. |
+| `ClusterNotFoundException` | `structure` | message | The specified cluster wasn't found. You can view your available clusters with ListClusters . Amazon ECS clusters are Region specific. |
+| `ConflictException` | `structure` | resourceIds, message | The request could not be processed because of conflict in the current state of the resource. |
+| `DaemonNotActiveException` | `structure` | message | The specified daemon isn't active. You can't update a daemon that's inactive. If you have previously deleted a daemon, you can re-create it with CreateDaemon . |
+| `DaemonNotFoundException` | `structure` | message | The specified daemon wasn't found. You can view your available daemons with ListDaemons . Amazon ECS daemons are cluster specific and Region specific. |
+| `InvalidParameterException` | `structure` | message | The specified parameter isn't valid. Review the available parameters for the API request. For more information about service event errors, see Amazon ECS se ... |
+| `LimitExceededException` | `structure` | message | The limit for the resource was exceeded. |
+| `MissingVersionException` | `structure` | message | Amazon ECS can't determine the current version of the Amazon ECS container agent on the container instance and doesn't have enough information to proceed wi ... |
+| `NamespaceNotFoundException` | `structure` | message | The specified namespace wasn't found. |
+| `NoUpdateAvailableException` | `structure` | message | There's no update available for this Amazon ECS container agent. This might be because the agent is already running the latest version or because it's so ol ... |
+| `PlatformTaskDefinitionIncompatibilityException` | `structure` | message | The specified platform version doesn't satisfy the required capabilities of the task definition. |
+| `PlatformUnknownException` | `structure` | message | The specified platform version doesn't exist. |
+| `ResourceInUseException` | `structure` | message | The specified resource is in-use and can't be removed. |
+| `ResourceNotFoundException` | `structure` | message | The specified resource wasn't found. |
+| `ServerException` | `structure` | message | These errors are usually caused by a server issue. |
+| `ServiceDeploymentNotFoundException` | `structure` | message | The service deploy ARN that you specified in the StopServiceDeployment doesn't exist. You can use ListServiceDeployments to retrieve the service deployment ... |
+| `ServiceNotActiveException` | `structure` | message | The specified service isn't active. You can't update a service that's inactive. If you have previously deleted a service, you can re-create it with CreateSe ... |
+| `ServiceNotFoundException` | `structure` | message | The specified service wasn't found. You can view your available services with ListServices . Amazon ECS services are cluster specific and Region specific. |
+| `TargetNotConnectedException` | `structure` | message | The execute command cannot run. This error can be caused by any of the following configuration issues: Incorrect IAM permissions The SSM agent is not instal ... |
+| `TargetNotFoundException` | `structure` | message | The specified target wasn't found. You can view your available container instances with ListContainerInstances . Amazon ECS container instances are cluster- ... |
+| `TaskSetNotFoundException` | `structure` | message | The specified task set wasn't found. You can view your available task sets with DescribeTaskSets . Task sets are specific to each cluster, service and Region. |
+| `UnsupportedFeatureException` | `structure` | message | The specified task isn't supported in this Region. |
+| `UpdateInProgressException` | `structure` | message | There's already a current Amazon ECS container agent update in progress on the container instance that's specified. If the container agent becomes disconnec ... |
+| `DeleteAccountSettingRequest` | `structure` | name, principalArn | - |
+| `DeleteAccountSettingResponse` | `structure` | setting | - |
+| `DeregisterTaskDefinitionRequest` | `structure` | taskDefinition | - |
+| `DeregisterTaskDefinitionResponse` | `structure` | taskDefinition | - |
+| `DescribeTaskDefinitionRequest` | `structure` | taskDefinition, include | - |
+| `DescribeTaskDefinitionResponse` | `structure` | taskDefinition, tags | - |
+| `DiscoverPollEndpointRequest` | `structure` | containerInstance, cluster | - |
+| `DiscoverPollEndpointResponse` | `structure` | endpoint, telemetryEndpoint, serviceConnectEndpoint | - |
+| `ListAccountSettingsRequest` | `structure` | name, value, principalArn, effectiveSettings, nextToken, maxResults | - |
+| `ListAccountSettingsResponse` | `structure` | settings, nextToken | - |
+| `AcceleratorManufacturer` | `enum` | AMAZON_WEB_SERVICES, AMD, NVIDIA, XILINX, HABANA | - |
+| `AcceleratorName` | `enum` | A100, INFERENTIA, K520, K80, M60, RADEON_PRO_V520, T4, VU9P, V100, A10G, H100, T4G | - |
+| `AcceleratorType` | `enum` | GPU, FPGA, INFERENCE | - |
+| `AccessType` | `enum` | PUBLIC, PRIVATE | - |
+| `AgentUpdateStatus` | `enum` | PENDING, STAGING, STAGED, UPDATING, UPDATED, FAILED | - |
+| `ApplicationProtocol` | `enum` | HTTP, HTTP2, GRPC | - |
+| `AssignPublicIp` | `enum` | ENABLED, DISABLED | - |
+| `AutoRepairActionsStatus` | `enum` | ENABLED, DISABLED | - |
+| `AvailabilityZoneRebalancing` | `enum` | ENABLED, DISABLED | - |
+| `BareMetal` | `enum` | INCLUDED, REQUIRED, EXCLUDED | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

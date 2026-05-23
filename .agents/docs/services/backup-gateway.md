@@ -79,104 +79,28 @@ Backup Gateway currently treats VPC endpoint information as gateway metadata.
 
 ## Operation Groups
 
-### Get
-
-- Operations: `GetBandwidthRateLimitSchedule`, `GetGateway`, `GetHypervisor`, `GetHypervisorPropertyMappings`, `GetVirtualMachine`
-- Traits: `readonly` (5)
-- Common required input members in this group: `GatewayArn`, `HypervisorArn`, `ResourceArn`
-
 ### List
 
-- Operations: `ListGateways`, `ListHypervisors`, `ListTagsForResource`, `ListVirtualMachines`
-- Traits: `paginated` (3), `readonly` (3)
-- Common required input members in this group: `ResourceArn`
-
-### Put
-
-- Operations: `PutBandwidthRateLimitSchedule`, `PutHypervisorPropertyMappings`, `PutMaintenanceStartTime`
-- Traits: `idempotent` (2)
-- Common required input members in this group: `BandwidthRateLimitIntervals`, `GatewayArn`, `HourOfDay`, `HypervisorArn`, `IamRoleArn`, `MinuteOfHour`, `VmwareToAwsTagMappings`
-
-### Update
-
-- Operations: `UpdateGatewayInformation`, `UpdateGatewaySoftwareNow`, `UpdateHypervisor`
-- Common required input members in this group: `GatewayArn`, `HypervisorArn`
-
-### Delete
-
-- Operations: `DeleteGateway`, `DeleteHypervisor`
-- Traits: `idempotent` (2)
-- Common required input members in this group: `GatewayArn`, `HypervisorArn`
-
-### Associate
-
-- Operations: `AssociateGatewayToServer`
-- Common required input members in this group: `GatewayArn`, `ServerArn`
-
-### Create
-
-- Operations: `CreateGateway`
-- Common required input members in this group: `ActivationKey`, `GatewayDisplayName`, `GatewayType`
-
-### Disassociate
-
-- Operations: `DisassociateGatewayFromServer`
-- Common required input members in this group: `GatewayArn`
-
-### Import
-
-- Operations: `ImportHypervisorConfiguration`
-- Common required input members in this group: `Host`, `Name`
-
-### Start
-
-- Operations: `StartVirtualMachinesMetadataSync`
-- Common required input members in this group: `HypervisorArn`
+- Operations: `ListTagsForResource`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceARN`, `Tags`
-
-### Test
-
-- Operations: `TestHypervisorConfiguration`
-- Common required input members in this group: `GatewayArn`, `Host`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceARN`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AssociateGatewayToServer` | - | - | `GatewayArn`, `ServerArn` | - | `AssociateGatewayToServerOutput` | `ConflictException` | Associates a backup gateway with your server. After you complete the association process, you can back up and restore your VMs through the gateway. |
-| `CreateGateway` | - | - | `ActivationKey`, `GatewayDisplayName`, `GatewayType` | - | `CreateGatewayOutput` | - | Creates a backup gateway. After you create a gateway, you can associate it with a server using the `AssociateGatewayToServer` operation. |
-| `DeleteGateway` | - | `idempotent` | `GatewayArn` | - | `DeleteGatewayOutput` | `ResourceNotFoundException` | Deletes a backup gateway. |
-| `DeleteHypervisor` | - | `idempotent` | `HypervisorArn` | - | `DeleteHypervisorOutput` | `AccessDeniedException`, `ConflictException`, `ResourceNotFoundException` | Deletes a hypervisor. |
-| `DisassociateGatewayFromServer` | - | - | `GatewayArn` | - | `DisassociateGatewayFromServerOutput` | `ConflictException`, `ResourceNotFoundException` | Disassociates a backup gateway from the specified server. After the disassociation process finishes, the gateway can no longer access the virtual machines on the server. |
-| `GetBandwidthRateLimitSchedule` | - | `readonly` | `GatewayArn` | - | `GetBandwidthRateLimitScheduleOutput` | `ResourceNotFoundException` | Retrieves the bandwidth rate limit schedule for a specified gateway. By default, gateways do not have bandwidth rate limit schedules, which means no bandwidth rate limiting is in effect. |
-| `GetGateway` | - | `readonly` | `GatewayArn` | - | `GetGatewayOutput` | `ResourceNotFoundException` | By providing the ARN (Amazon Resource Name), this API returns the gateway. |
-| `GetHypervisor` | - | `readonly` | `HypervisorArn` | - | `GetHypervisorOutput` | `ResourceNotFoundException` | This action requests information about the specified hypervisor to which the gateway will connect. A hypervisor is hardware, software, or firmware that creates and manages virtual machines, and allocates resources to them. |
-| `GetHypervisorPropertyMappings` | - | `readonly` | `HypervisorArn` | - | `GetHypervisorPropertyMappingsOutput` | `ResourceNotFoundException` | This action retrieves the property mappings for the specified hypervisor. A hypervisor property mapping displays the relationship of entity properties available from the hypervisor to the properties available in Amazon Web Services. |
-| `GetVirtualMachine` | - | `readonly` | `ResourceArn` | - | `GetVirtualMachineOutput` | `ResourceNotFoundException` | By providing the ARN (Amazon Resource Name), this API returns the virtual machine. |
-| `ImportHypervisorConfiguration` | - | - | `Host`, `Name` | - | `ImportHypervisorConfigurationOutput` | `AccessDeniedException`, `ConflictException` | Connect to a hypervisor by importing its configuration. |
-| `ListGateways` | - | `readonly`, `paginated` | - | - | `ListGatewaysOutput` | - | Lists backup gateways owned by an Amazon Web Services account in an Amazon Web Services Region. The returned list is ordered by gateway Amazon Resource Name (ARN). |
-| `ListHypervisors` | - | `readonly`, `paginated` | - | - | `ListHypervisorsOutput` | - | Lists your hypervisors. |
-| `ListTagsForResource` | - | - | `ResourceArn` | - | `ListTagsForResourceOutput` | `ResourceNotFoundException` | Lists the tags applied to the resource identified by its Amazon Resource Name (ARN). |
-| `ListVirtualMachines` | - | `readonly`, `paginated` | - | - | `ListVirtualMachinesOutput` | - | Lists your virtual machines. |
-| `PutBandwidthRateLimitSchedule` | - | `idempotent` | `BandwidthRateLimitIntervals`, `GatewayArn` | - | `PutBandwidthRateLimitScheduleOutput` | `ResourceNotFoundException` | This action sets the bandwidth rate limit schedule for a specified gateway. By default, gateways do not have a bandwidth rate limit schedule, which means no bandwidth rate limiting is in effect. |
-| `PutHypervisorPropertyMappings` | - | `idempotent` | `HypervisorArn`, `IamRoleArn`, `VmwareToAwsTagMappings` | - | `PutHypervisorPropertyMappingsOutput` | `AccessDeniedException`, `ConflictException`, `ResourceNotFoundException` | This action sets the property mappings for the specified hypervisor. A hypervisor property mapping displays the relationship of entity properties available from the hypervisor to the properties available in Amazon Web Services. |
-| `PutMaintenanceStartTime` | - | - | `GatewayArn`, `HourOfDay`, `MinuteOfHour` | - | `PutMaintenanceStartTimeOutput` | `ConflictException`, `ResourceNotFoundException` | Set the maintenance start time for a gateway. |
-| `StartVirtualMachinesMetadataSync` | - | - | `HypervisorArn` | - | `StartVirtualMachinesMetadataSyncOutput` | `AccessDeniedException`, `ResourceNotFoundException` | This action sends a request to sync metadata across the specified virtual machines. |
-| `TagResource` | - | - | `ResourceARN`, `Tags` | - | `TagResourceOutput` | `ResourceNotFoundException` | Tag the resource. |
-| `TestHypervisorConfiguration` | - | - | `GatewayArn`, `Host` | - | `TestHypervisorConfigurationOutput` | `ConflictException`, `ResourceNotFoundException` | Tests your hypervisor configuration to validate that backup gateway can connect with the hypervisor and its resources. |
-| `UntagResource` | - | - | `ResourceARN`, `TagKeys` | - | `UntagResourceOutput` | `ResourceNotFoundException` | Removes tags from the resource. |
-| `UpdateGatewayInformation` | - | - | `GatewayArn` | - | `UpdateGatewayInformationOutput` | `ConflictException`, `ResourceNotFoundException` | Updates a gateway's name. Specify which gateway to update using the Amazon Resource Name (ARN) of the gateway in your request. |
-| `UpdateGatewaySoftwareNow` | - | - | `GatewayArn` | - | `UpdateGatewaySoftwareNowOutput` | `ResourceNotFoundException` | Updates the gateway virtual machine (VM) software. The request immediately triggers the software update. |
-| `UpdateHypervisor` | - | - | `HypervisorArn` | - | `UpdateHypervisorOutput` | `AccessDeniedException`, `ConflictException`, `ResourceNotFoundException` | Updates a hypervisor metadata, including its host, username, and password. Specify which hypervisor to update using the Amazon Resource Name (ARN) of the hypervisor in your request. |
+| `ListTagsForResource` | `-` | - | `ResourceArn` | - | `ListTagsForResourceOutput` | `ResourceNotFoundException` | Lists the tags applied to the resource identified by its Amazon Resource Name (ARN). |
+| `TagResource` | `-` | - | `ResourceARN`, `Tags` | - | `TagResourceOutput` | `ResourceNotFoundException` | Tag the resource. |
+| `UntagResource` | `-` | - | `ResourceARN`, `TagKeys` | - | `UntagResourceOutput` | `ResourceNotFoundException` | Removes tags from the resource. |
 
 ## HTTP Bindings
 
@@ -188,31 +112,18 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ResourceNotFoundException` | `structure` | `ErrorCode`, `Message` | A resource that is required for the action wasn't found. |
-| `ConflictException` | `structure` | `ErrorCode`, `Message` | The operation cannot proceed because it is not supported. |
-| `AccessDeniedException` | `structure` | `ErrorCode`, `Message` | The operation cannot proceed because you have insufficient permissions. |
-| `AssociateGatewayToServerInput` | `structure` | `GatewayArn`, `ServerArn` | - |
-| `AssociateGatewayToServerOutput` | `structure` | `GatewayArn` | - |
-| `CreateGatewayInput` | `structure` | `ActivationKey`, `GatewayDisplayName`, `GatewayType`, `Tags` | - |
-| `CreateGatewayOutput` | `structure` | `GatewayArn` | - |
-| `DeleteGatewayInput` | `structure` | `GatewayArn` | - |
-| `DeleteGatewayOutput` | `structure` | `GatewayArn` | - |
-| `DeleteHypervisorInput` | `structure` | `HypervisorArn` | - |
-| `DeleteHypervisorOutput` | `structure` | `HypervisorArn` | - |
-| `DisassociateGatewayFromServerInput` | `structure` | `GatewayArn` | - |
-| `DisassociateGatewayFromServerOutput` | `structure` | `GatewayArn` | - |
-| `GetBandwidthRateLimitScheduleInput` | `structure` | `GatewayArn` | - |
-| `GetBandwidthRateLimitScheduleOutput` | `structure` | `BandwidthRateLimitIntervals`, `GatewayArn` | - |
-| `GetGatewayInput` | `structure` | `GatewayArn` | - |
-| `GetGatewayOutput` | `structure` | `Gateway` | - |
-| `GetHypervisorInput` | `structure` | `HypervisorArn` | - |
-| `GetHypervisorOutput` | `structure` | `Hypervisor` | - |
-| `GetHypervisorPropertyMappingsInput` | `structure` | `HypervisorArn` | - |
-| `GetHypervisorPropertyMappingsOutput` | `structure` | `HypervisorArn`, `IamRoleArn`, `VmwareToAwsTagMappings` | - |
-| `GetVirtualMachineInput` | `structure` | `ResourceArn` | - |
-| `GetVirtualMachineOutput` | `structure` | `VirtualMachine` | - |
-| `ImportHypervisorConfigurationInput` | `structure` | `Host`, `KmsKeyArn`, `Name`, `Password`, `Tags`, `Username` | - |
-
+| `AccessDeniedException` | `structure` | ErrorCode, Message | The operation cannot proceed because you have insufficient permissions. |
+| `ConflictException` | `structure` | ErrorCode, Message | The operation cannot proceed because it is not supported. |
+| `InternalServerException` | `structure` | ErrorCode, Message | The operation did not succeed because an internal error occurred. Try again later. |
+| `ResourceNotFoundException` | `structure` | ErrorCode, Message | A resource that is required for the action wasn't found. |
+| `ThrottlingException` | `structure` | ErrorCode, Message | TPS has been limited to protect against intentional or unintentional high request volumes. |
+| `ValidationException` | `structure` | ErrorCode, Message | The operation did not succeed because a validation error occurred. |
+| `ListTagsForResourceInput` | `structure` | ResourceArn | - |
+| `ListTagsForResourceOutput` | `structure` | ResourceArn, Tags | - |
+| `TagResourceInput` | `structure` | ResourceARN, Tags | - |
+| `TagResourceOutput` | `structure` | ResourceARN | - |
+| `UntagResourceInput` | `structure` | ResourceARN, TagKeys | - |
+| `UntagResourceOutput` | `structure` | ResourceARN | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

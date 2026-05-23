@@ -42,42 +42,42 @@ Quick Setup helps you quickly configure frequently used services and features wi
 
 - Operations: `ListConfigurationManagers`, `ListConfigurations`, `ListQuickSetupTypes`, `ListTagsForResource`
 - Traits: `paginated` (2), `readonly` (3)
-- Common required input members in this group: `ResourceArn`
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetConfiguration`, `GetConfigurationManager`, `GetServiceSettings`
 - Traits: `readonly` (3)
-- Common required input members in this group: `ConfigurationId`, `ManagerArn`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateConfigurationDefinition`, `UpdateConfigurationManager`, `UpdateServiceSettings`
 - Traits: `idempotent` (3)
-- Common required input members in this group: `Id`, `ManagerArn`
+- Common required input members in this group: `ManagerArn`
 
 ### Create
 
 - Operations: `CreateConfigurationManager`
-- Common required input members in this group: `ConfigurationDefinitions`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteConfigurationManager`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `ManagerArn`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
@@ -94,7 +94,7 @@ Quick Setup helps you quickly configure frequently used services and features wi
 | `ListTagsForResource` | `GET /tags/{ResourceArn}` | `readonly` | `ResourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns tags assigned to the resource. |
 | `TagResource` | `PUT /tags/{ResourceArn}` | `idempotent` | `ResourceArn`, `Tags` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Assigns key-value pairs of metadata to Amazon Web Services resources. |
 | `UntagResource` | `DELETE /tags/{ResourceArn}` | `idempotent` | `ResourceArn`, `TagKeys` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes tags from the specified resource. |
-| `UpdateConfigurationDefinition` | `PUT /configurationDefinition/{ManagerArn}/{Id}` | `idempotent` | `Id`, `ManagerArn` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a Quick Setup configuration definition. |
+| `UpdateConfigurationDefinition` | `PUT /configurationDefinition/{ManagerArn}/{Id}` | `idempotent` | `ManagerArn`, `Id` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a Quick Setup configuration definition. |
 | `UpdateConfigurationManager` | `PUT /configurationManager/{ManagerArn}` | `idempotent` | `ManagerArn` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a Quick Setup configuration manager. |
 | `UpdateServiceSettings` | `PUT /serviceSettings` | `idempotent` | - | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Updates settings configured for Quick Setup. |
 
@@ -110,30 +110,34 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `Message` | The requester has insufficient permissions to perform the operation. |
-| `InternalServerException` | `structure` | `Message` | An error occurred on the server side. |
-| `ThrottlingException` | `structure` | `Message` | The request or operation exceeds the maximum allowed request rate per Amazon Web Services account and Amazon Web Services Region. |
-| `ConflictException` | `structure` | `Message` | Another request is being processed. |
-| `ValidationException` | `structure` | `Message` | The request is invalid. |
-| `ResourceNotFoundException` | `structure` | `Message` | The resource couldn't be found. |
-| `CreateConfigurationManagerInput` | `structure` | `ConfigurationDefinitions`, `Description`, `Name`, `Tags` | - |
-| `CreateConfigurationManagerOutput` | `structure` | `ManagerArn` | - |
-| `DeleteConfigurationManagerInput` | `structure` | `ManagerArn` | - |
-| `GetConfigurationInput` | `structure` | `ConfigurationId` | - |
-| `GetConfigurationOutput` | `structure` | `Account`, `ConfigurationDefinitionId`, `CreatedAt`, `Id`, `LastModifiedAt`, `ManagerArn`, `Parameters`, `Region`, `StatusSummaries`, `Type`, `TypeVersion` | - |
-| `GetConfigurationManagerInput` | `structure` | `ManagerArn` | - |
-| `GetConfigurationManagerOutput` | `structure` | `ConfigurationDefinitions`, `CreatedAt`, `Description`, `LastModifiedAt`, `ManagerArn`, `Name`, `StatusSummaries`, `Tags` | - |
-| `GetServiceSettingsOutput` | `structure` | `ServiceSettings` | - |
-| `ListConfigurationManagersInput` | `structure` | `Filters`, `MaxItems`, `StartingToken` | - |
-| `ListConfigurationManagersOutput` | `structure` | `ConfigurationManagersList`, `NextToken` | - |
-| `ListConfigurationsInput` | `structure` | `ConfigurationDefinitionId`, `Filters`, `ManagerArn`, `MaxItems`, `StartingToken` | - |
-| `ListConfigurationsOutput` | `structure` | `ConfigurationsList`, `NextToken` | - |
-| `ListQuickSetupTypesOutput` | `structure` | `QuickSetupTypeList` | - |
-| `ListTagsForResourceRequest` | `structure` | `ResourceArn` | - |
-| `ListTagsForResourceResponse` | `structure` | `Tags` | - |
-| `TagResourceInput` | `structure` | `ResourceArn`, `Tags` | - |
-| `UntagResourceInput` | `structure` | `ResourceArn`, `TagKeys` | - |
-
+| `AccessDeniedException` | `structure` | Message | The requester has insufficient permissions to perform the operation. |
+| `ConflictException` | `structure` | Message | Another request is being processed. Wait a few minutes and try again. |
+| `InternalServerException` | `structure` | Message | An error occurred on the server side. |
+| `ResourceNotFoundException` | `structure` | Message | The resource couldn't be found. Check the ID or name and try again. |
+| `ThrottlingException` | `structure` | Message | The request or operation exceeds the maximum allowed request rate per Amazon Web Services account and Amazon Web Services Region. |
+| `ValidationException` | `structure` | Message | The request is invalid. Verify the values provided for the request parameters are accurate. |
+| `CreateConfigurationManagerInput` | `structure` | Name, Description, ConfigurationDefinitions, Tags | - |
+| `CreateConfigurationManagerOutput` | `structure` | ManagerArn | - |
+| `DeleteConfigurationManagerInput` | `structure` | ManagerArn | - |
+| `GetConfigurationInput` | `structure` | ConfigurationId | - |
+| `GetConfigurationOutput` | `structure` | Id, ManagerArn, ConfigurationDefinitionId, Type, TypeVersion, Account, Region, CreatedAt, LastModifiedAt, StatusSummaries, Parameters | - |
+| `GetConfigurationManagerInput` | `structure` | ManagerArn | - |
+| `GetConfigurationManagerOutput` | `structure` | ManagerArn, Description, Name, CreatedAt, LastModifiedAt, StatusSummaries, ConfigurationDefinitions, Tags | - |
+| `GetServiceSettingsOutput` | `structure` | ServiceSettings | - |
+| `ListConfigurationManagersInput` | `structure` | StartingToken, MaxItems, Filters | - |
+| `ListConfigurationManagersOutput` | `structure` | ConfigurationManagersList, NextToken | - |
+| `ListConfigurationsInput` | `structure` | StartingToken, MaxItems, Filters, ManagerArn, ConfigurationDefinitionId | - |
+| `ListConfigurationsOutput` | `structure` | ConfigurationsList, NextToken | - |
+| `ListQuickSetupTypesOutput` | `structure` | QuickSetupTypeList | - |
+| `ListTagsForResourceRequest` | `structure` | ResourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | Tags | - |
+| `TagResourceInput` | `structure` | ResourceArn, Tags | - |
+| `UntagResourceInput` | `structure` | ResourceArn, TagKeys | - |
+| `UpdateConfigurationDefinitionInput` | `structure` | ManagerArn, Id, TypeVersion, Parameters, LocalDeploymentExecutionRoleName, LocalDeploymentAdministrationRoleArn | - |
+| `UpdateConfigurationManagerInput` | `structure` | ManagerArn, Name, Description | - |
+| `UpdateServiceSettingsInput` | `structure` | ExplorerEnablingRoleArn | - |
+| `Status` | `enum` | INITIALIZING, DEPLOYING, SUCCEEDED, DELETING, STOPPING, FAILED, STOPPED, DELETE_FAILED, STOP_FAILED, NONE | - |
+| `StatusType` | `enum` | DEPLOYMENT, ASYNC_EXECUTIONS | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

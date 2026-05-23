@@ -39,26 +39,27 @@ Welcome to the Routing Control (Recovery Cluster) API Reference Guide for Amazon
 ### Update
 
 - Operations: `UpdateRoutingControlState`, `UpdateRoutingControlStates`
-- Common required input members in this group: `RoutingControlArn`, `RoutingControlState`, `UpdateRoutingControlStateEntries`
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetRoutingControlState`
-- Common required input members in this group: `RoutingControlArn`
+- Common required input members in this group: -
 
 ### List
 
 - Operations: `ListRoutingControls`
 - Traits: `paginated` (1)
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `GetRoutingControlState` | - | - | `RoutingControlArn` | - | `GetRoutingControlStateResponse` | `AccessDeniedException`, `EndpointTemporarilyUnavailableException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get the state for a routing control. A routing control is a simple on/off switch that you can use to route traffic to cells. |
-| `ListRoutingControls` | - | `paginated` | - | - | `ListRoutingControlsResponse` | `AccessDeniedException`, `EndpointTemporarilyUnavailableException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | List routing control names and Amazon Resource Names (ARNs), as well as the routing control state for each routing control, along with the control panel name and control panel ARN for the routing controls. If you specify a control panel ARN, this call lists... |
-| `UpdateRoutingControlState` | - | - | `RoutingControlArn`, `RoutingControlState` | - | `UpdateRoutingControlStateResponse` | `AccessDeniedException`, `ConflictException`, `EndpointTemporarilyUnavailableException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Set the state of the routing control to reroute traffic. You can set the value to ON or OFF. |
-| `UpdateRoutingControlStates` | - | - | `UpdateRoutingControlStateEntries` | - | `UpdateRoutingControlStatesResponse` | `AccessDeniedException`, `ConflictException`, `EndpointTemporarilyUnavailableException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceLimitExceededException`, `ThrottlingException`, `ValidationException` | Set multiple routing control states. You can set the value for each state to be ON or OFF. |
+| `GetRoutingControlState` | `-` | - | `RoutingControlArn` | - | `GetRoutingControlStateResponse` | `AccessDeniedException`, `EndpointTemporarilyUnavailableException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get the state for a routing control. A routing control is a simple on/off switch that you can use to route traffic to cells. When a routing control state is set to ON, traffic flows to a cell. When the state is set t ... |
+| `ListRoutingControls` | `-` | `paginated` | - | - | `ListRoutingControlsResponse` | `AccessDeniedException`, `EndpointTemporarilyUnavailableException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | List routing control names and Amazon Resource Names (ARNs), as well as the routing control state for each routing control, along with the control panel name and control panel ARN for the routing controls. If you spe ... |
+| `UpdateRoutingControlState` | `-` | - | `RoutingControlArn`, `RoutingControlState` | - | `UpdateRoutingControlStateResponse` | `AccessDeniedException`, `ConflictException`, `EndpointTemporarilyUnavailableException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Set the state of the routing control to reroute traffic. You can set the value to ON or OFF. When the state is ON, traffic flows to a cell. When the state is OFF, traffic does not flow. With Route 53 ARC, you can add ... |
+| `UpdateRoutingControlStates` | `-` | - | `UpdateRoutingControlStateEntries` | - | `UpdateRoutingControlStatesResponse` | `AccessDeniedException`, `ConflictException`, `EndpointTemporarilyUnavailableException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceLimitExceededException`, `ThrottlingException`, `ValidationException` | Set multiple routing control states. You can set the value for each state to be ON or OFF. When the state is ON, traffic flows to a cell. When it's OFF, traffic does not flow. With Route 53 ARC, you can add safety ru ... |
 
 ## HTTP Bindings
 
@@ -70,23 +71,24 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | You don't have sufficient permissions to perform this action. |
-| `EndpointTemporarilyUnavailableException` | `structure` | `message` | The cluster endpoint isn't available. |
-| `InternalServerException` | `structure` | `message`, `retryAfterSeconds` | There was an unexpected error during processing of the request. |
-| `ResourceNotFoundException` | `structure` | `message`, `resourceId`, `resourceType` | The request references a routing control or control panel that was not found. |
-| `ThrottlingException` | `structure` | `message`, `retryAfterSeconds` | The request was denied because of request throttling. |
-| `ValidationException` | `structure` | `fields`, `message`, `reason` | There was a validation error on the request. |
-| `ConflictException` | `structure` | `message`, `resourceId`, `resourceType` | There was a conflict with this request. |
-| `GetRoutingControlStateRequest` | `structure` | `RoutingControlArn` | - |
-| `GetRoutingControlStateResponse` | `structure` | `RoutingControlArn`, `RoutingControlName`, `RoutingControlState` | - |
-| `ListRoutingControlsRequest` | `structure` | `ControlPanelArn`, `MaxResults`, `NextToken` | - |
-| `ListRoutingControlsResponse` | `structure` | `NextToken`, `RoutingControls` | - |
-| `UpdateRoutingControlStateRequest` | `structure` | `RoutingControlArn`, `RoutingControlState`, `SafetyRulesToOverride` | - |
-| `UpdateRoutingControlStateResponse` | `structure` | - | - |
-| `UpdateRoutingControlStatesRequest` | `structure` | `SafetyRulesToOverride`, `UpdateRoutingControlStateEntries` | - |
-| `UpdateRoutingControlStatesResponse` | `structure` | - | - |
-| `ServiceLimitExceededException` | `structure` | `limitCode`, `message`, `resourceId`, `resourceType`, `serviceCode` | The request can't update that many routing control states at the same time. |
-
+| `AccessDeniedException` | `structure` | message | You don't have sufficient permissions to perform this action. |
+| `ConflictException` | `structure` | message, resourceId, resourceType | There was a conflict with this request. Try again. |
+| `EndpointTemporarilyUnavailableException` | `structure` | message | The cluster endpoint isn't available. Try another cluster endpoint. |
+| `InternalServerException` | `structure` | message, retryAfterSeconds | There was an unexpected error during processing of the request. |
+| `ResourceNotFoundException` | `structure` | message, resourceId, resourceType | The request references a routing control or control panel that was not found. |
+| `ServiceLimitExceededException` | `structure` | message, resourceId, resourceType, limitCode, serviceCode | The request can't update that many routing control states at the same time. Try again with fewer routing control states. |
+| `ThrottlingException` | `structure` | message, retryAfterSeconds | The request was denied because of request throttling. |
+| `ValidationException` | `structure` | message, reason, fields | There was a validation error on the request. |
+| `GetRoutingControlStateRequest` | `structure` | RoutingControlArn | - |
+| `GetRoutingControlStateResponse` | `structure` | RoutingControlArn, RoutingControlState, RoutingControlName | - |
+| `ListRoutingControlsRequest` | `structure` | ControlPanelArn, NextToken, MaxResults | - |
+| `ListRoutingControlsResponse` | `structure` | RoutingControls, NextToken | - |
+| `UpdateRoutingControlStateRequest` | `structure` | RoutingControlArn, RoutingControlState, SafetyRulesToOverride | - |
+| `UpdateRoutingControlStateResponse` | `structure` | **empty (no members)** | - |
+| `UpdateRoutingControlStatesRequest` | `structure` | UpdateRoutingControlStateEntries, SafetyRulesToOverride | - |
+| `UpdateRoutingControlStatesResponse` | `structure` | **empty (no members)** | - |
+| `RoutingControlState` | `enum` | On, Off | - |
+| `ValidationExceptionReason` | `enum` | UNKNOWN_OPERATION, CANNOT_PARSE, FIELD_VALIDATION_FAILED, OTHER | Reason the request failed validation |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

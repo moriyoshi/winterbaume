@@ -74,92 +74,16 @@ Parity implications:
 
 ## Operation Groups
 
-### Get
-
-- Operations: `GetBaseline`, `GetBaselineOperation`, `GetControlOperation`, `GetEnabledBaseline`, `GetEnabledControl`, `GetLandingZone`, `GetLandingZoneOperation`
-- Traits: `readonly` (7)
-- Common required input members in this group: `baselineIdentifier`, `enabledBaselineIdentifier`, `enabledControlIdentifier`, `landingZoneIdentifier`, `operationIdentifier`
-
-### List
-
-- Operations: `ListBaselines`, `ListControlOperations`, `ListEnabledBaselines`, `ListEnabledControls`, `ListLandingZoneOperations`, `ListLandingZones`, `ListTagsForResource`
-- Traits: `paginated` (6), `readonly` (7)
-- Common required input members in this group: `resourceArn`
-
-### Reset
-
-- Operations: `ResetEnabledBaseline`, `ResetEnabledControl`, `ResetLandingZone`
-- Common required input members in this group: `enabledBaselineIdentifier`, `enabledControlIdentifier`, `landingZoneIdentifier`
-
-### Update
-
-- Operations: `UpdateEnabledBaseline`, `UpdateEnabledControl`, `UpdateLandingZone`
-- Common required input members in this group: `baselineVersion`, `enabledBaselineIdentifier`, `enabledControlIdentifier`, `landingZoneIdentifier`, `parameters`, `version`
-
 ### Disable
 
-- Operations: `DisableBaseline`, `DisableControl`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `enabledBaselineIdentifier`
-
-### Enable
-
-- Operations: `EnableBaseline`, `EnableControl`
-- Common required input members in this group: `baselineIdentifier`, `baselineVersion`, `controlIdentifier`, `targetIdentifier`
-
-### Create
-
-- Operations: `CreateLandingZone`
-- Common required input members in this group: `version`
-
-### Delete
-
-- Operations: `DeleteLandingZone`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `landingZoneIdentifier`
-
-### Tag
-
-- Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
-
-### Untag
-
-- Operations: `UntagResource`
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Operations: `DisableControl`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateLandingZone` | `POST /create-landingzone` | - | `version` | - | `CreateLandingZoneOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Creates a new landing zone. This API call starts an asynchronous operation that creates and configures a landing zone, based on the parameters specified in the manifest JSON file. |
-| `DeleteLandingZone` | `POST /delete-landingzone` | `idempotent` | `landingZoneIdentifier` | - | `DeleteLandingZoneOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Decommissions a landing zone. This API call starts an asynchronous operation that deletes Amazon Web Services Control Tower resources deployed in accounts managed by Amazon Web Services Control Tower. |
-| `DisableBaseline` | `POST /disable-baseline` | `idempotent` | `enabledBaselineIdentifier` | - | `DisableBaselineOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Disable an `EnabledBaseline` resource on the specified Target. This API starts an asynchronous operation to remove all resources deployed as part of the baseline enablement. |
-| `DisableControl` | `POST /disable-control` | - | - | - | `DisableControlOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | This API call turns off a control. It starts an asynchronous operation that deletes Amazon Web Services resources on the specified organizational unit and the accounts it contains. |
-| `EnableBaseline` | `POST /enable-baseline` | - | `baselineIdentifier`, `baselineVersion`, `targetIdentifier` | - | `EnableBaselineOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Enable (apply) a `Baseline` to a Target. This API starts an asynchronous operation to deploy resources specified by the `Baseline` to the specified Target. |
-| `EnableControl` | `POST /enable-control` | - | `controlIdentifier`, `targetIdentifier` | - | `EnableControlOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | This API call activates a control. It starts an asynchronous operation that creates Amazon Web Services resources on the specified organizational unit and the accounts it contains. |
-| `GetBaseline` | `POST /get-baseline` | `readonly` | `baselineIdentifier` | - | `GetBaselineOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieve details about an existing `Baseline` resource by specifying its identifier. For usage examples, see the Amazon Web Services Control Tower User Guide . |
-| `GetBaselineOperation` | `POST /get-baseline-operation` | `readonly` | `operationIdentifier` | - | `GetBaselineOperationOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns the details of an asynchronous baseline operation, as initiated by any of these APIs: `EnableBaseline`, `DisableBaseline`, `UpdateEnabledBaseline`, `ResetEnabledBaseline`. A status message is displayed in case of operation failure. |
-| `GetControlOperation` | `POST /get-control-operation` | `readonly` | `operationIdentifier` | - | `GetControlOperationOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns the status of a particular `EnableControl` or `DisableControl` operation. Displays a message in case of error. |
-| `GetEnabledBaseline` | `POST /get-enabled-baseline` | `readonly` | `enabledBaselineIdentifier` | - | `GetEnabledBaselineOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieve details of an `EnabledBaseline` resource by specifying its identifier. |
-| `GetEnabledControl` | `POST /get-enabled-control` | `readonly` | `enabledControlIdentifier` | - | `GetEnabledControlOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves details about an enabled control. For usage examples, see the Controls Reference Guide . |
-| `GetLandingZone` | `POST /get-landingzone` | `readonly` | `landingZoneIdentifier` | - | `GetLandingZoneOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns details about the landing zone. Displays a message in case of error. |
-| `GetLandingZoneOperation` | `POST /get-landingzone-operation` | `readonly` | `operationIdentifier` | - | `GetLandingZoneOperationOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns the status of the specified landing zone operation. Details for an operation are available for 90 days. |
-| `ListBaselines` | `POST /list-baselines` | `readonly`, `paginated` | - | - | `ListBaselinesOutput` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a summary list of all available baselines. For usage examples, see the Amazon Web Services Control Tower User Guide . |
-| `ListControlOperations` | `POST /list-control-operations` | `readonly`, `paginated` | - | - | `ListControlOperationsOutput` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Provides a list of operations in progress or queued. For usage examples, see ListControlOperation examples. |
-| `ListEnabledBaselines` | `POST /list-enabled-baselines` | `readonly`, `paginated` | - | - | `ListEnabledBaselinesOutput` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of summaries describing `EnabledBaseline` resources. You can filter the list by the corresponding `Baseline` or `Target` of the `EnabledBaseline` resources. |
-| `ListEnabledControls` | `POST /list-enabled-controls` | `readonly`, `paginated` | - | - | `ListEnabledControlsOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the controls enabled by Amazon Web Services Control Tower on the specified organizational unit and the accounts it contains. For usage examples, see the Controls Reference Guide . |
-| `ListLandingZoneOperations` | `POST /list-landingzone-operations` | `readonly`, `paginated` | - | - | `ListLandingZoneOperationsOutput` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists all landing zone operations from the past 90 days. Results are sorted by time, with the most recent operation first. |
-| `ListLandingZones` | `POST /list-landingzones` | `readonly`, `paginated` | - | - | `ListLandingZonesOutput` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns the landing zone ARN for the landing zone deployed in your managed account. This API also creates an ARN for existing accounts that do not yet have a landing zone ARN. |
-| `ListTagsForResource` | `GET /tags/{resourceArn}` | `readonly` | `resourceArn` | - | `ListTagsForResourceOutput` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns a list of tags associated with the resource. For usage examples, see the Controls Reference Guide . |
-| `ResetEnabledBaseline` | `POST /reset-enabled-baseline` | - | `enabledBaselineIdentifier` | - | `ResetEnabledBaselineOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Re-enables an `EnabledBaseline` resource. For example, this API can re-apply the existing `Baseline` after a new member account is moved to the target OU. |
-| `ResetEnabledControl` | `POST /reset-enabled-control` | - | `enabledControlIdentifier` | - | `ResetEnabledControlOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Resets an enabled control. Does not work for controls implemented with SCPs. |
-| `ResetLandingZone` | `POST /reset-landingzone` | - | `landingZoneIdentifier` | - | `ResetLandingZoneOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | This API call resets a landing zone. It starts an asynchronous operation that resets the landing zone to the parameters specified in the original configuration, which you specified in the manifest file. |
-| `TagResource` | `POST /tags/{resourceArn}` | - | `resourceArn`, `tags` | - | `TagResourceOutput` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Applies tags to a resource. For usage examples, see the Controls Reference Guide . |
-| `UntagResource` | `DELETE /tags/{resourceArn}` | - | `resourceArn`, `tagKeys` | - | `UntagResourceOutput` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Removes tags from a resource. For usage examples, see the Controls Reference Guide . |
-| `UpdateEnabledBaseline` | `POST /update-enabled-baseline` | - | `baselineVersion`, `enabledBaselineIdentifier` | - | `UpdateEnabledBaselineOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates an `EnabledBaseline` resource's applied parameters or version. For usage examples, see the Amazon Web Services Control Tower User Guide . |
-| `UpdateEnabledControl` | `POST /update-enabled-control` | - | `enabledControlIdentifier`, `parameters` | - | `UpdateEnabledControlOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates the configuration of an already enabled control. If the enabled control shows an `EnablementStatus` of SUCCEEDED, supply parameters that are different from the currently configured parameters. |
-| `UpdateLandingZone` | `POST /update-landingzone` | - | `landingZoneIdentifier`, `version` | - | `UpdateLandingZoneOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | This API call updates the landing zone. It starts an asynchronous operation that updates the landing zone based on the new landing zone version, or on the changed parameters specified in the updated manifest file. |
+| `DisableControl` | `POST /disable-control` | - | - | - | `DisableControlOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | This API call turns off a control. It starts an asynchronous operation that deletes Amazon Web Services resources on the specified organizational unit and the accounts it contains. The resources will vary according t ... |
 
 ## HTTP Bindings
 
@@ -171,31 +95,27 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `message` | An unexpected error occurred during processing of a request. |
-| `ValidationException` | `structure` | `message` | The input does not satisfy the constraints specified by an Amazon Web Services service. |
-| `AccessDeniedException` | `structure` | `message` | You do not have sufficient access to perform this action. |
-| `ThrottlingException` | `structure` | `message`, `quotaCode`, `retryAfterSeconds`, `serviceCode` | The request was denied due to request throttling. |
-| `ResourceNotFoundException` | `structure` | `message` | The request references a resource that does not exist. |
-| `ConflictException` | `structure` | `message` | Updating or deleting the resource can cause an inconsistent state. |
-| `ServiceQuotaExceededException` | `structure` | `message` | The request would cause a service quota to be exceeded. |
-| `CreateLandingZoneInput` | `structure` | `manifest`, `remediationTypes`, `tags`, `version` | - |
-| `CreateLandingZoneOutput` | `structure` | `arn`, `operationIdentifier` | - |
-| `DeleteLandingZoneInput` | `structure` | `landingZoneIdentifier` | - |
-| `DeleteLandingZoneOutput` | `structure` | `operationIdentifier` | - |
-| `DisableBaselineInput` | `structure` | `enabledBaselineIdentifier` | - |
-| `DisableBaselineOutput` | `structure` | `operationIdentifier` | - |
-| `DisableControlInput` | `structure` | `controlIdentifier`, `enabledControlIdentifier`, `targetIdentifier` | - |
-| `DisableControlOutput` | `structure` | `operationIdentifier` | - |
-| `EnableBaselineInput` | `structure` | `baselineIdentifier`, `baselineVersion`, `parameters`, `tags`, `targetIdentifier` | - |
-| `EnableBaselineOutput` | `structure` | `arn`, `operationIdentifier` | - |
-| `EnableControlInput` | `structure` | `controlIdentifier`, `parameters`, `tags`, `targetIdentifier` | - |
-| `EnableControlOutput` | `structure` | `arn`, `operationIdentifier` | - |
-| `GetBaselineInput` | `structure` | `baselineIdentifier` | - |
-| `GetBaselineOutput` | `structure` | `arn`, `description`, `name` | - |
-| `GetBaselineOperationInput` | `structure` | `operationIdentifier` | - |
-| `GetBaselineOperationOutput` | `structure` | `baselineOperation` | - |
-| `GetControlOperationInput` | `structure` | `operationIdentifier` | - |
-
+| `AccessDeniedException` | `structure` | message | You do not have sufficient access to perform this action. |
+| `ConflictException` | `structure` | message | Updating or deleting the resource can cause an inconsistent state. |
+| `InternalServerException` | `structure` | message | An unexpected error occurred during processing of a request. |
+| `ResourceNotFoundException` | `structure` | message | The request references a resource that does not exist. |
+| `ServiceQuotaExceededException` | `structure` | message | The request would cause a service quota to be exceeded. See Service quotas . |
+| `ThrottlingException` | `structure` | message, serviceCode, quotaCode, retryAfterSeconds | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | message | The input does not satisfy the constraints specified by an Amazon Web Services service. |
+| `DisableControlInput` | `structure` | controlIdentifier, targetIdentifier, enabledControlIdentifier | - |
+| `DisableControlOutput` | `structure` | operationIdentifier | - |
+| `BaselineOperationStatus` | `enum` | SUCCEEDED, FAILED, IN_PROGRESS | - |
+| `BaselineOperationType` | `enum` | ENABLE_BASELINE, DISABLE_BASELINE, UPDATE_ENABLED_BASELINE, RESET_ENABLED_BASELINE | - |
+| `ControlOperationStatus` | `enum` | SUCCEEDED, FAILED, IN_PROGRESS | - |
+| `ControlOperationType` | `enum` | ENABLE_CONTROL, DISABLE_CONTROL, UPDATE_ENABLED_CONTROL, RESET_ENABLED_CONTROL | - |
+| `DriftStatus` | `enum` | DRIFTED, IN_SYNC, NOT_CHECKING, UNKNOWN | - |
+| `EnabledBaselineDriftStatus` | `enum` | IN_SYNC, DRIFTED | - |
+| `EnablementStatus` | `enum` | SUCCEEDED, FAILED, UNDER_CHANGE | - |
+| `LandingZoneDriftStatus` | `enum` | DRIFTED, IN_SYNC | - |
+| `LandingZoneOperationStatus` | `enum` | SUCCEEDED, FAILED, IN_PROGRESS | - |
+| `LandingZoneOperationType` | `enum` | DELETE, CREATE, UPDATE, RESET | - |
+| `LandingZoneStatus` | `enum` | ACTIVE, PROCESSING, FAILED | - |
+| `RemediationType` | `enum` | INHERITANCE_DRIFT | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

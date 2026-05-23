@@ -54,107 +54,38 @@ Welcome to the AWS Ground Station API Reference. AWS Ground Station is a fully m
 | `Satellite` | `satelliteId` | read: `GetSatellite`; list: `ListSatellites` | - | - |
 ## Operation Groups
 
-### List
-
-- Operations: `ListConfigs`, `ListContacts`, `ListDataflowEndpointGroups`, `ListEphemerides`, `ListGroundStations`, `ListMissionProfiles`, `ListSatellites`, `ListTagsForResource`
-- Traits: `paginated` (7), `readonly` (8)
-- Common required input members in this group: `endTime`, `resourceArn`, `startTime`, `statusList`
-
 ### Get
 
-- Operations: `GetAgentConfiguration`, `GetAgentTaskResponseUrl`, `GetConfig`, `GetDataflowEndpointGroup`, `GetMinuteUsage`, `GetMissionProfile`, `GetSatellite`
-- Traits: `readonly` (7)
-- Common required input members in this group: `agentId`, `configId`, `configType`, `dataflowEndpointGroupId`, `missionProfileId`, `month`, `satelliteId`, `taskId`, `year`
-
-### Create
-
-- Operations: `CreateConfig`, `CreateDataflowEndpointGroup`, `CreateDataflowEndpointGroupV2`, `CreateEphemeris`, `CreateMissionProfile`
-- Common required input members in this group: `configData`, `dataflowEdges`, `endpointDetails`, `endpoints`, `minimumViableContactDurationSeconds`, `name`, `trackingConfigArn`
-
-### Delete
-
-- Operations: `DeleteConfig`, `DeleteDataflowEndpointGroup`, `DeleteEphemeris`, `DeleteMissionProfile`
-- Traits: `idempotent` (4)
-- Common required input members in this group: `configId`, `configType`, `dataflowEndpointGroupId`, `ephemerisId`, `missionProfileId`
-
-### Update
-
-- Operations: `UpdateAgentStatus`, `UpdateConfig`, `UpdateEphemeris`, `UpdateMissionProfile`
-- Traits: `idempotent` (4)
-- Common required input members in this group: `agentId`, `aggregateStatus`, `componentStatuses`, `configData`, `configId`, `configType`, `enabled`, `ephemerisId`, `missionProfileId`, `name`, `taskId`
-
-### Describe
-
-- Operations: `DescribeContact`, `DescribeEphemeris`
+- Operations: `GetAgentTaskResponseUrl`, `GetMinuteUsage`
 - Traits: `readonly` (2)
-- Common required input members in this group: `contactId`, `ephemerisId`
+- Common required input members in this group: -
 
-### Cancel
+### List
 
-- Operations: `CancelContact`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `contactId`
-
-### Register
-
-- Operations: `RegisterAgent`
-- Common required input members in this group: `agentDetails`, `discoveryData`
-
-### Reserve
-
-- Operations: `ReserveContact`
-- Common required input members in this group: `endTime`, `groundStation`, `missionProfileArn`, `startTime`
+- Operations: `ListTagsForResource`
+- Traits: `readonly` (1)
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CancelContact` | `DELETE /contact/{contactId}` | `idempotent` | `contactId` | - | `ContactIdResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | Cancels or stops a contact with a specified contact ID based on its position in the contact lifecycle. For contacts that: Have yet to start, the contact will be cancelled. |
-| `CreateConfig` | `POST /config` | - | `configData`, `name` | - | `ConfigIdResponse` | `DependencyException`, `InvalidParameterException`, `ResourceLimitExceededException`, `ResourceNotFoundException` | Creates a `Config` with the specified `configData` parameters. Only one type of `configData` can be specified. |
-| `CreateDataflowEndpointGroup` | `POST /dataflowEndpointGroup` | - | `endpointDetails` | - | `DataflowEndpointGroupIdResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | Creates a `DataflowEndpoint` group containing the specified list of ` DataflowEndpoint` objects. The `name` field in each endpoint is used in your mission profile ` DataflowEndpointConfig` to specify which endpoints to use during a contact. |
-| `CreateDataflowEndpointGroupV2` | `POST /dataflowEndpointGroupV2` | - | `endpoints` | - | `CreateDataflowEndpointGroupV2Response` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException`, `ServiceQuotaExceededException` | Creates a `DataflowEndpoint` group containing the specified list of Ground Station Agent based endpoints. The `name` field in each endpoint is used in your mission profile ` DataflowEndpointConfig` to specify which endpoints to use during a contact. |
-| `CreateEphemeris` | `POST /ephemeris` | - | `name` | - | `EphemerisIdResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | Create an ephemeris with your specified EphemerisData. |
-| `CreateMissionProfile` | `POST /missionprofile` | - | `dataflowEdges`, `minimumViableContactDurationSeconds`, `name`, `trackingConfigArn` | - | `MissionProfileIdResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | Creates a mission profile. `dataflowEdges` is a list of lists of strings. |
-| `DeleteConfig` | `DELETE /config/{configType}/{configId}` | `idempotent` | `configId`, `configType` | - | `ConfigIdResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | Deletes a `Config`. |
-| `DeleteDataflowEndpointGroup` | `DELETE /dataflowEndpointGroup/{dataflowEndpointGroupId}` | `idempotent` | `dataflowEndpointGroupId` | - | `DataflowEndpointGroupIdResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | Deletes a dataflow endpoint group. |
-| `DeleteEphemeris` | `DELETE /ephemeris/{ephemerisId}` | `idempotent` | `ephemerisId` | - | `EphemerisIdResponse` | `DependencyException`, `InvalidParameterException`, `ResourceInUseException`, `ResourceNotFoundException` | Delete an ephemeris. |
-| `DeleteMissionProfile` | `DELETE /missionprofile/{missionProfileId}` | `idempotent` | `missionProfileId` | - | `MissionProfileIdResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | Deletes a mission profile. |
-| `DescribeContact` | `GET /contact/{contactId}` | `readonly` | `contactId` | - | `DescribeContactResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | Describes an existing contact. |
-| `DescribeEphemeris` | `GET /ephemeris/{ephemerisId}` | `readonly` | `ephemerisId` | - | `DescribeEphemerisResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | Retrieve information about an existing ephemeris. |
-| `GetAgentConfiguration` | `GET /agent/{agentId}/configuration` | `readonly` | `agentId` | - | `GetAgentConfigurationResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | For use by AWS Ground Station Agent and shouldn't be called directly. Gets the latest configuration information for a registered agent. |
 | `GetAgentTaskResponseUrl` | `GET /agentResponseUrl/{agentId}/{taskId}` | `readonly` | `agentId`, `taskId` | - | `GetAgentTaskResponseUrlResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | For use by AWS Ground Station Agent and shouldn't be called directly. Gets a presigned URL for uploading agent task response logs. |
-| `GetConfig` | `GET /config/{configType}/{configId}` | `readonly` | `configId`, `configType` | - | `GetConfigResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | Returns `Config` information. Only one `Config` response can be returned. |
-| `GetDataflowEndpointGroup` | `GET /dataflowEndpointGroup/{dataflowEndpointGroupId}` | `readonly` | `dataflowEndpointGroupId` | - | `GetDataflowEndpointGroupResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | Returns the dataflow endpoint group. |
 | `GetMinuteUsage` | `POST /minute-usage` | `readonly` | `month`, `year` | - | `GetMinuteUsageResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | Returns the number of reserved minutes used by account. |
-| `GetMissionProfile` | `GET /missionprofile/{missionProfileId}` | `readonly` | `missionProfileId` | - | `GetMissionProfileResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | Returns a mission profile. |
-| `GetSatellite` | `GET /satellite/{satelliteId}` | `readonly` | `satelliteId` | - | `GetSatelliteResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | Returns a satellite. |
-| `ListConfigs` | `GET /config` | `readonly`, `paginated` | - | - | `ListConfigsResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | Returns a list of `Config` objects. |
-| `ListContacts` | `POST /contacts` | `readonly`, `paginated` | `endTime`, `startTime`, `statusList` | - | `ListContactsResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | Returns a list of contacts. If `statusList` contains AVAILABLE, the request must include ` groundStation`, `missionprofileArn`, and `satelliteArn`. |
-| `ListDataflowEndpointGroups` | `GET /dataflowEndpointGroup` | `readonly`, `paginated` | - | - | `ListDataflowEndpointGroupsResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | Returns a list of `DataflowEndpoint` groups. |
-| `ListEphemerides` | `POST /ephemerides` | `readonly`, `paginated` | `endTime`, `startTime` | - | `ListEphemeridesResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | List your existing ephemerides. |
-| `ListGroundStations` | `GET /groundstation` | `readonly`, `paginated` | - | - | `ListGroundStationsResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | Returns a list of ground stations. |
-| `ListMissionProfiles` | `GET /missionprofile` | `readonly`, `paginated` | - | - | `ListMissionProfilesResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | Returns a list of mission profiles. |
-| `ListSatellites` | `GET /satellite` | `readonly`, `paginated` | - | - | `ListSatellitesResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | Returns a list of satellites. |
 | `ListTagsForResource` | `GET /tags/{resourceArn}` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | Returns a list of tags for a specified resource. |
-| `RegisterAgent` | `POST /agent` | - | `agentDetails`, `discoveryData` | - | `RegisterAgentResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | For use by AWS Ground Station Agent and shouldn't be called directly. Registers a new agent with AWS Ground Station. |
-| `ReserveContact` | `POST /contact` | - | `endTime`, `groundStation`, `missionProfileArn`, `startTime` | - | `ContactIdResponse` | `DependencyException`, `InvalidParameterException`, `ResourceLimitExceededException`, `ResourceNotFoundException` | Reserves a contact using specified parameters. |
 | `TagResource` | `POST /tags/{resourceArn}` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | Assigns a tag to a resource. |
 | `UntagResource` | `DELETE /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | Deassigns a resource tag. |
-| `UpdateAgentStatus` | `PUT /agent/{agentId}` | `idempotent` | `agentId`, `aggregateStatus`, `componentStatuses`, `taskId` | - | `UpdateAgentStatusResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | For use by AWS Ground Station Agent and shouldn't be called directly. Update the status of the agent. |
-| `UpdateConfig` | `PUT /config/{configType}/{configId}` | `idempotent` | `configData`, `configId`, `configType`, `name` | - | `ConfigIdResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | Updates the `Config` used when scheduling contacts. Updating a `Config` will not update the execution parameters for existing future contacts scheduled with this `Config`. |
-| `UpdateEphemeris` | `PUT /ephemeris/{ephemerisId}` | `idempotent` | `enabled`, `ephemerisId` | - | `EphemerisIdResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | Update an existing ephemeris. |
-| `UpdateMissionProfile` | `PUT /missionprofile/{missionProfileId}` | `idempotent` | `missionProfileId` | - | `MissionProfileIdResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | Updates a mission profile. Updating a mission profile will not update the execution parameters for existing future contacts. |
 
 ## HTTP Bindings
 
@@ -168,31 +99,45 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `DependencyException` | `structure` | `message`, `parameterName` | Dependency encountered an error. |
-| `InvalidParameterException` | `structure` | `message`, `parameterName` | One or more parameters are not valid. |
-| `ResourceNotFoundException` | `structure` | `message` | Resource was not found. |
-| `ConfigIdResponse` | `structure` | `configArn`, `configId`, `configType` | - |
-| `EphemerisIdResponse` | `structure` | `ephemerisId` | - |
-| `MissionProfileIdResponse` | `structure` | `missionProfileId` | - |
-| `ContactIdResponse` | `structure` | `contactId` | - |
-| `ResourceLimitExceededException` | `structure` | `message`, `parameterName` | Account limits for this resource have been exceeded. |
-| `DataflowEndpointGroupIdResponse` | `structure` | `dataflowEndpointGroupId` | - |
-| `CancelContactRequest` | `structure` | `contactId` | - |
-| `CreateConfigRequest` | `structure` | `configData`, `name`, `tags` | - |
-| `CreateDataflowEndpointGroupRequest` | `structure` | `contactPostPassDurationSeconds`, `contactPrePassDurationSeconds`, `endpointDetails`, `tags` | - |
-| `CreateDataflowEndpointGroupV2Request` | `structure` | `contactPostPassDurationSeconds`, `contactPrePassDurationSeconds`, `endpoints`, `tags` | - |
-| `CreateDataflowEndpointGroupV2Response` | `structure` | `dataflowEndpointGroupId` | - |
-| `ServiceQuotaExceededException` | `structure` | `message`, `parameterName` | Request would cause a service quota to be exceeded. |
-| `CreateEphemerisRequest` | `structure` | `enabled`, `ephemeris`, `expirationTime`, `kmsKeyArn`, `name`, `priority`, `satelliteId`, `tags` | - |
-| `CreateMissionProfileRequest` | `structure` | `contactPostPassDurationSeconds`, `contactPrePassDurationSeconds`, `dataflowEdges`, `minimumViableContactDurationSeconds`, `name`, `streamsKmsKey`, `streamsKmsRole`, `tags`, `telemetrySinkConfigArn`, `trackingConfigArn` | - |
-| `DeleteConfigRequest` | `structure` | `configId`, `configType` | - |
-| `DeleteDataflowEndpointGroupRequest` | `structure` | `dataflowEndpointGroupId` | - |
-| `DeleteEphemerisRequest` | `structure` | `ephemerisId` | - |
-| `ResourceInUseException` | `structure` | `message` | The specified resource is in use by non-terminal state contacts and cannot be modified or deleted. |
-| `DeleteMissionProfileRequest` | `structure` | `missionProfileId` | - |
-| `DescribeContactRequest` | `structure` | `contactId` | - |
-| `DescribeContactResponse` | `structure` | `contactId`, `contactStatus`, `dataflowList`, `endTime`, `ephemeris`, `errorMessage`, `groundStation`, `maximumElevation`, `missionProfileArn`, `postPassEndTime`, `prePassStartTime`, `region`, ... (+6) | - |
-
+| `DependencyException` | `structure` | message, parameterName | Dependency encountered an error. |
+| `InvalidParameterException` | `structure` | message, parameterName | One or more parameters are not valid. |
+| `ResourceInUseException` | `structure` | message | The specified resource is in use by non-terminal state contacts and cannot be modified or deleted. |
+| `ResourceLimitExceededException` | `structure` | message, parameterName | Account limits for this resource have been exceeded. |
+| `ResourceNotFoundException` | `structure` | message | Resource was not found. |
+| `ServiceQuotaExceededException` | `structure` | message, parameterName | Request would cause a service quota to be exceeded. |
+| `GetAgentTaskResponseUrlRequest` | `structure` | agentId, taskId | - |
+| `GetAgentTaskResponseUrlResponse` | `structure` | agentId, taskId, presignedLogUrl | - |
+| `GetMinuteUsageRequest` | `structure` | month, year | Input for the GetMinuteUsage operation. |
+| `GetMinuteUsageResponse` | `structure` | isReservedMinutesCustomer, totalReservedMinuteAllocation, upcomingMinutesScheduled, totalScheduledMinutes, estimatedMinutesRemaining | Output for the GetMinuteUsage operation. |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | Input for the ListTagsForResource operation. |
+| `ListTagsForResourceResponse` | `structure` | tags | Output for the ListTagsForResource operation. |
+| `TagResourceRequest` | `structure` | resourceArn, tags | Input for the TagResource operation. |
+| `TagResourceResponse` | `structure` | **empty (no members)** | Output for the TagResource operation. |
+| `UntagResourceRequest` | `structure` | resourceArn, tagKeys | Input for the UntagResource operation. |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | Output for the UntagResource operation. |
+| `AgentStatus` | `enum` | SUCCESS, FAILED, ACTIVE, INACTIVE | - |
+| `AngleUnits` | `enum` | DEGREE_ANGLE, RADIAN | - |
+| `AuditResults` | `enum` | HEALTHY, UNHEALTHY | - |
+| `BandwidthUnits` | `enum` | GHZ, MHZ, KHZ | - |
+| `CapabilityHealth` | `enum` | HEALTHY, UNHEALTHY | - |
+| `CapabilityHealthReason` | `enum` | NO_REGISTERED_AGENT, INVALID_IP_OWNERSHIP, NOT_AUTHORIZED_TO_CREATE_SLR, UNVERIFIED_IP_OWNERSHIP, INITIALIZING_DATAPLANE, DATAPLANE_FAILURE, HEALTHY | - |
+| `ConfigCapabilityType` | `enum` | ANTENNA_DOWNLINK, ANTENNA_DOWNLINK_DEMOD_DECODE, TRACKING, DATAFLOW_ENDPOINT, ANTENNA_UPLINK, UPLINK_ECHO, S3_RECORDING, TELEMETRY_SINK | - |
+| `ContactStatus` | `enum` | SCHEDULING, FAILED_TO_SCHEDULE, SCHEDULED, CANCELLED, AWS_CANCELLED, PREPASS, PASS, POSTPASS, COMPLETED, FAILED, AVAILABLE, CANCELLING, ... (+1) | - |
+| `Criticality` | `enum` | REQUIRED, PREFERRED, REMOVED | - |
+| `EirpUnits` | `enum` | DBW | - |
+| `EndpointStatus` | `enum` | created, creating, deleted, deleting, failed | - |
+| `EphemerisErrorCode` | `enum` | INTERNAL_ERROR, MISMATCHED_SATCAT_ID, OEM_VERSION_UNSUPPORTED, ORIGINATOR_MISSING, CREATION_DATE_MISSING, OBJECT_NAME_MISSING, OBJECT_ID_MISSING, REF_FRAME_UNSUPPORTED, REF_FRAME_EPOCH_UNSUPPORTED, TIME_SYSTEM_UNSUPPORTED, CENTER_BODY_UNSUPPORTED, INTERPOLATION_MISSING, ... (+26) | - |
+| `EphemerisInvalidReason` | `enum` | METADATA_INVALID, TIME_RANGE_INVALID, TRAJECTORY_INVALID, KMS_KEY_INVALID, VALIDATION_ERROR | - |
+| `EphemerisSource` | `enum` | CUSTOMER_PROVIDED, SPACE_TRACK | - |
+| `EphemerisStatus` | `enum` | VALIDATING, INVALID, ERROR, ENABLED, DISABLED, EXPIRED | - |
+| `EphemerisType` | `enum` | TLE, OEM, AZ_EL, SERVICE_MANAGED | - |
+| `FrequencyUnits` | `enum` | GHZ, MHZ, KHZ | - |
+| `MaintenanceType` | `enum` | PLANNED, UNPLANNED | - |
+| `Polarization` | `enum` | RIGHT_HAND, LEFT_HAND, NONE | - |
+| `ReservationType` | `enum` | MAINTENANCE, CONTACT | - |
+| `TelemetrySinkType` | `enum` | KINESIS_DATA_STREAM | - |
+| `VersionFailureReasonCode` | `enum` | INTERNAL_ERROR, INVALID_SATELLITE_ARN, INVALID_UPDATE_CONTACT_REQUEST, EPHEMERIS_NOT_FOUND, EPHEMERIS_TIME_RANGE_INVALID, EPHEMERIS_NOT_ENABLED, SATELLITE_DOES_NOT_MATCH_EPHEMERIS, NOT_ONBOARDED_TO_AZEL_EPHEMERIS, AZEL_EPHEMERIS_NOT_FOUND, AZEL_EPHEMERIS_WRONG_GROUND_STATION, AZEL_EPHEMERIS_INVALID_STATUS, AZEL_EPHEMERIS_TIME_RANGE_INVALID | - |
+| `VersionStatus` | `enum` | UPDATING, ACTIVE, SUPERSEDED, FAILED_TO_UPDATE | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

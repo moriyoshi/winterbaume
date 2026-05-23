@@ -48,72 +48,29 @@ This is the AWS Elemental Inference REST API Reference. It provides information 
 
 ### List
 
-- Operations: `ListFeeds`, `ListTagsForResource`
-- Traits: `paginated` (1), `readonly` (2)
-- Common required input members in this group: `resourceArn`
-
-### Associate
-
-- Operations: `AssociateFeed`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `associatedResourceName`, `id`, `outputs`
-
-### Create
-
-- Operations: `CreateFeed`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `name`, `outputs`
-
-### Delete
-
-- Operations: `DeleteFeed`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `id`
-
-### Disassociate
-
-- Operations: `DisassociateFeed`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `associatedResourceName`, `id`
-
-### Get
-
-- Operations: `GetFeed`
+- Operations: `ListTagsForResource`
 - Traits: `readonly` (1)
-- Common required input members in this group: `id`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
-
-### Update
-
-- Operations: `UpdateFeed`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `id`, `name`, `outputs`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AssociateFeed` | `POST /v1/feed/{id}/associate` | `idempotent`, `idempotency-token` | `associatedResourceName`, `id`, `outputs` | `associatedResourceName` | `AssociateFeedResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerErrorException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `TooManyRequestException`, `ValidationException` | Associates a resource with the feed. The resource provides the input that Elemental Inference needs needs in order to perform an Elemental Inference feature, such as cropping video. |
-| `CreateFeed` | `POST /v1/feed` | `idempotent` | `name`, `outputs` | - | `CreateFeedResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerErrorException`, `ServiceQuotaExceededException`, `TooManyRequestException`, `ValidationException` | Creates a feed. The feed is the target for live streams being sent by the calling application. |
-| `DeleteFeed` | `DELETE /v1/feed/{id}` | `idempotent` | `id` | - | `DeleteFeedResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerErrorException`, `ResourceNotFoundException`, `TooManyRequestException`, `ValidationException` | Deletes the specified feed. The feed can be deleted at any time. |
-| `DisassociateFeed` | `POST /v1/feed/{id}/disassociate` | `idempotent`, `idempotency-token` | `associatedResourceName`, `id` | `associatedResourceName` | `DisassociateFeedResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerErrorException`, `ResourceNotFoundException`, `TooManyRequestException`, `ValidationException` | Releases the resource (for example, an MediaLive channel) that is associated with this feed. The outputs in the feed become disabled. |
-| `GetFeed` | `GET /v1/feed/{id}` | `readonly` | `id` | - | `GetFeedResponse` | `AccessDeniedException`, `InternalServerErrorException`, `ResourceNotFoundException`, `TooManyRequestException` | Retrieves information about the specified feed. |
-| `ListFeeds` | `GET /v1/feeds` | `readonly`, `paginated` | - | - | `ListFeedsResponse` | `AccessDeniedException`, `InternalServerErrorException`, `ResourceNotFoundException`, `TooManyRequestException`, `ValidationException` | Displays a list of feeds that belong to this AWS account. |
 | `ListTagsForResource` | `GET /v1/tags/{resourceArn}` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerErrorException`, `ResourceNotFoundException`, `TooManyRequestException`, `ValidationException` | List all tags that are on an Elemental Inference resource in the current region. |
-| `TagResource` | `POST /v1/tags/{resourceArn}` | `idempotent` | `resourceArn`, `tags` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerErrorException`, `ResourceNotFoundException`, `TooManyRequestException`, `ValidationException` | Associates the specified tags to the resource identified by the specified resourceArn in the current region. If existing tags on a resource are not specified in the request parameters, they are not changed. |
+| `TagResource` | `POST /v1/tags/{resourceArn}` | `idempotent` | `resourceArn`, `tags` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerErrorException`, `ResourceNotFoundException`, `TooManyRequestException`, `ValidationException` | Associates the specified tags to the resource identified by the specified resourceArn in the current region. If existing tags on a resource are not specified in the request parameters, they are not changed. When a re ... |
 | `UntagResource` | `DELETE /v1/tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerErrorException`, `ResourceNotFoundException`, `TooManyRequestException`, `ValidationException` | Deletes specified tags from the specified resource in the current region. |
-| `UpdateFeed` | `PUT /v1/feed/{id}` | `idempotent` | `id`, `name`, `outputs` | - | `UpdateFeedResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerErrorException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `TooManyRequestException`, `ValidationException` | Updates the name and/or outputs in a feed. |
 
 ## HTTP Bindings
 
@@ -127,30 +84,19 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | You do not have sufficient access to perform this action. |
-| `InternalServerErrorException` | `structure` | `message` | An internal server error occurred. |
-| `TooManyRequestException` | `structure` | `message` | The request was denied due to request throttling. |
-| `ResourceNotFoundException` | `structure` | `message` | The resource specified in the action doesn't exist. |
-| `ValidationException` | `structure` | `message` | The input fails to satisfy the constraints specified by the service. |
-| `ConflictException` | `structure` | `message` | The request could not be completed due to a conflict. |
-| `ServiceQuotaExceededException` | `structure` | `message` | The request was rejected because it would exceed one or more service quotas for your account. |
-| `AssociateFeedRequest` | `structure` | `associatedResourceName`, `dryRun`, `id`, `outputs` | - |
-| `AssociateFeedResponse` | `structure` | `arn`, `id` | - |
-| `CreateFeedRequest` | `structure` | `name`, `outputs`, `tags` | - |
-| `CreateFeedResponse` | `structure` | `arn`, `association`, `dataEndpoints`, `id`, `name`, `outputs`, `status`, `tags` | - |
-| `DeleteFeedRequest` | `structure` | `id` | - |
-| `DeleteFeedResponse` | `structure` | `arn`, `id`, `status` | - |
-| `DisassociateFeedRequest` | `structure` | `associatedResourceName`, `dryRun`, `id` | - |
-| `DisassociateFeedResponse` | `structure` | `arn`, `id` | - |
-| `GetFeedRequest` | `structure` | `id` | - |
-| `GetFeedResponse` | `structure` | `arn`, `association`, `dataEndpoints`, `id`, `name`, `outputs`, `status`, `tags` | - |
-| `ListFeedsRequest` | `structure` | `maxResults`, `nextToken` | - |
-| `ListFeedsResponse` | `structure` | `feeds`, `nextToken` | - |
-| `ListTagsForResourceRequest` | `structure` | `resourceArn` | - |
-| `ListTagsForResourceResponse` | `structure` | `tags` | - |
-| `TagResourceRequest` | `structure` | `resourceArn`, `tags` | - |
-| `UntagResourceRequest` | `structure` | `resourceArn`, `tagKeys` | - |
-
+| `AccessDeniedException` | `structure` | message | You do not have sufficient access to perform this action. |
+| `ConflictException` | `structure` | message | The request could not be completed due to a conflict. |
+| `InternalServerErrorException` | `structure` | message | An internal server error occurred. This is a temporary condition and the request can be retried. If the problem persists, contact AWS Support. |
+| `ResourceNotFoundException` | `structure` | message | The resource specified in the action doesn't exist. |
+| `ServiceQuotaExceededException` | `structure` | message | The request was rejected because it would exceed one or more service quotas for your account. Review your service quotas and either delete unused resources ... |
+| `TooManyRequestException` | `structure` | message | The request was denied due to request throttling. Too many requests have been made within a given time period. Reduce the frequency of requests and use expo ... |
+| `ValidationException` | `structure` | message | The input fails to satisfy the constraints specified by the service. Check the error message for details about which parameter or field is invalid and corre ... |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `TagResourceRequest` | `structure` | resourceArn, tags | - |
+| `UntagResourceRequest` | `structure` | resourceArn, tagKeys | - |
+| `FeedStatus` | `enum` | CREATING, AVAILABLE, ACTIVE, UPDATING, DELETING, DELETED, ARCHIVED | - |
+| `OutputStatus` | `enum` | ENABLED, DISABLED | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

@@ -40,15 +40,15 @@ No high-level service documentation is embedded in the AWS API model.
 
 - Operations: `GetActionRecommendations`, `GetPersonalizedRanking`, `GetRecommendations`
 - Traits: `idempotent` (3)
-- Common required input members in this group: `campaignArn`, `inputList`, `userId`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `GetActionRecommendations` | `POST /action-recommendations` | `idempotent` | - | - | `GetActionRecommendationsResponse` | `InvalidInputException`, `ResourceNotFoundException` | Returns a list of recommended actions in sorted in descending order by prediction score. Use the `GetActionRecommendations` API if you have a custom campaign that deploys a solution version trained with a PERSONALIZED_ACTIONS recipe. |
-| `GetPersonalizedRanking` | `POST /personalize-ranking` | `idempotent` | `campaignArn`, `inputList`, `userId` | - | `GetPersonalizedRankingResponse` | `InvalidInputException`, `ResourceNotFoundException` | Re-ranks a list of recommended items for the given user. The first item in the list is deemed the most likely item to be of interest to the user. |
-| `GetRecommendations` | `POST /recommendations` | `idempotent` | - | - | `GetRecommendationsResponse` | `InvalidInputException`, `ResourceNotFoundException` | Returns a list of recommended items. For campaigns, the campaign's Amazon Resource Name (ARN) is required and the required user and item input depends on the recipe type used to create the solution backing the campaign as follows: USER_PERSONALIZATION -... |
+| `GetActionRecommendations` | `POST /action-recommendations` | `idempotent` | - | - | `GetActionRecommendationsResponse` | `InvalidInputException`, `ResourceNotFoundException` | Returns a list of recommended actions in sorted in descending order by prediction score. Use the GetActionRecommendations API if you have a custom campaign that deploys a solution version trained with a PERSONALIZED_ ... |
+| `GetPersonalizedRanking` | `POST /personalize-ranking` | `idempotent` | `campaignArn`, `inputList`, `userId` | - | `GetPersonalizedRankingResponse` | `InvalidInputException`, `ResourceNotFoundException` | Re-ranks a list of recommended items for the given user. The first item in the list is deemed the most likely item to be of interest to the user. The solution backing the campaign must have been created using a recip ... |
+| `GetRecommendations` | `POST /recommendations` | `idempotent` | - | - | `GetRecommendationsResponse` | `InvalidInputException`, `ResourceNotFoundException` | Returns a list of recommended items. For campaigns, the campaign's Amazon Resource Name (ARN) is required and the required user and item input depends on the recipe type used to create the solution backing the campai ... |
 
 ## HTTP Bindings
 
@@ -60,15 +60,14 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InvalidInputException` | `structure` | `message` | Provide a valid value for the field or parameter. |
-| `ResourceNotFoundException` | `structure` | `message` | The specified resource does not exist. |
-| `GetActionRecommendationsRequest` | `structure` | `campaignArn`, `filterArn`, `filterValues`, `numResults`, `userId` | - |
-| `GetActionRecommendationsResponse` | `structure` | `actionList`, `recommendationId` | - |
-| `GetPersonalizedRankingRequest` | `structure` | `campaignArn`, `context`, `filterArn`, `filterValues`, `inputList`, `metadataColumns`, `userId` | - |
-| `GetPersonalizedRankingResponse` | `structure` | `personalizedRanking`, `recommendationId` | - |
-| `GetRecommendationsRequest` | `structure` | `campaignArn`, `context`, `filterArn`, `filterValues`, `itemId`, `metadataColumns`, `numResults`, `promotions`, `recommenderArn`, `userId` | - |
-| `GetRecommendationsResponse` | `structure` | `itemList`, `recommendationId` | - |
-
+| `InvalidInputException` | `structure` | message | Provide a valid value for the field or parameter. |
+| `ResourceNotFoundException` | `structure` | message | The specified resource does not exist. |
+| `GetActionRecommendationsRequest` | `structure` | campaignArn, userId, numResults, filterArn, filterValues | - |
+| `GetActionRecommendationsResponse` | `structure` | actionList, recommendationId | - |
+| `GetPersonalizedRankingRequest` | `structure` | campaignArn, inputList, userId, context, filterArn, filterValues, metadataColumns | - |
+| `GetPersonalizedRankingResponse` | `structure` | personalizedRanking, recommendationId | - |
+| `GetRecommendationsRequest` | `structure` | campaignArn, itemId, userId, numResults, context, filterArn, filterValues, recommenderArn, promotions, metadataColumns | - |
+| `GetRecommendationsResponse` | `structure` | itemList, recommendationId | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

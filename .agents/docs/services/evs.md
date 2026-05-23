@@ -47,72 +47,38 @@ Amazon Elastic VMware Service (Amazon EVS) is a service that you can use to depl
 | `EnvironmentResource` | `environmentId` | create: `CreateEnvironment`; read: `GetEnvironment`; delete: `DeleteEnvironment`; list: `ListEnvironments` | `AssociateEipToVlan`, `CreateEnvironmentHost`, `DeleteEnvironmentHost`, `DisassociateEipFromVlan`, `ListEnvironmentHosts`, `ListEnvironmentVlans` | - |
 ## Operation Groups
 
-### List
-
-- Operations: `ListEnvironmentHosts`, `ListEnvironmentVlans`, `ListEnvironments`, `ListTagsForResource`
-- Traits: `paginated` (3), `readonly` (4)
-- Common required input members in this group: `environmentId`, `resourceArn`
-
-### Create
-
-- Operations: `CreateEnvironment`, `CreateEnvironmentHost`
-- Traits: `idempotency-token` (2), `idempotent` (2)
-- Common required input members in this group: `connectivityInfo`, `environmentId`, `host`, `hosts`, `initialVlans`, `licenseInfo`, `serviceAccessSubnetId`, `siteId`, `termsAccepted`, `vcfHostnames`, `vcfVersion`, `vpcId`
-
-### Delete
-
-- Operations: `DeleteEnvironment`, `DeleteEnvironmentHost`
-- Traits: `idempotency-token` (2), `idempotent` (2)
-- Common required input members in this group: `environmentId`, `hostName`
-
 ### Get
 
-- Operations: `GetEnvironment`, `GetVersions`
-- Traits: `readonly` (2)
-- Common required input members in this group: `environmentId`
+- Operations: `GetVersions`
+- Traits: `readonly` (1)
+- Common required input members in this group: -
 
-### Associate
+### List
 
-- Operations: `AssociateEipToVlan`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `allocationId`, `environmentId`, `vlanName`
-
-### Disassociate
-
-- Operations: `DisassociateEipFromVlan`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `associationId`, `environmentId`, `vlanName`
+- Operations: `ListTagsForResource`
+- Traits: `readonly` (1)
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AssociateEipToVlan` | - | `idempotent`, `idempotency-token` | `allocationId`, `environmentId`, `vlanName` | `clientToken` | `AssociateEipToVlanResponse` | `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Associates an Elastic IP address with a public HCX VLAN. This operation is only allowed for public HCX VLANs at this time. |
-| `CreateEnvironment` | - | `idempotent`, `idempotency-token` | `connectivityInfo`, `hosts`, `initialVlans`, `licenseInfo`, `serviceAccessSubnetId`, `siteId`, `termsAccepted`, `vcfHostnames`, `vcfVersion`, `vpcId` | `clientToken` | `CreateEnvironmentResponse` | `ValidationException` | Creates an Amazon EVS environment that runs VCF software, such as SDDC Manager, NSX Manager, and vCenter Server. During environment creation, Amazon EVS performs validations on DNS settings, provisions VLAN subnets and hosts, and deploys the supplied version... |
-| `CreateEnvironmentHost` | - | `idempotent`, `idempotency-token` | `environmentId`, `host` | `clientToken` | `CreateEnvironmentHostResponse` | `ThrottlingException`, `ValidationException` | Creates an ESX host and adds it to an Amazon EVS environment. Amazon EVS supports 4-16 hosts per environment. |
-| `DeleteEnvironment` | - | `idempotent`, `idempotency-token` | `environmentId` | `clientToken` | `DeleteEnvironmentResponse` | `ResourceNotFoundException`, `ValidationException` | Deletes an Amazon EVS environment. Amazon EVS environments will only be enabled for deletion once the hosts are deleted. |
-| `DeleteEnvironmentHost` | - | `idempotent`, `idempotency-token` | `environmentId`, `hostName` | `clientToken` | `DeleteEnvironmentHostResponse` | `ResourceNotFoundException`, `ValidationException` | Deletes a host from an Amazon EVS environment. Before deleting a host, you must unassign and decommission the host from within the SDDC Manager user interface. |
-| `DisassociateEipFromVlan` | - | `idempotent`, `idempotency-token` | `associationId`, `environmentId`, `vlanName` | `clientToken` | `DisassociateEipFromVlanResponse` | `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Disassociates an Elastic IP address from a public HCX VLAN. This operation is only allowed for public HCX VLANs at this time. |
-| `GetEnvironment` | - | `readonly` | `environmentId` | - | `GetEnvironmentResponse` | `ResourceNotFoundException`, `ValidationException` | Returns a description of the specified environment. |
-| `GetVersions` | - | `readonly` | - | - | `GetVersionsResponse` | `InternalServerException`, `ThrottlingException` | Returns information about VCF versions, ESX versions and EC2 instance types provided by Amazon EVS. For each VCF version, the response also includes the default ESX version and provided EC2 instance types. |
-| `ListEnvironmentHosts` | - | `readonly`, `paginated` | `environmentId` | - | `ListEnvironmentHostsResponse` | `ResourceNotFoundException`, `ValidationException` | List the hosts within an environment. |
-| `ListEnvironmentVlans` | - | `readonly`, `paginated` | `environmentId` | - | `ListEnvironmentVlansResponse` | `ResourceNotFoundException`, `ValidationException` | Lists environment VLANs that are associated with the specified environment. |
-| `ListEnvironments` | - | `readonly`, `paginated` | - | - | `ListEnvironmentsResponse` | `ValidationException` | Lists the Amazon EVS environments in your Amazon Web Services account in the specified Amazon Web Services Region. |
-| `ListTagsForResource` | - | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `ResourceNotFoundException` | Lists the tags for an Amazon EVS resource. |
-| `TagResource` | - | `idempotent` | `resourceArn`, `tags` | - | `TagResourceResponse` | `ResourceNotFoundException`, `ServiceQuotaExceededException`, `TagPolicyException`, `TooManyTagsException` | Associates the specified tags to an Amazon EVS resource with the specified `resourceArn`. If existing tags on a resource are not specified in the request parameters, they aren't changed. |
-| `UntagResource` | - | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `ResourceNotFoundException`, `TagPolicyException` | Deletes specified tags from an Amazon EVS resource. |
+| `GetVersions` | `-` | `readonly` | - | - | `GetVersionsResponse` | `InternalServerException`, `ThrottlingException` | Returns information about VCF versions, ESX versions and EC2 instance types provided by Amazon EVS. For each VCF version, the response also includes the default ESX version and provided EC2 instance types. |
+| `ListTagsForResource` | `-` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `ResourceNotFoundException` | Lists the tags for an Amazon EVS resource. |
+| `TagResource` | `-` | `idempotent` | `resourceArn`, `tags` | - | `TagResourceResponse` | `ResourceNotFoundException`, `ServiceQuotaExceededException`, `TagPolicyException`, `TooManyTagsException` | Associates the specified tags to an Amazon EVS resource with the specified resourceArn . If existing tags on a resource are not specified in the request parameters, they aren't changed. When a resource is deleted, th ... |
+| `UntagResource` | `-` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `ResourceNotFoundException`, `TagPolicyException` | Deletes specified tags from an Amazon EVS resource. |
 
 ## HTTP Bindings
 
@@ -124,31 +90,33 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ResourceNotFoundException` | `structure` | `message`, `resourceId`, `resourceType` | A service resource associated with the request could not be found. |
-| `ValidationException` | `structure` | `fieldList`, `message`, `reason` | The input fails to satisfy the specified constraints. |
-| `ThrottlingException` | `structure` | `message`, `retryAfterSeconds` | The operation could not be performed because the service is throttling requests. |
-| `TagPolicyException` | `structure` | `message` | `TagPolicyException` is deprecated. |
-| `AssociateEipToVlanRequest` | `structure` | `allocationId`, `clientToken`, `environmentId`, `vlanName` | - |
-| `AssociateEipToVlanResponse` | `structure` | `vlan` | - |
-| `CreateEnvironmentRequest` | `structure` | `clientToken`, `connectivityInfo`, `environmentName`, `hosts`, `initialVlans`, `kmsKeyId`, `licenseInfo`, `serviceAccessSecurityGroups`, `serviceAccessSubnetId`, `siteId`, `tags`, `termsAccepted`, ... (+3) | - |
-| `CreateEnvironmentResponse` | `structure` | `environment` | - |
-| `CreateEnvironmentHostRequest` | `structure` | `clientToken`, `environmentId`, `esxVersion`, `host` | - |
-| `CreateEnvironmentHostResponse` | `structure` | `environmentSummary`, `host` | - |
-| `DeleteEnvironmentRequest` | `structure` | `clientToken`, `environmentId` | - |
-| `DeleteEnvironmentResponse` | `structure` | `environment` | - |
-| `DeleteEnvironmentHostRequest` | `structure` | `clientToken`, `environmentId`, `hostName` | - |
-| `DeleteEnvironmentHostResponse` | `structure` | `environmentSummary`, `host` | - |
-| `DisassociateEipFromVlanRequest` | `structure` | `associationId`, `clientToken`, `environmentId`, `vlanName` | - |
-| `DisassociateEipFromVlanResponse` | `structure` | `vlan` | - |
-| `GetEnvironmentRequest` | `structure` | `environmentId` | - |
-| `GetEnvironmentResponse` | `structure` | `environment` | - |
-| `GetVersionsRequest` | `structure` | - | - |
-| `GetVersionsResponse` | `structure` | `instanceTypeEsxVersions`, `vcfVersions` | - |
-| `InternalServerException` | `structure` | `message` | An internal server error occurred. |
-| `ListEnvironmentHostsRequest` | `structure` | `environmentId`, `maxResults`, `nextToken` | - |
-| `ListEnvironmentHostsResponse` | `structure` | `environmentHosts`, `nextToken` | - |
-| `ListEnvironmentVlansRequest` | `structure` | `environmentId`, `maxResults`, `nextToken` | - |
-
+| `InternalServerException` | `structure` | message | An internal server error occurred. Retry your request. |
+| `ResourceNotFoundException` | `structure` | message, resourceId, resourceType | A service resource associated with the request could not be found. The resource might not be specified correctly, or it may have a state of DELETED . |
+| `ServiceQuotaExceededException` | `structure` | message | The number of one or more Amazon EVS resources exceeds the maximum allowed. For a list of Amazon EVS quotas, see Amazon EVS endpoints and quotas in the Amaz ... |
+| `TagPolicyException` | `structure` | message | TagPolicyException is deprecated. See ValidationException instead. The request doesn't comply with IAM tag policy. Correct your request and then retry it. |
+| `ThrottlingException` | `structure` | message, retryAfterSeconds | The operation could not be performed because the service is throttling requests. This exception is thrown when the service endpoint receives too many concur ... |
+| `TooManyTagsException` | `structure` | message | TooManyTagsException is deprecated. See ServiceQuotaExceededException instead. A service resource associated with the request has more than 200 tags. |
+| `ValidationException` | `structure` | message, reason, fieldList | The input fails to satisfy the specified constraints. You will see this exception if invalid inputs are provided for any of the Amazon EVS environment opera ... |
+| `GetVersionsRequest` | `structure` | **empty (no members)** | - |
+| `GetVersionsResponse` | `structure` | vcfVersions, instanceTypeEsxVersions | - |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `TagResourceRequest` | `structure` | resourceArn, tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | resourceArn, tagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `CheckResult` | `enum` | PASSED, FAILED, UNKNOWN | - |
+| `CheckType` | `enum` | KEY_REUSE, KEY_COVERAGE, REACHABILITY, HOST_COUNT, VCENTER_REACHABILITY, VCENTER_VM_SYNC, VCENTER_VM_EVENT | - |
+| `ConnectorState` | `enum` | CREATING, CREATE_FAILED, ACTIVE, UPDATING, UPDATE_FAILED, DELETING, DELETED | - |
+| `ConnectorType` | `enum` | VCENTER | - |
+| `EntitlementStatus` | `enum` | CREATING, CREATED, DELETED, AT_RISK, ENTITLEMENT_REMOVED, CREATE_FAILED | - |
+| `EntitlementType` | `enum` | WINDOWS_SERVER | - |
+| `EnvironmentState` | `enum` | CREATING, CREATED, DELETING, DELETED, CREATE_FAILED | - |
+| `HostState` | `enum` | CREATING, CREATED, UPDATING, DELETING, DELETED, CREATE_FAILED, UPDATE_FAILED | - |
+| `InstanceType` | `enum` | I4I_METAL, I7I_METAL_24XL | - |
+| `ValidationExceptionReason` | `enum` | UNKNOWN_OPERATION, CANNOT_PARSE, FIELD_VALIDATION_FAILED, OTHER | - |
+| `VcfVersion` | `enum` | VCF_5_2_1, VCF_5_2_2 | - |
+| `VlanState` | `enum` | CREATING, CREATED, DELETING, DELETED, CREATE_FAILED | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

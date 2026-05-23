@@ -35,14 +35,14 @@ webrtc
 ### Join
 
 - Operations: `JoinStorageSession`, `JoinStorageSessionAsViewer`
-- Common required input members in this group: `channelArn`, `clientId`
+- Common required input members in this group: `channelArn`
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `JoinStorageSession` | `POST /joinStorageSession` | - | `channelArn` | - | `Unit` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceNotFoundException` | Before using this API, you must call the `GetSignalingChannelEndpoint` API to request the WEBRTC endpoint. You then specify the endpoint and region in your `JoinStorageSession` API request. |
-| `JoinStorageSessionAsViewer` | `POST /joinStorageSessionAsViewer` | - | `channelArn`, `clientId` | - | `Unit` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceNotFoundException` | Join the ongoing one way-video and/or multi-way audio WebRTC session as a viewer for an input channel. If there’s no existing session for the channel, create a new streaming session and provide the Amazon Resource Name (ARN) of the signaling channel... |
+| `JoinStorageSession` | `POST /joinStorageSession` | - | `channelArn` | - | `Unit` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceNotFoundException` | Before using this API, you must call the GetSignalingChannelEndpoint API to request the WEBRTC endpoint. You then specify the endpoint and region in your JoinStorageSession API request. Join the ongoing one way-video ... |
+| `JoinStorageSessionAsViewer` | `POST /joinStorageSessionAsViewer` | - | `channelArn`, `clientId` | - | `Unit` | `AccessDeniedException`, `ClientLimitExceededException`, `InvalidArgumentException`, `ResourceNotFoundException` | Join the ongoing one way-video and/or multi-way audio WebRTC session as a viewer for an input channel. If there’s no existing session for the channel, create a new streaming session and provide the Amazon Resource Na ... |
 
 ## HTTP Bindings
 
@@ -54,13 +54,12 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | You do not have required permissions to perform this operation. |
-| `ClientLimitExceededException` | `structure` | `message` | Kinesis Video Streams has throttled the request because you have exceeded the limit of allowed client calls. |
-| `InvalidArgumentException` | `structure` | `message` | The value for this input parameter is invalid. |
-| `ResourceNotFoundException` | `structure` | `message` | The specified resource is not found. |
-| `JoinStorageSessionInput` | `structure` | `channelArn` | - |
-| `JoinStorageSessionAsViewerInput` | `structure` | `channelArn`, `clientId` | - |
-
+| `AccessDeniedException` | `structure` | message | You do not have required permissions to perform this operation. |
+| `ClientLimitExceededException` | `structure` | message | Kinesis Video Streams has throttled the request because you have exceeded the limit of allowed client calls. Try making the call later. |
+| `InvalidArgumentException` | `structure` | message | The value for this input parameter is invalid. |
+| `ResourceNotFoundException` | `structure` | message | The specified resource is not found. |
+| `JoinStorageSessionInput` | `structure` | channelArn | - |
+| `JoinStorageSessionAsViewerInput` | `structure` | channelArn, clientId | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

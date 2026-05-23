@@ -73,32 +73,32 @@ CodeBuild currently has generated and snapshot fields for VPC configuration, but
 
 - Operations: `ListBuildBatches`, `ListBuildBatchesForProject`, `ListBuilds`, `ListBuildsForProject`, `ListCommandExecutionsForSandbox`, `ListCuratedEnvironmentImages`, `ListFleets`, `ListProjects`, `ListReportGroups`, `ListReports`, `ListReportsForReportGroup`, `ListSandboxes`, `ListSandboxesForProject`, `ListSharedProjects`, `ListSharedReportGroups`, `ListSourceCredentials`
 - Traits: `paginated` (14)
-- Common required input members in this group: `projectName`, `reportGroupArn`, `sandboxId`
+- Common required input members in this group: `projectName`
 
 ### Batch
 
 - Operations: `BatchDeleteBuilds`, `BatchGetBuildBatches`, `BatchGetBuilds`, `BatchGetCommandExecutions`, `BatchGetFleets`, `BatchGetProjects`, `BatchGetReportGroups`, `BatchGetReports`, `BatchGetSandboxes`
-- Common required input members in this group: `commandExecutionIds`, `ids`, `names`, `reportArns`, `reportGroupArns`, `sandboxId`
+- Common required input members in this group: `ids`, `names`
 
 ### Delete
 
 - Operations: `DeleteBuildBatch`, `DeleteFleet`, `DeleteProject`, `DeleteReport`, `DeleteReportGroup`, `DeleteResourcePolicy`, `DeleteSourceCredentials`, `DeleteWebhook`
-- Common required input members in this group: `arn`, `id`, `name`, `projectName`, `resourceArn`
+- Common required input members in this group: `arn`
 
 ### Start
 
 - Operations: `StartBuild`, `StartBuildBatch`, `StartCommandExecution`, `StartSandbox`, `StartSandboxConnection`
-- Common required input members in this group: `command`, `projectName`, `sandboxId`
+- Common required input members in this group: `projectName`, `sandboxId`
 
 ### Update
 
 - Operations: `UpdateFleet`, `UpdateProject`, `UpdateProjectVisibility`, `UpdateReportGroup`, `UpdateWebhook`
-- Common required input members in this group: `arn`, `name`, `projectArn`, `projectName`, `projectVisibility`
+- Common required input members in this group: `arn`
 
 ### Create
 
 - Operations: `CreateFleet`, `CreateProject`, `CreateReportGroup`, `CreateWebhook`
-- Common required input members in this group: `artifacts`, `baseCapacity`, `computeType`, `environment`, `environmentType`, `exportConfig`, `name`, `projectName`, `serviceRole`, `source`, `type`
+- Common required input members in this group: `name`
 
 ### Stop
 
@@ -114,90 +114,91 @@ CodeBuild currently has generated and snapshot fields for VPC configuration, but
 ### Get
 
 - Operations: `GetReportGroupTrend`, `GetResourcePolicy`
-- Common required input members in this group: `reportGroupArn`, `resourceArn`, `trendField`
+- Common required input members in this group: -
 
 ### Retry
 
 - Operations: `RetryBuild`, `RetryBuildBatch`
+- Common required input members in this group: -
 
 ### Import
 
 - Operations: `ImportSourceCredentials`
-- Common required input members in this group: `authType`, `serverType`, `token`
+- Common required input members in this group: -
 
 ### Invalidate
 
 - Operations: `InvalidateProjectCache`
-- Common required input members in this group: `projectName`
+- Common required input members in this group: -
 
 ### Put
 
 - Operations: `PutResourcePolicy`
-- Common required input members in this group: `policy`, `resourceArn`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `BatchDeleteBuilds` | - | - | `ids` | - | `BatchDeleteBuildsOutput` | `InvalidInputException` | Deletes one or more builds. |
-| `BatchGetBuildBatches` | - | - | `ids` | - | `BatchGetBuildBatchesOutput` | `InvalidInputException` | Retrieves information about one or more batch builds. |
-| `BatchGetBuilds` | - | - | `ids` | - | `BatchGetBuildsOutput` | `InvalidInputException` | Gets information about one or more builds. |
-| `BatchGetCommandExecutions` | - | - | `commandExecutionIds`, `sandboxId` | - | `BatchGetCommandExecutionsOutput` | `InvalidInputException` | Gets information about the command executions. |
-| `BatchGetFleets` | - | - | `names` | - | `BatchGetFleetsOutput` | `InvalidInputException` | Gets information about one or more compute fleets. |
-| `BatchGetProjects` | - | - | `names` | - | `BatchGetProjectsOutput` | `InvalidInputException` | Gets information about one or more build projects. |
-| `BatchGetReportGroups` | - | - | `reportGroupArns` | - | `BatchGetReportGroupsOutput` | `InvalidInputException` | Returns an array of report groups. |
-| `BatchGetReports` | - | - | `reportArns` | - | `BatchGetReportsOutput` | `InvalidInputException` | Returns an array of reports. |
-| `BatchGetSandboxes` | - | - | `ids` | - | `BatchGetSandboxesOutput` | `InvalidInputException` | Gets information about the sandbox status. |
-| `CreateFleet` | - | - | `baseCapacity`, `computeType`, `environmentType`, `name` | - | `CreateFleetOutput` | `AccountLimitExceededException`, `InvalidInputException`, `ResourceAlreadyExistsException` | Creates a compute fleet. |
-| `CreateProject` | - | - | `artifacts`, `environment`, `name`, `serviceRole`, `source` | - | `CreateProjectOutput` | `AccountLimitExceededException`, `InvalidInputException`, `ResourceAlreadyExistsException` | Creates a build project. |
-| `CreateReportGroup` | - | - | `exportConfig`, `name`, `type` | - | `CreateReportGroupOutput` | `AccountLimitExceededException`, `InvalidInputException`, `ResourceAlreadyExistsException` | Creates a report group. A report group contains a collection of reports. |
-| `CreateWebhook` | - | - | `projectName` | - | `CreateWebhookOutput` | `InvalidInputException`, `OAuthProviderException`, `ResourceAlreadyExistsException`, `ResourceNotFoundException` | For an existing CodeBuild build project that has its source code stored in a GitHub or Bitbucket repository, enables CodeBuild to start rebuilding the source code every time a code change is pushed to the repository. If you enable webhooks for an CodeBuild... |
-| `DeleteBuildBatch` | - | - | `id` | - | `DeleteBuildBatchOutput` | `InvalidInputException` | Deletes a batch build. |
-| `DeleteFleet` | - | - | `arn` | - | `DeleteFleetOutput` | `InvalidInputException` | Deletes a compute fleet. When you delete a compute fleet, its builds are not deleted. |
-| `DeleteProject` | - | - | `name` | - | `DeleteProjectOutput` | `InvalidInputException` | Deletes a build project. When you delete a project, its builds are not deleted. |
-| `DeleteReport` | - | - | `arn` | - | `DeleteReportOutput` | `InvalidInputException` | Deletes a report. |
-| `DeleteReportGroup` | - | - | `arn` | - | `DeleteReportGroupOutput` | `InvalidInputException` | Deletes a report group. Before you delete a report group, you must delete its reports. |
-| `DeleteResourcePolicy` | - | - | `resourceArn` | - | `DeleteResourcePolicyOutput` | `InvalidInputException` | Deletes a resource policy that is identified by its resource ARN. |
-| `DeleteSourceCredentials` | - | - | `arn` | - | `DeleteSourceCredentialsOutput` | `InvalidInputException`, `ResourceNotFoundException` | Deletes a set of GitHub, GitHub Enterprise, or Bitbucket source credentials. |
-| `DeleteWebhook` | - | - | `projectName` | - | `DeleteWebhookOutput` | `InvalidInputException`, `OAuthProviderException`, `ResourceNotFoundException` | For an existing CodeBuild build project that has its source code stored in a GitHub or Bitbucket repository, stops CodeBuild from rebuilding the source code every time a code change is pushed to the repository. |
-| `DescribeCodeCoverages` | - | `paginated` | `reportArn` | - | `DescribeCodeCoveragesOutput` | `InvalidInputException` | Retrieves one or more code coverage reports. |
-| `DescribeTestCases` | - | `paginated` | `reportArn` | - | `DescribeTestCasesOutput` | `InvalidInputException`, `ResourceNotFoundException` | Returns a list of details about test cases for a report. |
-| `GetReportGroupTrend` | - | - | `reportGroupArn`, `trendField` | - | `GetReportGroupTrendOutput` | `InvalidInputException`, `ResourceNotFoundException` | Analyzes and accumulates test report values for the specified test reports. |
-| `GetResourcePolicy` | - | - | `resourceArn` | - | `GetResourcePolicyOutput` | `InvalidInputException`, `ResourceNotFoundException` | Gets a resource policy that is identified by its resource ARN. |
-| `ImportSourceCredentials` | - | - | `authType`, `serverType`, `token` | - | `ImportSourceCredentialsOutput` | `AccountLimitExceededException`, `InvalidInputException`, `ResourceAlreadyExistsException` | Imports the source repository credentials for an CodeBuild project that has its source code stored in a GitHub, GitHub Enterprise, GitLab, GitLab Self Managed, or Bitbucket repository. |
-| `InvalidateProjectCache` | - | - | `projectName` | - | `InvalidateProjectCacheOutput` | `InvalidInputException`, `ResourceNotFoundException` | Resets the cache for a project. |
-| `ListBuildBatches` | - | `paginated` | - | - | `ListBuildBatchesOutput` | `InvalidInputException` | Retrieves the identifiers of your build batches in the current region. |
-| `ListBuildBatchesForProject` | - | `paginated` | - | - | `ListBuildBatchesForProjectOutput` | `InvalidInputException`, `ResourceNotFoundException` | Retrieves the identifiers of the build batches for a specific project. |
-| `ListBuilds` | - | `paginated` | - | - | `ListBuildsOutput` | `InvalidInputException` | Gets a list of build IDs, with each build ID representing a single build. |
-| `ListBuildsForProject` | - | `paginated` | `projectName` | - | `ListBuildsForProjectOutput` | `InvalidInputException`, `ResourceNotFoundException` | Gets a list of build identifiers for the specified build project, with each build identifier representing a single build. |
-| `ListCommandExecutionsForSandbox` | - | `paginated` | `sandboxId` | - | `ListCommandExecutionsForSandboxOutput` | `InvalidInputException`, `ResourceNotFoundException` | Gets a list of command executions for a sandbox. |
-| `ListCuratedEnvironmentImages` | - | - | - | - | `ListCuratedEnvironmentImagesOutput` | - | Gets information about Docker images that are managed by CodeBuild. |
-| `ListFleets` | - | `paginated` | - | - | `ListFleetsOutput` | `InvalidInputException` | Gets a list of compute fleet names with each compute fleet name representing a single compute fleet. |
-| `ListProjects` | - | `paginated` | - | - | `ListProjectsOutput` | `InvalidInputException` | Gets a list of build project names, with each build project name representing a single build project. |
-| `ListReportGroups` | - | `paginated` | - | - | `ListReportGroupsOutput` | `InvalidInputException` | Gets a list ARNs for the report groups in the current Amazon Web Services account. |
-| `ListReports` | - | `paginated` | - | - | `ListReportsOutput` | `InvalidInputException` | Returns a list of ARNs for the reports in the current Amazon Web Services account. |
-| `ListReportsForReportGroup` | - | `paginated` | `reportGroupArn` | - | `ListReportsForReportGroupOutput` | `InvalidInputException`, `ResourceNotFoundException` | Returns a list of ARNs for the reports that belong to a `ReportGroup`. |
-| `ListSandboxes` | - | `paginated` | - | - | `ListSandboxesOutput` | `InvalidInputException` | Gets a list of sandboxes. |
-| `ListSandboxesForProject` | - | `paginated` | `projectName` | - | `ListSandboxesForProjectOutput` | `InvalidInputException`, `ResourceNotFoundException` | Gets a list of sandboxes for a given project. |
-| `ListSharedProjects` | - | `paginated` | - | - | `ListSharedProjectsOutput` | `InvalidInputException` | Gets a list of projects that are shared with other Amazon Web Services accounts or users. |
-| `ListSharedReportGroups` | - | `paginated` | - | - | `ListSharedReportGroupsOutput` | `InvalidInputException` | Gets a list of report groups that are shared with other Amazon Web Services accounts or users. |
-| `ListSourceCredentials` | - | - | - | - | `ListSourceCredentialsOutput` | `InvalidInputException` | Returns a list of `SourceCredentialsInfo` objects. |
-| `PutResourcePolicy` | - | - | `policy`, `resourceArn` | - | `PutResourcePolicyOutput` | `InvalidInputException`, `ResourceNotFoundException` | Stores a resource policy for the ARN of a `Project` or `ReportGroup` object. |
-| `RetryBuild` | - | - | - | - | `RetryBuildOutput` | `AccountLimitExceededException`, `InvalidInputException`, `ResourceNotFoundException` | Restarts a build. |
-| `RetryBuildBatch` | - | - | - | - | `RetryBuildBatchOutput` | `InvalidInputException`, `ResourceNotFoundException` | Restarts a failed batch build. Only batch builds that have failed can be retried. |
-| `StartBuild` | - | - | `projectName` | - | `StartBuildOutput` | `AccountLimitExceededException`, `InvalidInputException`, `ResourceNotFoundException` | Starts running a build with the settings defined in the project. These setting include: how to run a build, where to get the source code, which build environment to use, which build commands to run, and where to store the build output. |
-| `StartBuildBatch` | - | - | `projectName` | - | `StartBuildBatchOutput` | `InvalidInputException`, `ResourceNotFoundException` | Starts a batch build for a project. |
-| `StartCommandExecution` | - | - | `command`, `sandboxId` | - | `StartCommandExecutionOutput` | `InvalidInputException`, `ResourceNotFoundException` | Starts a command execution. |
-| `StartSandbox` | - | - | - | - | `StartSandboxOutput` | `AccountSuspendedException`, `InvalidInputException`, `ResourceNotFoundException` | Starts a sandbox. |
-| `StartSandboxConnection` | - | - | `sandboxId` | - | `StartSandboxConnectionOutput` | `InvalidInputException`, `ResourceNotFoundException` | Starts a sandbox connection. |
-| `StopBuild` | - | - | `id` | - | `StopBuildOutput` | `InvalidInputException`, `ResourceNotFoundException` | Attempts to stop running a build. |
-| `StopBuildBatch` | - | - | `id` | - | `StopBuildBatchOutput` | `InvalidInputException`, `ResourceNotFoundException` | Stops a running batch build. |
-| `StopSandbox` | - | - | `id` | - | `StopSandboxOutput` | `InvalidInputException`, `ResourceNotFoundException` | Stops a sandbox. |
-| `UpdateFleet` | - | - | `arn` | - | `UpdateFleetOutput` | `AccountLimitExceededException`, `InvalidInputException`, `ResourceNotFoundException` | Updates a compute fleet. |
-| `UpdateProject` | - | - | `name` | - | `UpdateProjectOutput` | `InvalidInputException`, `ResourceNotFoundException` | Changes the settings of a build project. |
-| `UpdateProjectVisibility` | - | - | `projectArn`, `projectVisibility` | - | `UpdateProjectVisibilityOutput` | `InvalidInputException`, `ResourceNotFoundException` | Changes the public visibility for a project. The project's build results, logs, and artifacts are available to the general public. |
-| `UpdateReportGroup` | - | - | `arn` | - | `UpdateReportGroupOutput` | `InvalidInputException`, `ResourceNotFoundException` | Updates a report group. |
-| `UpdateWebhook` | - | - | `projectName` | - | `UpdateWebhookOutput` | `InvalidInputException`, `OAuthProviderException`, `ResourceNotFoundException` | Updates the webhook associated with an CodeBuild build project. If you use Bitbucket for your repository, `rotateSecret` is ignored. |
+| `BatchDeleteBuilds` | `-` | - | `ids` | - | `BatchDeleteBuildsOutput` | `InvalidInputException` | Deletes one or more builds. |
+| `BatchGetBuildBatches` | `-` | - | `ids` | - | `BatchGetBuildBatchesOutput` | `InvalidInputException` | Retrieves information about one or more batch builds. |
+| `BatchGetBuilds` | `-` | - | `ids` | - | `BatchGetBuildsOutput` | `InvalidInputException` | Gets information about one or more builds. |
+| `BatchGetCommandExecutions` | `-` | - | `sandboxId`, `commandExecutionIds` | - | `BatchGetCommandExecutionsOutput` | `InvalidInputException` | Gets information about the command executions. |
+| `BatchGetFleets` | `-` | - | `names` | - | `BatchGetFleetsOutput` | `InvalidInputException` | Gets information about one or more compute fleets. |
+| `BatchGetProjects` | `-` | - | `names` | - | `BatchGetProjectsOutput` | `InvalidInputException` | Gets information about one or more build projects. |
+| `BatchGetReportGroups` | `-` | - | `reportGroupArns` | - | `BatchGetReportGroupsOutput` | `InvalidInputException` | Returns an array of report groups. |
+| `BatchGetReports` | `-` | - | `reportArns` | - | `BatchGetReportsOutput` | `InvalidInputException` | Returns an array of reports. |
+| `BatchGetSandboxes` | `-` | - | `ids` | - | `BatchGetSandboxesOutput` | `InvalidInputException` | Gets information about the sandbox status. |
+| `CreateFleet` | `-` | - | `name`, `baseCapacity`, `environmentType`, `computeType` | - | `CreateFleetOutput` | `AccountLimitExceededException`, `InvalidInputException`, `ResourceAlreadyExistsException` | Creates a compute fleet. |
+| `CreateProject` | `-` | - | `name`, `source`, `artifacts`, `environment`, `serviceRole` | - | `CreateProjectOutput` | `AccountLimitExceededException`, `InvalidInputException`, `ResourceAlreadyExistsException` | Creates a build project. |
+| `CreateReportGroup` | `-` | - | `name`, `type`, `exportConfig` | - | `CreateReportGroupOutput` | `AccountLimitExceededException`, `InvalidInputException`, `ResourceAlreadyExistsException` | Creates a report group. A report group contains a collection of reports. |
+| `CreateWebhook` | `-` | - | `projectName` | - | `CreateWebhookOutput` | `InvalidInputException`, `OAuthProviderException`, `ResourceAlreadyExistsException`, `ResourceNotFoundException` | For an existing CodeBuild build project that has its source code stored in a GitHub or Bitbucket repository, enables CodeBuild to start rebuilding the source code every time a code change is pushed to the repository. ... |
+| `DeleteBuildBatch` | `-` | - | `id` | - | `DeleteBuildBatchOutput` | `InvalidInputException` | Deletes a batch build. |
+| `DeleteFleet` | `-` | - | `arn` | - | `DeleteFleetOutput` | `InvalidInputException` | Deletes a compute fleet. When you delete a compute fleet, its builds are not deleted. |
+| `DeleteProject` | `-` | - | `name` | - | `DeleteProjectOutput` | `InvalidInputException` | Deletes a build project. When you delete a project, its builds are not deleted. |
+| `DeleteReport` | `-` | - | `arn` | - | `DeleteReportOutput` | `InvalidInputException` | Deletes a report. |
+| `DeleteReportGroup` | `-` | - | `arn` | - | `DeleteReportGroupOutput` | `InvalidInputException` | Deletes a report group. Before you delete a report group, you must delete its reports. |
+| `DeleteResourcePolicy` | `-` | - | `resourceArn` | - | `DeleteResourcePolicyOutput` | `InvalidInputException` | Deletes a resource policy that is identified by its resource ARN. |
+| `DeleteSourceCredentials` | `-` | - | `arn` | - | `DeleteSourceCredentialsOutput` | `InvalidInputException`, `ResourceNotFoundException` | Deletes a set of GitHub, GitHub Enterprise, or Bitbucket source credentials. |
+| `DeleteWebhook` | `-` | - | `projectName` | - | `DeleteWebhookOutput` | `InvalidInputException`, `OAuthProviderException`, `ResourceNotFoundException` | For an existing CodeBuild build project that has its source code stored in a GitHub or Bitbucket repository, stops CodeBuild from rebuilding the source code every time a code change is pushed to the repository. |
+| `DescribeCodeCoverages` | `-` | `paginated` | `reportArn` | - | `DescribeCodeCoveragesOutput` | `InvalidInputException` | Retrieves one or more code coverage reports. |
+| `DescribeTestCases` | `-` | `paginated` | `reportArn` | - | `DescribeTestCasesOutput` | `InvalidInputException`, `ResourceNotFoundException` | Returns a list of details about test cases for a report. |
+| `GetReportGroupTrend` | `-` | - | `reportGroupArn`, `trendField` | - | `GetReportGroupTrendOutput` | `InvalidInputException`, `ResourceNotFoundException` | Analyzes and accumulates test report values for the specified test reports. |
+| `GetResourcePolicy` | `-` | - | `resourceArn` | - | `GetResourcePolicyOutput` | `InvalidInputException`, `ResourceNotFoundException` | Gets a resource policy that is identified by its resource ARN. |
+| `ImportSourceCredentials` | `-` | - | `token`, `serverType`, `authType` | - | `ImportSourceCredentialsOutput` | `AccountLimitExceededException`, `InvalidInputException`, `ResourceAlreadyExistsException` | Imports the source repository credentials for an CodeBuild project that has its source code stored in a GitHub, GitHub Enterprise, GitLab, GitLab Self Managed, or Bitbucket repository. |
+| `InvalidateProjectCache` | `-` | - | `projectName` | - | `InvalidateProjectCacheOutput` | `InvalidInputException`, `ResourceNotFoundException` | Resets the cache for a project. |
+| `ListBuildBatches` | `-` | `paginated` | - | - | `ListBuildBatchesOutput` | `InvalidInputException` | Retrieves the identifiers of your build batches in the current region. |
+| `ListBuildBatchesForProject` | `-` | `paginated` | - | - | `ListBuildBatchesForProjectOutput` | `InvalidInputException`, `ResourceNotFoundException` | Retrieves the identifiers of the build batches for a specific project. |
+| `ListBuilds` | `-` | `paginated` | - | - | `ListBuildsOutput` | `InvalidInputException` | Gets a list of build IDs, with each build ID representing a single build. |
+| `ListBuildsForProject` | `-` | `paginated` | `projectName` | - | `ListBuildsForProjectOutput` | `InvalidInputException`, `ResourceNotFoundException` | Gets a list of build identifiers for the specified build project, with each build identifier representing a single build. |
+| `ListCommandExecutionsForSandbox` | `-` | `paginated` | `sandboxId` | - | `ListCommandExecutionsForSandboxOutput` | `InvalidInputException`, `ResourceNotFoundException` | Gets a list of command executions for a sandbox. |
+| `ListCuratedEnvironmentImages` | `-` | - | - | - | `ListCuratedEnvironmentImagesOutput` | - | Gets information about Docker images that are managed by CodeBuild. |
+| `ListFleets` | `-` | `paginated` | - | - | `ListFleetsOutput` | `InvalidInputException` | Gets a list of compute fleet names with each compute fleet name representing a single compute fleet. |
+| `ListProjects` | `-` | `paginated` | - | - | `ListProjectsOutput` | `InvalidInputException` | Gets a list of build project names, with each build project name representing a single build project. |
+| `ListReportGroups` | `-` | `paginated` | - | - | `ListReportGroupsOutput` | `InvalidInputException` | Gets a list ARNs for the report groups in the current Amazon Web Services account. |
+| `ListReports` | `-` | `paginated` | - | - | `ListReportsOutput` | `InvalidInputException` | Returns a list of ARNs for the reports in the current Amazon Web Services account. |
+| `ListReportsForReportGroup` | `-` | `paginated` | `reportGroupArn` | - | `ListReportsForReportGroupOutput` | `InvalidInputException`, `ResourceNotFoundException` | Returns a list of ARNs for the reports that belong to a ReportGroup . |
+| `ListSandboxes` | `-` | `paginated` | - | - | `ListSandboxesOutput` | `InvalidInputException` | Gets a list of sandboxes. |
+| `ListSandboxesForProject` | `-` | `paginated` | `projectName` | - | `ListSandboxesForProjectOutput` | `InvalidInputException`, `ResourceNotFoundException` | Gets a list of sandboxes for a given project. |
+| `ListSharedProjects` | `-` | `paginated` | - | - | `ListSharedProjectsOutput` | `InvalidInputException` | Gets a list of projects that are shared with other Amazon Web Services accounts or users. |
+| `ListSharedReportGroups` | `-` | `paginated` | - | - | `ListSharedReportGroupsOutput` | `InvalidInputException` | Gets a list of report groups that are shared with other Amazon Web Services accounts or users. |
+| `ListSourceCredentials` | `-` | - | - | - | `ListSourceCredentialsOutput` | `InvalidInputException` | Returns a list of SourceCredentialsInfo objects. |
+| `PutResourcePolicy` | `-` | - | `policy`, `resourceArn` | - | `PutResourcePolicyOutput` | `InvalidInputException`, `ResourceNotFoundException` | Stores a resource policy for the ARN of a Project or ReportGroup object. |
+| `RetryBuild` | `-` | - | - | - | `RetryBuildOutput` | `AccountLimitExceededException`, `InvalidInputException`, `ResourceNotFoundException` | Restarts a build. |
+| `RetryBuildBatch` | `-` | - | - | - | `RetryBuildBatchOutput` | `InvalidInputException`, `ResourceNotFoundException` | Restarts a failed batch build. Only batch builds that have failed can be retried. |
+| `StartBuild` | `-` | - | `projectName` | - | `StartBuildOutput` | `AccountLimitExceededException`, `InvalidInputException`, `ResourceNotFoundException` | Starts running a build with the settings defined in the project. These setting include: how to run a build, where to get the source code, which build environment to use, which build commands to run, and where to stor ... |
+| `StartBuildBatch` | `-` | - | `projectName` | - | `StartBuildBatchOutput` | `InvalidInputException`, `ResourceNotFoundException` | Starts a batch build for a project. |
+| `StartCommandExecution` | `-` | - | `sandboxId`, `command` | - | `StartCommandExecutionOutput` | `InvalidInputException`, `ResourceNotFoundException` | Starts a command execution. |
+| `StartSandbox` | `-` | - | - | - | `StartSandboxOutput` | `AccountSuspendedException`, `InvalidInputException`, `ResourceNotFoundException` | Starts a sandbox. |
+| `StartSandboxConnection` | `-` | - | `sandboxId` | - | `StartSandboxConnectionOutput` | `InvalidInputException`, `ResourceNotFoundException` | Starts a sandbox connection. |
+| `StopBuild` | `-` | - | `id` | - | `StopBuildOutput` | `InvalidInputException`, `ResourceNotFoundException` | Attempts to stop running a build. |
+| `StopBuildBatch` | `-` | - | `id` | - | `StopBuildBatchOutput` | `InvalidInputException`, `ResourceNotFoundException` | Stops a running batch build. |
+| `StopSandbox` | `-` | - | `id` | - | `StopSandboxOutput` | `InvalidInputException`, `ResourceNotFoundException` | Stops a sandbox. |
+| `UpdateFleet` | `-` | - | `arn` | - | `UpdateFleetOutput` | `AccountLimitExceededException`, `InvalidInputException`, `ResourceNotFoundException` | Updates a compute fleet. |
+| `UpdateProject` | `-` | - | `name` | - | `UpdateProjectOutput` | `InvalidInputException`, `ResourceNotFoundException` | Changes the settings of a build project. |
+| `UpdateProjectVisibility` | `-` | - | `projectArn`, `projectVisibility` | - | `UpdateProjectVisibilityOutput` | `InvalidInputException`, `ResourceNotFoundException` | Changes the public visibility for a project. The project's build results, logs, and artifacts are available to the general public. For more information, see Public build projects in the CodeBuild User Guide . The fol ... |
+| `UpdateReportGroup` | `-` | - | `arn` | - | `UpdateReportGroupOutput` | `InvalidInputException`, `ResourceNotFoundException` | Updates a report group. |
+| `UpdateWebhook` | `-` | - | `projectName` | - | `UpdateWebhookOutput` | `InvalidInputException`, `OAuthProviderException`, `ResourceNotFoundException` | Updates the webhook associated with an CodeBuild build project. If you use Bitbucket for your repository, rotateSecret is ignored. |
 
 ## HTTP Bindings
 
@@ -209,31 +210,56 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InvalidInputException` | `structure` | `message` | The input value that was provided is not valid. |
-| `ResourceNotFoundException` | `structure` | `message` | The specified Amazon Web Services resource cannot be found. |
-| `AccountLimitExceededException` | `structure` | `message` | An Amazon Web Services service limit was exceeded for the calling Amazon Web Services account. |
-| `ResourceAlreadyExistsException` | `structure` | `message` | The specified Amazon Web Services resource cannot be created, because an Amazon Web Services resource with the same settings already exists. |
-| `OAuthProviderException` | `structure` | `message` | There was a problem with the underlying OAuth provider. |
-| `BatchDeleteBuildsInput` | `structure` | `ids` | - |
-| `BatchDeleteBuildsOutput` | `structure` | `buildsDeleted`, `buildsNotDeleted` | - |
-| `BatchGetBuildBatchesInput` | `structure` | `ids` | - |
-| `BatchGetBuildBatchesOutput` | `structure` | `buildBatches`, `buildBatchesNotFound` | - |
-| `BatchGetBuildsInput` | `structure` | `ids` | - |
-| `BatchGetBuildsOutput` | `structure` | `builds`, `buildsNotFound` | - |
-| `BatchGetCommandExecutionsInput` | `structure` | `commandExecutionIds`, `sandboxId` | - |
-| `BatchGetCommandExecutionsOutput` | `structure` | `commandExecutions`, `commandExecutionsNotFound` | - |
-| `BatchGetFleetsInput` | `structure` | `names` | - |
-| `BatchGetFleetsOutput` | `structure` | `fleets`, `fleetsNotFound` | - |
-| `BatchGetProjectsInput` | `structure` | `names` | - |
-| `BatchGetProjectsOutput` | `structure` | `projects`, `projectsNotFound` | - |
-| `BatchGetReportGroupsInput` | `structure` | `reportGroupArns` | - |
-| `BatchGetReportGroupsOutput` | `structure` | `reportGroups`, `reportGroupsNotFound` | - |
-| `BatchGetReportsInput` | `structure` | `reportArns` | - |
-| `BatchGetReportsOutput` | `structure` | `reports`, `reportsNotFound` | - |
-| `BatchGetSandboxesInput` | `structure` | `ids` | - |
-| `BatchGetSandboxesOutput` | `structure` | `sandboxes`, `sandboxesNotFound` | - |
-| `CreateFleetInput` | `structure` | `baseCapacity`, `computeConfiguration`, `computeType`, `environmentType`, `fleetServiceRole`, `imageId`, `name`, `overflowBehavior`, `proxyConfiguration`, `scalingConfiguration`, `tags`, `vpcConfig` | - |
-
+| `AccountLimitExceededException` | `structure` | message | An Amazon Web Services service limit was exceeded for the calling Amazon Web Services account. |
+| `AccountSuspendedException` | `structure` | message | The CodeBuild access has been suspended for the calling Amazon Web Services account. |
+| `InvalidInputException` | `structure` | message | The input value that was provided is not valid. |
+| `OAuthProviderException` | `structure` | message | There was a problem with the underlying OAuth provider. |
+| `ResourceAlreadyExistsException` | `structure` | message | The specified Amazon Web Services resource cannot be created, because an Amazon Web Services resource with the same settings already exists. |
+| `ResourceNotFoundException` | `structure` | message | The specified Amazon Web Services resource cannot be found. |
+| `BatchDeleteBuildsInput` | `structure` | ids | - |
+| `BatchDeleteBuildsOutput` | `structure` | buildsDeleted, buildsNotDeleted | - |
+| `BatchGetBuildBatchesInput` | `structure` | ids | - |
+| `BatchGetBuildBatchesOutput` | `structure` | buildBatches, buildBatchesNotFound | - |
+| `BatchGetBuildsInput` | `structure` | ids | - |
+| `BatchGetBuildsOutput` | `structure` | builds, buildsNotFound | - |
+| `BatchGetCommandExecutionsInput` | `structure` | sandboxId, commandExecutionIds | - |
+| `BatchGetCommandExecutionsOutput` | `structure` | commandExecutions, commandExecutionsNotFound | - |
+| `BatchGetFleetsInput` | `structure` | names | - |
+| `BatchGetFleetsOutput` | `structure` | fleets, fleetsNotFound | - |
+| `BatchGetProjectsInput` | `structure` | names | - |
+| `BatchGetProjectsOutput` | `structure` | projects, projectsNotFound | - |
+| `BatchGetReportGroupsInput` | `structure` | reportGroupArns | - |
+| `BatchGetReportGroupsOutput` | `structure` | reportGroups, reportGroupsNotFound | - |
+| `BatchGetReportsInput` | `structure` | reportArns | - |
+| `BatchGetReportsOutput` | `structure` | reports, reportsNotFound | - |
+| `BatchGetSandboxesInput` | `structure` | ids | - |
+| `BatchGetSandboxesOutput` | `structure` | sandboxes, sandboxesNotFound | - |
+| `CreateFleetInput` | `structure` | name, baseCapacity, environmentType, computeType, computeConfiguration, scalingConfiguration, overflowBehavior, vpcConfig, proxyConfiguration, imageId, fleetServiceRole, tags | - |
+| `CreateFleetOutput` | `structure` | fleet | - |
+| `CreateProjectInput` | `structure` | name, description, source, secondarySources, sourceVersion, secondarySourceVersions, artifacts, secondaryArtifacts, cache, environment, serviceRole, timeoutInMinutes, ... (+10) | - |
+| `CreateProjectOutput` | `structure` | project | - |
+| `CreateReportGroupInput` | `structure` | name, type, exportConfig, tags | - |
+| `CreateReportGroupOutput` | `structure` | reportGroup | - |
+| `CreateWebhookInput` | `structure` | projectName, branchFilter, filterGroups, buildType, manualCreation, scopeConfiguration, pullRequestBuildPolicy | - |
+| `CreateWebhookOutput` | `structure` | webhook | - |
+| `DeleteBuildBatchInput` | `structure` | id | - |
+| `DeleteBuildBatchOutput` | `structure` | statusCode, buildsDeleted, buildsNotDeleted | - |
+| `DeleteFleetInput` | `structure` | arn | - |
+| `DeleteFleetOutput` | `structure` | **empty (no members)** | - |
+| `DeleteProjectInput` | `structure` | name | - |
+| `DeleteProjectOutput` | `structure` | **empty (no members)** | - |
+| `DeleteReportInput` | `structure` | arn | - |
+| `DeleteReportOutput` | `structure` | **empty (no members)** | - |
+| `ArtifactNamespace` | `enum` | NONE, BUILD_ID | - |
+| `ArtifactPackaging` | `enum` | NONE, ZIP | - |
+| `ArtifactsType` | `enum` | CODEPIPELINE, S3, NO_ARTIFACTS | - |
+| `AuthType` | `enum` | OAUTH, BASIC_AUTH, PERSONAL_ACCESS_TOKEN, CODECONNECTIONS, SECRETS_MANAGER | - |
+| `BatchReportModeType` | `enum` | REPORT_INDIVIDUAL_BUILDS, REPORT_AGGREGATED_BATCH | - |
+| `BucketOwnerAccess` | `enum` | NONE, READ_ONLY, FULL | Specifies the bucket owner's access for objects that another account uploads to their Amazon S3 bucket. By default, only the account that uploads the object ... |
+| `BuildBatchPhaseType` | `enum` | SUBMITTED, DOWNLOAD_BATCHSPEC, IN_PROGRESS, COMBINE_ARTIFACTS, SUCCEEDED, FAILED, STOPPED | - |
+| `BuildPhaseType` | `enum` | SUBMITTED, QUEUED, PROVISIONING, DOWNLOAD_SOURCE, INSTALL, PRE_BUILD, BUILD, POST_BUILD, UPLOAD_ARTIFACTS, FINALIZING, COMPLETED | - |
+| `CacheMode` | `enum` | LOCAL_DOCKER_LAYER_CACHE, LOCAL_SOURCE_CACHE, LOCAL_CUSTOM_CACHE | - |
+| `CacheType` | `enum` | NO_CACHE, S3, LOCAL | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

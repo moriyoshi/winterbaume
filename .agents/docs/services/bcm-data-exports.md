@@ -48,58 +48,37 @@ You can use the Data Exports API to create customized exports from multiple Amaz
 
 ### List
 
-- Operations: `ListExecutions`, `ListExports`, `ListTables`, `ListTagsForResource`
-- Traits: `paginated` (3), `readonly` (4)
-- Common required input members in this group: `ExportArn`, `ResourceArn`
+- Operations: `ListExecutions`, `ListTables`, `ListTagsForResource`
+- Traits: `readonly` (3), `paginated` (2)
+- Common required input members in this group: -
 
 ### Get
 
-- Operations: `GetExecution`, `GetExport`, `GetTable`
-- Traits: `readonly` (3)
-- Common required input members in this group: `ExecutionId`, `ExportArn`, `TableName`
-
-### Create
-
-- Operations: `CreateExport`
-- Common required input members in this group: `Export`
-
-### Delete
-
-- Operations: `DeleteExport`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `ExportArn`
+- Operations: `GetExecution`, `GetTable`
+- Traits: `readonly` (2)
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `ResourceTags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceArn`, `ResourceTagKeys`
-
-### Update
-
-- Operations: `UpdateExport`
-- Common required input members in this group: `Export`, `ExportArn`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateExport` | - | - | `Export` | - | `CreateExportResponse` | `AccessDeniedException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a data export and specifies the data query, the delivery preference, and any optional resource tags. A `DataQuery` consists of both a `QueryStatement` and `TableConfigurations`. |
-| `DeleteExport` | - | `idempotent` | `ExportArn` | - | `DeleteExportResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an existing data export. |
-| `GetExecution` | - | `readonly` | `ExecutionId`, `ExportArn` | - | `GetExecutionResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Exports data based on the source data update. |
-| `GetExport` | - | `readonly` | `ExportArn` | - | `GetExportResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Views the definition of an existing data export. |
-| `GetTable` | - | `readonly` | `TableName` | - | `GetTableResponse` | `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns the metadata for the specified table and table properties. This includes the list of columns in the table schema, their data types, and column descriptions. |
-| `ListExecutions` | - | `readonly`, `paginated` | `ExportArn` | - | `ListExecutionsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the historical executions for the export. |
-| `ListExports` | - | `readonly`, `paginated` | - | - | `ListExportsResponse` | `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists all data export definitions. |
-| `ListTables` | - | `readonly`, `paginated` | - | - | `ListTablesResponse` | `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists all available tables in data exports. |
-| `ListTagsForResource` | - | `readonly` | `ResourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | List tags associated with an existing data export. |
-| `TagResource` | - | - | `ResourceArn`, `ResourceTags` | - | `TagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Adds tags for an existing data export definition. |
-| `UntagResource` | - | - | `ResourceArn`, `ResourceTagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes tags associated with an existing data export definition. |
-| `UpdateExport` | - | - | `Export`, `ExportArn` | - | `UpdateExportResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates an existing data export by overwriting all export parameters. All export parameters must be provided in the UpdateExport request. |
+| `GetExecution` | `-` | `readonly` | `ExportArn`, `ExecutionId` | - | `GetExecutionResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Exports data based on the source data update. |
+| `GetTable` | `-` | `readonly` | `TableName` | - | `GetTableResponse` | `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns the metadata for the specified table and table properties. This includes the list of columns in the table schema, their data types, and column descriptions. |
+| `ListExecutions` | `-` | `readonly`, `paginated` | `ExportArn` | - | `ListExecutionsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the historical executions for the export. |
+| `ListTables` | `-` | `readonly`, `paginated` | - | - | `ListTablesResponse` | `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists all available tables in data exports. |
+| `ListTagsForResource` | `-` | `readonly` | `ResourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | List tags associated with an existing data export. |
+| `TagResource` | `-` | - | `ResourceArn`, `ResourceTags` | - | `TagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Adds tags for an existing data export definition. |
+| `UntagResource` | `-` | - | `ResourceArn`, `ResourceTagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes tags associated with an existing data export definition. |
 
 ## HTTP Bindings
 
@@ -111,31 +90,35 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `Message` | An error on the server occurred during the processing of your request. |
-| `ThrottlingException` | `structure` | `Message`, `QuotaCode`, `ServiceCode` | The request was denied due to request throttling. |
-| `ValidationException` | `structure` | `Fields`, `Message`, `Reason` | The input fails to satisfy the constraints specified by an Amazon Web Services service. |
-| `ResourceNotFoundException` | `structure` | `Message`, `ResourceId`, `ResourceType` | The specified Amazon Resource Name (ARN) in the request doesn't exist. |
-| `AccessDeniedException` | `structure` | `Message` | You don't have sufficient access to perform this action. |
-| `CreateExportRequest` | `structure` | `Export`, `ResourceTags` | - |
-| `CreateExportResponse` | `structure` | `ExportArn` | - |
-| `ServiceQuotaExceededException` | `structure` | `Message`, `QuotaCode`, `ResourceId`, `ResourceType`, `ServiceCode` | You've reached the limit on the number of resources you can create, or exceeded the size of an individual resource. |
-| `DeleteExportRequest` | `structure` | `ExportArn` | - |
-| `DeleteExportResponse` | `structure` | `ExportArn` | - |
-| `GetExecutionRequest` | `structure` | `ExecutionId`, `ExportArn` | - |
-| `GetExecutionResponse` | `structure` | `ExecutionId`, `ExecutionStatus`, `Export` | - |
-| `GetExportRequest` | `structure` | `ExportArn` | - |
-| `GetExportResponse` | `structure` | `Export`, `ExportStatus` | - |
-| `GetTableRequest` | `structure` | `TableName`, `TableProperties` | - |
-| `GetTableResponse` | `structure` | `Description`, `Schema`, `TableName`, `TableProperties` | - |
-| `ListExecutionsRequest` | `structure` | `ExportArn`, `MaxResults`, `NextToken` | - |
-| `ListExecutionsResponse` | `structure` | `Executions`, `NextToken` | - |
-| `ListExportsRequest` | `structure` | `MaxResults`, `NextToken` | - |
-| `ListExportsResponse` | `structure` | `Exports`, `NextToken` | - |
-| `ListTablesRequest` | `structure` | `MaxResults`, `NextToken` | - |
-| `ListTablesResponse` | `structure` | `NextToken`, `Tables` | - |
-| `ListTagsForResourceRequest` | `structure` | `MaxResults`, `NextToken`, `ResourceArn` | - |
-| `ListTagsForResourceResponse` | `structure` | `NextToken`, `ResourceTags` | - |
-
+| `AccessDeniedException` | `structure` | Message | You don't have sufficient access to perform this action. |
+| `InternalServerException` | `structure` | Message | An error on the server occurred during the processing of your request. Try again later. |
+| `ResourceNotFoundException` | `structure` | Message, ResourceId, ResourceType | The specified Amazon Resource Name (ARN) in the request doesn't exist. |
+| `ServiceQuotaExceededException` | `structure` | Message, ResourceId, ResourceType, QuotaCode, ServiceCode | You've reached the limit on the number of resources you can create, or exceeded the size of an individual resource. |
+| `ThrottlingException` | `structure` | Message, QuotaCode, ServiceCode | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | Message, Reason, Fields | The input fails to satisfy the constraints specified by an Amazon Web Services service. |
+| `GetExecutionRequest` | `structure` | ExportArn, ExecutionId | - |
+| `GetExecutionResponse` | `structure` | ExecutionId, Export, ExecutionStatus | - |
+| `GetTableRequest` | `structure` | TableName, TableProperties | - |
+| `GetTableResponse` | `structure` | TableName, Description, TableProperties, Schema | - |
+| `ListExecutionsRequest` | `structure` | ExportArn, MaxResults, NextToken | - |
+| `ListExecutionsResponse` | `structure` | Executions, NextToken | - |
+| `ListTablesRequest` | `structure` | NextToken, MaxResults | - |
+| `ListTablesResponse` | `structure` | Tables, NextToken | - |
+| `ListTagsForResourceRequest` | `structure` | ResourceArn, MaxResults, NextToken | - |
+| `ListTagsForResourceResponse` | `structure` | ResourceTags, NextToken | - |
+| `TagResourceRequest` | `structure` | ResourceArn, ResourceTags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | ResourceArn, ResourceTagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `CompressionOption` | `enum` | GZIP, PARQUET | - |
+| `ExecutionStatusCode` | `enum` | INITIATION_IN_PROCESS, QUERY_QUEUED, QUERY_IN_PROCESS, QUERY_FAILURE, DELIVERY_IN_PROCESS, DELIVERY_SUCCESS, DELIVERY_FAILURE | - |
+| `ExecutionStatusReason` | `enum` | INSUFFICIENT_PERMISSION, BILL_OWNER_CHANGED, INTERNAL_FAILURE | - |
+| `ExportStatusCode` | `enum` | HEALTHY, UNHEALTHY | - |
+| `FormatOption` | `enum` | TEXT_OR_CSV, PARQUET | - |
+| `FrequencyOption` | `enum` | SYNCHRONOUS | - |
+| `OverwriteOption` | `enum` | CREATE_NEW_REPORT, OVERWRITE_REPORT | - |
+| `S3OutputType` | `enum` | CUSTOM | - |
+| `ValidationExceptionReason` | `enum` | UNKNOWN_OPERATION, CANNOT_PARSE, FIELD_VALIDATION_FAILED, OTHER | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

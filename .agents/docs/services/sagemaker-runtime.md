@@ -41,15 +41,15 @@ The Amazon SageMaker AI runtime API.
 ### Invoke
 
 - Operations: `InvokeEndpoint`, `InvokeEndpointAsync`, `InvokeEndpointWithResponseStream`
-- Common required input members in this group: `Body`, `EndpointName`, `InputLocation`
+- Common required input members in this group: `EndpointName`, `Body`
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `InvokeEndpoint` | `POST /endpoints/{EndpointName}/invocations` | - | `Body`, `EndpointName` | - | `InvokeEndpointOutput` | `InternalDependencyException`, `InternalFailure`, `ModelError`, `ModelNotReadyException`, `ServiceUnavailable`, `ValidationError` | After you deploy a model into production using Amazon SageMaker AI hosting services, your client applications use this API to get inferences from the model hosted at the specified endpoint. For an overview of Amazon SageMaker AI, see How It Works. |
-| `InvokeEndpointAsync` | `POST /endpoints/{EndpointName}/async-invocations` | - | `EndpointName`, `InputLocation` | - | `InvokeEndpointAsyncOutput` | `InternalFailure`, `ServiceUnavailable`, `ValidationError` | After you deploy a model into production using Amazon SageMaker AI hosting services, your client applications use this API to get inferences from the model hosted at the specified endpoint in an asynchronous manner. Inference requests sent to this API are... |
-| `InvokeEndpointWithResponseStream` | `POST /endpoints/{EndpointName}/invocations-response-stream` | - | `Body`, `EndpointName` | - | `InvokeEndpointWithResponseStreamOutput` | `InternalFailure`, `InternalStreamFailure`, `ModelError`, `ModelStreamError`, `ServiceUnavailable`, `ValidationError` | Invokes a model at the specified endpoint to return the inference response as a stream. The inference stream provides the response payload incrementally as a series of parts. |
+| `InvokeEndpoint` | `POST /endpoints/{EndpointName}/invocations` | - | `EndpointName`, `Body` | - | `InvokeEndpointOutput` | `InternalDependencyException`, `InternalFailure`, `ModelError`, `ModelNotReadyException`, `ServiceUnavailable`, `ValidationError` | After you deploy a model into production using Amazon SageMaker AI hosting services, your client applications use this API to get inferences from the model hosted at the specified endpoint. For an overview of Amazon ... |
+| `InvokeEndpointAsync` | `POST /endpoints/{EndpointName}/async-invocations` | - | `EndpointName`, `InputLocation` | - | `InvokeEndpointAsyncOutput` | `InternalFailure`, `ServiceUnavailable`, `ValidationError` | After you deploy a model into production using Amazon SageMaker AI hosting services, your client applications use this API to get inferences from the model hosted at the specified endpoint in an asynchronous manner. ... |
+| `InvokeEndpointWithResponseStream` | `POST /endpoints/{EndpointName}/invocations-response-stream` | - | `EndpointName`, `Body` | - | `InvokeEndpointWithResponseStreamOutput` | `InternalFailure`, `InternalStreamFailure`, `ModelError`, `ModelStreamError`, `ServiceUnavailable`, `ValidationError` | Invokes a model at the specified endpoint to return the inference response as a stream. The inference stream provides the response payload incrementally as a series of parts. Before you can get an inference stream, y ... |
 
 ## HTTP Bindings
 
@@ -65,21 +65,20 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalFailure` | `structure` | `Message` | An internal failure occurred. |
-| `ServiceUnavailable` | `structure` | `Message` | The service is unavailable. |
-| `ValidationError` | `structure` | `Message` | Inspect your request and try again. |
-| `ModelError` | `structure` | `LogStreamArn`, `Message`, `OriginalMessage`, `OriginalStatusCode` | Model (owned by the customer in the container) returned 4xx or 5xx error code. |
-| `InvokeEndpointInput` | `structure` | `Accept`, `Body`, `ContentType`, `CustomAttributes`, `EnableExplanations`, `EndpointName`, `InferenceComponentName`, `InferenceId`, `SessionId`, `TargetContainerHostname`, `TargetModel`, `TargetVariant` | - |
-| `InvokeEndpointOutput` | `structure` | `Body`, `ClosedSessionId`, `ContentType`, `CustomAttributes`, `InvokedProductionVariant`, `NewSessionId` | - |
-| `InternalDependencyException` | `structure` | `Message` | Your request caused an exception with an internal dependency. |
-| `ModelNotReadyException` | `structure` | `Message` | Either a serverless endpoint variant's resources are still being provisioned, or a multi-model endpoint is still downloading or loading the target model. |
-| `InvokeEndpointAsyncInput` | `structure` | `Accept`, `ContentType`, `CustomAttributes`, `EndpointName`, `Filename`, `InferenceId`, `InputLocation`, `InvocationTimeoutSeconds`, `RequestTTLSeconds`, `S3OutputPathExtension` | - |
-| `InvokeEndpointAsyncOutput` | `structure` | `FailureLocation`, `InferenceId`, `OutputLocation` | - |
-| `InvokeEndpointWithResponseStreamInput` | `structure` | `Accept`, `Body`, `ContentType`, `CustomAttributes`, `EndpointName`, `InferenceComponentName`, `InferenceId`, `SessionId`, `TargetContainerHostname`, `TargetVariant` | - |
-| `InvokeEndpointWithResponseStreamOutput` | `structure` | `Body`, `ContentType`, `CustomAttributes`, `InvokedProductionVariant` | - |
-| `InternalStreamFailure` | `structure` | `Message` | The stream processing failed because of an unknown error, exception or failure. |
-| `ModelStreamError` | `structure` | `ErrorCode`, `Message` | An error occurred while streaming the response body. |
-
+| `InternalDependencyException` | `structure` | Message | Your request caused an exception with an internal dependency. Contact customer support. |
+| `InternalFailure` | `structure` | Message | An internal failure occurred. |
+| `InternalStreamFailure` | `structure` | Message | The stream processing failed because of an unknown error, exception or failure. Try your request again. |
+| `ModelError` | `structure` | Message, OriginalStatusCode, OriginalMessage, LogStreamArn | Model (owned by the customer in the container) returned 4xx or 5xx error code. |
+| `ModelNotReadyException` | `structure` | Message | Either a serverless endpoint variant's resources are still being provisioned, or a multi-model endpoint is still downloading or loading the target model. Wa ... |
+| `ModelStreamError` | `structure` | Message, ErrorCode | An error occurred while streaming the response body. This error can have the following error codes: ModelInvocationTimeExceeded The model failed to finish s ... |
+| `ServiceUnavailable` | `structure` | Message | The service is unavailable. Try your call again. |
+| `ValidationError` | `structure` | Message | Inspect your request and try again. |
+| `InvokeEndpointInput` | `structure` | EndpointName, Body, ContentType, Accept, CustomAttributes, TargetModel, TargetVariant, TargetContainerHostname, InferenceId, EnableExplanations, InferenceComponentName, SessionId | - |
+| `InvokeEndpointOutput` | `structure` | Body, ContentType, InvokedProductionVariant, CustomAttributes, NewSessionId, ClosedSessionId | - |
+| `InvokeEndpointAsyncInput` | `structure` | EndpointName, ContentType, Accept, CustomAttributes, InferenceId, InputLocation, S3OutputPathExtension, Filename, RequestTTLSeconds, InvocationTimeoutSeconds | - |
+| `InvokeEndpointAsyncOutput` | `structure` | InferenceId, OutputLocation, FailureLocation | - |
+| `InvokeEndpointWithResponseStreamInput` | `structure` | EndpointName, Body, ContentType, Accept, CustomAttributes, TargetVariant, TargetContainerHostname, InferenceId, InferenceComponentName, SessionId | - |
+| `InvokeEndpointWithResponseStreamOutput` | `structure` | Body, ContentType, InvokedProductionVariant, CustomAttributes | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

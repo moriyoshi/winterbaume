@@ -55,224 +55,226 @@ WorkSpaces currently synthesises directory and workspace networking inside WorkS
 
 ### Describe
 
-- Operations: `DescribeAccount`, `DescribeAccountModifications`, `DescribeApplicationAssociations`, `DescribeApplications`, `DescribeBundleAssociations`, `DescribeClientBranding`, `DescribeClientProperties`, `DescribeConnectClientAddIns`, `DescribeConnectionAliasPermissions`, `DescribeConnectionAliases`, `DescribeCustomWorkspaceImageImport`, `DescribeImageAssociations`, `DescribeIpGroups`, `DescribeTags`, `DescribeWorkspaceAssociations`, `DescribeWorkspaceBundles`, `DescribeWorkspaceDirectories`, `DescribeWorkspaceImagePermissions`, `DescribeWorkspaceImages`, `DescribeWorkspaceSnapshots`, `DescribeWorkspaces`, `DescribeWorkspacesConnectionStatus`, `DescribeWorkspacesPoolSessions`, `DescribeWorkspacesPools`
+- Operations: `DescribeAccount`, `DescribeAccountModifications`, `DescribeApplicationAssociations`, `DescribeApplications`, `DescribeBundleAssociations`, `DescribeClientBranding`, `DescribeClientProperties`, `DescribeConnectClientAddIns`, `DescribeConnectionAliases`, `DescribeConnectionAliasPermissions`, `DescribeCustomWorkspaceImageImport`, `DescribeImageAssociations`, `DescribeIpGroups`, `DescribeTags`, `DescribeWorkspaceAssociations`, `DescribeWorkspaceBundles`, `DescribeWorkspaceDirectories`, `DescribeWorkspaceImagePermissions`, `DescribeWorkspaceImages`, `DescribeWorkspaces`, `DescribeWorkspacesConnectionStatus`, `DescribeWorkspaceSnapshots`, `DescribeWorkspacesPools`, `DescribeWorkspacesPoolSessions`
 - Traits: `paginated` (5)
-- Common required input members in this group: `AliasId`, `ApplicationId`, `AssociatedResourceTypes`, `BundleId`, `ImageId`, `PoolId`, `ResourceId`, `ResourceIds`, `WorkspaceId`
+- Common required input members in this group: `AssociatedResourceTypes`, `ResourceId`, `ImageId`, `WorkspaceId`
 
 ### Create
 
 - Operations: `CreateAccountLinkInvitation`, `CreateConnectClientAddIn`, `CreateConnectionAlias`, `CreateIpGroup`, `CreateStandbyWorkspaces`, `CreateTags`, `CreateUpdatedWorkspaceImage`, `CreateWorkspaceBundle`, `CreateWorkspaceImage`, `CreateWorkspaces`, `CreateWorkspacesPool`
-- Common required input members in this group: `BundleDescription`, `BundleId`, `BundleName`, `Capacity`, `ComputeType`, `ConnectionString`, `Description`, `DirectoryId`, `GroupName`, `ImageId`, `Name`, `PoolName`, `PrimaryRegion`, `ResourceId`, `SourceImageId`, `StandbyWorkspaces`, `Tags`, `TargetAccountId`, `URL`, `UserStorage`, `WorkspaceId`, `Workspaces`
+- Common required input members in this group: `ResourceId`, `Name`, `Description`
 
 ### Modify
 
 - Operations: `ModifyAccount`, `ModifyCertificateBasedAuthProperties`, `ModifyClientProperties`, `ModifyEndpointEncryptionMode`, `ModifySamlProperties`, `ModifySelfservicePermissions`, `ModifyStreamingProperties`, `ModifyWorkspaceAccessProperties`, `ModifyWorkspaceCreationProperties`, `ModifyWorkspaceProperties`, `ModifyWorkspaceState`
-- Common required input members in this group: `ClientProperties`, `DirectoryId`, `EndpointEncryptionMode`, `ResourceId`, `SelfservicePermissions`, `WorkspaceAccessProperties`, `WorkspaceCreationProperties`, `WorkspaceId`, `WorkspaceState`
+- Common required input members in this group: `ResourceId`, `WorkspaceId`
 
 ### Delete
 
 - Operations: `DeleteAccountLinkInvitation`, `DeleteClientBranding`, `DeleteConnectClientAddIn`, `DeleteConnectionAlias`, `DeleteIpGroup`, `DeleteTags`, `DeleteWorkspaceBundle`, `DeleteWorkspaceImage`
-- Common required input members in this group: `AddInId`, `AliasId`, `GroupId`, `ImageId`, `LinkId`, `Platforms`, `ResourceId`, `TagKeys`
+- Common required input members in this group: `ResourceId`
 
 ### Update
 
 - Operations: `UpdateConnectClientAddIn`, `UpdateConnectionAliasPermission`, `UpdateRulesOfIpGroup`, `UpdateWorkspaceBundle`, `UpdateWorkspaceImagePermission`, `UpdateWorkspacesPool`
-- Common required input members in this group: `AddInId`, `AliasId`, `AllowCopyImage`, `ConnectionAliasPermission`, `GroupId`, `ImageId`, `PoolId`, `ResourceId`, `SharedAccountId`, `UserRules`
+- Common required input members in this group: -
 
 ### Associate
 
 - Operations: `AssociateConnectionAlias`, `AssociateIpGroups`, `AssociateWorkspaceApplication`
-- Common required input members in this group: `AliasId`, `ApplicationId`, `DirectoryId`, `GroupIds`, `ResourceId`, `WorkspaceId`
+- Common required input members in this group: -
 
 ### Disassociate
 
 - Operations: `DisassociateConnectionAlias`, `DisassociateIpGroups`, `DisassociateWorkspaceApplication`
-- Common required input members in this group: `AliasId`, `ApplicationId`, `DirectoryId`, `GroupIds`, `WorkspaceId`
+- Common required input members in this group: -
 
 ### Import
 
 - Operations: `ImportClientBranding`, `ImportCustomWorkspaceImage`, `ImportWorkspaceImage`
-- Common required input members in this group: `ComputeType`, `Ec2ImageId`, `ImageDescription`, `ImageName`, `ImageSource`, `InfrastructureConfigurationArn`, `IngestionProcess`, `OsVersion`, `Platform`, `Protocol`, `ResourceId`
+- Common required input members in this group: `ImageName`, `ImageDescription`
 
 ### Terminate
 
 - Operations: `TerminateWorkspaces`, `TerminateWorkspacesPool`, `TerminateWorkspacesPoolSession`
-- Common required input members in this group: `PoolId`, `SessionId`, `TerminateWorkspaceRequests`
+- Common required input members in this group: -
 
 ### List
 
 - Operations: `ListAccountLinks`, `ListAvailableManagementCidrRanges`
 - Traits: `paginated` (1)
-- Common required input members in this group: `ManagementCidrRangeConstraint`
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartWorkspaces`, `StartWorkspacesPool`
-- Common required input members in this group: `PoolId`, `StartWorkspaceRequests`
+- Common required input members in this group: -
 
 ### Stop
 
 - Operations: `StopWorkspaces`, `StopWorkspacesPool`
-- Common required input members in this group: `PoolId`, `StopWorkspaceRequests`
+- Common required input members in this group: -
 
 ### Accept
 
 - Operations: `AcceptAccountLinkInvitation`
-- Common required input members in this group: `LinkId`
+- Common required input members in this group: -
 
 ### Authorize
 
 - Operations: `AuthorizeIpRules`
-- Common required input members in this group: `GroupId`, `UserRules`
+- Common required input members in this group: -
 
 ### Copy
 
 - Operations: `CopyWorkspaceImage`
-- Common required input members in this group: `Name`, `SourceImageId`, `SourceRegion`
+- Common required input members in this group: -
 
 ### Deploy
 
 - Operations: `DeployWorkspaceApplications`
-- Common required input members in this group: `WorkspaceId`
+- Common required input members in this group: -
 
 ### Deregister
 
 - Operations: `DeregisterWorkspaceDirectory`
-- Common required input members in this group: `DirectoryId`
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetAccountLink`
+- Common required input members in this group: -
 
 ### Migrate
 
 - Operations: `MigrateWorkspace`
-- Common required input members in this group: `BundleId`, `SourceWorkspaceId`
+- Common required input members in this group: -
 
 ### Reboot
 
 - Operations: `RebootWorkspaces`
-- Common required input members in this group: `RebootWorkspaceRequests`
+- Common required input members in this group: -
 
 ### Rebuild
 
 - Operations: `RebuildWorkspaces`
-- Common required input members in this group: `RebuildWorkspaceRequests`
+- Common required input members in this group: -
 
 ### Register
 
 - Operations: `RegisterWorkspaceDirectory`
+- Common required input members in this group: -
 
 ### Reject
 
 - Operations: `RejectAccountLinkInvitation`
-- Common required input members in this group: `LinkId`
+- Common required input members in this group: -
 
 ### Restore
 
 - Operations: `RestoreWorkspace`
-- Common required input members in this group: `WorkspaceId`
+- Common required input members in this group: -
 
 ### Revoke
 
 - Operations: `RevokeIpRules`
-- Common required input members in this group: `GroupId`, `UserRules`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AcceptAccountLinkInvitation` | - | - | `LinkId` | - | `AcceptAccountLinkInvitationResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Accepts the account link invitation. There's currently no unlinking capability after you accept the account linking invitation. |
-| `AssociateConnectionAlias` | - | - | `AliasId`, `ResourceId` | - | `AssociateConnectionAliasResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationNotSupportedException`, `ResourceAssociatedException`, `ResourceNotFoundException` | Associates the specified connection alias with the specified directory to enable cross-Region redirection. For more information, see Cross-Region Redirection for Amazon WorkSpaces. |
-| `AssociateIpGroups` | - | - | `DirectoryId`, `GroupIds` | - | `AssociateIpGroupsResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationNotSupportedException`, `ResourceLimitExceededException`, `ResourceNotFoundException` | Associates the specified IP access control group with the specified directory. |
-| `AssociateWorkspaceApplication` | - | - | `ApplicationId`, `WorkspaceId` | - | `AssociateWorkspaceApplicationResult` | `AccessDeniedException`, `ApplicationNotSupportedException`, `ComputeNotCompatibleException`, `IncompatibleApplicationsException`, `InvalidParameterValuesException`, `OperatingSystemNotCompatibleException`, `OperationNotSupportedException`, `ResourceAlreadyExistsException`, ... (+2) | Associates the specified application to the specified WorkSpace. |
-| `AuthorizeIpRules` | - | - | `GroupId`, `UserRules` | - | `AuthorizeIpRulesResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `ResourceLimitExceededException`, `ResourceNotFoundException` | Adds one or more rules to the specified IP access control group. This action gives users permission to access their WorkSpaces from the CIDR address ranges specified in the rules. |
-| `CopyWorkspaceImage` | - | - | `Name`, `SourceImageId`, `SourceRegion` | - | `CopyWorkspaceImageResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceAlreadyExistsException`, `ResourceLimitExceededException`, `ResourceNotFoundException`, `ResourceUnavailableException` | Copies the specified image from the specified Region to the current Region. For more information about copying images, see Copy a Custom WorkSpaces Image. |
-| `CreateAccountLinkInvitation` | - | - | `TargetAccountId` | - | `CreateAccountLinkInvitationResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ValidationException` | Creates the account link invitation. |
-| `CreateConnectClientAddIn` | - | - | `Name`, `ResourceId`, `URL` | - | `CreateConnectClientAddInResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `ResourceAlreadyExistsException`, `ResourceCreationFailedException`, `ResourceNotFoundException` | Creates a client-add-in for Amazon Connect within a directory. You can create only one Amazon Connect client add-in within a directory. |
-| `CreateConnectionAlias` | - | - | `ConnectionString` | - | `CreateConnectionAliasResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationNotSupportedException`, `ResourceAlreadyExistsException`, `ResourceLimitExceededException` | Creates the specified connection alias for use with cross-Region redirection. For more information, see Cross-Region Redirection for Amazon WorkSpaces. |
-| `CreateIpGroup` | - | - | `GroupName` | - | `CreateIpGroupResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `ResourceAlreadyExistsException`, `ResourceCreationFailedException`, `ResourceLimitExceededException` | Creates an IP access control group. An IP access control group provides you with the ability to control the IP addresses from which users are allowed to access their WorkSpaces. |
-| `CreateStandbyWorkspaces` | - | - | `PrimaryRegion`, `StandbyWorkspaces` | - | `CreateStandbyWorkspacesResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceLimitExceededException`, `ResourceNotFoundException` | Creates a standby WorkSpace in a secondary Region. |
-| `CreateTags` | - | - | `ResourceId`, `Tags` | - | `CreateTagsResult` | `InvalidParameterValuesException`, `ResourceLimitExceededException`, `ResourceNotFoundException` | Creates the specified tags for the specified WorkSpaces resource. |
-| `CreateUpdatedWorkspaceImage` | - | - | `Description`, `Name`, `SourceImageId` | - | `CreateUpdatedWorkspaceImageResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationNotSupportedException`, `ResourceAlreadyExistsException`, `ResourceLimitExceededException`, `ResourceNotFoundException` | Creates a new updated WorkSpace image based on the specified source image. The new updated WorkSpace image has the latest drivers and other updates required by the Amazon WorkSpaces components. |
-| `CreateWorkspaceBundle` | - | - | `BundleDescription`, `BundleName`, `ComputeType`, `ImageId`, `UserStorage` | - | `CreateWorkspaceBundleResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `ResourceAlreadyExistsException`, `ResourceLimitExceededException`, `ResourceNotFoundException`, `ResourceUnavailableException` | Creates the specified WorkSpace bundle. For more information about creating WorkSpace bundles, see Create a Custom WorkSpaces Image and Bundle. |
-| `CreateWorkspaceImage` | - | - | `Description`, `Name`, `WorkspaceId` | - | `CreateWorkspaceImageResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationNotSupportedException`, `ResourceAlreadyExistsException`, `ResourceLimitExceededException`, `ResourceNotFoundException` | Creates a new WorkSpace image from an existing WorkSpace. |
-| `CreateWorkspaces` | - | - | `Workspaces` | - | `CreateWorkspacesResult` | `InvalidParameterValuesException`, `ResourceLimitExceededException` | Creates one or more WorkSpaces. This operation is asynchronous and returns before the WorkSpaces are created. |
-| `CreateWorkspacesPool` | - | - | `BundleId`, `Capacity`, `Description`, `DirectoryId`, `PoolName` | - | `CreateWorkspacesPoolResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceAlreadyExistsException`, `ResourceLimitExceededException`, `ResourceNotFoundException` | Creates a pool of WorkSpaces. |
-| `DeleteAccountLinkInvitation` | - | - | `LinkId` | - | `DeleteAccountLinkInvitationResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes the account link invitation. |
-| `DeleteClientBranding` | - | - | `Platforms`, `ResourceId` | - | `DeleteClientBrandingResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `ResourceNotFoundException` | Deletes customized client branding. Client branding allows you to customize your WorkSpace's client login portal. |
-| `DeleteConnectClientAddIn` | - | - | `AddInId`, `ResourceId` | - | `DeleteConnectClientAddInResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `ResourceNotFoundException` | Deletes a client-add-in for Amazon Connect that is configured within a directory. |
-| `DeleteConnectionAlias` | - | - | `AliasId` | - | `DeleteConnectionAliasResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationNotSupportedException`, `ResourceAssociatedException`, `ResourceNotFoundException` | Deletes the specified connection alias. For more information, see Cross-Region Redirection for Amazon WorkSpaces. |
-| `DeleteIpGroup` | - | - | `GroupId` | - | `DeleteIpGroupResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `ResourceAssociatedException`, `ResourceNotFoundException` | Deletes the specified IP access control group. You cannot delete an IP access control group that is associated with a directory. |
-| `DeleteTags` | - | - | `ResourceId`, `TagKeys` | - | `DeleteTagsResult` | `InvalidParameterValuesException`, `ResourceNotFoundException` | Deletes the specified tags from the specified WorkSpaces resource. |
-| `DeleteWorkspaceBundle` | - | - | - | - | `DeleteWorkspaceBundleResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `ResourceAssociatedException`, `ResourceNotFoundException` | Deletes the specified WorkSpace bundle. For more information about deleting WorkSpace bundles, see Delete a Custom WorkSpaces Bundle or Image. |
-| `DeleteWorkspaceImage` | - | - | `ImageId` | - | `DeleteWorkspaceImageResult` | `AccessDeniedException`, `InvalidResourceStateException`, `ResourceAssociatedException` | Deletes the specified image from your account. To delete an image, you must first delete any bundles that are associated with the image and unshare the image if it is shared with other accounts. |
-| `DeployWorkspaceApplications` | - | - | `WorkspaceId` | - | `DeployWorkspaceApplicationsResult` | `AccessDeniedException`, `IncompatibleApplicationsException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceInUseException`, `ResourceNotFoundException` | Deploys associated applications to the specified WorkSpace |
-| `DeregisterWorkspaceDirectory` | - | - | `DirectoryId` | - | `DeregisterWorkspaceDirectoryResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Deregisters the specified directory. This operation is asynchronous and returns before the WorkSpace directory is deregistered. |
-| `DescribeAccount` | - | - | - | - | `DescribeAccountResult` | `AccessDeniedException` | Retrieves a list that describes the configuration of Bring Your Own License (BYOL) for the specified account. |
-| `DescribeAccountModifications` | - | - | - | - | `DescribeAccountModificationsResult` | `AccessDeniedException` | Retrieves a list that describes modifications to the configuration of Bring Your Own License (BYOL) for the specified account. |
-| `DescribeApplicationAssociations` | - | `paginated` | `ApplicationId`, `AssociatedResourceTypes` | - | `DescribeApplicationAssociationsResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Describes the associations between the application and the specified associated resources. |
-| `DescribeApplications` | - | `paginated` | - | - | `DescribeApplicationsResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Describes the specified applications by filtering based on their compute types, license availability, operating systems, and owners. |
-| `DescribeBundleAssociations` | - | - | `AssociatedResourceTypes`, `BundleId` | - | `DescribeBundleAssociationsResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Describes the associations between the applications and the specified bundle. |
-| `DescribeClientBranding` | - | - | `ResourceId` | - | `DescribeClientBrandingResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `ResourceNotFoundException` | Describes the specified client branding. Client branding allows you to customize the log in page of various device types for your users. |
-| `DescribeClientProperties` | - | - | `ResourceIds` | - | `DescribeClientPropertiesResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `ResourceNotFoundException` | Retrieves a list that describes one or more specified Amazon WorkSpaces clients. |
-| `DescribeConnectClientAddIns` | - | - | `ResourceId` | - | `DescribeConnectClientAddInsResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `ResourceNotFoundException` | Retrieves a list of Amazon Connect client add-ins that have been created. |
-| `DescribeConnectionAliasPermissions` | - | - | `AliasId` | - | `DescribeConnectionAliasPermissionsResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Describes the permissions that the owner of a connection alias has granted to another Amazon Web Services account for the specified connection alias. For more information, see Cross-Region Redirection for Amazon WorkSpaces. |
-| `DescribeConnectionAliases` | - | - | - | - | `DescribeConnectionAliasesResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException` | Retrieves a list that describes the connection aliases used for cross-Region redirection. For more information, see Cross-Region Redirection for Amazon WorkSpaces. |
-| `DescribeCustomWorkspaceImageImport` | - | - | `ImageId` | - | `DescribeCustomWorkspaceImageImportResult` | `AccessDeniedException`, `ResourceNotFoundException` | Retrieves information about a WorkSpace BYOL image being imported via ImportCustomWorkspaceImage. |
-| `DescribeImageAssociations` | - | - | `AssociatedResourceTypes`, `ImageId` | - | `DescribeImageAssociationsResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Describes the associations between the applications and the specified image. |
-| `DescribeIpGroups` | - | - | - | - | `DescribeIpGroupsResult` | `AccessDeniedException`, `InvalidParameterValuesException` | Describes one or more of your IP access control groups. |
-| `DescribeTags` | - | - | `ResourceId` | - | `DescribeTagsResult` | `ResourceNotFoundException` | Describes the specified tags for the specified WorkSpaces resource. |
-| `DescribeWorkspaceAssociations` | - | - | `AssociatedResourceTypes`, `WorkspaceId` | - | `DescribeWorkspaceAssociationsResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Describes the associations betweens applications and the specified WorkSpace. |
-| `DescribeWorkspaceBundles` | - | `paginated` | - | - | `DescribeWorkspaceBundlesResult` | `InvalidParameterValuesException` | Retrieves a list that describes the available WorkSpace bundles. You can filter the results using either bundle ID or owner, but not both. |
-| `DescribeWorkspaceDirectories` | - | `paginated` | - | - | `DescribeWorkspaceDirectoriesResult` | `InvalidParameterValuesException` | Describes the available directories that are registered with Amazon WorkSpaces. |
-| `DescribeWorkspaceImagePermissions` | - | - | `ImageId` | - | `DescribeWorkspaceImagePermissionsResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `ResourceNotFoundException` | Describes the permissions that the owner of an image has granted to other Amazon Web Services accounts for an image. |
-| `DescribeWorkspaceImages` | - | - | - | - | `DescribeWorkspaceImagesResult` | `AccessDeniedException` | Retrieves a list that describes one or more specified images, if the image identifiers are provided. Otherwise, all images in the account are described. |
-| `DescribeWorkspaceSnapshots` | - | - | `WorkspaceId` | - | `DescribeWorkspaceSnapshotsResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `ResourceNotFoundException` | Describes the snapshots for the specified WorkSpace. |
-| `DescribeWorkspaces` | - | `paginated` | - | - | `DescribeWorkspacesResult` | `InvalidParameterValuesException`, `ResourceUnavailableException` | Describes the specified WorkSpaces. You can filter the results by using the bundle identifier, directory identifier, or owner, but you can specify only one filter at a time. |
-| `DescribeWorkspacesConnectionStatus` | - | - | - | - | `DescribeWorkspacesConnectionStatusResult` | `InvalidParameterValuesException` | Describes the connection status of the specified WorkSpaces. |
-| `DescribeWorkspacesPoolSessions` | - | - | `PoolId` | - | `DescribeWorkspacesPoolSessionsResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `ResourceNotFoundException` | Retrieves a list that describes the streaming sessions for a specified pool. |
-| `DescribeWorkspacesPools` | - | - | - | - | `DescribeWorkspacesPoolsResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `ResourceNotFoundException` | Describes the specified WorkSpaces Pools. |
-| `DisassociateConnectionAlias` | - | - | `AliasId` | - | `DisassociateConnectionAliasResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Disassociates a connection alias from a directory. Disassociating a connection alias disables cross-Region redirection between two directories in different Regions. |
-| `DisassociateIpGroups` | - | - | `DirectoryId`, `GroupIds` | - | `DisassociateIpGroupsResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Disassociates the specified IP access control group from the specified directory. |
-| `DisassociateWorkspaceApplication` | - | - | `ApplicationId`, `WorkspaceId` | - | `DisassociateWorkspaceApplicationResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceInUseException`, `ResourceNotFoundException` | Disassociates the specified application from a WorkSpace. |
-| `GetAccountLink` | - | - | - | - | `GetAccountLinkResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Retrieves account link information. |
-| `ImportClientBranding` | - | - | `ResourceId` | - | `ImportClientBrandingResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `ResourceLimitExceededException`, `ResourceNotFoundException` | Imports client branding. Client branding allows you to customize your WorkSpace's client login portal. |
-| `ImportCustomWorkspaceImage` | - | - | `ComputeType`, `ImageDescription`, `ImageName`, `ImageSource`, `InfrastructureConfigurationArn`, `OsVersion`, `Platform`, `Protocol` | - | `ImportCustomWorkspaceImageResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceAlreadyExistsException`, `ResourceLimitExceededException`, `ResourceNotFoundException` | Imports the specified Windows 10 or 11 Bring Your Own License (BYOL) image into Amazon WorkSpaces using EC2 Image Builder. The image must be an already licensed image that is in your Amazon Web Services account, and you must own the image. |
-| `ImportWorkspaceImage` | - | - | `Ec2ImageId`, `ImageDescription`, `ImageName`, `IngestionProcess` | - | `ImportWorkspaceImageResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceAlreadyExistsException`, `ResourceLimitExceededException`, `ResourceNotFoundException` | Imports the specified Windows 10 or 11 Bring Your Own License (BYOL) image into Amazon WorkSpaces. The image must be an already licensed Amazon EC2 image that is in your Amazon Web Services account, and you must own the image. |
-| `ListAccountLinks` | - | `paginated` | - | - | `ListAccountLinksResult` | `AccessDeniedException`, `InternalServerException`, `ValidationException` | Lists all account links. |
-| `ListAvailableManagementCidrRanges` | - | - | `ManagementCidrRangeConstraint` | - | `ListAvailableManagementCidrRangesResult` | `AccessDeniedException`, `InvalidParameterValuesException` | Retrieves a list of IP address ranges, specified as IPv4 CIDR blocks, that you can use for the network management interface when you enable Bring Your Own License (BYOL). This operation can be run only by Amazon Web Services accounts that are enabled for BYOL. |
-| `MigrateWorkspace` | - | - | `BundleId`, `SourceWorkspaceId` | - | `MigrateWorkspaceResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationInProgressException`, `OperationNotSupportedException`, `ResourceNotFoundException`, `ResourceUnavailableException` | Migrates a WorkSpace from one operating system or bundle type to another, while retaining the data on the user volume. The migration process recreates the WorkSpace by using a new root volume from the target bundle image and the user volume from the last... |
-| `ModifyAccount` | - | - | - | - | `ModifyAccountResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `ResourceNotFoundException`, `ResourceUnavailableException` | Modifies the configuration of Bring Your Own License (BYOL) for the specified account. |
-| `ModifyCertificateBasedAuthProperties` | - | - | `ResourceId` | - | `ModifyCertificateBasedAuthPropertiesResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Modifies the properties of the certificate-based authentication you want to use with your WorkSpaces. |
-| `ModifyClientProperties` | - | - | `ClientProperties`, `ResourceId` | - | `ModifyClientPropertiesResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Modifies the properties of the specified Amazon WorkSpaces clients. |
-| `ModifyEndpointEncryptionMode` | - | - | `DirectoryId`, `EndpointEncryptionMode` | - | `ModifyEndpointEncryptionModeResponse` | `AccessDeniedException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Modifies the endpoint encryption mode that allows you to configure the specified directory between Standard TLS and FIPS 140-2 validated mode. |
-| `ModifySamlProperties` | - | - | `ResourceId` | - | `ModifySamlPropertiesResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Modifies multiple properties related to SAML 2.0 authentication, including the enablement status, user access URL, and relay state parameter name that are used for configuring federation with an SAML 2.0 identity provider. |
-| `ModifySelfservicePermissions` | - | - | `ResourceId`, `SelfservicePermissions` | - | `ModifySelfservicePermissionsResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Modifies the self-service WorkSpace management capabilities for your users. For more information, see Enable Self-Service WorkSpace Management Capabilities for Your Users. |
-| `ModifyStreamingProperties` | - | - | `ResourceId` | - | `ModifyStreamingPropertiesResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Modifies the specified streaming properties. |
-| `ModifyWorkspaceAccessProperties` | - | - | `ResourceId`, `WorkspaceAccessProperties` | - | `ModifyWorkspaceAccessPropertiesResult` | `AccessDeniedException`, `InvalidParameterCombinationException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Specifies which devices and operating systems users can use to access their WorkSpaces. For more information, see Control Device Access. |
-| `ModifyWorkspaceCreationProperties` | - | - | `ResourceId`, `WorkspaceCreationProperties` | - | `ModifyWorkspaceCreationPropertiesResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Modify the default properties used to create WorkSpaces. |
-| `ModifyWorkspaceProperties` | - | - | `WorkspaceId` | - | `ModifyWorkspacePropertiesResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationInProgressException`, `ResourceNotFoundException`, `ResourceUnavailableException`, `UnsupportedWorkspaceConfigurationException` | Modifies the specified WorkSpace properties. For important information about how to modify the size of the root and user volumes, see Modify a WorkSpace. |
-| `ModifyWorkspaceState` | - | - | `WorkspaceId`, `WorkspaceState` | - | `ModifyWorkspaceStateResult` | `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Sets the state of the specified WorkSpace. To maintain a WorkSpace without being interrupted, set the WorkSpace state to `ADMIN_MAINTENANCE`. |
-| `RebootWorkspaces` | - | - | `RebootWorkspaceRequests` | - | `RebootWorkspacesResult` | `OperationNotSupportedException` | Reboots the specified WorkSpaces. You cannot reboot a WorkSpace unless its state is `AVAILABLE`, `UNHEALTHY`, or `REBOOTING`. |
-| `RebuildWorkspaces` | - | - | `RebuildWorkspaceRequests` | - | `RebuildWorkspacesResult` | `OperationNotSupportedException` | Rebuilds the specified WorkSpace. You cannot rebuild a WorkSpace unless its state is `AVAILABLE`, `ERROR`, `UNHEALTHY`, `STOPPED`, or `REBOOTING`. |
-| `RegisterWorkspaceDirectory` | - | - | - | - | `RegisterWorkspaceDirectoryResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationNotSupportedException`, `ResourceAlreadyExistsException`, `ResourceLimitExceededException`, `ResourceNotFoundException`, `UnsupportedNetworkConfigurationException`, ... (+1) | Registers the specified directory. This operation is asynchronous and returns before the WorkSpace directory is registered. |
-| `RejectAccountLinkInvitation` | - | - | `LinkId` | - | `RejectAccountLinkInvitationResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Rejects the account link invitation. |
-| `RestoreWorkspace` | - | - | `WorkspaceId` | - | `RestoreWorkspaceResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Restores the specified WorkSpace to its last known healthy state. You cannot restore a WorkSpace unless its state is ` AVAILABLE`, `ERROR`, `UNHEALTHY`, or `STOPPED`. |
-| `RevokeIpRules` | - | - | `GroupId`, `UserRules` | - | `RevokeIpRulesResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `ResourceNotFoundException` | Removes one or more rules from the specified IP access control group. |
-| `StartWorkspaces` | - | - | `StartWorkspaceRequests` | - | `StartWorkspacesResult` | - | Starts the specified WorkSpaces. You cannot start a WorkSpace unless it has a running mode of `AutoStop` or `Manual` and a state of `STOPPED`. |
-| `StartWorkspacesPool` | - | - | `PoolId` | - | `StartWorkspacesPoolResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationInProgressException`, `OperationNotSupportedException`, `ResourceLimitExceededException`, `ResourceNotFoundException` | Starts the specified pool. You cannot start a pool unless it has a running mode of `AutoStop` and a state of `STOPPED`. |
-| `StopWorkspaces` | - | - | `StopWorkspaceRequests` | - | `StopWorkspacesResult` | - | Stops the specified WorkSpaces. You cannot stop a WorkSpace unless it has a running mode of `AutoStop` or `Manual` and a state of `AVAILABLE`, `IMPAIRED`, `UNHEALTHY`, or `ERROR`. |
-| `StopWorkspacesPool` | - | - | `PoolId` | - | `StopWorkspacesPoolResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationInProgressException`, `ResourceNotFoundException` | Stops the specified pool. You cannot stop a WorkSpace pool unless it has a running mode of `AutoStop` and a state of `AVAILABLE`, `IMPAIRED`, `UNHEALTHY`, or `ERROR`. |
-| `TerminateWorkspaces` | - | - | `TerminateWorkspaceRequests` | - | `TerminateWorkspacesResult` | - | Terminates the specified WorkSpaces. Terminating a WorkSpace is a permanent action and cannot be undone. |
-| `TerminateWorkspacesPool` | - | - | `PoolId` | - | `TerminateWorkspacesPoolResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationInProgressException`, `ResourceNotFoundException` | Terminates the specified pool. |
-| `TerminateWorkspacesPoolSession` | - | - | `SessionId` | - | `TerminateWorkspacesPoolSessionResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationInProgressException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Terminates the pool session. |
-| `UpdateConnectClientAddIn` | - | - | `AddInId`, `ResourceId` | - | `UpdateConnectClientAddInResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `ResourceNotFoundException` | Updates a Amazon Connect client add-in. Use this action to update the name and endpoint URL of a Amazon Connect client add-in. |
-| `UpdateConnectionAliasPermission` | - | - | `AliasId`, `ConnectionAliasPermission` | - | `UpdateConnectionAliasPermissionResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationNotSupportedException`, `ResourceAssociatedException`, `ResourceLimitExceededException`, `ResourceNotFoundException` | Shares or unshares a connection alias with one account by specifying whether that account has permission to associate the connection alias with a directory. If the association permission is granted, the connection alias is shared with that account. |
-| `UpdateRulesOfIpGroup` | - | - | `GroupId`, `UserRules` | - | `UpdateRulesOfIpGroupResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `ResourceLimitExceededException`, `ResourceNotFoundException` | Replaces the current rules of the specified IP access control group with the specified rules. |
-| `UpdateWorkspaceBundle` | - | - | - | - | `UpdateWorkspaceBundleResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceNotFoundException`, `ResourceUnavailableException` | Updates a WorkSpace bundle with a new image. For more information about updating WorkSpace bundles, see Update a Custom WorkSpaces Bundle. |
-| `UpdateWorkspaceImagePermission` | - | - | `AllowCopyImage`, `ImageId`, `SharedAccountId` | - | `UpdateWorkspaceImagePermissionResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceNotFoundException`, `ResourceUnavailableException` | Shares or unshares an image with one account in the same Amazon Web Services Region by specifying whether that account has permission to copy the image. If the copy image permission is granted, the image is shared with that account. |
-| `UpdateWorkspacesPool` | - | - | `PoolId` | - | `UpdateWorkspacesPoolResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationInProgressException`, `OperationNotSupportedException`, `ResourceLimitExceededException`, `ResourceNotFoundException` | Updates the specified pool. |
+| `AcceptAccountLinkInvitation` | `-` | - | `LinkId` | - | `AcceptAccountLinkInvitationResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Accepts the account link invitation. There's currently no unlinking capability after you accept the account linking invitation. |
+| `AssociateConnectionAlias` | `-` | - | `AliasId`, `ResourceId` | - | `AssociateConnectionAliasResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationNotSupportedException`, `ResourceAssociatedException`, `ResourceNotFoundException` | Associates the specified connection alias with the specified directory to enable cross-Region redirection. For more information, see Cross-Region Redirection for Amazon WorkSpaces . Before performing this operation, ... |
+| `AssociateIpGroups` | `-` | - | `DirectoryId`, `GroupIds` | - | `AssociateIpGroupsResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationNotSupportedException`, `ResourceLimitExceededException`, `ResourceNotFoundException` | Associates the specified IP access control group with the specified directory. |
+| `AssociateWorkspaceApplication` | `-` | - | `WorkspaceId`, `ApplicationId` | - | `AssociateWorkspaceApplicationResult` | `AccessDeniedException`, `ApplicationNotSupportedException`, `ComputeNotCompatibleException`, `IncompatibleApplicationsException`, `InvalidParameterValuesException`, `OperatingSystemNotCompatibleException`, `OperationNotSupportedException`, `ResourceAlreadyExistsException`, `ResourceInUseException`, `ResourceNotFoundException` | Associates the specified application to the specified WorkSpace. |
+| `AuthorizeIpRules` | `-` | - | `GroupId`, `UserRules` | - | `AuthorizeIpRulesResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `ResourceLimitExceededException`, `ResourceNotFoundException` | Adds one or more rules to the specified IP access control group. This action gives users permission to access their WorkSpaces from the CIDR address ranges specified in the rules. |
+| `CopyWorkspaceImage` | `-` | - | `Name`, `SourceImageId`, `SourceRegion` | - | `CopyWorkspaceImageResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceAlreadyExistsException`, `ResourceLimitExceededException`, `ResourceNotFoundException`, `ResourceUnavailableException` | Copies the specified image from the specified Region to the current Region. For more information about copying images, see Copy a Custom WorkSpaces Image . In the China (Ningxia) Region, you can copy images only with ... |
+| `CreateAccountLinkInvitation` | `-` | - | `TargetAccountId` | - | `CreateAccountLinkInvitationResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ValidationException` | Creates the account link invitation. |
+| `CreateConnectClientAddIn` | `-` | - | `ResourceId`, `Name`, `URL` | - | `CreateConnectClientAddInResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `ResourceAlreadyExistsException`, `ResourceCreationFailedException`, `ResourceNotFoundException` | Creates a client-add-in for Amazon Connect within a directory. You can create only one Amazon Connect client add-in within a directory. This client add-in allows WorkSpaces users to seamlessly connect to Amazon Connect. |
+| `CreateConnectionAlias` | `-` | - | `ConnectionString` | - | `CreateConnectionAliasResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationNotSupportedException`, `ResourceAlreadyExistsException`, `ResourceLimitExceededException` | Creates the specified connection alias for use with cross-Region redirection. For more information, see Cross-Region Redirection for Amazon WorkSpaces . |
+| `CreateIpGroup` | `-` | - | `GroupName` | - | `CreateIpGroupResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `ResourceAlreadyExistsException`, `ResourceCreationFailedException`, `ResourceLimitExceededException` | Creates an IP access control group. An IP access control group provides you with the ability to control the IP addresses from which users are allowed to access their WorkSpaces. To specify the CIDR address ranges, ad ... |
+| `CreateStandbyWorkspaces` | `-` | - | `PrimaryRegion`, `StandbyWorkspaces` | - | `CreateStandbyWorkspacesResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceLimitExceededException`, `ResourceNotFoundException` | Creates a standby WorkSpace in a secondary Region. |
+| `CreateTags` | `-` | - | `ResourceId`, `Tags` | - | `CreateTagsResult` | `InvalidParameterValuesException`, `ResourceLimitExceededException`, `ResourceNotFoundException` | Creates the specified tags for the specified WorkSpaces resource. |
+| `CreateUpdatedWorkspaceImage` | `-` | - | `Name`, `Description`, `SourceImageId` | - | `CreateUpdatedWorkspaceImageResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationNotSupportedException`, `ResourceAlreadyExistsException`, `ResourceLimitExceededException`, `ResourceNotFoundException` | Creates a new updated WorkSpace image based on the specified source image. The new updated WorkSpace image has the latest drivers and other updates required by the Amazon WorkSpaces components. To determine which Wor ... |
+| `CreateWorkspaceBundle` | `-` | - | `BundleName`, `BundleDescription`, `ImageId`, `ComputeType`, `UserStorage` | - | `CreateWorkspaceBundleResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `ResourceAlreadyExistsException`, `ResourceLimitExceededException`, `ResourceNotFoundException`, `ResourceUnavailableException` | Creates the specified WorkSpace bundle. For more information about creating WorkSpace bundles, see Create a Custom WorkSpaces Image and Bundle . |
+| `CreateWorkspaceImage` | `-` | - | `Name`, `Description`, `WorkspaceId` | - | `CreateWorkspaceImageResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationNotSupportedException`, `ResourceAlreadyExistsException`, `ResourceLimitExceededException`, `ResourceNotFoundException` | Creates a new WorkSpace image from an existing WorkSpace. |
+| `CreateWorkspaces` | `-` | - | `Workspaces` | - | `CreateWorkspacesResult` | `InvalidParameterValuesException`, `ResourceLimitExceededException` | Creates one or more WorkSpaces. This operation is asynchronous and returns before the WorkSpaces are created. The MANUAL running mode value is only supported by Amazon WorkSpaces Core. Contact your account team to be ... |
+| `CreateWorkspacesPool` | `-` | - | `PoolName`, `Description`, `BundleId`, `DirectoryId`, `Capacity` | - | `CreateWorkspacesPoolResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceAlreadyExistsException`, `ResourceLimitExceededException`, `ResourceNotFoundException` | Creates a pool of WorkSpaces. |
+| `DeleteAccountLinkInvitation` | `-` | - | `LinkId` | - | `DeleteAccountLinkInvitationResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes the account link invitation. |
+| `DeleteClientBranding` | `-` | - | `ResourceId`, `Platforms` | - | `DeleteClientBrandingResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `ResourceNotFoundException` | Deletes customized client branding. Client branding allows you to customize your WorkSpace's client login portal. You can tailor your login portal company logo, the support email address, support link, link to reset ... |
+| `DeleteConnectClientAddIn` | `-` | - | `AddInId`, `ResourceId` | - | `DeleteConnectClientAddInResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `ResourceNotFoundException` | Deletes a client-add-in for Amazon Connect that is configured within a directory. |
+| `DeleteConnectionAlias` | `-` | - | `AliasId` | - | `DeleteConnectionAliasResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationNotSupportedException`, `ResourceAssociatedException`, `ResourceNotFoundException` | Deletes the specified connection alias. For more information, see Cross-Region Redirection for Amazon WorkSpaces . If you will no longer be using a fully qualified domain name (FQDN) as the registration code for your ... |
+| `DeleteIpGroup` | `-` | - | `GroupId` | - | `DeleteIpGroupResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `ResourceAssociatedException`, `ResourceNotFoundException` | Deletes the specified IP access control group. You cannot delete an IP access control group that is associated with a directory. |
+| `DeleteTags` | `-` | - | `ResourceId`, `TagKeys` | - | `DeleteTagsResult` | `InvalidParameterValuesException`, `ResourceNotFoundException` | Deletes the specified tags from the specified WorkSpaces resource. |
+| `DeleteWorkspaceBundle` | `-` | - | - | - | `DeleteWorkspaceBundleResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `ResourceAssociatedException`, `ResourceNotFoundException` | Deletes the specified WorkSpace bundle. For more information about deleting WorkSpace bundles, see Delete a Custom WorkSpaces Bundle or Image . |
+| `DeleteWorkspaceImage` | `-` | - | `ImageId` | - | `DeleteWorkspaceImageResult` | `AccessDeniedException`, `InvalidResourceStateException`, `ResourceAssociatedException` | Deletes the specified image from your account. To delete an image, you must first delete any bundles that are associated with the image and unshare the image if it is shared with other accounts. |
+| `DeployWorkspaceApplications` | `-` | - | `WorkspaceId` | - | `DeployWorkspaceApplicationsResult` | `AccessDeniedException`, `IncompatibleApplicationsException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceInUseException`, `ResourceNotFoundException` | Deploys associated applications to the specified WorkSpace |
+| `DeregisterWorkspaceDirectory` | `-` | - | `DirectoryId` | - | `DeregisterWorkspaceDirectoryResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Deregisters the specified directory. This operation is asynchronous and returns before the WorkSpace directory is deregistered. If any WorkSpaces are registered to this directory, you must remove them before you can ... |
+| `DescribeAccount` | `-` | - | - | - | `DescribeAccountResult` | `AccessDeniedException` | Retrieves a list that describes the configuration of Bring Your Own License (BYOL) for the specified account. |
+| `DescribeAccountModifications` | `-` | - | - | - | `DescribeAccountModificationsResult` | `AccessDeniedException` | Retrieves a list that describes modifications to the configuration of Bring Your Own License (BYOL) for the specified account. |
+| `DescribeApplicationAssociations` | `-` | `paginated` | `ApplicationId`, `AssociatedResourceTypes` | - | `DescribeApplicationAssociationsResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Describes the associations between the application and the specified associated resources. |
+| `DescribeApplications` | `-` | `paginated` | - | - | `DescribeApplicationsResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Describes the specified applications by filtering based on their compute types, license availability, operating systems, and owners. |
+| `DescribeBundleAssociations` | `-` | - | `BundleId`, `AssociatedResourceTypes` | - | `DescribeBundleAssociationsResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Describes the associations between the applications and the specified bundle. |
+| `DescribeClientBranding` | `-` | - | `ResourceId` | - | `DescribeClientBrandingResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `ResourceNotFoundException` | Describes the specified client branding. Client branding allows you to customize the log in page of various device types for your users. You can add your company logo, the support email address, support link, link to ... |
+| `DescribeClientProperties` | `-` | - | `ResourceIds` | - | `DescribeClientPropertiesResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `ResourceNotFoundException` | Retrieves a list that describes one or more specified Amazon WorkSpaces clients. |
+| `DescribeConnectClientAddIns` | `-` | - | `ResourceId` | - | `DescribeConnectClientAddInsResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `ResourceNotFoundException` | Retrieves a list of Amazon Connect client add-ins that have been created. |
+| `DescribeConnectionAliases` | `-` | - | - | - | `DescribeConnectionAliasesResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException` | Retrieves a list that describes the connection aliases used for cross-Region redirection. For more information, see Cross-Region Redirection for Amazon WorkSpaces . |
+| `DescribeConnectionAliasPermissions` | `-` | - | `AliasId` | - | `DescribeConnectionAliasPermissionsResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Describes the permissions that the owner of a connection alias has granted to another Amazon Web Services account for the specified connection alias. For more information, see Cross-Region Redirection for Amazon Work ... |
+| `DescribeCustomWorkspaceImageImport` | `-` | - | `ImageId` | - | `DescribeCustomWorkspaceImageImportResult` | `AccessDeniedException`, `ResourceNotFoundException` | Retrieves information about a WorkSpace BYOL image being imported via ImportCustomWorkspaceImage. |
+| `DescribeImageAssociations` | `-` | - | `ImageId`, `AssociatedResourceTypes` | - | `DescribeImageAssociationsResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Describes the associations between the applications and the specified image. |
+| `DescribeIpGroups` | `-` | - | - | - | `DescribeIpGroupsResult` | `AccessDeniedException`, `InvalidParameterValuesException` | Describes one or more of your IP access control groups. |
+| `DescribeTags` | `-` | - | `ResourceId` | - | `DescribeTagsResult` | `ResourceNotFoundException` | Describes the specified tags for the specified WorkSpaces resource. |
+| `DescribeWorkspaceAssociations` | `-` | - | `WorkspaceId`, `AssociatedResourceTypes` | - | `DescribeWorkspaceAssociationsResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Describes the associations betweens applications and the specified WorkSpace. |
+| `DescribeWorkspaceBundles` | `-` | `paginated` | - | - | `DescribeWorkspaceBundlesResult` | `InvalidParameterValuesException` | Retrieves a list that describes the available WorkSpace bundles. You can filter the results using either bundle ID or owner, but not both. |
+| `DescribeWorkspaceDirectories` | `-` | `paginated` | - | - | `DescribeWorkspaceDirectoriesResult` | `InvalidParameterValuesException` | Describes the available directories that are registered with Amazon WorkSpaces. |
+| `DescribeWorkspaceImagePermissions` | `-` | - | `ImageId` | - | `DescribeWorkspaceImagePermissionsResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `ResourceNotFoundException` | Describes the permissions that the owner of an image has granted to other Amazon Web Services accounts for an image. |
+| `DescribeWorkspaceImages` | `-` | - | - | - | `DescribeWorkspaceImagesResult` | `AccessDeniedException` | Retrieves a list that describes one or more specified images, if the image identifiers are provided. Otherwise, all images in the account are described. |
+| `DescribeWorkspaces` | `-` | `paginated` | - | - | `DescribeWorkspacesResult` | `InvalidParameterValuesException`, `ResourceUnavailableException` | Describes the specified WorkSpaces. You can filter the results by using the bundle identifier, directory identifier, or owner, but you can specify only one filter at a time. |
+| `DescribeWorkspacesConnectionStatus` | `-` | - | - | - | `DescribeWorkspacesConnectionStatusResult` | `InvalidParameterValuesException` | Describes the connection status of the specified WorkSpaces. |
+| `DescribeWorkspaceSnapshots` | `-` | - | `WorkspaceId` | - | `DescribeWorkspaceSnapshotsResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `ResourceNotFoundException` | Describes the snapshots for the specified WorkSpace. |
+| `DescribeWorkspacesPools` | `-` | - | - | - | `DescribeWorkspacesPoolsResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `ResourceNotFoundException` | Describes the specified WorkSpaces Pools. |
+| `DescribeWorkspacesPoolSessions` | `-` | - | `PoolId` | - | `DescribeWorkspacesPoolSessionsResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `ResourceNotFoundException` | Retrieves a list that describes the streaming sessions for a specified pool. |
+| `DisassociateConnectionAlias` | `-` | - | `AliasId` | - | `DisassociateConnectionAliasResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Disassociates a connection alias from a directory. Disassociating a connection alias disables cross-Region redirection between two directories in different Regions. For more information, see Cross-Region Redirection ... |
+| `DisassociateIpGroups` | `-` | - | `DirectoryId`, `GroupIds` | - | `DisassociateIpGroupsResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Disassociates the specified IP access control group from the specified directory. |
+| `DisassociateWorkspaceApplication` | `-` | - | `WorkspaceId`, `ApplicationId` | - | `DisassociateWorkspaceApplicationResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceInUseException`, `ResourceNotFoundException` | Disassociates the specified application from a WorkSpace. |
+| `GetAccountLink` | `-` | - | - | - | `GetAccountLinkResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Retrieves account link information. |
+| `ImportClientBranding` | `-` | - | `ResourceId` | - | `ImportClientBrandingResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `ResourceLimitExceededException`, `ResourceNotFoundException` | Imports client branding. Client branding allows you to customize your WorkSpace's client login portal. You can tailor your login portal company logo, the support email address, support link, link to reset password, a ... |
+| `ImportCustomWorkspaceImage` | `-` | - | `ImageName`, `ImageDescription`, `ComputeType`, `Protocol`, `ImageSource`, `InfrastructureConfigurationArn`, `Platform`, `OsVersion` | - | `ImportCustomWorkspaceImageResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceAlreadyExistsException`, `ResourceLimitExceededException`, `ResourceNotFoundException` | Imports the specified Windows 10 or 11 Bring Your Own License (BYOL) image into Amazon WorkSpaces using EC2 Image Builder. The image must be an already licensed image that is in your Amazon Web Services account, and ... |
+| `ImportWorkspaceImage` | `-` | - | `Ec2ImageId`, `IngestionProcess`, `ImageName`, `ImageDescription` | - | `ImportWorkspaceImageResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceAlreadyExistsException`, `ResourceLimitExceededException`, `ResourceNotFoundException` | Imports the specified Windows 10 or 11 Bring Your Own License (BYOL) image into Amazon WorkSpaces. The image must be an already licensed Amazon EC2 image that is in your Amazon Web Services account, and you must own ... |
+| `ListAccountLinks` | `-` | `paginated` | - | - | `ListAccountLinksResult` | `AccessDeniedException`, `InternalServerException`, `ValidationException` | Lists all account links. |
+| `ListAvailableManagementCidrRanges` | `-` | - | `ManagementCidrRangeConstraint` | - | `ListAvailableManagementCidrRangesResult` | `AccessDeniedException`, `InvalidParameterValuesException` | Retrieves a list of IP address ranges, specified as IPv4 CIDR blocks, that you can use for the network management interface when you enable Bring Your Own License (BYOL). This operation can be run only by Amazon Web ... |
+| `MigrateWorkspace` | `-` | - | `SourceWorkspaceId`, `BundleId` | - | `MigrateWorkspaceResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationInProgressException`, `OperationNotSupportedException`, `ResourceNotFoundException`, `ResourceUnavailableException` | Migrates a WorkSpace from one operating system or bundle type to another, while retaining the data on the user volume. The migration process recreates the WorkSpace by using a new root volume from the target bundle i ... |
+| `ModifyAccount` | `-` | - | - | - | `ModifyAccountResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `ResourceNotFoundException`, `ResourceUnavailableException` | Modifies the configuration of Bring Your Own License (BYOL) for the specified account. |
+| `ModifyCertificateBasedAuthProperties` | `-` | - | `ResourceId` | - | `ModifyCertificateBasedAuthPropertiesResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Modifies the properties of the certificate-based authentication you want to use with your WorkSpaces. |
+| `ModifyClientProperties` | `-` | - | `ResourceId`, `ClientProperties` | - | `ModifyClientPropertiesResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Modifies the properties of the specified Amazon WorkSpaces clients. |
+| `ModifyEndpointEncryptionMode` | `-` | - | `DirectoryId`, `EndpointEncryptionMode` | - | `ModifyEndpointEncryptionModeResponse` | `AccessDeniedException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Modifies the endpoint encryption mode that allows you to configure the specified directory between Standard TLS and FIPS 140-2 validated mode. |
+| `ModifySamlProperties` | `-` | - | `ResourceId` | - | `ModifySamlPropertiesResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Modifies multiple properties related to SAML 2.0 authentication, including the enablement status, user access URL, and relay state parameter name that are used for configuring federation with an SAML 2.0 identity pro ... |
+| `ModifySelfservicePermissions` | `-` | - | `ResourceId`, `SelfservicePermissions` | - | `ModifySelfservicePermissionsResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Modifies the self-service WorkSpace management capabilities for your users. For more information, see Enable Self-Service WorkSpace Management Capabilities for Your Users . |
+| `ModifyStreamingProperties` | `-` | - | `ResourceId` | - | `ModifyStreamingPropertiesResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Modifies the specified streaming properties. |
+| `ModifyWorkspaceAccessProperties` | `-` | - | `ResourceId`, `WorkspaceAccessProperties` | - | `ModifyWorkspaceAccessPropertiesResult` | `AccessDeniedException`, `InvalidParameterCombinationException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Specifies which devices and operating systems users can use to access their WorkSpaces. For more information, see Control Device Access . |
+| `ModifyWorkspaceCreationProperties` | `-` | - | `ResourceId`, `WorkspaceCreationProperties` | - | `ModifyWorkspaceCreationPropertiesResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Modify the default properties used to create WorkSpaces. |
+| `ModifyWorkspaceProperties` | `-` | - | `WorkspaceId` | - | `ModifyWorkspacePropertiesResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationInProgressException`, `ResourceNotFoundException`, `ResourceUnavailableException`, `UnsupportedWorkspaceConfigurationException` | Modifies the specified WorkSpace properties. For important information about how to modify the size of the root and user volumes, see Modify a WorkSpace . The MANUAL running mode value is only supported by Amazon Wor ... |
+| `ModifyWorkspaceState` | `-` | - | `WorkspaceId`, `WorkspaceState` | - | `ModifyWorkspaceStateResult` | `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Sets the state of the specified WorkSpace. To maintain a WorkSpace without being interrupted, set the WorkSpace state to ADMIN_MAINTENANCE . WorkSpaces in this state do not respond to requests to reboot, stop, start, ... |
+| `RebootWorkspaces` | `-` | - | `RebootWorkspaceRequests` | - | `RebootWorkspacesResult` | `OperationNotSupportedException` | Reboots the specified WorkSpaces. You cannot reboot a WorkSpace unless its state is AVAILABLE , UNHEALTHY , or REBOOTING . Reboot a WorkSpace in the REBOOTING state only if your WorkSpace has been stuck in the REBOOT ... |
+| `RebuildWorkspaces` | `-` | - | `RebuildWorkspaceRequests` | - | `RebuildWorkspacesResult` | `OperationNotSupportedException` | Rebuilds the specified WorkSpace. You cannot rebuild a WorkSpace unless its state is AVAILABLE , ERROR , UNHEALTHY , STOPPED , or REBOOTING . Rebuilding a WorkSpace is a potentially destructive action that can result ... |
+| `RegisterWorkspaceDirectory` | `-` | - | - | - | `RegisterWorkspaceDirectoryResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationNotSupportedException`, `ResourceAlreadyExistsException`, `ResourceLimitExceededException`, `ResourceNotFoundException`, `UnsupportedNetworkConfigurationException`, `WorkspacesDefaultRoleNotFoundException` | Registers the specified directory. This operation is asynchronous and returns before the WorkSpace directory is registered. If this is the first time you are registering a directory, you will need to create the works ... |
+| `RejectAccountLinkInvitation` | `-` | - | `LinkId` | - | `RejectAccountLinkInvitationResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Rejects the account link invitation. |
+| `RestoreWorkspace` | `-` | - | `WorkspaceId` | - | `RestoreWorkspaceResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Restores the specified WorkSpace to its last known healthy state. You cannot restore a WorkSpace unless its state is AVAILABLE , ERROR , UNHEALTHY , or STOPPED . Restoring a WorkSpace is a potentially destructive act ... |
+| `RevokeIpRules` | `-` | - | `GroupId`, `UserRules` | - | `RevokeIpRulesResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `ResourceNotFoundException` | Removes one or more rules from the specified IP access control group. |
+| `StartWorkspaces` | `-` | - | `StartWorkspaceRequests` | - | `StartWorkspacesResult` | - | Starts the specified WorkSpaces. You cannot start a WorkSpace unless it has a running mode of AutoStop or Manual and a state of STOPPED . |
+| `StartWorkspacesPool` | `-` | - | `PoolId` | - | `StartWorkspacesPoolResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationInProgressException`, `OperationNotSupportedException`, `ResourceLimitExceededException`, `ResourceNotFoundException` | Starts the specified pool. You cannot start a pool unless it has a running mode of AutoStop and a state of STOPPED . |
+| `StopWorkspaces` | `-` | - | `StopWorkspaceRequests` | - | `StopWorkspacesResult` | - | Stops the specified WorkSpaces. You cannot stop a WorkSpace unless it has a running mode of AutoStop or Manual and a state of AVAILABLE , IMPAIRED , UNHEALTHY , or ERROR . |
+| `StopWorkspacesPool` | `-` | - | `PoolId` | - | `StopWorkspacesPoolResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationInProgressException`, `ResourceNotFoundException` | Stops the specified pool. You cannot stop a WorkSpace pool unless it has a running mode of AutoStop and a state of AVAILABLE , IMPAIRED , UNHEALTHY , or ERROR . |
+| `TerminateWorkspaces` | `-` | - | `TerminateWorkspaceRequests` | - | `TerminateWorkspacesResult` | - | Terminates the specified WorkSpaces. Terminating a WorkSpace is a permanent action and cannot be undone. The user's data is destroyed. If you need to archive any user data, contact Amazon Web Services Support before ... |
+| `TerminateWorkspacesPool` | `-` | - | `PoolId` | - | `TerminateWorkspacesPoolResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationInProgressException`, `ResourceNotFoundException` | Terminates the specified pool. |
+| `TerminateWorkspacesPoolSession` | `-` | - | `SessionId` | - | `TerminateWorkspacesPoolSessionResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationInProgressException`, `OperationNotSupportedException`, `ResourceNotFoundException` | Terminates the pool session. |
+| `UpdateConnectClientAddIn` | `-` | - | `AddInId`, `ResourceId` | - | `UpdateConnectClientAddInResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `ResourceNotFoundException` | Updates a Amazon Connect client add-in. Use this action to update the name and endpoint URL of a Amazon Connect client add-in. |
+| `UpdateConnectionAliasPermission` | `-` | - | `AliasId`, `ConnectionAliasPermission` | - | `UpdateConnectionAliasPermissionResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationNotSupportedException`, `ResourceAssociatedException`, `ResourceLimitExceededException`, `ResourceNotFoundException` | Shares or unshares a connection alias with one account by specifying whether that account has permission to associate the connection alias with a directory. If the association permission is granted, the connection al ... |
+| `UpdateRulesOfIpGroup` | `-` | - | `GroupId`, `UserRules` | - | `UpdateRulesOfIpGroupResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `ResourceLimitExceededException`, `ResourceNotFoundException` | Replaces the current rules of the specified IP access control group with the specified rules. |
+| `UpdateWorkspaceBundle` | `-` | - | - | - | `UpdateWorkspaceBundleResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceNotFoundException`, `ResourceUnavailableException` | Updates a WorkSpace bundle with a new image. For more information about updating WorkSpace bundles, see Update a Custom WorkSpaces Bundle . Existing WorkSpaces aren't automatically updated when you update the bundle ... |
+| `UpdateWorkspaceImagePermission` | `-` | - | `ImageId`, `AllowCopyImage`, `SharedAccountId` | - | `UpdateWorkspaceImagePermissionResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `OperationNotSupportedException`, `ResourceNotFoundException`, `ResourceUnavailableException` | Shares or unshares an image with one account in the same Amazon Web Services Region by specifying whether that account has permission to copy the image. If the copy image permission is granted, the image is shared wi ... |
+| `UpdateWorkspacesPool` | `-` | - | `PoolId` | - | `UpdateWorkspacesPoolResult` | `AccessDeniedException`, `InvalidParameterValuesException`, `InvalidResourceStateException`, `OperationInProgressException`, `OperationNotSupportedException`, `ResourceLimitExceededException`, `ResourceNotFoundException` | Updates the specified pool. |
 
 ## HTTP Bindings
 
@@ -284,31 +286,56 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | The user is not authorized to access a resource. |
-| `InvalidParameterValuesException` | `structure` | `message` | One or more parameter values are not valid. |
-| `ResourceNotFoundException` | `structure` | `ResourceId`, `message` | The resource could not be found. |
-| `OperationNotSupportedException` | `structure` | `message`, `reason` | This operation is not supported. |
-| `InvalidResourceStateException` | `structure` | `message` | The state of the resource is not valid for this operation. |
-| `ResourceLimitExceededException` | `structure` | `message` | Your resource limits have been exceeded. |
-| `ResourceAlreadyExistsException` | `structure` | `message` | The specified resource already exists. |
-| `ResourceUnavailableException` | `structure` | `ResourceId`, `message` | The specified resource is not available. |
-| `OperationInProgressException` | `structure` | `message` | The properties of this WorkSpace are currently being modified. |
-| `InternalServerException` | `structure` | `message` | Unexpected server error occured. |
-| `ValidationException` | `structure` | `message` | You either haven't provided a `TargetAccountId` or are using the same value for `TargetAccountId` and `SourceAccountId`. |
-| `ResourceAssociatedException` | `structure` | `message` | The resource is associated with a directory. |
-| `ConflictException` | `structure` | `message` | The `TargetAccountId` is already linked or invited. |
-| `ResourceInUseException` | `structure` | `ResourceId`, `message` | The specified resource is currently in use. |
-| `IncompatibleApplicationsException` | `structure` | - | The specified application is not compatible with the resource. |
-| `ResourceCreationFailedException` | `structure` | `message` | The resource could not be created. |
-| `AcceptAccountLinkInvitationRequest` | `structure` | `ClientToken`, `LinkId` | - |
-| `AcceptAccountLinkInvitationResult` | `structure` | `AccountLink` | - |
-| `AssociateConnectionAliasRequest` | `structure` | `AliasId`, `ResourceId` | - |
-| `AssociateConnectionAliasResult` | `structure` | `ConnectionIdentifier` | - |
-| `AssociateIpGroupsRequest` | `structure` | `DirectoryId`, `GroupIds` | - |
-| `AssociateIpGroupsResult` | `structure` | - | - |
-| `AssociateWorkspaceApplicationRequest` | `structure` | `ApplicationId`, `WorkspaceId` | - |
-| `AssociateWorkspaceApplicationResult` | `structure` | `Association` | - |
-
+| `AccessDeniedException` | `structure` | message | The user is not authorized to access a resource. |
+| `ApplicationNotSupportedException` | `structure` | **empty (no members)** | The specified application is not supported. |
+| `ComputeNotCompatibleException` | `structure` | **empty (no members)** | The compute type of the WorkSpace is not compatible with the application. |
+| `ConflictException` | `structure` | message | The TargetAccountId is already linked or invited. |
+| `IncompatibleApplicationsException` | `structure` | **empty (no members)** | The specified application is not compatible with the resource. |
+| `InternalServerException` | `structure` | message | Unexpected server error occured. |
+| `InvalidParameterCombinationException` | `structure` | message | Two or more of the selected parameter values cannot be used together. |
+| `InvalidParameterValuesException` | `structure` | message | One or more parameter values are not valid. |
+| `InvalidResourceStateException` | `structure` | message | The state of the resource is not valid for this operation. |
+| `OperatingSystemNotCompatibleException` | `structure` | **empty (no members)** | The operating system of the WorkSpace is not compatible with the application. |
+| `OperationInProgressException` | `structure` | message | The properties of this WorkSpace are currently being modified. Try again in a moment. |
+| `OperationNotSupportedException` | `structure` | message, reason | This operation is not supported. |
+| `ResourceAlreadyExistsException` | `structure` | message | The specified resource already exists. |
+| `ResourceAssociatedException` | `structure` | message | The resource is associated with a directory. |
+| `ResourceCreationFailedException` | `structure` | message | The resource could not be created. |
+| `ResourceInUseException` | `structure` | message, ResourceId | The specified resource is currently in use. |
+| `ResourceLimitExceededException` | `structure` | message | Your resource limits have been exceeded. |
+| `ResourceNotFoundException` | `structure` | message, ResourceId | The resource could not be found. |
+| `ResourceUnavailableException` | `structure` | message, ResourceId | The specified resource is not available. |
+| `UnsupportedNetworkConfigurationException` | `structure` | message | The configuration of this network is not supported for this operation, or your network configuration conflicts with the Amazon WorkSpaces management network ... |
+| `UnsupportedWorkspaceConfigurationException` | `structure` | message | The configuration of this WorkSpace is not supported for this operation. For more information, see Required Configuration and Service Components for WorkSpa ... |
+| `ValidationException` | `structure` | message | You either haven't provided a TargetAccountId or are using the same value for TargetAccountId and SourceAccountId . |
+| `WorkspacesDefaultRoleNotFoundException` | `structure` | message | The workspaces_DefaultRole role could not be found. If this is the first time you are registering a directory, you will need to create the workspaces_Defaul ... |
+| `AcceptAccountLinkInvitationRequest` | `structure` | LinkId, ClientToken | - |
+| `AcceptAccountLinkInvitationResult` | `structure` | AccountLink | - |
+| `AssociateConnectionAliasRequest` | `structure` | AliasId, ResourceId | - |
+| `AssociateConnectionAliasResult` | `structure` | ConnectionIdentifier | - |
+| `AssociateIpGroupsRequest` | `structure` | DirectoryId, GroupIds | - |
+| `AssociateIpGroupsResult` | `structure` | **empty (no members)** | - |
+| `AssociateWorkspaceApplicationRequest` | `structure` | WorkspaceId, ApplicationId | - |
+| `AssociateWorkspaceApplicationResult` | `structure` | Association | - |
+| `AuthorizeIpRulesRequest` | `structure` | GroupId, UserRules | - |
+| `AuthorizeIpRulesResult` | `structure` | **empty (no members)** | - |
+| `CopyWorkspaceImageRequest` | `structure` | Name, Description, SourceImageId, SourceRegion, Tags | - |
+| `CopyWorkspaceImageResult` | `structure` | ImageId | - |
+| `CreateAccountLinkInvitationRequest` | `structure` | TargetAccountId, ClientToken | - |
+| `CreateAccountLinkInvitationResult` | `structure` | AccountLink | - |
+| `CreateConnectClientAddInRequest` | `structure` | ResourceId, Name, URL | - |
+| `CreateConnectClientAddInResult` | `structure` | AddInId | - |
+| `CreateConnectionAliasRequest` | `structure` | ConnectionString, Tags | - |
+| `AGAModeForDirectoryEnum` | `enum` | ENABLED_AUTO, DISABLED | - |
+| `AGAModeForWorkSpaceEnum` | `enum` | ENABLED_AUTO, DISABLED, INHERITED | - |
+| `AGAPreferredProtocolForDirectory` | `enum` | TCP, NONE | - |
+| `AGAPreferredProtocolForWorkSpace` | `enum` | TCP, NONE, INHERITED | - |
+| `AccessEndpointType` | `enum` | STREAMING_WSP | - |
+| `AccessPropertyValue` | `enum` | ALLOW, DENY | - |
+| `AccountLinkStatusEnum` | `enum` | LINKED, LINKING_FAILED, LINK_NOT_FOUND, PENDING_ACCEPTANCE_BY_TARGET_ACCOUNT, REJECTED | - |
+| `Application` | `enum` | Microsoft_Office_2016, Microsoft_Office_2019 | - |
+| `ApplicationAssociatedResourceType` | `enum` | WORKSPACE, BUNDLE, IMAGE | - |
+| `ApplicationSettingsStatusEnum` | `enum` | DISABLED, ENABLED | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

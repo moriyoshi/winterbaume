@@ -76,144 +76,144 @@ FSx currently treats file-system networking fields as local file-system metadata
 
 - Operations: `CreateAndAttachS3AccessPoint`, `CreateBackup`, `CreateDataRepositoryAssociation`, `CreateDataRepositoryTask`, `CreateFileCache`, `CreateFileSystem`, `CreateFileSystemFromBackup`, `CreateSnapshot`, `CreateStorageVirtualMachine`, `CreateVolume`, `CreateVolumeFromBackup`
 - Traits: `idempotency-token` (11), `idempotent` (5)
-- Common required input members in this group: `BackupId`, `DataRepositoryPath`, `FileCacheType`, `FileCacheTypeVersion`, `FileSystemId`, `FileSystemType`, `Name`, `Report`, `StorageCapacity`, `SubnetIds`, `Type`, `VolumeId`, `VolumeType`
+- Common required input members in this group: `Name`, `Type`, `FileSystemId`, `SubnetIds`, `BackupId`
 
 ### Describe
 
 - Operations: `DescribeBackups`, `DescribeDataRepositoryAssociations`, `DescribeDataRepositoryTasks`, `DescribeFileCaches`, `DescribeFileSystemAliases`, `DescribeFileSystems`, `DescribeS3AccessPointAttachments`, `DescribeSharedVpcConfiguration`, `DescribeSnapshots`, `DescribeStorageVirtualMachines`, `DescribeVolumes`
-- Traits: `idempotency-token` (1), `idempotent` (2), `paginated` (10)
-- Common required input members in this group: `FileSystemId`
+- Traits: `paginated` (10), `idempotent` (2), `idempotency-token` (1)
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteBackup`, `DeleteDataRepositoryAssociation`, `DeleteFileCache`, `DeleteFileSystem`, `DeleteSnapshot`, `DeleteStorageVirtualMachine`, `DeleteVolume`
-- Traits: `idempotency-token` (7), `idempotent` (5)
-- Common required input members in this group: `AssociationId`, `BackupId`, `FileCacheId`, `FileSystemId`, `SnapshotId`, `StorageVirtualMachineId`, `VolumeId`
+- Traits: `idempotent` (5), `idempotency-token` (7)
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateDataRepositoryAssociation`, `UpdateFileCache`, `UpdateFileSystem`, `UpdateSharedVpcConfiguration`, `UpdateSnapshot`, `UpdateStorageVirtualMachine`, `UpdateVolume`
-- Traits: `idempotency-token` (7), `idempotent` (3)
-- Common required input members in this group: `AssociationId`, `FileCacheId`, `FileSystemId`, `Name`, `SnapshotId`, `StorageVirtualMachineId`, `VolumeId`
+- Traits: `idempotent` (3), `idempotency-token` (7)
+- Common required input members in this group: -
 
 ### Copy
 
 - Operations: `CopyBackup`, `CopySnapshotAndUpdateVolume`
-- Traits: `idempotency-token` (2), `idempotent` (2)
-- Common required input members in this group: `SourceBackupId`, `SourceSnapshotARN`, `VolumeId`
+- Traits: `idempotent` (2), `idempotency-token` (2)
+- Common required input members in this group: -
 
 ### Associate
 
 - Operations: `AssociateFileSystemAliases`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `Aliases`, `FileSystemId`
+- Common required input members in this group: -
 
 ### Cancel
 
 - Operations: `CancelDataRepositoryTask`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `TaskId`
+- Common required input members in this group: -
 
 ### Detach
 
 - Operations: `DetachAndDeleteS3AccessPoint`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `Name`
+- Common required input members in this group: -
 
 ### Disassociate
 
 - Operations: `DisassociateFileSystemAliases`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `Aliases`, `FileSystemId`
+- Common required input members in this group: -
 
 ### List
 
 - Operations: `ListTagsForResource`
 - Traits: `paginated` (1)
-- Common required input members in this group: `ResourceARN`
+- Common required input members in this group: -
 
 ### Release
 
 - Operations: `ReleaseFileSystemNfsV3Locks`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `FileSystemId`
+- Traits: `idempotent` (1), `idempotency-token` (1)
+- Common required input members in this group: -
 
 ### Restore
 
 - Operations: `RestoreVolumeFromSnapshot`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `SnapshotId`, `VolumeId`
+- Traits: `idempotent` (1), `idempotency-token` (1)
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartMisconfiguredStateRecovery`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `FileSystemId`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `ResourceARN`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `ResourceARN`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AssociateFileSystemAliases` | - | `idempotency-token` | `Aliases`, `FileSystemId` | `ClientRequestToken` | `AssociateFileSystemAliasesResponse` | `BadRequest`, `FileSystemNotFound`, `InternalServerError` | Use this action to associate one or more Domain Name Server (DNS) aliases with an existing Amazon FSx for Windows File Server file system. A file system can have a maximum of 50 DNS aliases associated with it at any one time. |
-| `CancelDataRepositoryTask` | - | `idempotent` | `TaskId` | - | `CancelDataRepositoryTaskResponse` | `BadRequest`, `DataRepositoryTaskEnded`, `DataRepositoryTaskNotFound`, `InternalServerError`, `UnsupportedOperation` | Cancels an existing Amazon FSx for Lustre data repository task if that task is in either the `PENDING` or `EXECUTING` state. When you cancel an export task, Amazon FSx does the following. |
-| `CopyBackup` | - | `idempotent`, `idempotency-token` | `SourceBackupId` | `ClientRequestToken` | `CopyBackupResponse` | `BackupNotFound`, `BadRequest`, `IncompatibleParameterError`, `IncompatibleRegionForMultiAZ`, `InternalServerError`, `InvalidDestinationKmsKey`, `InvalidRegion`, `InvalidSourceKmsKey`, ... (+3) | Copies an existing backup within the same Amazon Web Services account to another Amazon Web Services Region (cross-Region copy) or within the same Amazon Web Services Region (in-Region copy). You can have up to five backup copy requests in progress to a... |
-| `CopySnapshotAndUpdateVolume` | - | `idempotent`, `idempotency-token` | `SourceSnapshotARN`, `VolumeId` | `ClientRequestToken` | `CopySnapshotAndUpdateVolumeResponse` | `BadRequest`, `IncompatibleParameterError`, `InternalServerError`, `ServiceLimitExceeded` | Updates an existing volume by using a snapshot from another Amazon FSx for OpenZFS file system. For more information, see on-demand data replication in the Amazon FSx for OpenZFS User Guide. |
-| `CreateAndAttachS3AccessPoint` | - | `idempotency-token` | `Name`, `Type` | `ClientRequestToken` | `CreateAndAttachS3AccessPointResponse` | `AccessPointAlreadyOwnedByYou`, `BadRequest`, `IncompatibleParameterError`, `InternalServerError`, `InvalidAccessPoint`, `InvalidRequest`, `TooManyAccessPoints`, `UnsupportedOperation`, ... (+1) | Creates an S3 access point and attaches it to an Amazon FSx volume. For FSx for OpenZFS file systems, the volume must be hosted on a high-availability file system, either Single-AZ or Multi-AZ. |
-| `CreateBackup` | - | `idempotent`, `idempotency-token` | - | `ClientRequestToken` | `CreateBackupResponse` | `BackupInProgress`, `BadRequest`, `FileSystemNotFound`, `IncompatibleParameterError`, `InternalServerError`, `ServiceLimitExceeded`, `UnsupportedOperation`, `VolumeNotFound` | Creates a backup of an existing Amazon FSx for Windows File Server file system, Amazon FSx for Lustre file system, Amazon FSx for NetApp ONTAP volume, or Amazon FSx for OpenZFS file system. We recommend creating regular backups so that you can restore a file... |
-| `CreateDataRepositoryAssociation` | - | `idempotent`, `idempotency-token` | `DataRepositoryPath`, `FileSystemId` | `ClientRequestToken` | `CreateDataRepositoryAssociationResponse` | `BadRequest`, `FileSystemNotFound`, `IncompatibleParameterError`, `InternalServerError`, `ServiceLimitExceeded`, `UnsupportedOperation` | Creates an Amazon FSx for Lustre data repository association (DRA). A data repository association is a link between a directory on the file system and an Amazon S3 bucket or prefix. |
-| `CreateDataRepositoryTask` | - | `idempotent`, `idempotency-token` | `FileSystemId`, `Report`, `Type` | `ClientRequestToken` | `CreateDataRepositoryTaskResponse` | `BadRequest`, `DataRepositoryTaskExecuting`, `FileSystemNotFound`, `IncompatibleParameterError`, `InternalServerError`, `ServiceLimitExceeded`, `UnsupportedOperation` | Creates an Amazon FSx for Lustre data repository task. A `CreateDataRepositoryTask` operation will fail if a data repository is not linked to the FSx file system. |
-| `CreateFileCache` | - | `idempotent`, `idempotency-token` | `FileCacheType`, `FileCacheTypeVersion`, `StorageCapacity`, `SubnetIds` | `ClientRequestToken` | `CreateFileCacheResponse` | `BadRequest`, `IncompatibleParameterError`, `InternalServerError`, `InvalidNetworkSettings`, `InvalidPerUnitStorageThroughput`, `MissingFileCacheConfiguration`, `ServiceLimitExceeded` | Creates a new Amazon File Cache resource. You can use this operation with a client request token in the request that Amazon File Cache uses to ensure idempotent creation. |
-| `CreateFileSystem` | - | `idempotency-token` | `FileSystemType`, `SubnetIds` | `ClientRequestToken` | `CreateFileSystemResponse` | `ActiveDirectoryError`, `BadRequest`, `IncompatibleParameterError`, `InternalServerError`, `InvalidExportPath`, `InvalidImportPath`, `InvalidNetworkSettings`, `InvalidPerUnitStorageThroughput`, ... (+2) | Creates a new, empty Amazon FSx file system. You can create the following supported Amazon FSx file systems using the `CreateFileSystem` API operation: Amazon FSx for Lustre Amazon FSx for NetApp ONTAP Amazon FSx for OpenZFS Amazon FSx for Windows File Server... |
-| `CreateFileSystemFromBackup` | - | `idempotency-token` | `BackupId`, `SubnetIds` | `ClientRequestToken` | `CreateFileSystemFromBackupResponse` | `ActiveDirectoryError`, `BackupNotFound`, `BadRequest`, `IncompatibleParameterError`, `InternalServerError`, `InvalidNetworkSettings`, `InvalidPerUnitStorageThroughput`, `MissingFileSystemConfiguration`, ... (+1) | Creates a new Amazon FSx for Lustre, Amazon FSx for Windows File Server, or Amazon FSx for OpenZFS file system from an existing Amazon FSx backup. If a file system with the specified client request token exists and the parameters match, this operation returns... |
-| `CreateSnapshot` | - | `idempotent`, `idempotency-token` | `Name`, `VolumeId` | `ClientRequestToken` | `CreateSnapshotResponse` | `BadRequest`, `InternalServerError`, `ServiceLimitExceeded`, `VolumeNotFound` | Creates a snapshot of an existing Amazon FSx for OpenZFS volume. With snapshots, you can easily undo file changes and compare file versions by restoring the volume to a previous version. |
-| `CreateStorageVirtualMachine` | - | `idempotency-token` | `FileSystemId`, `Name` | `ClientRequestToken` | `CreateStorageVirtualMachineResponse` | `ActiveDirectoryError`, `BadRequest`, `FileSystemNotFound`, `IncompatibleParameterError`, `InternalServerError`, `ServiceLimitExceeded`, `UnsupportedOperation` | Creates a storage virtual machine (SVM) for an Amazon FSx for ONTAP file system. |
-| `CreateVolume` | - | `idempotency-token` | `Name`, `VolumeType` | `ClientRequestToken` | `CreateVolumeResponse` | `BadRequest`, `FileSystemNotFound`, `IncompatibleParameterError`, `InternalServerError`, `MissingVolumeConfiguration`, `ServiceLimitExceeded`, `StorageVirtualMachineNotFound`, `UnsupportedOperation` | Creates an FSx for ONTAP or Amazon FSx for OpenZFS storage volume. |
-| `CreateVolumeFromBackup` | - | `idempotency-token` | `BackupId`, `Name` | `ClientRequestToken` | `CreateVolumeFromBackupResponse` | `BackupNotFound`, `BadRequest`, `FileSystemNotFound`, `IncompatibleParameterError`, `InternalServerError`, `MissingVolumeConfiguration`, `ServiceLimitExceeded`, `StorageVirtualMachineNotFound` | Creates a new Amazon FSx for NetApp ONTAP volume from an existing Amazon FSx volume backup. |
-| `DeleteBackup` | - | `idempotent`, `idempotency-token` | `BackupId` | `ClientRequestToken` | `DeleteBackupResponse` | `BackupBeingCopied`, `BackupInProgress`, `BackupNotFound`, `BackupRestoring`, `BadRequest`, `IncompatibleParameterError`, `InternalServerError` | Deletes an Amazon FSx backup. After deletion, the backup no longer exists, and its data is gone. |
-| `DeleteDataRepositoryAssociation` | - | `idempotent`, `idempotency-token` | `AssociationId` | `ClientRequestToken` | `DeleteDataRepositoryAssociationResponse` | `BadRequest`, `DataRepositoryAssociationNotFound`, `IncompatibleParameterError`, `InternalServerError`, `ServiceLimitExceeded` | Deletes a data repository association on an Amazon FSx for Lustre file system. Deleting the data repository association unlinks the file system from the Amazon S3 bucket. |
-| `DeleteFileCache` | - | `idempotent`, `idempotency-token` | `FileCacheId` | `ClientRequestToken` | `DeleteFileCacheResponse` | `BadRequest`, `FileCacheNotFound`, `IncompatibleParameterError`, `InternalServerError`, `ServiceLimitExceeded` | Deletes an Amazon File Cache resource. After deletion, the cache no longer exists, and its data is gone. |
-| `DeleteFileSystem` | - | `idempotent`, `idempotency-token` | `FileSystemId` | `ClientRequestToken` | `DeleteFileSystemResponse` | `BadRequest`, `FileSystemNotFound`, `IncompatibleParameterError`, `InternalServerError`, `ServiceLimitExceeded` | Deletes a file system. After deletion, the file system no longer exists, and its data is gone. |
-| `DeleteSnapshot` | - | `idempotent`, `idempotency-token` | `SnapshotId` | `ClientRequestToken` | `DeleteSnapshotResponse` | `BadRequest`, `InternalServerError`, `SnapshotNotFound` | Deletes an Amazon FSx for OpenZFS snapshot. After deletion, the snapshot no longer exists, and its data is gone. |
-| `DeleteStorageVirtualMachine` | - | `idempotency-token` | `StorageVirtualMachineId` | `ClientRequestToken` | `DeleteStorageVirtualMachineResponse` | `BadRequest`, `IncompatibleParameterError`, `InternalServerError`, `StorageVirtualMachineNotFound` | Deletes an existing Amazon FSx for ONTAP storage virtual machine (SVM). Prior to deleting an SVM, you must delete all non-root volumes in the SVM, otherwise the operation will fail. |
-| `DeleteVolume` | - | `idempotency-token` | `VolumeId` | `ClientRequestToken` | `DeleteVolumeResponse` | `BadRequest`, `IncompatibleParameterError`, `InternalServerError`, `ServiceLimitExceeded`, `VolumeNotFound` | Deletes an Amazon FSx for NetApp ONTAP or Amazon FSx for OpenZFS volume. |
-| `DescribeBackups` | - | `paginated` | - | - | `DescribeBackupsResponse` | `BackupNotFound`, `BadRequest`, `FileSystemNotFound`, `InternalServerError`, `VolumeNotFound` | Returns the description of a specific Amazon FSx backup, if a `BackupIds` value is provided for that backup. Otherwise, it returns all backups owned by your Amazon Web Services account in the Amazon Web Services Region of the endpoint that you're calling. |
-| `DescribeDataRepositoryAssociations` | - | `idempotent`, `paginated` | - | - | `DescribeDataRepositoryAssociationsResponse` | `BadRequest`, `DataRepositoryAssociationNotFound`, `FileSystemNotFound`, `InternalServerError`, `InvalidDataRepositoryType` | Returns the description of specific Amazon FSx for Lustre or Amazon File Cache data repository associations, if one or more `AssociationIds` values are provided in the request, or if filters are used in the request. Data repository associations are supported... |
-| `DescribeDataRepositoryTasks` | - | `paginated` | - | - | `DescribeDataRepositoryTasksResponse` | `BadRequest`, `DataRepositoryTaskNotFound`, `FileSystemNotFound`, `InternalServerError` | Returns the description of specific Amazon FSx for Lustre or Amazon File Cache data repository tasks, if one or more `TaskIds` values are provided in the request, or if filters are used in the request. You can use filters to narrow the response to include... |
-| `DescribeFileCaches` | - | `idempotent`, `paginated` | - | - | `DescribeFileCachesResponse` | `BadRequest`, `FileCacheNotFound`, `InternalServerError` | Returns the description of a specific Amazon File Cache resource, if a `FileCacheIds` value is provided for that cache. Otherwise, it returns descriptions of all caches owned by your Amazon Web Services account in the Amazon Web Services Region of the... |
-| `DescribeFileSystemAliases` | - | `paginated`, `idempotency-token` | `FileSystemId` | `ClientRequestToken` | `DescribeFileSystemAliasesResponse` | `BadRequest`, `FileSystemNotFound`, `InternalServerError` | Returns the DNS aliases that are associated with the specified Amazon FSx for Windows File Server file system. A history of all DNS aliases that have been associated with and disassociated from the file system is available in the list of AdministrativeAction... |
-| `DescribeFileSystems` | - | `paginated` | - | - | `DescribeFileSystemsResponse` | `BadRequest`, `FileSystemNotFound`, `InternalServerError` | Returns the description of specific Amazon FSx file systems, if a `FileSystemIds` value is provided for that file system. Otherwise, it returns descriptions of all file systems owned by your Amazon Web Services account in the Amazon Web Services Region of the... |
-| `DescribeS3AccessPointAttachments` | - | `paginated` | - | - | `DescribeS3AccessPointAttachmentsResponse` | `BadRequest`, `InternalServerError`, `S3AccessPointAttachmentNotFound`, `UnsupportedOperation` | Describes one or more S3 access points attached to Amazon FSx volumes. The requester requires the following permission to perform this action: `fsx:DescribeS3AccessPointAttachments` |
-| `DescribeSharedVpcConfiguration` | - | - | - | - | `DescribeSharedVpcConfigurationResponse` | `BadRequest`, `InternalServerError` | Indicates whether participant accounts in your organization can create Amazon FSx for NetApp ONTAP Multi-AZ file systems in subnets that are shared by a virtual private cloud (VPC) owner. For more information, see Creating FSx for ONTAP file systems in shared... |
-| `DescribeSnapshots` | - | `paginated` | - | - | `DescribeSnapshotsResponse` | `BadRequest`, `InternalServerError`, `SnapshotNotFound` | Returns the description of specific Amazon FSx for OpenZFS snapshots, if a `SnapshotIds` value is provided. Otherwise, this operation returns all snapshots owned by your Amazon Web Services account in the Amazon Web Services Region of the endpoint that you're... |
-| `DescribeStorageVirtualMachines` | - | `paginated` | - | - | `DescribeStorageVirtualMachinesResponse` | `BadRequest`, `InternalServerError`, `StorageVirtualMachineNotFound` | Describes one or more Amazon FSx for NetApp ONTAP storage virtual machines (SVMs). |
-| `DescribeVolumes` | - | `paginated` | - | - | `DescribeVolumesResponse` | `BadRequest`, `InternalServerError`, `VolumeNotFound` | Describes one or more Amazon FSx for NetApp ONTAP or Amazon FSx for OpenZFS volumes. |
-| `DetachAndDeleteS3AccessPoint` | - | `idempotency-token` | `Name` | `ClientRequestToken` | `DetachAndDeleteS3AccessPointResponse` | `BadRequest`, `IncompatibleParameterError`, `InternalServerError`, `S3AccessPointAttachmentNotFound`, `UnsupportedOperation` | Detaches an S3 access point from an Amazon FSx volume and deletes the S3 access point. The requester requires the following permission to perform this action: `fsx:DetachAndDeleteS3AccessPoint` `s3:DeleteAccessPoint` |
-| `DisassociateFileSystemAliases` | - | `idempotency-token` | `Aliases`, `FileSystemId` | `ClientRequestToken` | `DisassociateFileSystemAliasesResponse` | `BadRequest`, `FileSystemNotFound`, `InternalServerError` | Use this action to disassociate, or remove, one or more Domain Name Service (DNS) aliases from an Amazon FSx for Windows File Server file system. If you attempt to disassociate a DNS alias that is not associated with the file system, Amazon FSx responds with... |
-| `ListTagsForResource` | - | `paginated` | `ResourceARN` | - | `ListTagsForResourceResponse` | `BadRequest`, `InternalServerError`, `NotServiceResourceError`, `ResourceDoesNotSupportTagging`, `ResourceNotFound` | Lists tags for Amazon FSx resources. When retrieving all tags, you can optionally specify the `MaxResults` parameter to limit the number of tags in a response. |
-| `ReleaseFileSystemNfsV3Locks` | - | `idempotent`, `idempotency-token` | `FileSystemId` | `ClientRequestToken` | `ReleaseFileSystemNfsV3LocksResponse` | `BadRequest`, `FileSystemNotFound`, `IncompatibleParameterError`, `InternalServerError`, `ServiceLimitExceeded` | Releases the file system lock from an Amazon FSx for OpenZFS file system. |
-| `RestoreVolumeFromSnapshot` | - | `idempotent`, `idempotency-token` | `SnapshotId`, `VolumeId` | `ClientRequestToken` | `RestoreVolumeFromSnapshotResponse` | `BadRequest`, `InternalServerError`, `VolumeNotFound` | Returns an Amazon FSx for OpenZFS volume to the state saved by the specified snapshot. |
-| `StartMisconfiguredStateRecovery` | - | `idempotency-token` | `FileSystemId` | `ClientRequestToken` | `StartMisconfiguredStateRecoveryResponse` | `BadRequest`, `FileSystemNotFound`, `InternalServerError` | After performing steps to repair the Active Directory configuration of an FSx for Windows File Server file system, use this action to initiate the process of Amazon FSx attempting to reconnect to the file system. |
-| `TagResource` | - | `idempotent` | `ResourceARN`, `Tags` | - | `TagResourceResponse` | `BadRequest`, `InternalServerError`, `NotServiceResourceError`, `ResourceDoesNotSupportTagging`, `ResourceNotFound` | Tags an Amazon FSx resource. |
-| `UntagResource` | - | `idempotent` | `ResourceARN`, `TagKeys` | - | `UntagResourceResponse` | `BadRequest`, `InternalServerError`, `NotServiceResourceError`, `ResourceDoesNotSupportTagging`, `ResourceNotFound` | This action removes a tag from an Amazon FSx resource. |
-| `UpdateDataRepositoryAssociation` | - | `idempotent`, `idempotency-token` | `AssociationId` | `ClientRequestToken` | `UpdateDataRepositoryAssociationResponse` | `BadRequest`, `DataRepositoryAssociationNotFound`, `IncompatibleParameterError`, `InternalServerError`, `ServiceLimitExceeded` | Updates the configuration of an existing data repository association on an Amazon FSx for Lustre file system. Data repository associations are supported on all FSx for Lustre 2.12 and 2.15 file systems, excluding `scratch_1` deployment type. |
-| `UpdateFileCache` | - | `idempotent`, `idempotency-token` | `FileCacheId` | `ClientRequestToken` | `UpdateFileCacheResponse` | `BadRequest`, `FileCacheNotFound`, `IncompatibleParameterError`, `InternalServerError`, `MissingFileCacheConfiguration`, `ServiceLimitExceeded`, `UnsupportedOperation` | Updates the configuration of an existing Amazon File Cache resource. You can update multiple properties in a single request. |
-| `UpdateFileSystem` | - | `idempotency-token` | `FileSystemId` | `ClientRequestToken` | `UpdateFileSystemResponse` | `BadRequest`, `FileSystemNotFound`, `IncompatibleParameterError`, `InternalServerError`, `InvalidNetworkSettings`, `MissingFileSystemConfiguration`, `ServiceLimitExceeded`, `UnsupportedOperation` | Use this operation to update the configuration of an existing Amazon FSx file system. You can update multiple properties in a single request. |
-| `UpdateSharedVpcConfiguration` | - | `idempotency-token` | - | `ClientRequestToken` | `UpdateSharedVpcConfigurationResponse` | `BadRequest`, `IncompatibleParameterError`, `InternalServerError` | Configures whether participant accounts in your organization can create Amazon FSx for NetApp ONTAP Multi-AZ file systems in subnets that are shared by a virtual private cloud (VPC) owner. For more information, see the Amazon FSx for NetApp ONTAP User Guide. |
-| `UpdateSnapshot` | - | `idempotent`, `idempotency-token` | `Name`, `SnapshotId` | `ClientRequestToken` | `UpdateSnapshotResponse` | `BadRequest`, `InternalServerError`, `SnapshotNotFound` | Updates the name of an Amazon FSx for OpenZFS snapshot. |
-| `UpdateStorageVirtualMachine` | - | `idempotency-token` | `StorageVirtualMachineId` | `ClientRequestToken` | `UpdateStorageVirtualMachineResponse` | `BadRequest`, `IncompatibleParameterError`, `InternalServerError`, `StorageVirtualMachineNotFound`, `UnsupportedOperation` | Updates an FSx for ONTAP storage virtual machine (SVM). |
-| `UpdateVolume` | - | `idempotency-token` | `VolumeId` | `ClientRequestToken` | `UpdateVolumeResponse` | `BadRequest`, `IncompatibleParameterError`, `InternalServerError`, `MissingVolumeConfiguration`, `VolumeNotFound` | Updates the configuration of an Amazon FSx for NetApp ONTAP or Amazon FSx for OpenZFS volume. |
+| `AssociateFileSystemAliases` | `-` | `idempotency-token` | `FileSystemId`, `Aliases` | `ClientRequestToken` | `AssociateFileSystemAliasesResponse` | `BadRequest`, `FileSystemNotFound`, `InternalServerError` | Use this action to associate one or more Domain Name Server (DNS) aliases with an existing Amazon FSx for Windows File Server file system. A file system can have a maximum of 50 DNS aliases associated with it at any ... |
+| `CancelDataRepositoryTask` | `-` | `idempotent` | `TaskId` | - | `CancelDataRepositoryTaskResponse` | `BadRequest`, `DataRepositoryTaskEnded`, `DataRepositoryTaskNotFound`, `InternalServerError`, `UnsupportedOperation` | Cancels an existing Amazon FSx for Lustre data repository task if that task is in either the PENDING or EXECUTING state. When you cancel an export task, Amazon FSx does the following. Any files that FSx has already e ... |
+| `CopyBackup` | `-` | `idempotent`, `idempotency-token` | `SourceBackupId` | `ClientRequestToken` | `CopyBackupResponse` | `BackupNotFound`, `BadRequest`, `IncompatibleParameterError`, `IncompatibleRegionForMultiAZ`, `InternalServerError`, `InvalidDestinationKmsKey`, `InvalidRegion`, `InvalidSourceKmsKey`, `ServiceLimitExceeded`, `SourceBackupUnavailable`, `UnsupportedOperation` | Copies an existing backup within the same Amazon Web Services account to another Amazon Web Services Region (cross-Region copy) or within the same Amazon Web Services Region (in-Region copy). You can have up to five ... |
+| `CopySnapshotAndUpdateVolume` | `-` | `idempotent`, `idempotency-token` | `VolumeId`, `SourceSnapshotARN` | `ClientRequestToken` | `CopySnapshotAndUpdateVolumeResponse` | `BadRequest`, `IncompatibleParameterError`, `InternalServerError`, `ServiceLimitExceeded` | Updates an existing volume by using a snapshot from another Amazon FSx for OpenZFS file system. For more information, see on-demand data replication in the Amazon FSx for OpenZFS User Guide. |
+| `CreateAndAttachS3AccessPoint` | `-` | `idempotency-token` | `Name`, `Type` | `ClientRequestToken` | `CreateAndAttachS3AccessPointResponse` | `AccessPointAlreadyOwnedByYou`, `BadRequest`, `IncompatibleParameterError`, `InternalServerError`, `InvalidAccessPoint`, `InvalidRequest`, `TooManyAccessPoints`, `UnsupportedOperation`, `VolumeNotFound` | Creates an S3 access point and attaches it to an Amazon FSx volume. For FSx for OpenZFS file systems, the volume must be hosted on a high-availability file system, either Single-AZ or Multi-AZ. For more information, ... |
+| `CreateBackup` | `-` | `idempotent`, `idempotency-token` | - | `ClientRequestToken` | `CreateBackupResponse` | `BackupInProgress`, `BadRequest`, `FileSystemNotFound`, `IncompatibleParameterError`, `InternalServerError`, `ServiceLimitExceeded`, `UnsupportedOperation`, `VolumeNotFound` | Creates a backup of an existing Amazon FSx for Windows File Server file system, Amazon FSx for Lustre file system, Amazon FSx for NetApp ONTAP volume, or Amazon FSx for OpenZFS file system. We recommend creating regu ... |
+| `CreateDataRepositoryAssociation` | `-` | `idempotent`, `idempotency-token` | `FileSystemId`, `DataRepositoryPath` | `ClientRequestToken` | `CreateDataRepositoryAssociationResponse` | `BadRequest`, `FileSystemNotFound`, `IncompatibleParameterError`, `InternalServerError`, `ServiceLimitExceeded`, `UnsupportedOperation` | Creates an Amazon FSx for Lustre data repository association (DRA). A data repository association is a link between a directory on the file system and an Amazon S3 bucket or prefix. You can have a maximum of 8 data r ... |
+| `CreateDataRepositoryTask` | `-` | `idempotent`, `idempotency-token` | `Type`, `FileSystemId`, `Report` | `ClientRequestToken` | `CreateDataRepositoryTaskResponse` | `BadRequest`, `DataRepositoryTaskExecuting`, `FileSystemNotFound`, `IncompatibleParameterError`, `InternalServerError`, `ServiceLimitExceeded`, `UnsupportedOperation` | Creates an Amazon FSx for Lustre data repository task. A CreateDataRepositoryTask operation will fail if a data repository is not linked to the FSx file system. You use import and export data repository tasks to perf ... |
+| `CreateFileCache` | `-` | `idempotent`, `idempotency-token` | `FileCacheType`, `FileCacheTypeVersion`, `StorageCapacity`, `SubnetIds` | `ClientRequestToken` | `CreateFileCacheResponse` | `BadRequest`, `IncompatibleParameterError`, `InternalServerError`, `InvalidNetworkSettings`, `InvalidPerUnitStorageThroughput`, `MissingFileCacheConfiguration`, `ServiceLimitExceeded` | Creates a new Amazon File Cache resource. You can use this operation with a client request token in the request that Amazon File Cache uses to ensure idempotent creation. If a cache with the specified client request ... |
+| `CreateFileSystem` | `-` | `idempotency-token` | `FileSystemType`, `SubnetIds` | `ClientRequestToken` | `CreateFileSystemResponse` | `ActiveDirectoryError`, `BadRequest`, `IncompatibleParameterError`, `InternalServerError`, `InvalidExportPath`, `InvalidImportPath`, `InvalidNetworkSettings`, `InvalidPerUnitStorageThroughput`, `MissingFileSystemConfiguration`, `ServiceLimitExceeded` | Creates a new, empty Amazon FSx file system. You can create the following supported Amazon FSx file systems using the CreateFileSystem API operation: Amazon FSx for Lustre Amazon FSx for NetApp ONTAP Amazon FSx for O ... |
+| `CreateFileSystemFromBackup` | `-` | `idempotency-token` | `BackupId`, `SubnetIds` | `ClientRequestToken` | `CreateFileSystemFromBackupResponse` | `ActiveDirectoryError`, `BackupNotFound`, `BadRequest`, `IncompatibleParameterError`, `InternalServerError`, `InvalidNetworkSettings`, `InvalidPerUnitStorageThroughput`, `MissingFileSystemConfiguration`, `ServiceLimitExceeded` | Creates a new Amazon FSx for Lustre, Amazon FSx for Windows File Server, or Amazon FSx for OpenZFS file system from an existing Amazon FSx backup. If a file system with the specified client request token exists and t ... |
+| `CreateSnapshot` | `-` | `idempotent`, `idempotency-token` | `Name`, `VolumeId` | `ClientRequestToken` | `CreateSnapshotResponse` | `BadRequest`, `InternalServerError`, `ServiceLimitExceeded`, `VolumeNotFound` | Creates a snapshot of an existing Amazon FSx for OpenZFS volume. With snapshots, you can easily undo file changes and compare file versions by restoring the volume to a previous version. If a snapshot with the specif ... |
+| `CreateStorageVirtualMachine` | `-` | `idempotency-token` | `FileSystemId`, `Name` | `ClientRequestToken` | `CreateStorageVirtualMachineResponse` | `ActiveDirectoryError`, `BadRequest`, `FileSystemNotFound`, `IncompatibleParameterError`, `InternalServerError`, `ServiceLimitExceeded`, `UnsupportedOperation` | Creates a storage virtual machine (SVM) for an Amazon FSx for ONTAP file system. |
+| `CreateVolume` | `-` | `idempotency-token` | `VolumeType`, `Name` | `ClientRequestToken` | `CreateVolumeResponse` | `BadRequest`, `FileSystemNotFound`, `IncompatibleParameterError`, `InternalServerError`, `MissingVolumeConfiguration`, `ServiceLimitExceeded`, `StorageVirtualMachineNotFound`, `UnsupportedOperation` | Creates an FSx for ONTAP or Amazon FSx for OpenZFS storage volume. |
+| `CreateVolumeFromBackup` | `-` | `idempotency-token` | `BackupId`, `Name` | `ClientRequestToken` | `CreateVolumeFromBackupResponse` | `BackupNotFound`, `BadRequest`, `FileSystemNotFound`, `IncompatibleParameterError`, `InternalServerError`, `MissingVolumeConfiguration`, `ServiceLimitExceeded`, `StorageVirtualMachineNotFound` | Creates a new Amazon FSx for NetApp ONTAP volume from an existing Amazon FSx volume backup. |
+| `DeleteBackup` | `-` | `idempotent`, `idempotency-token` | `BackupId` | `ClientRequestToken` | `DeleteBackupResponse` | `BackupBeingCopied`, `BackupInProgress`, `BackupNotFound`, `BackupRestoring`, `BadRequest`, `IncompatibleParameterError`, `InternalServerError` | Deletes an Amazon FSx backup. After deletion, the backup no longer exists, and its data is gone. The DeleteBackup call returns instantly. The backup won't show up in later DescribeBackups calls. The data in a deleted ... |
+| `DeleteDataRepositoryAssociation` | `-` | `idempotent`, `idempotency-token` | `AssociationId` | `ClientRequestToken` | `DeleteDataRepositoryAssociationResponse` | `BadRequest`, `DataRepositoryAssociationNotFound`, `IncompatibleParameterError`, `InternalServerError`, `ServiceLimitExceeded` | Deletes a data repository association on an Amazon FSx for Lustre file system. Deleting the data repository association unlinks the file system from the Amazon S3 bucket. When deleting a data repository association, ... |
+| `DeleteFileCache` | `-` | `idempotent`, `idempotency-token` | `FileCacheId` | `ClientRequestToken` | `DeleteFileCacheResponse` | `BadRequest`, `FileCacheNotFound`, `IncompatibleParameterError`, `InternalServerError`, `ServiceLimitExceeded` | Deletes an Amazon File Cache resource. After deletion, the cache no longer exists, and its data is gone. The DeleteFileCache operation returns while the cache has the DELETING status. You can check the cache deletion ... |
+| `DeleteFileSystem` | `-` | `idempotent`, `idempotency-token` | `FileSystemId` | `ClientRequestToken` | `DeleteFileSystemResponse` | `BadRequest`, `FileSystemNotFound`, `IncompatibleParameterError`, `InternalServerError`, `ServiceLimitExceeded` | Deletes a file system. After deletion, the file system no longer exists, and its data is gone. Any existing automatic backups and snapshots are also deleted. To delete an Amazon FSx for NetApp ONTAP file system, firs ... |
+| `DeleteSnapshot` | `-` | `idempotent`, `idempotency-token` | `SnapshotId` | `ClientRequestToken` | `DeleteSnapshotResponse` | `BadRequest`, `InternalServerError`, `SnapshotNotFound` | Deletes an Amazon FSx for OpenZFS snapshot. After deletion, the snapshot no longer exists, and its data is gone. Deleting a snapshot doesn't affect snapshots stored in a file system backup. The DeleteSnapshot operati ... |
+| `DeleteStorageVirtualMachine` | `-` | `idempotency-token` | `StorageVirtualMachineId` | `ClientRequestToken` | `DeleteStorageVirtualMachineResponse` | `BadRequest`, `IncompatibleParameterError`, `InternalServerError`, `StorageVirtualMachineNotFound` | Deletes an existing Amazon FSx for ONTAP storage virtual machine (SVM). Prior to deleting an SVM, you must delete all non-root volumes in the SVM, otherwise the operation will fail. |
+| `DeleteVolume` | `-` | `idempotency-token` | `VolumeId` | `ClientRequestToken` | `DeleteVolumeResponse` | `BadRequest`, `IncompatibleParameterError`, `InternalServerError`, `ServiceLimitExceeded`, `VolumeNotFound` | Deletes an Amazon FSx for NetApp ONTAP or Amazon FSx for OpenZFS volume. |
+| `DescribeBackups` | `-` | `paginated` | - | - | `DescribeBackupsResponse` | `BackupNotFound`, `BadRequest`, `FileSystemNotFound`, `InternalServerError`, `VolumeNotFound` | Returns the description of a specific Amazon FSx backup, if a BackupIds value is provided for that backup. Otherwise, it returns all backups owned by your Amazon Web Services account in the Amazon Web Services Region ... |
+| `DescribeDataRepositoryAssociations` | `-` | `idempotent`, `paginated` | - | - | `DescribeDataRepositoryAssociationsResponse` | `BadRequest`, `DataRepositoryAssociationNotFound`, `FileSystemNotFound`, `InternalServerError`, `InvalidDataRepositoryType` | Returns the description of specific Amazon FSx for Lustre or Amazon File Cache data repository associations, if one or more AssociationIds values are provided in the request, or if filters are used in the request. Da ... |
+| `DescribeDataRepositoryTasks` | `-` | `paginated` | - | - | `DescribeDataRepositoryTasksResponse` | `BadRequest`, `DataRepositoryTaskNotFound`, `FileSystemNotFound`, `InternalServerError` | Returns the description of specific Amazon FSx for Lustre or Amazon File Cache data repository tasks, if one or more TaskIds values are provided in the request, or if filters are used in the request. You can use filt ... |
+| `DescribeFileCaches` | `-` | `idempotent`, `paginated` | - | - | `DescribeFileCachesResponse` | `BadRequest`, `FileCacheNotFound`, `InternalServerError` | Returns the description of a specific Amazon File Cache resource, if a FileCacheIds value is provided for that cache. Otherwise, it returns descriptions of all caches owned by your Amazon Web Services account in the ... |
+| `DescribeFileSystemAliases` | `-` | `paginated`, `idempotency-token` | `FileSystemId` | `ClientRequestToken` | `DescribeFileSystemAliasesResponse` | `BadRequest`, `FileSystemNotFound`, `InternalServerError` | Returns the DNS aliases that are associated with the specified Amazon FSx for Windows File Server file system. A history of all DNS aliases that have been associated with and disassociated from the file system is ava ... |
+| `DescribeFileSystems` | `-` | `paginated` | - | - | `DescribeFileSystemsResponse` | `BadRequest`, `FileSystemNotFound`, `InternalServerError` | Returns the description of specific Amazon FSx file systems, if a FileSystemIds value is provided for that file system. Otherwise, it returns descriptions of all file systems owned by your Amazon Web Services account ... |
+| `DescribeS3AccessPointAttachments` | `-` | `paginated` | - | - | `DescribeS3AccessPointAttachmentsResponse` | `BadRequest`, `InternalServerError`, `S3AccessPointAttachmentNotFound`, `UnsupportedOperation` | Describes one or more S3 access points attached to Amazon FSx volumes. The requester requires the following permission to perform this action: fsx:DescribeS3AccessPointAttachments |
+| `DescribeSharedVpcConfiguration` | `-` | - | - | - | `DescribeSharedVpcConfigurationResponse` | `BadRequest`, `InternalServerError` | Indicates whether participant accounts in your organization can create Amazon FSx for NetApp ONTAP Multi-AZ file systems in subnets that are shared by a virtual private cloud (VPC) owner. For more information, see Cr ... |
+| `DescribeSnapshots` | `-` | `paginated` | - | - | `DescribeSnapshotsResponse` | `BadRequest`, `InternalServerError`, `SnapshotNotFound` | Returns the description of specific Amazon FSx for OpenZFS snapshots, if a SnapshotIds value is provided. Otherwise, this operation returns all snapshots owned by your Amazon Web Services account in the Amazon Web Se ... |
+| `DescribeStorageVirtualMachines` | `-` | `paginated` | - | - | `DescribeStorageVirtualMachinesResponse` | `BadRequest`, `InternalServerError`, `StorageVirtualMachineNotFound` | Describes one or more Amazon FSx for NetApp ONTAP storage virtual machines (SVMs). |
+| `DescribeVolumes` | `-` | `paginated` | - | - | `DescribeVolumesResponse` | `BadRequest`, `InternalServerError`, `VolumeNotFound` | Describes one or more Amazon FSx for NetApp ONTAP or Amazon FSx for OpenZFS volumes. |
+| `DetachAndDeleteS3AccessPoint` | `-` | `idempotency-token` | `Name` | `ClientRequestToken` | `DetachAndDeleteS3AccessPointResponse` | `BadRequest`, `IncompatibleParameterError`, `InternalServerError`, `S3AccessPointAttachmentNotFound`, `UnsupportedOperation` | Detaches an S3 access point from an Amazon FSx volume and deletes the S3 access point. The requester requires the following permission to perform this action: fsx:DetachAndDeleteS3AccessPoint s3:DeleteAccessPoint |
+| `DisassociateFileSystemAliases` | `-` | `idempotency-token` | `FileSystemId`, `Aliases` | `ClientRequestToken` | `DisassociateFileSystemAliasesResponse` | `BadRequest`, `FileSystemNotFound`, `InternalServerError` | Use this action to disassociate, or remove, one or more Domain Name Service (DNS) aliases from an Amazon FSx for Windows File Server file system. If you attempt to disassociate a DNS alias that is not associated with ... |
+| `ListTagsForResource` | `-` | `paginated` | `ResourceARN` | - | `ListTagsForResourceResponse` | `BadRequest`, `InternalServerError`, `NotServiceResourceError`, `ResourceDoesNotSupportTagging`, `ResourceNotFound` | Lists tags for Amazon FSx resources. When retrieving all tags, you can optionally specify the MaxResults parameter to limit the number of tags in a response. If more tags remain, Amazon FSx returns a NextToken value ... |
+| `ReleaseFileSystemNfsV3Locks` | `-` | `idempotent`, `idempotency-token` | `FileSystemId` | `ClientRequestToken` | `ReleaseFileSystemNfsV3LocksResponse` | `BadRequest`, `FileSystemNotFound`, `IncompatibleParameterError`, `InternalServerError`, `ServiceLimitExceeded` | Releases the file system lock from an Amazon FSx for OpenZFS file system. |
+| `RestoreVolumeFromSnapshot` | `-` | `idempotent`, `idempotency-token` | `VolumeId`, `SnapshotId` | `ClientRequestToken` | `RestoreVolumeFromSnapshotResponse` | `BadRequest`, `InternalServerError`, `VolumeNotFound` | Returns an Amazon FSx for OpenZFS volume to the state saved by the specified snapshot. |
+| `StartMisconfiguredStateRecovery` | `-` | `idempotency-token` | `FileSystemId` | `ClientRequestToken` | `StartMisconfiguredStateRecoveryResponse` | `BadRequest`, `FileSystemNotFound`, `InternalServerError` | After performing steps to repair the Active Directory configuration of an FSx for Windows File Server file system, use this action to initiate the process of Amazon FSx attempting to reconnect to the file system. |
+| `TagResource` | `-` | `idempotent` | `ResourceARN`, `Tags` | - | `TagResourceResponse` | `BadRequest`, `InternalServerError`, `NotServiceResourceError`, `ResourceDoesNotSupportTagging`, `ResourceNotFound` | Tags an Amazon FSx resource. |
+| `UntagResource` | `-` | `idempotent` | `ResourceARN`, `TagKeys` | - | `UntagResourceResponse` | `BadRequest`, `InternalServerError`, `NotServiceResourceError`, `ResourceDoesNotSupportTagging`, `ResourceNotFound` | This action removes a tag from an Amazon FSx resource. |
+| `UpdateDataRepositoryAssociation` | `-` | `idempotent`, `idempotency-token` | `AssociationId` | `ClientRequestToken` | `UpdateDataRepositoryAssociationResponse` | `BadRequest`, `DataRepositoryAssociationNotFound`, `IncompatibleParameterError`, `InternalServerError`, `ServiceLimitExceeded` | Updates the configuration of an existing data repository association on an Amazon FSx for Lustre file system. Data repository associations are supported on all FSx for Lustre 2.12 and 2.15 file systems, excluding scr ... |
+| `UpdateFileCache` | `-` | `idempotent`, `idempotency-token` | `FileCacheId` | `ClientRequestToken` | `UpdateFileCacheResponse` | `BadRequest`, `FileCacheNotFound`, `IncompatibleParameterError`, `InternalServerError`, `MissingFileCacheConfiguration`, `ServiceLimitExceeded`, `UnsupportedOperation` | Updates the configuration of an existing Amazon File Cache resource. You can update multiple properties in a single request. |
+| `UpdateFileSystem` | `-` | `idempotency-token` | `FileSystemId` | `ClientRequestToken` | `UpdateFileSystemResponse` | `BadRequest`, `FileSystemNotFound`, `IncompatibleParameterError`, `InternalServerError`, `InvalidNetworkSettings`, `MissingFileSystemConfiguration`, `ServiceLimitExceeded`, `UnsupportedOperation` | Use this operation to update the configuration of an existing Amazon FSx file system. You can update multiple properties in a single request. For FSx for Windows File Server file systems, you can update the following ... |
+| `UpdateSharedVpcConfiguration` | `-` | `idempotency-token` | - | `ClientRequestToken` | `UpdateSharedVpcConfigurationResponse` | `BadRequest`, `IncompatibleParameterError`, `InternalServerError` | Configures whether participant accounts in your organization can create Amazon FSx for NetApp ONTAP Multi-AZ file systems in subnets that are shared by a virtual private cloud (VPC) owner. For more information, see t ... |
+| `UpdateSnapshot` | `-` | `idempotent`, `idempotency-token` | `Name`, `SnapshotId` | `ClientRequestToken` | `UpdateSnapshotResponse` | `BadRequest`, `InternalServerError`, `SnapshotNotFound` | Updates the name of an Amazon FSx for OpenZFS snapshot. |
+| `UpdateStorageVirtualMachine` | `-` | `idempotency-token` | `StorageVirtualMachineId` | `ClientRequestToken` | `UpdateStorageVirtualMachineResponse` | `BadRequest`, `IncompatibleParameterError`, `InternalServerError`, `StorageVirtualMachineNotFound`, `UnsupportedOperation` | Updates an FSx for ONTAP storage virtual machine (SVM). |
+| `UpdateVolume` | `-` | `idempotency-token` | `VolumeId` | `ClientRequestToken` | `UpdateVolumeResponse` | `BadRequest`, `IncompatibleParameterError`, `InternalServerError`, `MissingVolumeConfiguration`, `VolumeNotFound` | Updates the configuration of an Amazon FSx for NetApp ONTAP or Amazon FSx for OpenZFS volume. |
 
 ## HTTP Bindings
 
@@ -225,31 +225,56 @@ _No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input m
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `BadRequest` | `structure` | `Message` | A generic error indicating a failure with a client request. |
-| `InternalServerError` | `structure` | `Message` | A generic error indicating a server-side failure. |
-| `IncompatibleParameterError` | `structure` | `Message`, `Parameter` | The error returned when a second request is received with the same client request token but different parameters settings. |
-| `ServiceLimitExceeded` | `structure` | `Limit`, `Message` | An error indicating that a particular service limit was exceeded. |
-| `FileSystemNotFound` | `structure` | `Message` | No Amazon FSx file systems were found based upon supplied parameters. |
-| `UnsupportedOperation` | `structure` | `Message` | The requested operation is not supported for this resource or API. |
-| `VolumeNotFound` | `structure` | `Message` | No Amazon FSx volumes were found based upon the supplied parameters. |
-| `BackupNotFound` | `structure` | `Message` | No Amazon FSx backups were found based upon the supplied parameters. |
-| `StorageVirtualMachineNotFound` | `structure` | `Message` | No FSx for ONTAP SVMs were found based upon the supplied parameters. |
-| `InvalidNetworkSettings` | `structure` | `InvalidRouteTableId`, `InvalidSecurityGroupId`, `InvalidSubnetId`, `Message` | One or more network settings specified in the request are invalid. |
-| `InvalidPerUnitStorageThroughput` | `structure` | `Message` | An invalid value for `PerUnitStorageThroughput` was provided. |
-| `ActiveDirectoryError` | `structure` | `ActiveDirectoryId`, `Message`, `Type` | An Active Directory error. |
-| `MissingFileSystemConfiguration` | `structure` | `Message` | A file system configuration is required for this operation. |
-| `MissingVolumeConfiguration` | `structure` | `Message` | A volume configuration is required for this operation. |
-| `DataRepositoryAssociationNotFound` | `structure` | `Message` | No data repository associations were found based upon the supplied parameters. |
-| `FileCacheNotFound` | `structure` | `Message` | No caches were found based upon supplied parameters. |
-| `SnapshotNotFound` | `structure` | `Message` | No Amazon FSx snapshots were found based on the supplied parameters. |
-| `NotServiceResourceError` | `structure` | `Message`, `ResourceARN` | The resource specified for the tagging operation is not a resource type owned by Amazon FSx. |
-| `ResourceDoesNotSupportTagging` | `structure` | `Message`, `ResourceARN` | The resource specified does not support tagging. |
-| `ResourceNotFound` | `structure` | `Message`, `ResourceARN` | The resource specified by the Amazon Resource Name (ARN) can't be found. |
-| `DataRepositoryTaskNotFound` | `structure` | `Message` | The data repository task or tasks you specified could not be found. |
-| `BackupInProgress` | `structure` | `Message` | Another backup is already under way. |
-| `MissingFileCacheConfiguration` | `structure` | `Message` | A cache configuration is required for this operation. |
-| `S3AccessPointAttachmentNotFound` | `structure` | `Message` | The access point specified was not found. |
-
+| `AccessPointAlreadyOwnedByYou` | `structure` | ErrorCode, Message | An access point with that name already exists in the Amazon Web Services Region in your Amazon Web Services account. |
+| `ActiveDirectoryError` | `structure` | ActiveDirectoryId, Type, Message | An Active Directory error. |
+| `BackupBeingCopied` | `structure` | Message, BackupId | You can't delete a backup while it's being copied. |
+| `BackupInProgress` | `structure` | Message | Another backup is already under way. Wait for completion before initiating additional backups of this file system. |
+| `BackupNotFound` | `structure` | Message | No Amazon FSx backups were found based upon the supplied parameters. |
+| `BackupRestoring` | `structure` | Message, FileSystemId | You can't delete a backup while it's being used to restore a file system. |
+| `BadRequest` | `structure` | Message | A generic error indicating a failure with a client request. |
+| `DataRepositoryAssociationNotFound` | `structure` | Message | No data repository associations were found based upon the supplied parameters. |
+| `DataRepositoryTaskEnded` | `structure` | Message | The data repository task could not be canceled because the task has already ended. |
+| `DataRepositoryTaskExecuting` | `structure` | Message | An existing data repository task is currently executing on the file system. Wait until the existing task has completed, then create the new task. |
+| `DataRepositoryTaskNotFound` | `structure` | Message | The data repository task or tasks you specified could not be found. |
+| `FileCacheNotFound` | `structure` | Message | No caches were found based upon supplied parameters. |
+| `FileSystemNotFound` | `structure` | Message | No Amazon FSx file systems were found based upon supplied parameters. |
+| `IncompatibleParameterError` | `structure` | Parameter, Message | The error returned when a second request is received with the same client request token but different parameters settings. A client request token should alw ... |
+| `IncompatibleRegionForMultiAZ` | `structure` | Message | Amazon FSx doesn't support Multi-AZ Windows File Server copy backup in the destination Region, so the copied backup can't be restored. |
+| `InternalServerError` | `structure` | Message | A generic error indicating a server-side failure. |
+| `InvalidAccessPoint` | `structure` | ErrorCode, Message | The access point specified doesn't exist. |
+| `InvalidDataRepositoryType` | `structure` | Message | You have filtered the response to a data repository type that is not supported. |
+| `InvalidDestinationKmsKey` | `structure` | Message | The Key Management Service (KMS) key of the destination backup is not valid. |
+| `InvalidExportPath` | `structure` | Message | The path provided for data repository export isn't valid. |
+| `InvalidImportPath` | `structure` | Message | The path provided for data repository import isn't valid. |
+| `InvalidNetworkSettings` | `structure` | Message, InvalidSubnetId, InvalidSecurityGroupId, InvalidRouteTableId | One or more network settings specified in the request are invalid. |
+| `InvalidPerUnitStorageThroughput` | `structure` | Message | An invalid value for PerUnitStorageThroughput was provided. Please create your file system again, using a valid value. |
+| `InvalidRegion` | `structure` | Message | The Region provided for SourceRegion is not valid or is in a different Amazon Web Services partition. |
+| `InvalidRequest` | `structure` | ErrorCode, Message | The action or operation requested is invalid. Verify that the action is typed correctly. |
+| `InvalidSourceKmsKey` | `structure` | Message | The Key Management Service (KMS) key of the source backup is not valid. |
+| `MissingFileCacheConfiguration` | `structure` | Message | A cache configuration is required for this operation. |
+| `MissingFileSystemConfiguration` | `structure` | Message | A file system configuration is required for this operation. |
+| `MissingVolumeConfiguration` | `structure` | Message | A volume configuration is required for this operation. |
+| `NotServiceResourceError` | `structure` | ResourceARN, Message | The resource specified for the tagging operation is not a resource type owned by Amazon FSx. Use the API of the relevant service to perform the operation. |
+| `ResourceDoesNotSupportTagging` | `structure` | ResourceARN, Message | The resource specified does not support tagging. |
+| `ResourceNotFound` | `structure` | ResourceARN, Message | The resource specified by the Amazon Resource Name (ARN) can't be found. |
+| `S3AccessPointAttachmentNotFound` | `structure` | Message | The access point specified was not found. |
+| `ServiceLimitExceeded` | `structure` | Limit, Message | An error indicating that a particular service limit was exceeded. You can increase some service limits by contacting Amazon Web Services Support. |
+| `SnapshotNotFound` | `structure` | Message | No Amazon FSx snapshots were found based on the supplied parameters. |
+| `SourceBackupUnavailable` | `structure` | Message, BackupId | The request was rejected because the lifecycle status of the source backup isn't AVAILABLE . |
+| `StorageVirtualMachineNotFound` | `structure` | Message | No FSx for ONTAP SVMs were found based upon the supplied parameters. |
+| `TooManyAccessPoints` | `structure` | ErrorCode, Message | You have reached the maximum number of S3 access points attachments allowed for your account in this Amazon Web Services Region, or for the file system. For ... |
+| `UnsupportedOperation` | `structure` | Message | The requested operation is not supported for this resource or API. |
+| `VolumeNotFound` | `structure` | Message | No Amazon FSx volumes were found based upon the supplied parameters. |
+| `ActiveDirectoryErrorType` | `enum` | DOMAIN_NOT_FOUND, INCOMPATIBLE_DOMAIN_MODE, WRONG_VPC, INVALID_NETWORK_TYPE, INVALID_DOMAIN_STAGE | The type of error relating to Microsoft Active Directory. NOT_FOUND means that no directory was found by specifying the given directory. INCOMPATIBLE_MODE m ... |
+| `AdministrativeActionType` | `enum` | FILE_SYSTEM_UPDATE, STORAGE_OPTIMIZATION, FILE_SYSTEM_ALIAS_ASSOCIATION, FILE_SYSTEM_ALIAS_DISASSOCIATION, VOLUME_UPDATE, SNAPSHOT_UPDATE, RELEASE_NFS_V3_LOCKS, VOLUME_RESTORE, THROUGHPUT_OPTIMIZATION, IOPS_OPTIMIZATION, STORAGE_TYPE_OPTIMIZATION, MISCONFIGURED_STATE_RECOVERY, ... (+3) | Describes the type of administrative action, as follows: FILE_SYSTEM_UPDATE - A file system update administrative action initiated from the Amazon FSx conso ... |
+| `AliasLifecycle` | `enum` | AVAILABLE, CREATING, DELETING, CREATE_FAILED, DELETE_FAILED | - |
+| `AutoImportPolicyType` | `enum` | NONE, NEW, NEW_CHANGED, NEW_CHANGED_DELETED | - |
+| `AutocommitPeriodType` | `enum` | MINUTES, HOURS, DAYS, MONTHS, YEARS, NONE | - |
+| `BackupLifecycle` | `enum` | AVAILABLE, CREATING, TRANSFERRING, DELETED, FAILED, PENDING, COPYING | The lifecycle status of the backup. AVAILABLE - The backup is fully available. PENDING - For user-initiated backups on Lustre file systems only; Amazon FSx ... |
+| `BackupType` | `enum` | AUTOMATIC, USER_INITIATED, AWS_BACKUP | The type of the backup. |
+| `DataCompressionType` | `enum` | NONE, LZ4 | - |
+| `DataRepositoryLifecycle` | `enum` | CREATING, AVAILABLE, MISCONFIGURED, UPDATING, DELETING, FAILED | - |
+| `DataRepositoryTaskFilterName` | `enum` | FILE_SYSTEM_ID, TASK_LIFECYCLE, DATA_REPO_ASSOCIATION_ID, FILE_CACHE_ID | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

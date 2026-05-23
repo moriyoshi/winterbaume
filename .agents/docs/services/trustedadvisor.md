@@ -40,36 +40,36 @@ TrustedAdvisor Public API
 ### List
 
 - Operations: `ListChecks`, `ListOrganizationRecommendationAccounts`, `ListOrganizationRecommendationResources`, `ListOrganizationRecommendations`, `ListRecommendationResources`, `ListRecommendations`
-- Traits: `paginated` (6), `readonly` (6)
-- Common required input members in this group: `organizationRecommendationIdentifier`, `recommendationIdentifier`
+- Traits: `readonly` (6), `paginated` (6)
+- Common required input members in this group: `organizationRecommendationIdentifier`
 
 ### Get
 
 - Operations: `GetOrganizationRecommendation`, `GetRecommendation`
 - Traits: `readonly` (2)
-- Common required input members in this group: `organizationRecommendationIdentifier`, `recommendationIdentifier`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateOrganizationRecommendationLifecycle`, `UpdateRecommendationLifecycle`
 - Traits: `idempotent` (2)
-- Common required input members in this group: `lifecycleStage`, `organizationRecommendationIdentifier`, `recommendationIdentifier`
+- Common required input members in this group: `lifecycleStage`
 
 ### Batch
 
 - Operations: `BatchUpdateRecommendationResourceExclusion`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `recommendationResourceExclusions`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `BatchUpdateRecommendationResourceExclusion` | `PUT /v1/batch-update-recommendation-resource-exclusion` | `idempotent` | `recommendationResourceExclusions` | - | `BatchUpdateRecommendationResourceExclusionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Update one or more exclusion statuses for a list of recommendation resources. This API supports up to 25 unique recommendation resource ARNs per request. |
-| `GetOrganizationRecommendation` | `GET /v1/organization-recommendations/{organizationRecommendationIdentifier}` | `readonly` | `organizationRecommendationIdentifier` | - | `GetOrganizationRecommendationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get a specific recommendation within an AWS Organizations organization. This API supports only prioritized recommendations and provides global priority recommendations, eliminating the need to call the API in each AWS Region. |
+| `BatchUpdateRecommendationResourceExclusion` | `PUT /v1/batch-update-recommendation-resource-exclusion` | `idempotent` | `recommendationResourceExclusions` | - | `BatchUpdateRecommendationResourceExclusionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Update one or more exclusion statuses for a list of recommendation resources. This API supports up to 25 unique recommendation resource ARNs per request. This API currently doesn't support prioritized recommendation ... |
+| `GetOrganizationRecommendation` | `GET /v1/organization-recommendations/{organizationRecommendationIdentifier}` | `readonly` | `organizationRecommendationIdentifier` | - | `GetOrganizationRecommendationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get a specific recommendation within an AWS Organizations organization. This API supports only prioritized recommendations and provides global priority recommendations, eliminating the need to call the API in each AW ... |
 | `GetRecommendation` | `GET /v1/recommendations/{recommendationIdentifier}` | `readonly` | `recommendationIdentifier` | - | `GetRecommendationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get a specific Recommendation. This API provides global recommendations, eliminating the need to call the API in each AWS Region. |
 | `ListChecks` | `GET /v1/checks` | `readonly`, `paginated` | - | - | `ListChecksResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | List a filterable set of Checks. This API provides global recommendations, eliminating the need to call the API in each AWS Region. |
-| `ListOrganizationRecommendationAccounts` | `GET /v1/organization-recommendations/{organizationRecommendationIdentifier}/accounts` | `readonly`, `paginated` | `organizationRecommendationIdentifier` | - | `ListOrganizationRecommendationAccountsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the accounts that own the resources for an organization aggregate recommendation. This API only supports prioritized recommendations and provides global priority recommendations, eliminating the need to call the API in each AWS Region. |
+| `ListOrganizationRecommendationAccounts` | `GET /v1/organization-recommendations/{organizationRecommendationIdentifier}/accounts` | `readonly`, `paginated` | `organizationRecommendationIdentifier` | - | `ListOrganizationRecommendationAccountsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the accounts that own the resources for an organization aggregate recommendation. This API only supports prioritized recommendations and provides global priority recommendations, eliminating the need to call th ... |
 | `ListOrganizationRecommendationResources` | `GET /v1/organization-recommendations/{organizationRecommendationIdentifier}/resources` | `readonly`, `paginated` | `organizationRecommendationIdentifier` | - | `ListOrganizationRecommendationResourcesResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | List Resources of a Recommendation within an Organization. This API only supports prioritized recommendations and provides global priority recommendations, eliminating the need to call the API in each AWS Region. |
 | `ListOrganizationRecommendations` | `GET /v1/organization-recommendations` | `readonly`, `paginated` | - | - | `ListOrganizationRecommendationsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | List a filterable set of Recommendations within an Organization. This API only supports prioritized recommendations and provides global priority recommendations, eliminating the need to call the API in each AWS Region. |
 | `ListRecommendationResources` | `GET /v1/recommendations/{recommendationIdentifier}/resources` | `readonly`, `paginated` | `recommendationIdentifier` | - | `ListRecommendationResourcesResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | List Resources of a Recommendation. This API provides global recommendations, eliminating the need to call the API in each AWS Region. |
@@ -95,30 +95,43 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | Exception that access has been denied due to insufficient access |
-| `InternalServerException` | `structure` | `message` | Exception to notify that an unexpected internal error occurred during processing of the request |
-| `ThrottlingException` | `structure` | `message` | Exception to notify that requests are being throttled |
-| `ValidationException` | `structure` | `message` | Exception that the request failed to satisfy service constraints |
-| `ResourceNotFoundException` | `structure` | `message` | Exception that the requested resource has not been found |
-| `ConflictException` | `structure` | `message` | Exception that the request was denied due to conflictions in state |
-| `BatchUpdateRecommendationResourceExclusionRequest` | `structure` | `recommendationResourceExclusions` | - |
-| `BatchUpdateRecommendationResourceExclusionResponse` | `structure` | `batchUpdateRecommendationResourceExclusionErrors` | - |
-| `GetOrganizationRecommendationRequest` | `structure` | `organizationRecommendationIdentifier` | - |
-| `GetOrganizationRecommendationResponse` | `structure` | `organizationRecommendation` | - |
-| `GetRecommendationRequest` | `structure` | `language`, `recommendationIdentifier` | - |
-| `GetRecommendationResponse` | `structure` | `recommendation` | - |
-| `ListChecksRequest` | `structure` | `awsService`, `language`, `maxResults`, `nextToken`, `pillar`, `source` | - |
-| `ListChecksResponse` | `structure` | `checkSummaries`, `nextToken` | - |
-| `ListOrganizationRecommendationAccountsRequest` | `structure` | `affectedAccountId`, `maxResults`, `nextToken`, `organizationRecommendationIdentifier` | - |
-| `ListOrganizationRecommendationAccountsResponse` | `structure` | `accountRecommendationLifecycleSummaries`, `nextToken` | - |
-| `ListOrganizationRecommendationResourcesRequest` | `structure` | `affectedAccountId`, `exclusionStatus`, `maxResults`, `nextToken`, `organizationRecommendationIdentifier`, `regionCode`, `status` | - |
-| `ListOrganizationRecommendationResourcesResponse` | `structure` | `nextToken`, `organizationRecommendationResourceSummaries` | - |
-| `ListOrganizationRecommendationsRequest` | `structure` | `afterLastUpdatedAt`, `awsService`, `beforeLastUpdatedAt`, `checkIdentifier`, `maxResults`, `nextToken`, `pillar`, `source`, `status`, `type` | - |
-| `ListOrganizationRecommendationsResponse` | `structure` | `nextToken`, `organizationRecommendationSummaries` | - |
-| `ListRecommendationResourcesRequest` | `structure` | `exclusionStatus`, `language`, `maxResults`, `nextToken`, `recommendationIdentifier`, `regionCode`, `status` | - |
-| `ListRecommendationResourcesResponse` | `structure` | `nextToken`, `recommendationResourceSummaries` | - |
-| `ListRecommendationsRequest` | `structure` | `afterLastUpdatedAt`, `awsService`, `beforeLastUpdatedAt`, `checkIdentifier`, `language`, `maxResults`, `nextToken`, `pillar`, `source`, `status`, `type` | - |
-
+| `AccessDeniedException` | `structure` | message | Exception that access has been denied due to insufficient access |
+| `ConflictException` | `structure` | message | Exception that the request was denied due to conflictions in state |
+| `InternalServerException` | `structure` | message | Exception to notify that an unexpected internal error occurred during processing of the request |
+| `ResourceNotFoundException` | `structure` | message | Exception that the requested resource has not been found |
+| `ThrottlingException` | `structure` | message | Exception to notify that requests are being throttled |
+| `ValidationException` | `structure` | message | Exception that the request failed to satisfy service constraints |
+| `BatchUpdateRecommendationResourceExclusionRequest` | `structure` | recommendationResourceExclusions | - |
+| `BatchUpdateRecommendationResourceExclusionResponse` | `structure` | batchUpdateRecommendationResourceExclusionErrors | - |
+| `GetOrganizationRecommendationRequest` | `structure` | organizationRecommendationIdentifier | - |
+| `GetOrganizationRecommendationResponse` | `structure` | organizationRecommendation | - |
+| `GetRecommendationRequest` | `structure` | recommendationIdentifier, language | - |
+| `GetRecommendationResponse` | `structure` | recommendation | - |
+| `ListChecksRequest` | `structure` | nextToken, maxResults, pillar, awsService, source, language | - |
+| `ListChecksResponse` | `structure` | nextToken, checkSummaries | - |
+| `ListOrganizationRecommendationAccountsRequest` | `structure` | nextToken, maxResults, organizationRecommendationIdentifier, affectedAccountId | - |
+| `ListOrganizationRecommendationAccountsResponse` | `structure` | nextToken, accountRecommendationLifecycleSummaries | - |
+| `ListOrganizationRecommendationResourcesRequest` | `structure` | nextToken, maxResults, status, exclusionStatus, regionCode, organizationRecommendationIdentifier, affectedAccountId | - |
+| `ListOrganizationRecommendationResourcesResponse` | `structure` | nextToken, organizationRecommendationResourceSummaries | - |
+| `ListOrganizationRecommendationsRequest` | `structure` | nextToken, maxResults, type, status, pillar, awsService, source, checkIdentifier, afterLastUpdatedAt, beforeLastUpdatedAt | - |
+| `ListOrganizationRecommendationsResponse` | `structure` | nextToken, organizationRecommendationSummaries | - |
+| `ListRecommendationResourcesRequest` | `structure` | nextToken, maxResults, status, exclusionStatus, regionCode, recommendationIdentifier, language | - |
+| `ListRecommendationResourcesResponse` | `structure` | nextToken, recommendationResourceSummaries | - |
+| `ListRecommendationsRequest` | `structure` | nextToken, maxResults, type, status, pillar, awsService, source, checkIdentifier, afterLastUpdatedAt, beforeLastUpdatedAt, language | - |
+| `ListRecommendationsResponse` | `structure` | nextToken, recommendationSummaries | - |
+| `UpdateOrganizationRecommendationLifecycleRequest` | `structure` | lifecycleStage, updateReason, updateReasonCode, organizationRecommendationIdentifier | - |
+| `UpdateRecommendationLifecycleRequest` | `structure` | lifecycleStage, updateReason, updateReasonCode, recommendationIdentifier | - |
+| `ExclusionStatus` | `enum` | EXCLUDED, INCLUDED | - |
+| `RecommendationLanguage` | `enum` | ENGLISH, JAPANESE, CHINESE, FRENCH, GERMAN, KOREAN, TRADITIONAL_CHINESE, ITALIAN, SPANISH, BRAZILIAN_PORTUGUESE, BAHASA_INDONESIA | - |
+| `RecommendationLifecycleStage` | `enum` | IN_PROGRESS, PENDING_RESPONSE, DISMISSED, RESOLVED | - |
+| `RecommendationPillar` | `enum` | COST_OPTIMIZING, PERFORMANCE, SECURITY, SERVICE_LIMITS, FAULT_TOLERANCE, OPERATIONAL_EXCELLENCE | - |
+| `RecommendationSource` | `enum` | AWS_CONFIG, COMPUTE_OPTIMIZER, COST_EXPLORER, LSE, MANUAL, PSE, RDS, RESILIENCE, RESILIENCE_HUB, SECURITY_HUB, STIR, TA_CHECK, ... (+2) | - |
+| `RecommendationStatus` | `enum` | OK, WARNING, ERROR | - |
+| `RecommendationType` | `enum` | STANDARD, PRIORITY | - |
+| `ResourceStatus` | `enum` | OK, WARNING, ERROR | - |
+| `StatusReason` | `enum` | NO_DATA_OK | - |
+| `UpdateRecommendationLifecycleStage` | `enum` | PENDING_RESPONSE, IN_PROGRESS, DISMISSED, RESOLVED | - |
+| `UpdateRecommendationLifecycleStageReasonCode` | `enum` | NON_CRITICAL_ACCOUNT, TEMPORARY_ACCOUNT, VALID_BUSINESS_CASE, OTHER_METHODS_AVAILABLE, LOW_PRIORITY, NOT_APPLICABLE, OTHER | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

@@ -63,73 +63,69 @@ Parity implications:
 ### Create
 
 - Operations: `CreateCliToken`, `CreateEnvironment`, `CreateWebLoginToken`
-- Traits: `endpoint-bound` (3), `idempotent` (2)
-- Common required input members in this group: `DagS3Path`, `ExecutionRoleArn`, `Name`, `NetworkConfiguration`, `SourceBucketArn`
+- Traits: `idempotent` (2)
+- Common required input members in this group: `Name`
 
 ### List
 
 - Operations: `ListEnvironments`, `ListTagsForResource`
-- Traits: `endpoint-bound` (2), `paginated` (1), `readonly` (2)
-- Common required input members in this group: `ResourceArn`
+- Traits: `readonly` (2), `paginated` (1)
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteEnvironment`
-- Traits: `endpoint-bound` (1), `idempotent` (1)
-- Common required input members in this group: `Name`
+- Traits: `idempotent` (1)
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetEnvironment`
-- Traits: `endpoint-bound` (1), `readonly` (1)
-- Common required input members in this group: `Name`
+- Traits: `readonly` (1)
+- Common required input members in this group: -
 
 ### Invoke
 
 - Operations: `InvokeRestApi`
-- Traits: `endpoint-bound` (1)
-- Common required input members in this group: `Method`, `Name`, `Path`
+- Common required input members in this group: -
 
 ### Publish
 
 - Operations: `PublishMetrics`
-- Traits: `endpoint-bound` (1)
-- Common required input members in this group: `EnvironmentName`, `MetricData`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Traits: `endpoint-bound` (1)
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Traits: `endpoint-bound` (1), `idempotent` (1)
-- Common required input members in this group: `ResourceArn`, `tagKeys`
+- Traits: `idempotent` (1)
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateEnvironment`
-- Traits: `endpoint-bound` (1)
-- Common required input members in this group: `Name`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateCliToken` | `POST /clitoken/{Name}` | `endpoint-bound` | `Name` | - | `CreateCliTokenResponse` | `ResourceNotFoundException` | Creates a CLI token for the Airflow CLI. To learn more, see Creating an Apache Airflow CLI token. |
-| `CreateEnvironment` | `PUT /environments/{Name}` | `idempotent`, `endpoint-bound` | `DagS3Path`, `ExecutionRoleArn`, `Name`, `NetworkConfiguration`, `SourceBucketArn` | - | `CreateEnvironmentOutput` | `InternalServerException`, `ValidationException` | Creates an Amazon Managed Workflows for Apache Airflow (Amazon MWAA) environment. |
-| `CreateWebLoginToken` | `POST /webtoken/{Name}` | `idempotent`, `endpoint-bound` | `Name` | - | `CreateWebLoginTokenResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Creates a web login token for the Airflow Web UI. To learn more, see Creating an Apache Airflow web login token. |
-| `DeleteEnvironment` | `DELETE /environments/{Name}` | `idempotent`, `endpoint-bound` | `Name` | - | `DeleteEnvironmentOutput` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes an Amazon Managed Workflows for Apache Airflow (Amazon MWAA) environment. |
-| `GetEnvironment` | `GET /environments/{Name}` | `readonly`, `endpoint-bound` | `Name` | - | `GetEnvironmentOutput` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Describes an Amazon Managed Workflows for Apache Airflow (MWAA) environment. |
-| `InvokeRestApi` | `POST /restapi/{Name}` | `endpoint-bound` | `Method`, `Name`, `Path` | - | `InvokeRestApiResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `RestApiClientException`, `RestApiServerException`, `ValidationException` | Invokes the Apache Airflow REST API on the webserver with the specified inputs. To learn more, see Using the Apache Airflow REST API |
-| `ListEnvironments` | `GET /environments` | `readonly`, `paginated`, `endpoint-bound` | - | - | `ListEnvironmentsOutput` | `InternalServerException`, `ValidationException` | Lists the Amazon Managed Workflows for Apache Airflow (MWAA) environments. |
-| `ListTagsForResource` | `GET /tags/{ResourceArn}` | `readonly`, `endpoint-bound` | `ResourceArn` | - | `ListTagsForResourceOutput` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Lists the key-value tag pairs associated to the Amazon Managed Workflows for Apache Airflow (MWAA) environment. For example, `"Environment": "Staging"`. |
-| `PublishMetrics` | `POST /metrics/environments/{EnvironmentName}` | `endpoint-bound` | `EnvironmentName`, `MetricData` | - | `PublishMetricsOutput` | `InternalServerException`, `ValidationException` | Internal only . Publishes environment health metrics to Amazon CloudWatch. |
-| `TagResource` | `POST /tags/{ResourceArn}` | `endpoint-bound` | `ResourceArn`, `Tags` | - | `TagResourceOutput` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Associates key-value tag pairs to your Amazon Managed Workflows for Apache Airflow (MWAA) environment. |
-| `UntagResource` | `DELETE /tags/{ResourceArn}` | `idempotent`, `endpoint-bound` | `ResourceArn`, `tagKeys` | - | `UntagResourceOutput` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Removes key-value tag pairs associated to your Amazon Managed Workflows for Apache Airflow (MWAA) environment. For example, `"Environment": "Staging"`. |
-| `UpdateEnvironment` | `PATCH /environments/{Name}` | `endpoint-bound` | `Name` | - | `UpdateEnvironmentOutput` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Updates an Amazon Managed Workflows for Apache Airflow (MWAA) environment. |
+| `CreateCliToken` | `POST /clitoken/{Name}` | - | `Name` | - | `CreateCliTokenResponse` | `ResourceNotFoundException` | Creates a CLI token for the Airflow CLI. To learn more, see Creating an Apache Airflow CLI token . |
+| `CreateEnvironment` | `PUT /environments/{Name}` | `idempotent` | `Name`, `ExecutionRoleArn`, `SourceBucketArn`, `DagS3Path`, `NetworkConfiguration` | - | `CreateEnvironmentOutput` | `InternalServerException`, `ValidationException` | Creates an Amazon Managed Workflows for Apache Airflow (Amazon MWAA) environment. |
+| `CreateWebLoginToken` | `POST /webtoken/{Name}` | `idempotent` | `Name` | - | `CreateWebLoginTokenResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Creates a web login token for the Airflow Web UI. To learn more, see Creating an Apache Airflow web login token . |
+| `DeleteEnvironment` | `DELETE /environments/{Name}` | `idempotent` | `Name` | - | `DeleteEnvironmentOutput` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes an Amazon Managed Workflows for Apache Airflow (Amazon MWAA) environment. |
+| `GetEnvironment` | `GET /environments/{Name}` | `readonly` | `Name` | - | `GetEnvironmentOutput` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Describes an Amazon Managed Workflows for Apache Airflow (MWAA) environment. |
+| `InvokeRestApi` | `POST /restapi/{Name}` | - | `Name`, `Path`, `Method` | - | `InvokeRestApiResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `RestApiClientException`, `RestApiServerException`, `ValidationException` | Invokes the Apache Airflow REST API on the webserver with the specified inputs. To learn more, see Using the Apache Airflow REST API |
+| `ListEnvironments` | `GET /environments` | `readonly`, `paginated` | - | - | `ListEnvironmentsOutput` | `InternalServerException`, `ValidationException` | Lists the Amazon Managed Workflows for Apache Airflow (MWAA) environments. |
+| `ListTagsForResource` | `GET /tags/{ResourceArn}` | `readonly` | `ResourceArn` | - | `ListTagsForResourceOutput` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Lists the key-value tag pairs associated to the Amazon Managed Workflows for Apache Airflow (MWAA) environment. For example, "Environment": "Staging" . |
+| `PublishMetrics` | `POST /metrics/environments/{EnvironmentName}` | - | `EnvironmentName`, `MetricData` | - | `PublishMetricsOutput` | `InternalServerException`, `ValidationException` | Internal only . Publishes environment health metrics to Amazon CloudWatch. |
+| `TagResource` | `POST /tags/{ResourceArn}` | - | `ResourceArn`, `Tags` | - | `TagResourceOutput` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Associates key-value tag pairs to your Amazon Managed Workflows for Apache Airflow (MWAA) environment. |
+| `UntagResource` | `DELETE /tags/{ResourceArn}` | `idempotent` | `ResourceArn`, `tagKeys` | - | `UntagResourceOutput` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Removes key-value tag pairs associated to your Amazon Managed Workflows for Apache Airflow (MWAA) environment. For example, "Environment": "Staging" . |
+| `UpdateEnvironment` | `PATCH /environments/{Name}` | - | `Name` | - | `UpdateEnvironmentOutput` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Updates an Amazon Managed Workflows for Apache Airflow (MWAA) environment. |
 
 ## HTTP Bindings
 
@@ -144,31 +140,36 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `message` | InternalServerException: An internal error has occurred. |
-| `ValidationException` | `structure` | `message` | ValidationException: The provided input is not valid. |
-| `ResourceNotFoundException` | `structure` | `message` | ResourceNotFoundException: The resource is not available. |
-| `AccessDeniedException` | `structure` | `Message` | Access to the Apache Airflow Web UI or CLI has been denied due to insufficient permissions. |
-| `CreateCliTokenRequest` | `structure` | `Name` | - |
-| `CreateCliTokenResponse` | `structure` | `CliToken`, `WebServerHostname` | - |
-| `CreateEnvironmentInput` | `structure` | `AirflowConfigurationOptions`, `AirflowVersion`, `DagS3Path`, `EndpointManagement`, `EnvironmentClass`, `ExecutionRoleArn`, `KmsKey`, `LoggingConfiguration`, `MaxWebservers`, `MaxWorkers`, `MinWebservers`, `MinWorkers`, ... (+13) | This section contains the Amazon Managed Workflows for Apache Airflow (Amazon MWAA) API reference documentation to create an environment. |
-| `CreateEnvironmentOutput` | `structure` | `Arn` | - |
-| `CreateWebLoginTokenRequest` | `structure` | `Name` | - |
-| `CreateWebLoginTokenResponse` | `structure` | `AirflowIdentity`, `IamIdentity`, `WebServerHostname`, `WebToken` | - |
-| `DeleteEnvironmentInput` | `structure` | `Name` | - |
-| `DeleteEnvironmentOutput` | `structure` | - | - |
-| `GetEnvironmentInput` | `structure` | `Name` | - |
-| `GetEnvironmentOutput` | `structure` | `Environment` | - |
-| `InvokeRestApiRequest` | `structure` | `Body`, `Method`, `Name`, `Path`, `QueryParameters` | - |
-| `InvokeRestApiResponse` | `structure` | `RestApiResponse`, `RestApiStatusCode` | - |
-| `RestApiClientException` | `structure` | `RestApiResponse`, `RestApiStatusCode` | An exception indicating that a client-side error occurred during the Apache Airflow REST API call. |
-| `RestApiServerException` | `structure` | `RestApiResponse`, `RestApiStatusCode` | An exception indicating that a server-side error occurred during the Apache Airflow REST API call. |
-| `ListEnvironmentsInput` | `structure` | `MaxResults`, `NextToken` | - |
-| `ListEnvironmentsOutput` | `structure` | `Environments`, `NextToken` | - |
-| `ListTagsForResourceInput` | `structure` | `ResourceArn` | - |
-| `ListTagsForResourceOutput` | `structure` | `Tags` | - |
-| `PublishMetricsInput` | `structure` | `EnvironmentName`, `MetricData` | - |
-| `PublishMetricsOutput` | `structure` | - | - |
-
+| `AccessDeniedException` | `structure` | Message | Access to the Apache Airflow Web UI or CLI has been denied due to insufficient permissions. To learn more, see Accessing an Amazon MWAA environment . |
+| `InternalServerException` | `structure` | message | InternalServerException: An internal error has occurred. |
+| `ResourceNotFoundException` | `structure` | message | ResourceNotFoundException: The resource is not available. |
+| `RestApiClientException` | `structure` | RestApiStatusCode, RestApiResponse | An exception indicating that a client-side error occurred during the Apache Airflow REST API call. |
+| `RestApiServerException` | `structure` | RestApiStatusCode, RestApiResponse | An exception indicating that a server-side error occurred during the Apache Airflow REST API call. |
+| `ValidationException` | `structure` | message | ValidationException: The provided input is not valid. |
+| `CreateCliTokenRequest` | `structure` | Name | - |
+| `CreateCliTokenResponse` | `structure` | CliToken, WebServerHostname | - |
+| `CreateEnvironmentInput` | `structure` | Name, ExecutionRoleArn, SourceBucketArn, DagS3Path, NetworkConfiguration, PluginsS3Path, PluginsS3ObjectVersion, RequirementsS3Path, RequirementsS3ObjectVersion, StartupScriptS3Path, StartupScriptS3ObjectVersion, AirflowConfigurationOptions, ... (+13) | This section contains the Amazon Managed Workflows for Apache Airflow (Amazon MWAA) API reference documentation to create an environment. For more informati ... |
+| `CreateEnvironmentOutput` | `structure` | Arn | - |
+| `CreateWebLoginTokenRequest` | `structure` | Name | - |
+| `CreateWebLoginTokenResponse` | `structure` | WebToken, WebServerHostname, IamIdentity, AirflowIdentity | - |
+| `DeleteEnvironmentInput` | `structure` | Name | - |
+| `DeleteEnvironmentOutput` | `structure` | **empty (no members)** | - |
+| `GetEnvironmentInput` | `structure` | Name | - |
+| `GetEnvironmentOutput` | `structure` | Environment | - |
+| `InvokeRestApiRequest` | `structure` | Name, Path, Method, QueryParameters, Body | - |
+| `InvokeRestApiResponse` | `structure` | RestApiStatusCode, RestApiResponse | - |
+| `ListEnvironmentsInput` | `structure` | NextToken, MaxResults | - |
+| `ListEnvironmentsOutput` | `structure` | Environments, NextToken | - |
+| `ListTagsForResourceInput` | `structure` | ResourceArn | - |
+| `ListTagsForResourceOutput` | `structure` | Tags | - |
+| `PublishMetricsInput` | `structure` | EnvironmentName, MetricData | - |
+| `PublishMetricsOutput` | `structure` | **empty (no members)** | - |
+| `TagResourceInput` | `structure` | ResourceArn, Tags | - |
+| `TagResourceOutput` | `structure` | **empty (no members)** | - |
+| `UntagResourceInput` | `structure` | ResourceArn, tagKeys | - |
+| `UntagResourceOutput` | `structure` | **empty (no members)** | - |
+| `UpdateEnvironmentInput` | `structure` | Name, ExecutionRoleArn, AirflowConfigurationOptions, AirflowVersion, DagS3Path, EnvironmentClass, LoggingConfiguration, MaxWorkers, MinWorkers, MaxWebservers, MinWebservers, WorkerReplacementStrategy, ... (+11) | - |
+| `UpdateEnvironmentOutput` | `structure` | Arn | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

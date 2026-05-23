@@ -43,32 +43,34 @@ Migration Hub Strategy Recommendations This API reference provides descriptions,
 ### Get
 
 - Operations: `GetApplicationComponentDetails`, `GetApplicationComponentStrategies`, `GetAssessment`, `GetImportFileTask`, `GetLatestAssessmentId`, `GetPortfolioPreferences`, `GetPortfolioSummary`, `GetRecommendationReportDetails`, `GetServerDetails`, `GetServerStrategies`
-- Traits: `paginated` (1), `readonly` (10)
+- Traits: `readonly` (10), `paginated` (1)
 - Common required input members in this group: `applicationComponentId`, `id`, `serverId`
 
 ### List
 
 - Operations: `ListAnalyzableServers`, `ListApplicationComponents`, `ListCollectors`, `ListImportFileTask`, `ListServers`
-- Traits: `paginated` (5), `readonly` (3)
+- Traits: `readonly` (3), `paginated` (5)
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartAssessment`, `StartImportFileTask`, `StartRecommendationReportGeneration`
-- Common required input members in this group: `S3Bucket`, `name`, `s3key`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateApplicationComponentConfig`, `UpdateServerConfig`
-- Common required input members in this group: `applicationComponentId`, `serverId`
+- Common required input members in this group: -
 
 ### Put
 
 - Operations: `PutPortfolioPreferences`
+- Common required input members in this group: -
 
 ### Stop
 
 - Operations: `StopAssessment`
-- Common required input members in this group: `assessmentId`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
@@ -91,7 +93,7 @@ Migration Hub Strategy Recommendations This API reference provides descriptions,
 | `ListServers` | `POST /list-servers` | `paginated` | - | - | `ListServersResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of all the servers. |
 | `PutPortfolioPreferences` | `POST /put-portfolio-preferences` | - | - | - | `PutPortfolioPreferencesResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Saves the specified migration and modernization preferences. |
 | `StartAssessment` | `POST /start-assessment` | - | - | - | `StartAssessmentResponse` | `AccessDeniedException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException` | Starts the assessment of an on-premises environment. |
-| `StartImportFileTask` | `POST /start-import-file-task` | - | `S3Bucket`, `name`, `s3key` | - | `StartImportFileTaskResponse` | `AccessDeniedException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Starts a file import. |
+| `StartImportFileTask` | `POST /start-import-file-task` | - | `name`, `S3Bucket`, `s3key` | - | `StartImportFileTaskResponse` | `AccessDeniedException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Starts a file import. |
 | `StartRecommendationReportGeneration` | `POST /start-recommendation-report-generation` | - | - | - | `StartRecommendationReportGenerationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Starts generating a recommendation report. |
 | `StopAssessment` | `POST /stop-assessment` | - | `assessmentId` | - | `StopAssessmentResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Stops the assessment of an on-premises environment. |
 | `UpdateApplicationComponentConfig` | `POST /update-applicationcomponent-config/` | - | `applicationComponentId` | - | `UpdateApplicationComponentConfigResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the configuration of an application component. |
@@ -111,31 +113,46 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `message` | The server experienced an internal error. |
-| `ThrottlingException` | `structure` | `message` | The request was denied due to request throttling. |
-| `AccessDeniedException` | `structure` | `message` | The user does not have permission to perform the action. |
-| `ValidationException` | `structure` | `message` | The request body isn't valid. |
-| `ResourceNotFoundException` | `structure` | `message` | The specified ID in the request is not found. |
-| `ConflictException` | `structure` | `message` | Exception to indicate that there is an ongoing task when a new task is created. |
-| `ServiceQuotaExceededException` | `structure` | `message` | The AWS account has reached its quota of imports. |
-| `GetApplicationComponentDetailsRequest` | `structure` | `applicationComponentId` | - |
-| `GetApplicationComponentDetailsResponse` | `structure` | `applicationComponentDetail`, `associatedApplications`, `associatedServerIds`, `moreApplicationResource` | - |
-| `GetApplicationComponentStrategiesRequest` | `structure` | `applicationComponentId` | - |
-| `GetApplicationComponentStrategiesResponse` | `structure` | `applicationComponentStrategies` | - |
-| `GetAssessmentRequest` | `structure` | `id` | - |
-| `GetAssessmentResponse` | `structure` | `assessmentTargets`, `dataCollectionDetails`, `id` | - |
-| `GetImportFileTaskRequest` | `structure` | `id` | - |
-| `GetImportFileTaskResponse` | `structure` | `completionTime`, `id`, `importName`, `inputS3Bucket`, `inputS3Key`, `numberOfRecordsFailed`, `numberOfRecordsSuccess`, `startTime`, `status`, `statusReportS3Bucket`, `statusReportS3Key` | - |
-| `GetLatestAssessmentIdRequest` | `structure` | - | - |
-| `GetLatestAssessmentIdResponse` | `structure` | `id` | - |
-| `DependencyException` | `structure` | `message` | Dependency encountered an error. |
-| `GetPortfolioPreferencesRequest` | `structure` | - | - |
-| `GetPortfolioPreferencesResponse` | `structure` | `applicationMode`, `applicationPreferences`, `databasePreferences`, `prioritizeBusinessGoals` | - |
-| `GetPortfolioSummaryRequest` | `structure` | - | - |
-| `GetPortfolioSummaryResponse` | `structure` | `assessmentSummary` | - |
-| `GetRecommendationReportDetailsRequest` | `structure` | `id` | - |
-| `GetRecommendationReportDetailsResponse` | `structure` | `id`, `recommendationReportDetails` | - |
-
+| `AccessDeniedException` | `structure` | message | The user does not have permission to perform the action. Check the AWS Identity and Access Management (IAM) policy associated with this user. |
+| `ConflictException` | `structure` | message | Exception to indicate that there is an ongoing task when a new task is created. Return when once the existing tasks are complete. |
+| `DependencyException` | `structure` | message | Dependency encountered an error. |
+| `InternalServerException` | `structure` | message | The server experienced an internal error. Try again. |
+| `ResourceNotFoundException` | `structure` | message | The specified ID in the request is not found. |
+| `ServiceLinkedRoleLockClientException` | `structure` | message | Exception to indicate that the service-linked role (SLR) is locked. |
+| `ServiceQuotaExceededException` | `structure` | message | The AWS account has reached its quota of imports. Contact AWS Support to increase the quota for this account. |
+| `ThrottlingException` | `structure` | message | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | message | The request body isn't valid. |
+| `GetApplicationComponentDetailsRequest` | `structure` | applicationComponentId | - |
+| `GetApplicationComponentDetailsResponse` | `structure` | applicationComponentDetail, associatedApplications, moreApplicationResource, associatedServerIds | - |
+| `GetApplicationComponentStrategiesRequest` | `structure` | applicationComponentId | - |
+| `GetApplicationComponentStrategiesResponse` | `structure` | applicationComponentStrategies | - |
+| `GetAssessmentRequest` | `structure` | id | - |
+| `GetAssessmentResponse` | `structure` | id, dataCollectionDetails, assessmentTargets | - |
+| `GetImportFileTaskRequest` | `structure` | id | - |
+| `GetImportFileTaskResponse` | `structure` | id, status, startTime, inputS3Bucket, inputS3Key, statusReportS3Bucket, statusReportS3Key, completionTime, numberOfRecordsSuccess, numberOfRecordsFailed, importName | - |
+| `GetLatestAssessmentIdRequest` | `structure` | **empty (no members)** | - |
+| `GetLatestAssessmentIdResponse` | `structure` | id | - |
+| `GetPortfolioPreferencesRequest` | `structure` | **empty (no members)** | - |
+| `GetPortfolioPreferencesResponse` | `structure` | prioritizeBusinessGoals, applicationPreferences, databasePreferences, applicationMode | - |
+| `GetPortfolioSummaryRequest` | `structure` | **empty (no members)** | - |
+| `GetPortfolioSummaryResponse` | `structure` | assessmentSummary | - |
+| `GetRecommendationReportDetailsRequest` | `structure` | id | - |
+| `GetRecommendationReportDetailsResponse` | `structure` | id, recommendationReportDetails | - |
+| `GetServerDetailsRequest` | `structure` | serverId, nextToken, maxResults | - |
+| `GetServerDetailsResponse` | `structure` | nextToken, serverDetail, associatedApplications | - |
+| `GetServerStrategiesRequest` | `structure` | serverId | - |
+| `GetServerStrategiesResponse` | `structure` | serverStrategies | - |
+| `ListAnalyzableServersRequest` | `structure` | sort, nextToken, maxResults | Represents input for ListAnalyzableServers operation. |
+| `ListAnalyzableServersResponse` | `structure` | analyzableServers, nextToken | Represents output for ListAnalyzableServers operation. |
+| `ListApplicationComponentsRequest` | `structure` | applicationComponentCriteria, filterValue, sort, groupIdFilter, nextToken, maxResults | - |
+| `ListApplicationComponentsResponse` | `structure` | applicationComponentInfos, nextToken | - |
+| `ListCollectorsRequest` | `structure` | nextToken, maxResults | - |
+| `ListCollectorsResponse` | `structure` | Collectors, nextToken | - |
+| `ListImportFileTaskRequest` | `structure` | nextToken, maxResults | - |
+| `ListImportFileTaskResponse` | `structure` | taskInfos, nextToken | - |
+| `ListServersRequest` | `structure` | serverCriteria, filterValue, sort, groupIdFilter, nextToken, maxResults | - |
+| `ListServersResponse` | `structure` | serverInfos, nextToken | - |
+| `PutPortfolioPreferencesRequest` | `structure` | prioritizeBusinessGoals, applicationPreferences, databasePreferences, applicationMode | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

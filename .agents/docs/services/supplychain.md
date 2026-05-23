@@ -49,86 +49,47 @@ AWS Supply Chain is a cloud-based application that works with your enterprise re
 | `InstanceResource` | `instanceId` | create: `CreateInstance`; read: `GetInstance`; update: `UpdateInstance`; delete: `DeleteInstance`; list: `ListInstances` | - | - |
 ## Operation Groups
 
-### Get
-
-- Operations: `GetBillOfMaterialsImportJob`, `GetDataIntegrationEvent`, `GetDataIntegrationFlow`, `GetDataIntegrationFlowExecution`, `GetDataLakeDataset`, `GetDataLakeNamespace`, `GetInstance`
-- Traits: `readonly` (7)
-- Common required input members in this group: `eventId`, `executionId`, `flowName`, `instanceId`, `jobId`, `name`, `namespace`
-
 ### List
 
-- Operations: `ListDataIntegrationEvents`, `ListDataIntegrationFlowExecutions`, `ListDataIntegrationFlows`, `ListDataLakeDatasets`, `ListDataLakeNamespaces`, `ListInstances`, `ListTagsForResource`
-- Traits: `paginated` (6), `readonly` (7)
-- Common required input members in this group: `flowName`, `instanceId`, `namespace`, `resourceArn`
+- Operations: `ListDataIntegrationEvents`, `ListDataIntegrationFlowExecutions`, `ListTagsForResource`
+- Traits: `readonly` (3), `paginated` (2)
+- Common required input members in this group: `instanceId`
 
-### Create
+### Get
 
-- Operations: `CreateBillOfMaterialsImportJob`, `CreateDataIntegrationFlow`, `CreateDataLakeDataset`, `CreateDataLakeNamespace`, `CreateInstance`
-- Traits: `idempotency-token` (2), `idempotent` (5)
-- Common required input members in this group: `instanceId`, `name`, `namespace`, `s3uri`, `sources`, `target`, `transformation`
-
-### Delete
-
-- Operations: `DeleteDataIntegrationFlow`, `DeleteDataLakeDataset`, `DeleteDataLakeNamespace`, `DeleteInstance`
-- Traits: `idempotent` (4)
-- Common required input members in this group: `instanceId`, `name`, `namespace`
-
-### Update
-
-- Operations: `UpdateDataIntegrationFlow`, `UpdateDataLakeDataset`, `UpdateDataLakeNamespace`, `UpdateInstance`
-- Common required input members in this group: `instanceId`, `name`, `namespace`
+- Operations: `GetDataIntegrationEvent`, `GetDataIntegrationFlowExecution`
+- Traits: `readonly` (2)
+- Common required input members in this group: `instanceId`
 
 ### Send
 
 - Operations: `SendDataIntegrationEvent`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `data`, `eventGroupId`, `eventType`, `instanceId`
+- Traits: `idempotent` (1), `idempotency-token` (1)
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateBillOfMaterialsImportJob` | `POST /api/configuration/instances/{instanceId}/bill-of-materials-import-jobs` | `idempotent`, `idempotency-token` | `instanceId`, `s3uri` | `clientToken` | `CreateBillOfMaterialsImportJobResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | CreateBillOfMaterialsImportJob creates an import job for the Product Bill Of Materials (BOM) entity. For information on the product_bom entity, see the AWS Supply Chain User Guide. |
-| `CreateDataIntegrationFlow` | `PUT /api/data-integration/instance/{instanceId}/data-integration-flows/{name}` | `idempotent` | `instanceId`, `name`, `sources`, `target`, `transformation` | - | `CreateDataIntegrationFlowResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Enables you to programmatically create a data pipeline to ingest data from source systems such as Amazon S3 buckets, to a predefined Amazon Web Services Supply Chain dataset (product, inbound_order) or a temporary dataset along with the data transformation... |
-| `CreateDataLakeDataset` | `PUT /api/datalake/instance/{instanceId}/namespaces/{namespace}/datasets/{name}` | `idempotent` | `instanceId`, `name`, `namespace` | - | `CreateDataLakeDatasetResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Enables you to programmatically create an Amazon Web Services Supply Chain data lake dataset. Developers can create the datasets using their pre-defined or custom schema for a given instance ID, namespace, and dataset name. |
-| `CreateDataLakeNamespace` | `PUT /api/datalake/instance/{instanceId}/namespaces/{name}` | `idempotent` | `instanceId`, `name` | - | `CreateDataLakeNamespaceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Enables you to programmatically create an Amazon Web Services Supply Chain data lake namespace. Developers can create the namespaces for a given instance ID. |
-| `CreateInstance` | `POST /api/instance` | `idempotent`, `idempotency-token` | - | `clientToken` | `CreateInstanceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Enables you to programmatically create an Amazon Web Services Supply Chain instance by applying KMS keys and relevant information associated with the API without using the Amazon Web Services console. This is an asynchronous operation. |
-| `DeleteDataIntegrationFlow` | `DELETE /api/data-integration/instance/{instanceId}/data-integration-flows/{name}` | `idempotent` | `instanceId`, `name` | - | `DeleteDataIntegrationFlowResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException` | Enable you to programmatically delete an existing data pipeline for the provided Amazon Web Services Supply Chain instance and DataIntegrationFlow name. |
-| `DeleteDataLakeDataset` | `DELETE /api/datalake/instance/{instanceId}/namespaces/{namespace}/datasets/{name}` | `idempotent` | `instanceId`, `name`, `namespace` | - | `DeleteDataLakeDatasetResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Enables you to programmatically delete an Amazon Web Services Supply Chain data lake dataset. Developers can delete the existing datasets for a given instance ID, namespace, and instance name. |
-| `DeleteDataLakeNamespace` | `DELETE /api/datalake/instance/{instanceId}/namespaces/{name}` | `idempotent` | `instanceId`, `name` | - | `DeleteDataLakeNamespaceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Enables you to programmatically delete an Amazon Web Services Supply Chain data lake namespace and its underling datasets. Developers can delete the existing namespaces for a given instance ID and namespace name. |
-| `DeleteInstance` | `DELETE /api/instance/{instanceId}` | `idempotent` | `instanceId` | - | `DeleteInstanceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Enables you to programmatically delete an Amazon Web Services Supply Chain instance by deleting the KMS keys and relevant information associated with the API without using the Amazon Web Services console. This is an asynchronous operation. |
-| `GetBillOfMaterialsImportJob` | `GET /api/configuration/instances/{instanceId}/bill-of-materials-import-jobs/{jobId}` | `readonly` | `instanceId`, `jobId` | - | `GetBillOfMaterialsImportJobResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get status and details of a BillOfMaterialsImportJob. |
-| `GetDataIntegrationEvent` | `GET /api-data/data-integration/instance/{instanceId}/data-integration-events/{eventId}` | `readonly` | `eventId`, `instanceId` | - | `GetDataIntegrationEventResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Enables you to programmatically view an Amazon Web Services Supply Chain Data Integration Event. Developers can view the eventType, eventGroupId, eventTimestamp, datasetTarget, datasetLoadExecution. |
-| `GetDataIntegrationFlow` | `GET /api/data-integration/instance/{instanceId}/data-integration-flows/{name}` | `readonly` | `instanceId`, `name` | - | `GetDataIntegrationFlowResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Enables you to programmatically view a specific data pipeline for the provided Amazon Web Services Supply Chain instance and DataIntegrationFlow name. |
-| `GetDataIntegrationFlowExecution` | `GET /api-data/data-integration/instance/{instanceId}/data-integration-flows/{flowName}/executions/{executionId}` | `readonly` | `executionId`, `flowName`, `instanceId` | - | `GetDataIntegrationFlowExecutionResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get the flow execution. |
-| `GetDataLakeDataset` | `GET /api/datalake/instance/{instanceId}/namespaces/{namespace}/datasets/{name}` | `readonly` | `instanceId`, `name`, `namespace` | - | `GetDataLakeDatasetResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Enables you to programmatically view an Amazon Web Services Supply Chain data lake dataset. Developers can view the data lake dataset information such as namespace, schema, and so on for a given instance ID, namespace, and dataset name. |
-| `GetDataLakeNamespace` | `GET /api/datalake/instance/{instanceId}/namespaces/{name}` | `readonly` | `instanceId`, `name` | - | `GetDataLakeNamespaceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Enables you to programmatically view an Amazon Web Services Supply Chain data lake namespace. Developers can view the data lake namespace information such as description for a given instance ID and namespace name. |
-| `GetInstance` | `GET /api/instance/{instanceId}` | `readonly` | `instanceId` | - | `GetInstanceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Enables you to programmatically retrieve the information related to an Amazon Web Services Supply Chain instance ID. |
+| `GetDataIntegrationEvent` | `GET /api-data/data-integration/instance/{instanceId}/data-integration-events/{eventId}` | `readonly` | `instanceId`, `eventId` | - | `GetDataIntegrationEventResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Enables you to programmatically view an Amazon Web Services Supply Chain Data Integration Event. Developers can view the eventType, eventGroupId, eventTimestamp, datasetTarget, datasetLoadExecution. |
+| `GetDataIntegrationFlowExecution` | `GET /api-data/data-integration/instance/{instanceId}/data-integration-flows/{flowName}/executions/{executionId}` | `readonly` | `instanceId`, `flowName`, `executionId` | - | `GetDataIntegrationFlowExecutionResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get the flow execution. |
 | `ListDataIntegrationEvents` | `GET /api-data/data-integration/instance/{instanceId}/data-integration-events` | `readonly`, `paginated` | `instanceId` | - | `ListDataIntegrationEventsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Enables you to programmatically list all data integration events for the provided Amazon Web Services Supply Chain instance. |
-| `ListDataIntegrationFlowExecutions` | `GET /api-data/data-integration/instance/{instanceId}/data-integration-flows/{flowName}/executions` | `readonly`, `paginated` | `flowName`, `instanceId` | - | `ListDataIntegrationFlowExecutionsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | List flow executions. |
-| `ListDataIntegrationFlows` | `GET /api/data-integration/instance/{instanceId}/data-integration-flows` | `readonly`, `paginated` | `instanceId` | - | `ListDataIntegrationFlowsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Enables you to programmatically list all data pipelines for the provided Amazon Web Services Supply Chain instance. |
-| `ListDataLakeDatasets` | `GET /api/datalake/instance/{instanceId}/namespaces/{namespace}/datasets` | `readonly`, `paginated` | `instanceId`, `namespace` | - | `ListDataLakeDatasetsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Enables you to programmatically view the list of Amazon Web Services Supply Chain data lake datasets. Developers can view the datasets and the corresponding information such as namespace, schema, and so on for a given instance ID and namespace. |
-| `ListDataLakeNamespaces` | `GET /api/datalake/instance/{instanceId}/namespaces` | `readonly`, `paginated` | `instanceId` | - | `ListDataLakeNamespacesResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Enables you to programmatically view the list of Amazon Web Services Supply Chain data lake namespaces. Developers can view the namespaces and the corresponding information such as description for a given instance ID. |
-| `ListInstances` | `GET /api/instance` | `readonly`, `paginated` | - | - | `ListInstancesResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | List all Amazon Web Services Supply Chain instances for a specific account. Enables you to programmatically list all Amazon Web Services Supply Chain instances based on their account ID, instance name, and state of the instance (active or delete). |
-| `ListTagsForResource` | `GET /api/tags/{resourceArn}` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | List all the tags for an Amazon Web ServicesSupply Chain resource. You can list all the tags added to a resource. |
-| `SendDataIntegrationEvent` | `POST /api-data/data-integration/instance/{instanceId}/data-integration-events` | `idempotent`, `idempotency-token` | `data`, `eventGroupId`, `eventType`, `instanceId` | `clientToken` | `SendDataIntegrationEventResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Send the data payload for the event with real-time data for analysis or monitoring. The real-time data events are stored in an Amazon Web Services service before being processed and stored in data lake. |
-| `TagResource` | `POST /api/tags/{resourceArn}` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | You can create tags during or after creating a resource such as instance, data flow, or dataset in AWS Supply chain. During the data ingestion process, you can add tags such as dev, test, or prod to data flows created during the data ingestion process in the... |
-| `UntagResource` | `DELETE /api/tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | You can delete tags for an Amazon Web Services Supply chain resource such as instance, data flow, or dataset in AWS Supply Chain. During the data ingestion process, you can delete tags such as dev, test, or prod to data flows created during the data ingestion... |
-| `UpdateDataIntegrationFlow` | `PATCH /api/data-integration/instance/{instanceId}/data-integration-flows/{name}` | - | `instanceId`, `name` | - | `UpdateDataIntegrationFlowResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Enables you to programmatically update an existing data pipeline to ingest data from the source systems such as, Amazon S3 buckets, to a predefined Amazon Web Services Supply Chain dataset (product, inbound_order) or a temporary dataset along with the data... |
-| `UpdateDataLakeDataset` | `PATCH /api/datalake/instance/{instanceId}/namespaces/{namespace}/datasets/{name}` | - | `instanceId`, `name`, `namespace` | - | `UpdateDataLakeDatasetResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Enables you to programmatically update an Amazon Web Services Supply Chain data lake dataset. Developers can update the description of a data lake dataset for a given instance ID, namespace, and dataset name. |
-| `UpdateDataLakeNamespace` | `PATCH /api/datalake/instance/{instanceId}/namespaces/{name}` | - | `instanceId`, `name` | - | `UpdateDataLakeNamespaceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Enables you to programmatically update an Amazon Web Services Supply Chain data lake namespace. Developers can update the description of a data lake namespace for a given instance ID and namespace name. |
-| `UpdateInstance` | `PATCH /api/instance/{instanceId}` | - | `instanceId` | - | `UpdateInstanceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Enables you to programmatically update an Amazon Web Services Supply Chain instance description by providing all the relevant information such as account ID, instance ID and so on without using the AWS console. |
+| `ListDataIntegrationFlowExecutions` | `GET /api-data/data-integration/instance/{instanceId}/data-integration-flows/{flowName}/executions` | `readonly`, `paginated` | `instanceId`, `flowName` | - | `ListDataIntegrationFlowExecutionsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | List flow executions. |
+| `ListTagsForResource` | `GET /api/tags/{resourceArn}` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | List all the tags for an Amazon Web ServicesSupply Chain resource. You can list all the tags added to a resource. By listing the tags, developers can view the tag level information on a resource and perform actions s ... |
+| `SendDataIntegrationEvent` | `POST /api-data/data-integration/instance/{instanceId}/data-integration-events` | `idempotent`, `idempotency-token` | `instanceId`, `eventType`, `data`, `eventGroupId` | `clientToken` | `SendDataIntegrationEventResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Send the data payload for the event with real-time data for analysis or monitoring. The real-time data events are stored in an Amazon Web Services service before being processed and stored in data lake. |
+| `TagResource` | `POST /api/tags/{resourceArn}` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | You can create tags during or after creating a resource such as instance, data flow, or dataset in AWS Supply chain. During the data ingestion process, you can add tags such as dev, test, or prod to data flows create ... |
+| `UntagResource` | `DELETE /api/tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | You can delete tags for an Amazon Web Services Supply chain resource such as instance, data flow, or dataset in AWS Supply Chain. During the data ingestion process, you can delete tags such as dev, test, or prod to d ... |
 
 ## HTTP Bindings
 
@@ -144,31 +105,44 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | You do not have the required privileges to perform this action. |
-| `InternalServerException` | `structure` | `message` | Unexpected error during processing of request. |
-| `ThrottlingException` | `structure` | `message` | Request was denied due to request throttling. |
-| `ValidationException` | `structure` | `message` | The input does not satisfy the constraints specified by an AWS service. |
-| `ResourceNotFoundException` | `structure` | `message` | Request references a resource which does not exist. |
-| `ConflictException` | `structure` | `message` | Updating or deleting a resource can cause an inconsistent state. |
-| `ServiceQuotaExceededException` | `structure` | `message` | Request would cause a service quota to be exceeded. |
-| `CreateBillOfMaterialsImportJobRequest` | `structure` | `clientToken`, `instanceId`, `s3uri` | The request parameters for CreateBillOfMaterialsImportJob. |
-| `CreateBillOfMaterialsImportJobResponse` | `structure` | `jobId` | The response parameters of CreateBillOfMaterialsImportJob. |
-| `CreateDataIntegrationFlowRequest` | `structure` | `instanceId`, `name`, `sources`, `tags`, `target`, `transformation` | The request parameters for CreateDataIntegrationFlow. |
-| `CreateDataIntegrationFlowResponse` | `structure` | `instanceId`, `name` | The response parameters for CreateDataIntegrationFlow. |
-| `CreateDataLakeDatasetRequest` | `structure` | `description`, `instanceId`, `name`, `namespace`, `partitionSpec`, `schema`, `tags` | The request parameters for CreateDataLakeDataset. |
-| `CreateDataLakeDatasetResponse` | `structure` | `dataset` | The response parameters of CreateDataLakeDataset. |
-| `CreateDataLakeNamespaceRequest` | `structure` | `description`, `instanceId`, `name`, `tags` | The request parameters for CreateDataLakeNamespace. |
-| `CreateDataLakeNamespaceResponse` | `structure` | `namespace` | The response parameters of CreateDataLakeNamespace. |
-| `CreateInstanceRequest` | `structure` | `clientToken`, `instanceDescription`, `instanceName`, `kmsKeyArn`, `tags`, `webAppDnsDomain` | The request parameters for CreateInstance. |
-| `CreateInstanceResponse` | `structure` | `instance` | The response parameters for CreateInstance. |
-| `DeleteDataIntegrationFlowRequest` | `structure` | `instanceId`, `name` | The request parameters for DeleteDataIntegrationFlow. |
-| `DeleteDataIntegrationFlowResponse` | `structure` | `instanceId`, `name` | The response parameters for DeleteDataIntegrationFlow. |
-| `DeleteDataLakeDatasetRequest` | `structure` | `instanceId`, `name`, `namespace` | The request parameters of DeleteDataLakeDataset. |
-| `DeleteDataLakeDatasetResponse` | `structure` | `instanceId`, `name`, `namespace` | The response parameters of DeleteDataLakeDataset. |
-| `DeleteDataLakeNamespaceRequest` | `structure` | `instanceId`, `name` | The request parameters of DeleteDataLakeNamespace. |
-| `DeleteDataLakeNamespaceResponse` | `structure` | `instanceId`, `name` | The response parameters of DeleteDataLakeNamespace. |
-| `DeleteInstanceRequest` | `structure` | `instanceId` | The request parameters for DeleteInstance. |
-
+| `AccessDeniedException` | `structure` | message | You do not have the required privileges to perform this action. |
+| `ConflictException` | `structure` | message | Updating or deleting a resource can cause an inconsistent state. |
+| `InternalServerException` | `structure` | message | Unexpected error during processing of request. |
+| `ResourceNotFoundException` | `structure` | message | Request references a resource which does not exist. |
+| `ServiceQuotaExceededException` | `structure` | message | Request would cause a service quota to be exceeded. |
+| `ThrottlingException` | `structure` | message | Request was denied due to request throttling. |
+| `ValidationException` | `structure` | message | The input does not satisfy the constraints specified by an AWS service. |
+| `GetDataIntegrationEventRequest` | `structure` | instanceId, eventId | The request parameters for GetDataIntegrationEvent. |
+| `GetDataIntegrationEventResponse` | `structure` | event | The response parameters for GetDataIntegrationEvent. |
+| `GetDataIntegrationFlowExecutionRequest` | `structure` | instanceId, flowName, executionId | The request parameters of GetFlowExecution. |
+| `GetDataIntegrationFlowExecutionResponse` | `structure` | flowExecution | The response parameters of GetFlowExecution. |
+| `ListDataIntegrationEventsRequest` | `structure` | instanceId, eventType, nextToken, maxResults | The request parameters for ListDataIntegrationEvents. |
+| `ListDataIntegrationEventsResponse` | `structure` | events, nextToken | The response parameters for ListDataIntegrationEvents. |
+| `ListDataIntegrationFlowExecutionsRequest` | `structure` | instanceId, flowName, nextToken, maxResults | The request parameters of ListFlowExecutions. |
+| `ListDataIntegrationFlowExecutionsResponse` | `structure` | flowExecutions, nextToken | The response parameters of ListFlowExecutions. |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | The request parameters of ListTagsForResource. |
+| `ListTagsForResourceResponse` | `structure` | tags | The response parameters of ListTagsForResource. |
+| `SendDataIntegrationEventRequest` | `structure` | instanceId, eventType, data, eventGroupId, eventTimestamp, clientToken, datasetTarget | The request parameters for SendDataIntegrationEvent. |
+| `SendDataIntegrationEventResponse` | `structure` | eventId | The response parameters for SendDataIntegrationEvent. |
+| `TagResourceRequest` | `structure` | resourceArn, tags | The request parameters of TagResource. |
+| `TagResourceResponse` | `structure` | **empty (no members)** | The response parameters for TagResource. |
+| `UntagResourceRequest` | `structure` | resourceArn, tagKeys | The request parameters of UntagResource. |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | The response parameters of UntagResource. |
+| `ConfigurationJobStatus` | `enum` | NEW, FAILED, IN_PROGRESS, QUEUED, SUCCESS | The status of the job. |
+| `DataIntegrationEventDatasetLoadStatus` | `enum` | SUCCEEDED, IN_PROGRESS, FAILED | - |
+| `DataIntegrationEventDatasetOperationType` | `enum` | APPEND, UPSERT, DELETE | - |
+| `DataIntegrationEventType` | `enum` | FORECAST, INVENTORY_LEVEL, INBOUND_ORDER, INBOUND_ORDER_LINE, INBOUND_ORDER_LINE_SCHEDULE, OUTBOUND_ORDER_LINE, OUTBOUND_SHIPMENT, PROCESS_HEADER, PROCESS_OPERATION, PROCESS_PRODUCT, RESERVATION, SHIPMENT, ... (+4) | - |
+| `DataIntegrationFlowDedupeStrategyType` | `enum` | FIELD_PRIORITY | - |
+| `DataIntegrationFlowExecutionStatus` | `enum` | SUCCEEDED, IN_PROGRESS, FAILED | - |
+| `DataIntegrationFlowFieldPriorityDedupeSortOrder` | `enum` | ASC, DESC | - |
+| `DataIntegrationFlowFileType` | `enum` | CSV, PARQUET, JSON | - |
+| `DataIntegrationFlowLoadType` | `enum` | INCREMENTAL, REPLACE | - |
+| `DataIntegrationFlowSourceType` | `enum` | S3, DATASET | - |
+| `DataIntegrationFlowTargetType` | `enum` | S3, DATASET | - |
+| `DataIntegrationFlowTransformationType` | `enum` | SQL, NONE | - |
+| `DataLakeDatasetPartitionTransformType` | `enum` | YEAR, MONTH, DAY, HOUR, IDENTITY | - |
+| `DataLakeDatasetSchemaFieldType` | `enum` | INT, DOUBLE, STRING, TIMESTAMP, LONG | - |
+| `InstanceState` | `enum` | INITIALIZING, ACTIVE, CREATE_FAILED, DELETE_FAILED, DELETING, DELETED | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

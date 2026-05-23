@@ -74,96 +74,96 @@ Parity implications:
 ### Get
 
 - Operations: `GetAccountSettings`, `GetApplication`, `GetConfiguration`, `GetConfigurationProfile`, `GetDeployment`, `GetDeploymentStrategy`, `GetEnvironment`, `GetExtension`, `GetExtensionAssociation`, `GetHostedConfigurationVersion`
-- Common required input members in this group: `Application`, `ApplicationId`, `ClientId`, `Configuration`, `ConfigurationProfileId`, `DeploymentNumber`, `DeploymentStrategyId`, `Environment`, `EnvironmentId`, `ExtensionAssociationId`, `ExtensionIdentifier`, `VersionNumber`
+- Common required input members in this group: `ApplicationId`, `ConfigurationProfileId`, `EnvironmentId`
 
 ### List
 
-- Operations: `ListApplications`, `ListConfigurationProfiles`, `ListDeploymentStrategies`, `ListDeployments`, `ListEnvironments`, `ListExtensionAssociations`, `ListExtensions`, `ListHostedConfigurationVersions`, `ListTagsForResource`
+- Operations: `ListApplications`, `ListConfigurationProfiles`, `ListDeployments`, `ListDeploymentStrategies`, `ListEnvironments`, `ListExtensionAssociations`, `ListExtensions`, `ListHostedConfigurationVersions`, `ListTagsForResource`
 - Traits: `paginated` (8)
-- Common required input members in this group: `ApplicationId`, `ConfigurationProfileId`, `EnvironmentId`, `ResourceArn`
+- Common required input members in this group: `ApplicationId`
 
 ### Create
 
 - Operations: `CreateApplication`, `CreateConfigurationProfile`, `CreateDeploymentStrategy`, `CreateEnvironment`, `CreateExtension`, `CreateExtensionAssociation`, `CreateHostedConfigurationVersion`
-- Common required input members in this group: `Actions`, `ApplicationId`, `ConfigurationProfileId`, `Content`, `ContentType`, `DeploymentDurationInMinutes`, `ExtensionIdentifier`, `GrowthFactor`, `LocationUri`, `Name`, `ResourceIdentifier`
+- Common required input members in this group: `Name`, `ApplicationId`
 
 ### Delete
 
 - Operations: `DeleteApplication`, `DeleteConfigurationProfile`, `DeleteDeploymentStrategy`, `DeleteEnvironment`, `DeleteExtension`, `DeleteExtensionAssociation`, `DeleteHostedConfigurationVersion`
-- Common required input members in this group: `ApplicationId`, `ConfigurationProfileId`, `DeploymentStrategyId`, `EnvironmentId`, `ExtensionAssociationId`, `ExtensionIdentifier`, `VersionNumber`
+- Common required input members in this group: `ApplicationId`, `ConfigurationProfileId`
 
 ### Update
 
 - Operations: `UpdateAccountSettings`, `UpdateApplication`, `UpdateConfigurationProfile`, `UpdateDeploymentStrategy`, `UpdateEnvironment`, `UpdateExtension`, `UpdateExtensionAssociation`
-- Common required input members in this group: `ApplicationId`, `ConfigurationProfileId`, `DeploymentStrategyId`, `EnvironmentId`, `ExtensionAssociationId`, `ExtensionIdentifier`
+- Common required input members in this group: `ApplicationId`
 
 ### Start
 
 - Operations: `StartDeployment`
-- Common required input members in this group: `ApplicationId`, `ConfigurationProfileId`, `ConfigurationVersion`, `DeploymentStrategyId`, `EnvironmentId`
+- Common required input members in this group: -
 
 ### Stop
 
 - Operations: `StopDeployment`
-- Common required input members in this group: `ApplicationId`, `DeploymentNumber`, `EnvironmentId`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
 
 ### Validate
 
 - Operations: `ValidateConfiguration`
-- Common required input members in this group: `ApplicationId`, `ConfigurationProfileId`, `ConfigurationVersion`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateApplication` | `POST /applications` | - | `Name` | - | `Application` | `BadRequestException`, `InternalServerException`, `ServiceQuotaExceededException` | Creates an application. In AppConfig, an application is simply an organizational construct like a folder. |
-| `CreateConfigurationProfile` | `POST /applications/{ApplicationId}/configurationprofiles` | - | `ApplicationId`, `LocationUri`, `Name` | - | `ConfigurationProfile` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException` | Creates a configuration profile, which is information that enables AppConfig to access the configuration source. Valid configuration sources include the following: Configuration data in YAML, JSON, and other formats stored in the AppConfig hosted... |
-| `CreateDeploymentStrategy` | `POST /deploymentstrategies` | - | `DeploymentDurationInMinutes`, `GrowthFactor`, `Name` | - | `DeploymentStrategy` | `BadRequestException`, `InternalServerException`, `ServiceQuotaExceededException` | Creates a deployment strategy that defines important criteria for rolling out your configuration to the designated targets. A deployment strategy includes the overall duration required, a percentage of targets to receive the deployment during each interval... |
-| `CreateEnvironment` | `POST /applications/{ApplicationId}/environments` | - | `ApplicationId`, `Name` | - | `Environment` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException` | Creates an environment. For each application, you define one or more environments. |
-| `CreateExtension` | `POST /extensions` | - | `Actions`, `Name` | - | `Extension` | `BadRequestException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException` | Creates an AppConfig extension. An extension augments your ability to inject logic or behavior at different points during the AppConfig workflow of creating or deploying a configuration. |
-| `CreateExtensionAssociation` | `POST /extensionassociations` | - | `ExtensionIdentifier`, `ResourceIdentifier` | - | `ExtensionAssociation` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException` | When you create an extension or configure an Amazon Web Services authored extension, you associate the extension with an AppConfig application, environment, or configuration profile. For example, you can choose to run the `AppConfig deployment events to... |
-| `CreateHostedConfigurationVersion` | `POST /applications/{ApplicationId}/configurationprofiles/{ConfigurationProfileId}/hostedconfigurationversions` | - | `ApplicationId`, `ConfigurationProfileId`, `Content`, `ContentType` | - | `HostedConfigurationVersion` | `BadRequestException`, `ConflictException`, `InternalServerException`, `PayloadTooLargeException`, `ResourceNotFoundException`, `ServiceQuotaExceededException` | Creates a new configuration in the AppConfig hosted configuration store. If you're creating a feature flag, we recommend you familiarize yourself with the JSON schema for feature flag data. |
+| `CreateApplication` | `POST /applications` | - | `Name` | - | `Application` | `BadRequestException`, `InternalServerException`, `ServiceQuotaExceededException` | Creates an application. In AppConfig, an application is simply an organizational construct like a folder. This organizational construct has a relationship with some unit of executable code. For example, you could cre ... |
+| `CreateConfigurationProfile` | `POST /applications/{ApplicationId}/configurationprofiles` | - | `ApplicationId`, `Name`, `LocationUri` | - | `ConfigurationProfile` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException` | Creates a configuration profile, which is information that enables AppConfig to access the configuration source. Valid configuration sources include the following: Configuration data in YAML, JSON, and other formats ... |
+| `CreateDeploymentStrategy` | `POST /deploymentstrategies` | - | `Name`, `DeploymentDurationInMinutes`, `GrowthFactor` | - | `DeploymentStrategy` | `BadRequestException`, `InternalServerException`, `ServiceQuotaExceededException` | Creates a deployment strategy that defines important criteria for rolling out your configuration to the designated targets. A deployment strategy includes the overall duration required, a percentage of targets to rec ... |
+| `CreateEnvironment` | `POST /applications/{ApplicationId}/environments` | - | `ApplicationId`, `Name` | - | `Environment` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException` | Creates an environment. For each application, you define one or more environments. An environment is a deployment group of AppConfig targets, such as applications in a Beta or Production environment. You can also def ... |
+| `CreateExtension` | `POST /extensions` | - | `Name`, `Actions` | - | `Extension` | `BadRequestException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException` | Creates an AppConfig extension. An extension augments your ability to inject logic or behavior at different points during the AppConfig workflow of creating or deploying a configuration. You can create your own exten ... |
+| `CreateExtensionAssociation` | `POST /extensionassociations` | - | `ExtensionIdentifier`, `ResourceIdentifier` | - | `ExtensionAssociation` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException` | When you create an extension or configure an Amazon Web Services authored extension, you associate the extension with an AppConfig application, environment, or configuration profile. For example, you can choose to ru ... |
+| `CreateHostedConfigurationVersion` | `POST /applications/{ApplicationId}/configurationprofiles/{ConfigurationProfileId}/hostedconfigurationversions` | - | `ApplicationId`, `ConfigurationProfileId`, `Content`, `ContentType` | - | `HostedConfigurationVersion` | `BadRequestException`, `ConflictException`, `InternalServerException`, `PayloadTooLargeException`, `ResourceNotFoundException`, `ServiceQuotaExceededException` | Creates a new configuration in the AppConfig hosted configuration store. If you're creating a feature flag, we recommend you familiarize yourself with the JSON schema for feature flag data. For more information, see ... |
 | `DeleteApplication` | `DELETE /applications/{ApplicationId}` | - | `ApplicationId` | - | `Unit` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | Deletes an application. |
-| `DeleteConfigurationProfile` | `DELETE /applications/{ApplicationId}/configurationprofiles/{ConfigurationProfileId}` | - | `ApplicationId`, `ConfigurationProfileId` | - | `Unit` | `BadRequestException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException` | Deletes a configuration profile. To prevent users from unintentionally deleting actively-used configuration profiles, enable deletion protection. |
+| `DeleteConfigurationProfile` | `DELETE /applications/{ApplicationId}/configurationprofiles/{ConfigurationProfileId}` | - | `ApplicationId`, `ConfigurationProfileId` | - | `Unit` | `BadRequestException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException` | Deletes a configuration profile. To prevent users from unintentionally deleting actively-used configuration profiles, enable deletion protection . |
 | `DeleteDeploymentStrategy` | `DELETE /deployementstrategies/{DeploymentStrategyId}` | - | `DeploymentStrategyId` | - | `Unit` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | Deletes a deployment strategy. |
-| `DeleteEnvironment` | `DELETE /applications/{ApplicationId}/environments/{EnvironmentId}` | - | `ApplicationId`, `EnvironmentId` | - | `Unit` | `BadRequestException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException` | Deletes an environment. To prevent users from unintentionally deleting actively-used environments, enable deletion protection. |
+| `DeleteEnvironment` | `DELETE /applications/{ApplicationId}/environments/{EnvironmentId}` | - | `EnvironmentId`, `ApplicationId` | - | `Unit` | `BadRequestException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException` | Deletes an environment. To prevent users from unintentionally deleting actively-used environments, enable deletion protection . |
 | `DeleteExtension` | `DELETE /extensions/{ExtensionIdentifier}` | - | `ExtensionIdentifier` | - | `Unit` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | Deletes an AppConfig extension. You must delete all associations to an extension before you delete the extension. |
 | `DeleteExtensionAssociation` | `DELETE /extensionassociations/{ExtensionAssociationId}` | - | `ExtensionAssociationId` | - | `Unit` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | Deletes an extension association. This action doesn't delete extensions defined in the association. |
 | `DeleteHostedConfigurationVersion` | `DELETE /applications/{ApplicationId}/configurationprofiles/{ConfigurationProfileId}/hostedconfigurationversions/{VersionNumber}` | - | `ApplicationId`, `ConfigurationProfileId`, `VersionNumber` | - | `Unit` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | Deletes a version of a configuration from the AppConfig hosted configuration store. |
-| `GetAccountSettings` | `GET /settings` | - | - | - | `AccountSettings` | `BadRequestException`, `InternalServerException` | Returns information about the status of the `DeletionProtection` parameter. |
+| `GetAccountSettings` | `GET /settings` | - | - | - | `AccountSettings` | `BadRequestException`, `InternalServerException` | Returns information about the status of the DeletionProtection parameter. |
 | `GetApplication` | `GET /applications/{ApplicationId}` | - | `ApplicationId` | - | `Application` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | Retrieves information about an application. |
-| `GetConfiguration` | `GET /applications/{Application}/environments/{Environment}/configurations/{Configuration}` | - | `Application`, `ClientId`, `Configuration`, `Environment` | - | `Configuration` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | (Deprecated) Retrieves the latest deployed configuration. Note the following important information. |
+| `GetConfiguration` | `GET /applications/{Application}/environments/{Environment}/configurations/{Configuration}` | - | `Application`, `Environment`, `Configuration`, `ClientId` | - | `Configuration` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | (Deprecated) Retrieves the latest deployed configuration. Note the following important information. This API action is deprecated. Calls to receive configuration data should use the StartConfigurationSession and GetL ... |
 | `GetConfigurationProfile` | `GET /applications/{ApplicationId}/configurationprofiles/{ConfigurationProfileId}` | - | `ApplicationId`, `ConfigurationProfileId` | - | `ConfigurationProfile` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | Retrieves information about a configuration profile. |
-| `GetDeployment` | `GET /applications/{ApplicationId}/environments/{EnvironmentId}/deployments/{DeploymentNumber}` | - | `ApplicationId`, `DeploymentNumber`, `EnvironmentId` | - | `Deployment` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | Retrieves information about a configuration deployment. |
-| `GetDeploymentStrategy` | `GET /deploymentstrategies/{DeploymentStrategyId}` | - | `DeploymentStrategyId` | - | `DeploymentStrategy` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | Retrieves information about a deployment strategy. A deployment strategy defines important criteria for rolling out your configuration to the designated targets. |
-| `GetEnvironment` | `GET /applications/{ApplicationId}/environments/{EnvironmentId}` | - | `ApplicationId`, `EnvironmentId` | - | `Environment` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | Retrieves information about an environment. An environment is a deployment group of AppConfig applications, such as applications in a `Production` environment or in an `EU_Region` environment. |
+| `GetDeployment` | `GET /applications/{ApplicationId}/environments/{EnvironmentId}/deployments/{DeploymentNumber}` | - | `ApplicationId`, `EnvironmentId`, `DeploymentNumber` | - | `Deployment` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | Retrieves information about a configuration deployment. |
+| `GetDeploymentStrategy` | `GET /deploymentstrategies/{DeploymentStrategyId}` | - | `DeploymentStrategyId` | - | `DeploymentStrategy` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | Retrieves information about a deployment strategy. A deployment strategy defines important criteria for rolling out your configuration to the designated targets. A deployment strategy includes the overall duration re ... |
+| `GetEnvironment` | `GET /applications/{ApplicationId}/environments/{EnvironmentId}` | - | `ApplicationId`, `EnvironmentId` | - | `Environment` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | Retrieves information about an environment. An environment is a deployment group of AppConfig applications, such as applications in a Production environment or in an EU_Region environment. Each configuration deployme ... |
 | `GetExtension` | `GET /extensions/{ExtensionIdentifier}` | - | `ExtensionIdentifier` | - | `Extension` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | Returns information about an AppConfig extension. |
 | `GetExtensionAssociation` | `GET /extensionassociations/{ExtensionAssociationId}` | - | `ExtensionAssociationId` | - | `ExtensionAssociation` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | Returns information about an AppConfig extension association. For more information about extensions and associations, see Extending workflows in the AppConfig User Guide . |
 | `GetHostedConfigurationVersion` | `GET /applications/{ApplicationId}/configurationprofiles/{ConfigurationProfileId}/hostedconfigurationversions/{VersionNumber}` | - | `ApplicationId`, `ConfigurationProfileId`, `VersionNumber` | - | `HostedConfigurationVersion` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | Retrieves information about a specific configuration version. |
 | `ListApplications` | `GET /applications` | `paginated` | - | - | `Applications` | `BadRequestException`, `InternalServerException` | Lists all applications in your Amazon Web Services account. |
 | `ListConfigurationProfiles` | `GET /applications/{ApplicationId}/configurationprofiles` | `paginated` | `ApplicationId` | - | `ConfigurationProfiles` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | Lists the configuration profiles for an application. |
-| `ListDeploymentStrategies` | `GET /deploymentstrategies` | `paginated` | - | - | `DeploymentStrategies` | `BadRequestException`, `InternalServerException` | Lists deployment strategies. |
 | `ListDeployments` | `GET /applications/{ApplicationId}/environments/{EnvironmentId}/deployments` | `paginated` | `ApplicationId`, `EnvironmentId` | - | `Deployments` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | Lists the deployments for an environment in descending deployment number order. |
+| `ListDeploymentStrategies` | `GET /deploymentstrategies` | `paginated` | - | - | `DeploymentStrategies` | `BadRequestException`, `InternalServerException` | Lists deployment strategies. |
 | `ListEnvironments` | `GET /applications/{ApplicationId}/environments` | `paginated` | `ApplicationId` | - | `Environments` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | Lists the environments for an application. |
 | `ListExtensionAssociations` | `GET /extensionassociations` | `paginated` | - | - | `ExtensionAssociations` | `BadRequestException`, `InternalServerException` | Lists all AppConfig extension associations in the account. For more information about extensions and associations, see Extending workflows in the AppConfig User Guide . |
 | `ListExtensions` | `GET /extensions` | `paginated` | - | - | `Extensions` | `BadRequestException`, `InternalServerException` | Lists all custom and Amazon Web Services authored AppConfig extensions in the account. For more information about extensions, see Extending workflows in the AppConfig User Guide . |
 | `ListHostedConfigurationVersions` | `GET /applications/{ApplicationId}/configurationprofiles/{ConfigurationProfileId}/hostedconfigurationversions` | `paginated` | `ApplicationId`, `ConfigurationProfileId` | - | `HostedConfigurationVersions` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | Lists configurations stored in the AppConfig hosted configuration store by version. |
 | `ListTagsForResource` | `GET /tags/{ResourceArn}` | - | `ResourceArn` | - | `ResourceTags` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | Retrieves the list of key-value tags assigned to the resource. |
-| `StartDeployment` | `POST /applications/{ApplicationId}/environments/{EnvironmentId}/deployments` | - | `ApplicationId`, `ConfigurationProfileId`, `ConfigurationVersion`, `DeploymentStrategyId`, `EnvironmentId` | - | `Deployment` | `BadRequestException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException` | Starts a deployment. |
-| `StopDeployment` | `DELETE /applications/{ApplicationId}/environments/{EnvironmentId}/deployments/{DeploymentNumber}` | - | `ApplicationId`, `DeploymentNumber`, `EnvironmentId` | - | `Deployment` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | Stops a deployment. This API action works only on deployments that have a status of `DEPLOYING`, unless an `AllowRevert` parameter is supplied. |
-| `TagResource` | `POST /tags/{ResourceArn}` | - | `ResourceArn`, `Tags` | - | `Unit` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | Assigns metadata to an AppConfig resource. Tags help organize and categorize your AppConfig resources. |
+| `StartDeployment` | `POST /applications/{ApplicationId}/environments/{EnvironmentId}/deployments` | - | `ApplicationId`, `EnvironmentId`, `DeploymentStrategyId`, `ConfigurationProfileId`, `ConfigurationVersion` | - | `Deployment` | `BadRequestException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException` | Starts a deployment. |
+| `StopDeployment` | `DELETE /applications/{ApplicationId}/environments/{EnvironmentId}/deployments/{DeploymentNumber}` | - | `ApplicationId`, `EnvironmentId`, `DeploymentNumber` | - | `Deployment` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | Stops a deployment. This API action works only on deployments that have a status of DEPLOYING , unless an AllowRevert parameter is supplied. If the AllowRevert parameter is supplied, the status of an in-progress depl ... |
+| `TagResource` | `POST /tags/{ResourceArn}` | - | `ResourceArn`, `Tags` | - | `Unit` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | Assigns metadata to an AppConfig resource. Tags help organize and categorize your AppConfig resources. Each tag consists of a key and an optional value, both of which you define. You can specify a maximum of 50 tags ... |
 | `UntagResource` | `DELETE /tags/{ResourceArn}` | - | `ResourceArn`, `TagKeys` | - | `Unit` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | Deletes a tag key and value from an AppConfig resource. |
-| `UpdateAccountSettings` | `PATCH /settings` | - | - | - | `AccountSettings` | `BadRequestException`, `InternalServerException` | Updates the value of the `DeletionProtection` parameter. |
+| `UpdateAccountSettings` | `PATCH /settings` | - | - | - | `AccountSettings` | `BadRequestException`, `InternalServerException` | Updates the value of the DeletionProtection parameter. |
 | `UpdateApplication` | `PATCH /applications/{ApplicationId}` | - | `ApplicationId` | - | `Application` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | Updates an application. |
 | `UpdateConfigurationProfile` | `PATCH /applications/{ApplicationId}/configurationprofiles/{ConfigurationProfileId}` | - | `ApplicationId`, `ConfigurationProfileId` | - | `ConfigurationProfile` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | Updates a configuration profile. |
 | `UpdateDeploymentStrategy` | `PATCH /deploymentstrategies/{DeploymentStrategyId}` | - | `DeploymentStrategyId` | - | `DeploymentStrategy` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | Updates a deployment strategy. |
@@ -201,30 +201,56 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `BadRequestException` | `structure` | `Details`, `Message`, `Reason` | The input fails to satisfy the constraints specified by an Amazon Web Services service. |
-| `InternalServerException` | `structure` | `Message` | There was an internal failure in the AppConfig service. |
-| `ResourceNotFoundException` | `structure` | `Message`, `ResourceName` | The requested resource could not be found. |
-| `ServiceQuotaExceededException` | `structure` | `Message` | The number of one more AppConfig resources exceeds the maximum allowed. |
-| `ConflictException` | `structure` | `Message` | The request could not be processed because of conflict in the current state of the resource. |
-| `Application` | `structure` | `Description`, `Id`, `Name` | - |
-| `ConfigurationProfile` | `structure` | `ApplicationId`, `Description`, `Id`, `KmsKeyArn`, `KmsKeyIdentifier`, `LocationUri`, `Name`, `RetrievalRoleArn`, `Type`, `Validators` | - |
-| `DeploymentStrategy` | `structure` | `DeploymentDurationInMinutes`, `Description`, `FinalBakeTimeInMinutes`, `GrowthFactor`, `GrowthType`, `Id`, `Name`, `ReplicateTo` | - |
-| `Environment` | `structure` | `ApplicationId`, `Description`, `Id`, `Monitors`, `Name`, `State` | - |
-| `Extension` | `structure` | `Actions`, `Arn`, `Description`, `Id`, `Name`, `Parameters`, `VersionNumber` | - |
-| `ExtensionAssociation` | `structure` | `Arn`, `ExtensionArn`, `ExtensionVersionNumber`, `Id`, `Parameters`, `ResourceArn` | - |
-| `Deployment` | `structure` | `ApplicationId`, `AppliedExtensions`, `CompletedAt`, `ConfigurationLocationUri`, `ConfigurationName`, `ConfigurationProfileId`, `ConfigurationVersion`, `DeploymentDurationInMinutes`, `DeploymentNumber`, `DeploymentStrategyId`, `Description`, `EnvironmentId`, ... (+10) | - |
-| `HostedConfigurationVersion` | `structure` | `ApplicationId`, `ConfigurationProfileId`, `Content`, `ContentType`, `Description`, `KmsKeyArn`, `VersionLabel`, `VersionNumber` | - |
-| `AccountSettings` | `structure` | `DeletionProtection` | - |
-| `CreateApplicationRequest` | `structure` | `Description`, `Name`, `Tags` | - |
-| `CreateConfigurationProfileRequest` | `structure` | `ApplicationId`, `Description`, `KmsKeyIdentifier`, `LocationUri`, `Name`, `RetrievalRoleArn`, `Tags`, `Type`, `Validators` | - |
-| `CreateDeploymentStrategyRequest` | `structure` | `DeploymentDurationInMinutes`, `Description`, `FinalBakeTimeInMinutes`, `GrowthFactor`, `GrowthType`, `Name`, `ReplicateTo`, `Tags` | - |
-| `CreateEnvironmentRequest` | `structure` | `ApplicationId`, `Description`, `Monitors`, `Name`, `Tags` | - |
-| `CreateExtensionRequest` | `structure` | `Actions`, `Description`, `LatestVersionNumber`, `Name`, `Parameters`, `Tags` | - |
-| `CreateExtensionAssociationRequest` | `structure` | `ExtensionIdentifier`, `ExtensionVersionNumber`, `Parameters`, `ResourceIdentifier`, `Tags` | - |
-| `CreateHostedConfigurationVersionRequest` | `structure` | `ApplicationId`, `ConfigurationProfileId`, `Content`, `ContentType`, `Description`, `LatestVersionNumber`, `VersionLabel` | - |
-| `PayloadTooLargeException` | `structure` | `Limit`, `Measure`, `Message`, `Size` | The configuration size is too large. |
-| `DeleteApplicationRequest` | `structure` | `ApplicationId` | - |
-
+| `BadRequestException` | `structure` | Message, Reason, Details | The input fails to satisfy the constraints specified by an Amazon Web Services service. |
+| `ConflictException` | `structure` | Message | The request could not be processed because of conflict in the current state of the resource. |
+| `InternalServerException` | `structure` | Message | There was an internal failure in the AppConfig service. |
+| `PayloadTooLargeException` | `structure` | Message, Measure, Limit, Size | The configuration size is too large. |
+| `ResourceNotFoundException` | `structure` | Message, ResourceName | The requested resource could not be found. |
+| `ServiceQuotaExceededException` | `structure` | Message | The number of one more AppConfig resources exceeds the maximum allowed. Verify that your environment doesn't exceed the following service quotas: Applicatio ... |
+| `CreateApplicationRequest` | `structure` | Name, Description, Tags | - |
+| `Application` | `structure` | Id, Name, Description | - |
+| `CreateConfigurationProfileRequest` | `structure` | ApplicationId, Name, Description, LocationUri, RetrievalRoleArn, Validators, Tags, Type, KmsKeyIdentifier | - |
+| `ConfigurationProfile` | `structure` | ApplicationId, Id, Name, Description, LocationUri, RetrievalRoleArn, Validators, Type, KmsKeyArn, KmsKeyIdentifier | - |
+| `CreateDeploymentStrategyRequest` | `structure` | Name, Description, DeploymentDurationInMinutes, FinalBakeTimeInMinutes, GrowthFactor, GrowthType, ReplicateTo, Tags | - |
+| `DeploymentStrategy` | `structure` | Id, Name, Description, DeploymentDurationInMinutes, GrowthType, GrowthFactor, FinalBakeTimeInMinutes, ReplicateTo | - |
+| `CreateEnvironmentRequest` | `structure` | ApplicationId, Name, Description, Monitors, Tags | - |
+| `Environment` | `structure` | ApplicationId, Id, Name, Description, State, Monitors | - |
+| `CreateExtensionRequest` | `structure` | Name, Description, Actions, Parameters, Tags, LatestVersionNumber | - |
+| `Extension` | `structure` | Id, Name, VersionNumber, Arn, Description, Actions, Parameters | - |
+| `CreateExtensionAssociationRequest` | `structure` | ExtensionIdentifier, ExtensionVersionNumber, ResourceIdentifier, Parameters, Tags | - |
+| `ExtensionAssociation` | `structure` | Id, ExtensionArn, ResourceArn, Arn, Parameters, ExtensionVersionNumber | - |
+| `CreateHostedConfigurationVersionRequest` | `structure` | ApplicationId, ConfigurationProfileId, Description, Content, ContentType, LatestVersionNumber, VersionLabel | - |
+| `HostedConfigurationVersion` | `structure` | ApplicationId, ConfigurationProfileId, VersionNumber, Description, Content, ContentType, VersionLabel, KmsKeyArn | - |
+| `DeleteApplicationRequest` | `structure` | ApplicationId | - |
+| `DeleteConfigurationProfileRequest` | `structure` | ApplicationId, ConfigurationProfileId, DeletionProtectionCheck | - |
+| `DeleteDeploymentStrategyRequest` | `structure` | DeploymentStrategyId | - |
+| `DeleteEnvironmentRequest` | `structure` | EnvironmentId, ApplicationId, DeletionProtectionCheck | - |
+| `DeleteExtensionRequest` | `structure` | ExtensionIdentifier, VersionNumber | - |
+| `DeleteExtensionAssociationRequest` | `structure` | ExtensionAssociationId | - |
+| `DeleteHostedConfigurationVersionRequest` | `structure` | ApplicationId, ConfigurationProfileId, VersionNumber | - |
+| `AccountSettings` | `structure` | DeletionProtection | - |
+| `GetApplicationRequest` | `structure` | ApplicationId | - |
+| `GetConfigurationRequest` | `structure` | Application, Environment, Configuration, ClientId, ClientConfigurationVersion | - |
+| `Configuration` | `structure` | Content, ConfigurationVersion, ContentType | - |
+| `GetConfigurationProfileRequest` | `structure` | ApplicationId, ConfigurationProfileId | - |
+| `GetDeploymentRequest` | `structure` | ApplicationId, EnvironmentId, DeploymentNumber | - |
+| `Deployment` | `structure` | ApplicationId, EnvironmentId, DeploymentStrategyId, ConfigurationProfileId, DeploymentNumber, ConfigurationName, ConfigurationLocationUri, ConfigurationVersion, Description, DeploymentDurationInMinutes, GrowthType, GrowthFactor, ... (+10) | - |
+| `GetDeploymentStrategyRequest` | `structure` | DeploymentStrategyId | - |
+| `GetEnvironmentRequest` | `structure` | ApplicationId, EnvironmentId | - |
+| `GetExtensionRequest` | `structure` | ExtensionIdentifier, VersionNumber | - |
+| `GetExtensionAssociationRequest` | `structure` | ExtensionAssociationId | - |
+| `GetHostedConfigurationVersionRequest` | `structure` | ApplicationId, ConfigurationProfileId, VersionNumber | - |
+| `ListApplicationsRequest` | `structure` | MaxResults, NextToken | - |
+| `ActionPoint` | `enum` | PRE_CREATE_HOSTED_CONFIGURATION_VERSION, PRE_START_DEPLOYMENT, AT_DEPLOYMENT_TICK, ON_DEPLOYMENT_START, ON_DEPLOYMENT_STEP, ON_DEPLOYMENT_BAKING, ON_DEPLOYMENT_COMPLETE, ON_DEPLOYMENT_ROLLED_BACK | - |
+| `BadRequestReason` | `enum` | INVALID_CONFIGURATION | - |
+| `BytesMeasure` | `enum` | KILOBYTES | - |
+| `DeletionProtectionCheck` | `enum` | ACCOUNT_DEFAULT, APPLY, BYPASS | - |
+| `DeploymentEventType` | `enum` | PERCENTAGE_UPDATED, ROLLBACK_STARTED, ROLLBACK_COMPLETED, BAKE_TIME_STARTED, DEPLOYMENT_STARTED, DEPLOYMENT_COMPLETED, REVERT_COMPLETED | - |
+| `DeploymentState` | `enum` | BAKING, VALIDATING, DEPLOYING, COMPLETE, ROLLING_BACK, ROLLED_BACK, REVERTED | - |
+| `EnvironmentState` | `enum` | READY_FOR_DEPLOYMENT, DEPLOYING, ROLLING_BACK, ROLLED_BACK, REVERTED | - |
+| `GrowthType` | `enum` | LINEAR, EXPONENTIAL | - |
+| `ReplicateTo` | `enum` | NONE, SSM_DOCUMENT | - |
+| `TriggeredBy` | `enum` | USER, APPCONFIG, CLOUDWATCH_ALARM, INTERNAL_ERROR | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

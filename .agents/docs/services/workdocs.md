@@ -40,116 +40,118 @@ The Amazon WorkDocs API is designed for the following use cases: File Migration:
 ### Delete
 
 - Operations: `DeleteComment`, `DeleteCustomMetadata`, `DeleteDocument`, `DeleteDocumentVersion`, `DeleteFolder`, `DeleteFolderContents`, `DeleteLabels`, `DeleteNotificationSubscription`, `DeleteUser`
-- Common required input members in this group: `CommentId`, `DeletePriorVersions`, `DocumentId`, `FolderId`, `OrganizationId`, `ResourceId`, `SubscriptionId`, `UserId`, `VersionId`
+- Common required input members in this group: `DocumentId`, `VersionId`, `ResourceId`, `FolderId`
 
 ### Describe
 
 - Operations: `DescribeActivities`, `DescribeComments`, `DescribeDocumentVersions`, `DescribeFolderContents`, `DescribeGroups`, `DescribeNotificationSubscriptions`, `DescribeResourcePermissions`, `DescribeRootFolders`, `DescribeUsers`
 - Traits: `paginated` (9)
-- Common required input members in this group: `AuthenticationToken`, `DocumentId`, `FolderId`, `OrganizationId`, `ResourceId`, `SearchQuery`, `VersionId`
+- Common required input members in this group: `DocumentId`
 
 ### Get
 
 - Operations: `GetCurrentUser`, `GetDocument`, `GetDocumentPath`, `GetDocumentVersion`, `GetFolder`, `GetFolderPath`, `GetResources`
-- Common required input members in this group: `AuthenticationToken`, `DocumentId`, `FolderId`, `VersionId`
+- Common required input members in this group: `DocumentId`, `FolderId`
 
 ### Create
 
 - Operations: `CreateComment`, `CreateCustomMetadata`, `CreateFolder`, `CreateLabels`, `CreateNotificationSubscription`, `CreateUser`
-- Common required input members in this group: `CustomMetadata`, `DocumentId`, `Endpoint`, `GivenName`, `Labels`, `OrganizationId`, `ParentFolderId`, `Password`, `Protocol`, `ResourceId`, `SubscriptionType`, `Surname`, `Text`, `Username`, `VersionId`
+- Common required input members in this group: `ResourceId`
 
 ### Update
 
 - Operations: `UpdateDocument`, `UpdateDocumentVersion`, `UpdateFolder`, `UpdateUser`
-- Common required input members in this group: `DocumentId`, `FolderId`, `UserId`, `VersionId`
+- Common required input members in this group: `DocumentId`
 
 ### Remove
 
 - Operations: `RemoveAllResourcePermissions`, `RemoveResourcePermission`
-- Common required input members in this group: `PrincipalId`, `ResourceId`
+- Common required input members in this group: `ResourceId`
 
 ### Abort
 
 - Operations: `AbortDocumentVersionUpload`
-- Common required input members in this group: `DocumentId`, `VersionId`
+- Common required input members in this group: -
 
 ### Activate
 
 - Operations: `ActivateUser`
-- Common required input members in this group: `UserId`
+- Common required input members in this group: -
 
 ### Add
 
 - Operations: `AddResourcePermissions`
-- Common required input members in this group: `Principals`, `ResourceId`
+- Common required input members in this group: -
 
 ### Deactivate
 
 - Operations: `DeactivateUser`
-- Common required input members in this group: `UserId`
+- Common required input members in this group: -
 
 ### Initiate
 
 - Operations: `InitiateDocumentVersionUpload`
+- Common required input members in this group: -
 
 ### Restore
 
 - Operations: `RestoreDocumentVersions`
-- Common required input members in this group: `DocumentId`
+- Common required input members in this group: -
 
 ### Search
 
 - Operations: `SearchResources`
 - Traits: `paginated` (1)
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AbortDocumentVersionUpload` | `DELETE /api/v1/documents/{DocumentId}/versions/{VersionId}` | - | `DocumentId`, `VersionId` | - | `Unit` | `ConcurrentModificationException`, `EntityNotExistsException`, `FailedDependencyException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Aborts the upload of the specified document version that was previously initiated by InitiateDocumentVersionUpload. The client should make this call only when it no longer intends to upload the document version, or fails to do so. |
+| `AbortDocumentVersionUpload` | `DELETE /api/v1/documents/{DocumentId}/versions/{VersionId}` | - | `DocumentId`, `VersionId` | - | `Unit` | `ConcurrentModificationException`, `EntityNotExistsException`, `FailedDependencyException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Aborts the upload of the specified document version that was previously initiated by InitiateDocumentVersionUpload . The client should make this call only when it no longer intends to upload the document version, or ... |
 | `ActivateUser` | `POST /api/v1/users/{UserId}/activation` | - | `UserId` | - | `ActivateUserResponse` | `EntityNotExistsException`, `FailedDependencyException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Activates the specified user. Only active users can access Amazon WorkDocs. |
-| `AddResourcePermissions` | `POST /api/v1/resources/{ResourceId}/permissions` | - | `Principals`, `ResourceId` | - | `AddResourcePermissionsResponse` | `FailedDependencyException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Creates a set of permissions for the specified folder or document. The resource permissions are overwritten if the principals already have different permissions. |
-| `CreateComment` | `POST /api/v1/documents/{DocumentId}/versions/{VersionId}/comment` | - | `DocumentId`, `Text`, `VersionId` | - | `CreateCommentResponse` | `DocumentLockedForCommentsException`, `EntityNotExistsException`, `FailedDependencyException`, `InvalidCommentOperationException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Adds a new comment to the specified document version. |
-| `CreateCustomMetadata` | `PUT /api/v1/resources/{ResourceId}/customMetadata` | - | `CustomMetadata`, `ResourceId` | - | `CreateCustomMetadataResponse` | `CustomMetadataLimitExceededException`, `EntityNotExistsException`, `FailedDependencyException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Adds one or more custom properties to the specified resource (a folder, document, or version). |
-| `CreateFolder` | `POST /api/v1/folders` | - | `ParentFolderId` | - | `CreateFolderResponse` | `ConcurrentModificationException`, `ConflictingOperationException`, `EntityAlreadyExistsException`, `EntityNotExistsException`, `FailedDependencyException`, `LimitExceededException`, `ProhibitedStateException`, `ServiceUnavailableException`, ... (+2) | Creates a folder with the specified name and parent folder. |
-| `CreateLabels` | `PUT /api/v1/resources/{ResourceId}/labels` | - | `Labels`, `ResourceId` | - | `CreateLabelsResponse` | `EntityNotExistsException`, `FailedDependencyException`, `ServiceUnavailableException`, `TooManyLabelsException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Adds the specified list of labels to the given resource (a document or folder) |
-| `CreateNotificationSubscription` | `POST /api/v1/organizations/{OrganizationId}/subscriptions` | - | `Endpoint`, `OrganizationId`, `Protocol`, `SubscriptionType` | - | `CreateNotificationSubscriptionResponse` | `InvalidArgumentException`, `ServiceUnavailableException`, `TooManySubscriptionsException`, `UnauthorizedResourceAccessException` | Configure Amazon WorkDocs to use Amazon SNS notifications. The endpoint receives a confirmation message, and must confirm the subscription. |
-| `CreateUser` | `POST /api/v1/users` | - | `GivenName`, `Password`, `Surname`, `Username` | - | `CreateUserResponse` | `EntityAlreadyExistsException`, `FailedDependencyException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Creates a user in a Simple AD or Microsoft AD directory. The status of a newly created user is "ACTIVE". |
+| `AddResourcePermissions` | `POST /api/v1/resources/{ResourceId}/permissions` | - | `ResourceId`, `Principals` | - | `AddResourcePermissionsResponse` | `FailedDependencyException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Creates a set of permissions for the specified folder or document. The resource permissions are overwritten if the principals already have different permissions. |
+| `CreateComment` | `POST /api/v1/documents/{DocumentId}/versions/{VersionId}/comment` | - | `DocumentId`, `VersionId`, `Text` | - | `CreateCommentResponse` | `DocumentLockedForCommentsException`, `EntityNotExistsException`, `FailedDependencyException`, `InvalidCommentOperationException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Adds a new comment to the specified document version. |
+| `CreateCustomMetadata` | `PUT /api/v1/resources/{ResourceId}/customMetadata` | - | `ResourceId`, `CustomMetadata` | - | `CreateCustomMetadataResponse` | `CustomMetadataLimitExceededException`, `EntityNotExistsException`, `FailedDependencyException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Adds one or more custom properties to the specified resource (a folder, document, or version). |
+| `CreateFolder` | `POST /api/v1/folders` | - | `ParentFolderId` | - | `CreateFolderResponse` | `ConcurrentModificationException`, `ConflictingOperationException`, `EntityAlreadyExistsException`, `EntityNotExistsException`, `FailedDependencyException`, `LimitExceededException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Creates a folder with the specified name and parent folder. |
+| `CreateLabels` | `PUT /api/v1/resources/{ResourceId}/labels` | - | `ResourceId`, `Labels` | - | `CreateLabelsResponse` | `EntityNotExistsException`, `FailedDependencyException`, `ServiceUnavailableException`, `TooManyLabelsException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Adds the specified list of labels to the given resource (a document or folder) |
+| `CreateNotificationSubscription` | `POST /api/v1/organizations/{OrganizationId}/subscriptions` | - | `OrganizationId`, `Endpoint`, `Protocol`, `SubscriptionType` | - | `CreateNotificationSubscriptionResponse` | `InvalidArgumentException`, `ServiceUnavailableException`, `TooManySubscriptionsException`, `UnauthorizedResourceAccessException` | Configure Amazon WorkDocs to use Amazon SNS notifications. The endpoint receives a confirmation message, and must confirm the subscription. For more information, see Setting up notifications for an IAM user or role i ... |
+| `CreateUser` | `POST /api/v1/users` | - | `Username`, `GivenName`, `Surname`, `Password` | - | `CreateUserResponse` | `EntityAlreadyExistsException`, `FailedDependencyException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Creates a user in a Simple AD or Microsoft AD directory. The status of a newly created user is "ACTIVE". New users can access Amazon WorkDocs. |
 | `DeactivateUser` | `DELETE /api/v1/users/{UserId}/activation` | - | `UserId` | - | `Unit` | `EntityNotExistsException`, `FailedDependencyException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Deactivates the specified user, which revokes the user's access to Amazon WorkDocs. |
-| `DeleteComment` | `DELETE /api/v1/documents/{DocumentId}/versions/{VersionId}/comment/{CommentId}` | - | `CommentId`, `DocumentId`, `VersionId` | - | `Unit` | `DocumentLockedForCommentsException`, `EntityNotExistsException`, `FailedDependencyException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Deletes the specified comment from the document version. |
+| `DeleteComment` | `DELETE /api/v1/documents/{DocumentId}/versions/{VersionId}/comment/{CommentId}` | - | `DocumentId`, `VersionId`, `CommentId` | - | `Unit` | `DocumentLockedForCommentsException`, `EntityNotExistsException`, `FailedDependencyException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Deletes the specified comment from the document version. |
 | `DeleteCustomMetadata` | `DELETE /api/v1/resources/{ResourceId}/customMetadata` | - | `ResourceId` | - | `DeleteCustomMetadataResponse` | `EntityNotExistsException`, `FailedDependencyException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Deletes custom metadata from the specified resource. |
-| `DeleteDocument` | `DELETE /api/v1/documents/{DocumentId}` | - | `DocumentId` | - | `Unit` | `ConcurrentModificationException`, `ConflictingOperationException`, `EntityNotExistsException`, `FailedDependencyException`, `LimitExceededException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, ... (+1) | Permanently deletes the specified document and its associated metadata. |
-| `DeleteDocumentVersion` | `DELETE /api/v1/documentVersions/{DocumentId}/versions/{VersionId}` | - | `DeletePriorVersions`, `DocumentId`, `VersionId` | - | `Unit` | `ConcurrentModificationException`, `ConflictingOperationException`, `EntityNotExistsException`, `FailedDependencyException`, `InvalidOperationException`, `ProhibitedStateException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Deletes a specific version of a document. |
-| `DeleteFolder` | `DELETE /api/v1/folders/{FolderId}` | - | `FolderId` | - | `Unit` | `ConcurrentModificationException`, `ConflictingOperationException`, `EntityNotExistsException`, `FailedDependencyException`, `LimitExceededException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, ... (+1) | Permanently deletes the specified folder and its contents. |
+| `DeleteDocument` | `DELETE /api/v1/documents/{DocumentId}` | - | `DocumentId` | - | `Unit` | `ConcurrentModificationException`, `ConflictingOperationException`, `EntityNotExistsException`, `FailedDependencyException`, `LimitExceededException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Permanently deletes the specified document and its associated metadata. |
+| `DeleteDocumentVersion` | `DELETE /api/v1/documentVersions/{DocumentId}/versions/{VersionId}` | - | `DocumentId`, `VersionId`, `DeletePriorVersions` | - | `Unit` | `ConcurrentModificationException`, `ConflictingOperationException`, `EntityNotExistsException`, `FailedDependencyException`, `InvalidOperationException`, `ProhibitedStateException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Deletes a specific version of a document. |
+| `DeleteFolder` | `DELETE /api/v1/folders/{FolderId}` | - | `FolderId` | - | `Unit` | `ConcurrentModificationException`, `ConflictingOperationException`, `EntityNotExistsException`, `FailedDependencyException`, `LimitExceededException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Permanently deletes the specified folder and its contents. |
 | `DeleteFolderContents` | `DELETE /api/v1/folders/{FolderId}/contents` | - | `FolderId` | - | `Unit` | `ConflictingOperationException`, `EntityNotExistsException`, `FailedDependencyException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Deletes the contents of the specified folder. |
 | `DeleteLabels` | `DELETE /api/v1/resources/{ResourceId}/labels` | - | `ResourceId` | - | `DeleteLabelsResponse` | `EntityNotExistsException`, `FailedDependencyException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Deletes the specified list of labels from a resource. |
-| `DeleteNotificationSubscription` | `DELETE /api/v1/organizations/{OrganizationId}/subscriptions/{SubscriptionId}` | - | `OrganizationId`, `SubscriptionId` | - | `Unit` | `EntityNotExistsException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedResourceAccessException` | Deletes the specified subscription from the specified organization. |
-| `DeleteUser` | `DELETE /api/v1/users/{UserId}` | - | `UserId` | - | `Unit` | `EntityNotExistsException`, `FailedDependencyException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Deletes the specified user from a Simple AD or Microsoft AD directory. Deleting a user immediately and permanently deletes all content in that user's folder structure. |
+| `DeleteNotificationSubscription` | `DELETE /api/v1/organizations/{OrganizationId}/subscriptions/{SubscriptionId}` | - | `SubscriptionId`, `OrganizationId` | - | `Unit` | `EntityNotExistsException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedResourceAccessException` | Deletes the specified subscription from the specified organization. |
+| `DeleteUser` | `DELETE /api/v1/users/{UserId}` | - | `UserId` | - | `Unit` | `EntityNotExistsException`, `FailedDependencyException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Deletes the specified user from a Simple AD or Microsoft AD directory. Deleting a user immediately and permanently deletes all content in that user's folder structure. Site retention policies do NOT apply to this typ ... |
 | `DescribeActivities` | `GET /api/v1/activities` | `paginated` | - | - | `DescribeActivitiesResponse` | `FailedDependencyException`, `InvalidArgumentException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Describes the user activities in a specified time period. |
 | `DescribeComments` | `GET /api/v1/documents/{DocumentId}/versions/{VersionId}/comments` | `paginated` | `DocumentId`, `VersionId` | - | `DescribeCommentsResponse` | `EntityNotExistsException`, `FailedDependencyException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | List all the comments for the specified document version. |
 | `DescribeDocumentVersions` | `GET /api/v1/documents/{DocumentId}/versions` | `paginated` | `DocumentId` | - | `DescribeDocumentVersionsResponse` | `EntityNotExistsException`, `FailedDependencyException`, `InvalidArgumentException`, `InvalidPasswordException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Retrieves the document versions for the specified document. By default, only active versions are returned. |
-| `DescribeFolderContents` | `GET /api/v1/folders/{FolderId}/contents` | `paginated` | `FolderId` | - | `DescribeFolderContentsResponse` | `EntityNotExistsException`, `FailedDependencyException`, `InvalidArgumentException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedResourceAccessException` | Describes the contents of the specified folder, including its documents and subfolders. By default, Amazon WorkDocs returns the first 100 active document and folder metadata items. |
+| `DescribeFolderContents` | `GET /api/v1/folders/{FolderId}/contents` | `paginated` | `FolderId` | - | `DescribeFolderContentsResponse` | `EntityNotExistsException`, `FailedDependencyException`, `InvalidArgumentException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedResourceAccessException` | Describes the contents of the specified folder, including its documents and subfolders. By default, Amazon WorkDocs returns the first 100 active document and folder metadata items. If there are more results, the resp ... |
 | `DescribeGroups` | `GET /api/v1/groups` | `paginated` | `SearchQuery` | - | `DescribeGroupsResponse` | `FailedDependencyException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Describes the groups specified by the query. Groups are defined by the underlying Active Directory. |
 | `DescribeNotificationSubscriptions` | `GET /api/v1/organizations/{OrganizationId}/subscriptions` | `paginated` | `OrganizationId` | - | `DescribeNotificationSubscriptionsResponse` | `EntityNotExistsException`, `ServiceUnavailableException`, `UnauthorizedResourceAccessException` | Lists the specified notification subscriptions. |
 | `DescribeResourcePermissions` | `GET /api/v1/resources/{ResourceId}/permissions` | `paginated` | `ResourceId` | - | `DescribeResourcePermissionsResponse` | `FailedDependencyException`, `InvalidArgumentException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Describes the permissions of a specified resource. |
-| `DescribeRootFolders` | `GET /api/v1/me/root` | `paginated` | `AuthenticationToken` | - | `DescribeRootFoldersResponse` | `FailedDependencyException`, `InvalidArgumentException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Describes the current user's special folders; the `RootFolder` and the `RecycleBin`. `RootFolder` is the root of user's files and folders and `RecycleBin` is the root of recycled items. |
-| `DescribeUsers` | `GET /api/v1/users` | `paginated` | - | - | `DescribeUsersResponse` | `EntityNotExistsException`, `FailedDependencyException`, `InvalidArgumentException`, `RequestedEntityTooLargeException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Describes the specified users. You can describe all users or filter the results (for example, by status or organization). |
-| `GetCurrentUser` | `GET /api/v1/me` | - | `AuthenticationToken` | - | `GetCurrentUserResponse` | `EntityNotExistsException`, `FailedDependencyException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Retrieves details of the current user for whom the authentication token was generated. This is not a valid action for SigV4 (administrative API) clients. |
+| `DescribeRootFolders` | `GET /api/v1/me/root` | `paginated` | `AuthenticationToken` | - | `DescribeRootFoldersResponse` | `FailedDependencyException`, `InvalidArgumentException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Describes the current user's special folders; the RootFolder and the RecycleBin . RootFolder is the root of user's files and folders and RecycleBin is the root of recycled items. This is not a valid action for SigV4 ... |
+| `DescribeUsers` | `GET /api/v1/users` | `paginated` | - | - | `DescribeUsersResponse` | `EntityNotExistsException`, `FailedDependencyException`, `InvalidArgumentException`, `RequestedEntityTooLargeException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Describes the specified users. You can describe all users or filter the results (for example, by status or organization). By default, Amazon WorkDocs returns the first 24 active or pending users. If there are more re ... |
+| `GetCurrentUser` | `GET /api/v1/me` | - | `AuthenticationToken` | - | `GetCurrentUserResponse` | `EntityNotExistsException`, `FailedDependencyException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Retrieves details of the current user for whom the authentication token was generated. This is not a valid action for SigV4 (administrative API) clients. This action requires an authentication token. To get an authen ... |
 | `GetDocument` | `GET /api/v1/documents/{DocumentId}` | - | `DocumentId` | - | `GetDocumentResponse` | `EntityNotExistsException`, `FailedDependencyException`, `InvalidArgumentException`, `InvalidPasswordException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Retrieves details of a document. |
-| `GetDocumentPath` | `GET /api/v1/documents/{DocumentId}/path` | - | `DocumentId` | - | `GetDocumentPathResponse` | `EntityNotExistsException`, `FailedDependencyException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Retrieves the path information (the hierarchy from the root folder) for the requested document. By default, Amazon WorkDocs returns a maximum of 100 levels upwards from the requested document and only includes the IDs of the parent folders in the path. |
+| `GetDocumentPath` | `GET /api/v1/documents/{DocumentId}/path` | - | `DocumentId` | - | `GetDocumentPathResponse` | `EntityNotExistsException`, `FailedDependencyException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Retrieves the path information (the hierarchy from the root folder) for the requested document. By default, Amazon WorkDocs returns a maximum of 100 levels upwards from the requested document and only includes the ID ... |
 | `GetDocumentVersion` | `GET /api/v1/documents/{DocumentId}/versions/{VersionId}` | - | `DocumentId`, `VersionId` | - | `GetDocumentVersionResponse` | `EntityNotExistsException`, `FailedDependencyException`, `InvalidPasswordException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Retrieves version metadata for the specified document. |
 | `GetFolder` | `GET /api/v1/folders/{FolderId}` | - | `FolderId` | - | `GetFolderResponse` | `EntityNotExistsException`, `FailedDependencyException`, `InvalidArgumentException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Retrieves the metadata of the specified folder. |
-| `GetFolderPath` | `GET /api/v1/folders/{FolderId}/path` | - | `FolderId` | - | `GetFolderPathResponse` | `EntityNotExistsException`, `FailedDependencyException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Retrieves the path information (the hierarchy from the root folder) for the specified folder. By default, Amazon WorkDocs returns a maximum of 100 levels upwards from the requested folder and only includes the IDs of the parent folders in the path. |
-| `GetResources` | `GET /api/v1/resources` | - | - | - | `GetResourcesResponse` | `FailedDependencyException`, `InvalidArgumentException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Retrieves a collection of resources, including folders and documents. The only `CollectionType` supported is `SHARED_WITH_ME`. |
-| `InitiateDocumentVersionUpload` | `POST /api/v1/documents` | - | - | - | `InitiateDocumentVersionUploadResponse` | `DraftUploadOutOfSyncException`, `EntityAlreadyExistsException`, `EntityNotExistsException`, `FailedDependencyException`, `InvalidArgumentException`, `InvalidPasswordException`, `LimitExceededException`, `ProhibitedStateException`, ... (+6) | Creates a new document object and version object. The client specifies the parent folder ID and name of the document to upload. |
+| `GetFolderPath` | `GET /api/v1/folders/{FolderId}/path` | - | `FolderId` | - | `GetFolderPathResponse` | `EntityNotExistsException`, `FailedDependencyException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Retrieves the path information (the hierarchy from the root folder) for the specified folder. By default, Amazon WorkDocs returns a maximum of 100 levels upwards from the requested folder and only includes the IDs of ... |
+| `GetResources` | `GET /api/v1/resources` | - | - | - | `GetResourcesResponse` | `FailedDependencyException`, `InvalidArgumentException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Retrieves a collection of resources, including folders and documents. The only CollectionType supported is SHARED_WITH_ME . |
+| `InitiateDocumentVersionUpload` | `POST /api/v1/documents` | - | - | - | `InitiateDocumentVersionUploadResponse` | `DraftUploadOutOfSyncException`, `EntityAlreadyExistsException`, `EntityNotExistsException`, `FailedDependencyException`, `InvalidArgumentException`, `InvalidPasswordException`, `LimitExceededException`, `ProhibitedStateException`, `ResourceAlreadyCheckedOutException`, `ServiceUnavailableException`, `StorageLimitExceededException`, `StorageLimitWillExceedException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Creates a new document object and version object. The client specifies the parent folder ID and name of the document to upload. The ID is optionally specified when creating a new version of an existing document. This ... |
 | `RemoveAllResourcePermissions` | `DELETE /api/v1/resources/{ResourceId}/permissions` | - | `ResourceId` | - | `Unit` | `FailedDependencyException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Removes all the permissions from the specified resource. |
-| `RemoveResourcePermission` | `DELETE /api/v1/resources/{ResourceId}/permissions/{PrincipalId}` | - | `PrincipalId`, `ResourceId` | - | `Unit` | `FailedDependencyException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Removes the permission for the specified principal from the specified resource. |
+| `RemoveResourcePermission` | `DELETE /api/v1/resources/{ResourceId}/permissions/{PrincipalId}` | - | `ResourceId`, `PrincipalId` | - | `Unit` | `FailedDependencyException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Removes the permission for the specified principal from the specified resource. |
 | `RestoreDocumentVersions` | `POST /api/v1/documentVersions/restore/{DocumentId}` | - | `DocumentId` | - | `Unit` | `ConcurrentModificationException`, `ConflictingOperationException`, `EntityNotExistsException`, `FailedDependencyException`, `InvalidOperationException`, `ProhibitedStateException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Recovers a deleted version of an Amazon WorkDocs document. |
 | `SearchResources` | `POST /api/v1/search` | `paginated` | - | - | `SearchResourcesResponse` | `InvalidArgumentException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Searches metadata and the content of folders, documents, document versions, and comments. |
-| `UpdateDocument` | `PATCH /api/v1/documents/{DocumentId}` | - | `DocumentId` | - | `Unit` | `ConcurrentModificationException`, `ConflictingOperationException`, `EntityAlreadyExistsException`, `EntityNotExistsException`, `FailedDependencyException`, `LimitExceededException`, `ProhibitedStateException`, `ServiceUnavailableException`, ... (+2) | Updates the specified attributes of a document. The user must have access to both the document and its parent folder, if applicable. |
-| `UpdateDocumentVersion` | `PATCH /api/v1/documents/{DocumentId}/versions/{VersionId}` | - | `DocumentId`, `VersionId` | - | `Unit` | `ConcurrentModificationException`, `EntityNotExistsException`, `FailedDependencyException`, `InvalidOperationException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Changes the status of the document version to ACTIVE. Amazon WorkDocs also sets its document container to ACTIVE. |
-| `UpdateFolder` | `PATCH /api/v1/folders/{FolderId}` | - | `FolderId` | - | `Unit` | `ConcurrentModificationException`, `ConflictingOperationException`, `EntityAlreadyExistsException`, `EntityNotExistsException`, `FailedDependencyException`, `LimitExceededException`, `ProhibitedStateException`, `ServiceUnavailableException`, ... (+2) | Updates the specified attributes of the specified folder. The user must have access to both the folder and its parent folder, if applicable. |
-| `UpdateUser` | `PATCH /api/v1/users/{UserId}` | - | `UserId` | - | `UpdateUserResponse` | `DeactivatingLastSystemUserException`, `EntityNotExistsException`, `FailedDependencyException`, `IllegalUserStateException`, `InvalidArgumentException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, ... (+1) | Updates the specified attributes of the specified user, and grants or revokes administrative privileges to the Amazon WorkDocs site. |
+| `UpdateDocument` | `PATCH /api/v1/documents/{DocumentId}` | - | `DocumentId` | - | `Unit` | `ConcurrentModificationException`, `ConflictingOperationException`, `EntityAlreadyExistsException`, `EntityNotExistsException`, `FailedDependencyException`, `LimitExceededException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Updates the specified attributes of a document. The user must have access to both the document and its parent folder, if applicable. |
+| `UpdateDocumentVersion` | `PATCH /api/v1/documents/{DocumentId}/versions/{VersionId}` | - | `DocumentId`, `VersionId` | - | `Unit` | `ConcurrentModificationException`, `EntityNotExistsException`, `FailedDependencyException`, `InvalidOperationException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Changes the status of the document version to ACTIVE. Amazon WorkDocs also sets its document container to ACTIVE. This is the last step in a document upload, after the client uploads the document to an S3-presigned U ... |
+| `UpdateFolder` | `PATCH /api/v1/folders/{FolderId}` | - | `FolderId` | - | `Unit` | `ConcurrentModificationException`, `ConflictingOperationException`, `EntityAlreadyExistsException`, `EntityNotExistsException`, `FailedDependencyException`, `LimitExceededException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Updates the specified attributes of the specified folder. The user must have access to both the folder and its parent folder, if applicable. |
+| `UpdateUser` | `PATCH /api/v1/users/{UserId}` | - | `UserId` | - | `UpdateUserResponse` | `DeactivatingLastSystemUserException`, `EntityNotExistsException`, `FailedDependencyException`, `IllegalUserStateException`, `InvalidArgumentException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, `UnauthorizedResourceAccessException` | Updates the specified attributes of the specified user, and grants or revokes administrative privileges to the Amazon WorkDocs site. |
 
 ## HTTP Bindings
 
@@ -204,30 +206,56 @@ Per-operation input members that bind to HTTP transport surfaces. Optional membe
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `UnauthorizedResourceAccessException` | `structure` | `Message` | The caller does not have access to perform the action on the resource. |
-| `ServiceUnavailableException` | `structure` | `Message` | One or more of the dependencies is unavailable. |
-| `FailedDependencyException` | `structure` | `Message` | The Directory Service cannot reach an on-premises instance. |
-| `UnauthorizedOperationException` | `structure` | `Code`, `Message` | The operation is not permitted. |
-| `EntityNotExistsException` | `structure` | `EntityIds`, `Message` | The resource does not exist. |
-| `ProhibitedStateException` | `structure` | `Message` | The specified document version is not in the INITIALIZED state. |
-| `InvalidArgumentException` | `structure` | `Message` | The pagination marker or limit fields are not valid. |
-| `ConcurrentModificationException` | `structure` | `Message` | The resource hierarchy is changing. |
-| `ConflictingOperationException` | `structure` | `Message` | Another operation is in progress on the resource that conflicts with the current operation. |
-| `LimitExceededException` | `structure` | `Message` | The maximum of 100,000 files and folders under the parent folder has been exceeded. |
-| `EntityAlreadyExistsException` | `structure` | `Message` | The resource already exists. |
-| `InvalidPasswordException` | `structure` | `Message` | The password is invalid. |
-| `InvalidOperationException` | `structure` | `Message` | The operation is invalid. |
-| `DocumentLockedForCommentsException` | `structure` | `Message` | This exception is thrown when the document is locked for comments and user tries to create or delete a comment on that document. |
-| `AbortDocumentVersionUploadRequest` | `structure` | `AuthenticationToken`, `DocumentId`, `VersionId` | - |
-| `ActivateUserRequest` | `structure` | `AuthenticationToken`, `UserId` | - |
-| `ActivateUserResponse` | `structure` | `User` | - |
-| `AddResourcePermissionsRequest` | `structure` | `AuthenticationToken`, `NotificationOptions`, `Principals`, `ResourceId` | - |
-| `AddResourcePermissionsResponse` | `structure` | `ShareResults` | - |
-| `CreateCommentRequest` | `structure` | `AuthenticationToken`, `DocumentId`, `NotifyCollaborators`, `ParentId`, `Text`, `ThreadId`, `VersionId`, `Visibility` | - |
-| `CreateCommentResponse` | `structure` | `Comment` | - |
-| `InvalidCommentOperationException` | `structure` | `Message` | The requested operation is not allowed on the specified comment object. |
-| `CreateCustomMetadataRequest` | `structure` | `AuthenticationToken`, `CustomMetadata`, `ResourceId`, `VersionId` | - |
-
+| `ConcurrentModificationException` | `structure` | Message | The resource hierarchy is changing. |
+| `ConflictingOperationException` | `structure` | Message | Another operation is in progress on the resource that conflicts with the current operation. |
+| `CustomMetadataLimitExceededException` | `structure` | Message | The limit has been reached on the number of custom properties for the specified resource. |
+| `DeactivatingLastSystemUserException` | `structure` | Message, Code | The last user in the organization is being deactivated. |
+| `DocumentLockedForCommentsException` | `structure` | Message | This exception is thrown when the document is locked for comments and user tries to create or delete a comment on that document. |
+| `DraftUploadOutOfSyncException` | `structure` | Message | This exception is thrown when a valid checkout ID is not presented on document version upload calls for a document that has been checked out from Web client. |
+| `EntityAlreadyExistsException` | `structure` | Message | The resource already exists. |
+| `EntityNotExistsException` | `structure` | Message, EntityIds | The resource does not exist. |
+| `FailedDependencyException` | `structure` | Message | The Directory Service cannot reach an on-premises instance. Or a dependency under the control of the organization is failing, such as a connected Active Dir ... |
+| `IllegalUserStateException` | `structure` | Message | The user is undergoing transfer of ownership. |
+| `InvalidArgumentException` | `structure` | Message | The pagination marker or limit fields are not valid. |
+| `InvalidCommentOperationException` | `structure` | Message | The requested operation is not allowed on the specified comment object. |
+| `InvalidOperationException` | `structure` | Message | The operation is invalid. |
+| `InvalidPasswordException` | `structure` | Message | The password is invalid. |
+| `LimitExceededException` | `structure` | Message | The maximum of 100,000 files and folders under the parent folder has been exceeded. |
+| `ProhibitedStateException` | `structure` | Message | The specified document version is not in the INITIALIZED state. |
+| `RequestedEntityTooLargeException` | `structure` | Message | The response is too large to return. The request must include a filter to reduce the size of the response. |
+| `ResourceAlreadyCheckedOutException` | `structure` | Message | The resource is already checked out. |
+| `ServiceUnavailableException` | `structure` | Message | One or more of the dependencies is unavailable. |
+| `StorageLimitExceededException` | `structure` | Message | The storage limit has been exceeded. |
+| `StorageLimitWillExceedException` | `structure` | Message | The storage limit will be exceeded. |
+| `TooManyLabelsException` | `structure` | Message | The limit has been reached on the number of labels for the specified resource. |
+| `TooManySubscriptionsException` | `structure` | Message | You've reached the limit on the number of subscriptions for the WorkDocs instance. |
+| `UnauthorizedOperationException` | `structure` | Message, Code | The operation is not permitted. |
+| `UnauthorizedResourceAccessException` | `structure` | Message | The caller does not have access to perform the action on the resource. |
+| `AbortDocumentVersionUploadRequest` | `structure` | AuthenticationToken, DocumentId, VersionId | - |
+| `ActivateUserRequest` | `structure` | UserId, AuthenticationToken | - |
+| `ActivateUserResponse` | `structure` | User | - |
+| `AddResourcePermissionsRequest` | `structure` | AuthenticationToken, ResourceId, Principals, NotificationOptions | - |
+| `AddResourcePermissionsResponse` | `structure` | ShareResults | - |
+| `CreateCommentRequest` | `structure` | AuthenticationToken, DocumentId, VersionId, ParentId, ThreadId, Text, Visibility, NotifyCollaborators | - |
+| `CreateCommentResponse` | `structure` | Comment | - |
+| `CreateCustomMetadataRequest` | `structure` | AuthenticationToken, ResourceId, VersionId, CustomMetadata | - |
+| `CreateCustomMetadataResponse` | `structure` | **empty (no members)** | - |
+| `CreateFolderRequest` | `structure` | AuthenticationToken, Name, ParentFolderId | - |
+| `CreateFolderResponse` | `structure` | Metadata | - |
+| `CreateLabelsRequest` | `structure` | ResourceId, Labels, AuthenticationToken | - |
+| `CreateLabelsResponse` | `structure` | **empty (no members)** | - |
+| `CreateNotificationSubscriptionRequest` | `structure` | OrganizationId, Endpoint, Protocol, SubscriptionType | - |
+| `CreateNotificationSubscriptionResponse` | `structure` | Subscription | - |
+| `ActivityType` | `enum` | DOCUMENT_CHECKED_IN, DOCUMENT_CHECKED_OUT, DOCUMENT_RENAMED, DOCUMENT_VERSION_UPLOADED, DOCUMENT_VERSION_DELETED, DOCUMENT_VERSION_VIEWED, DOCUMENT_VERSION_DOWNLOADED, DOCUMENT_RECYCLED, DOCUMENT_RESTORED, DOCUMENT_REVERTED, DOCUMENT_SHARED, DOCUMENT_UNSHARED, ... (+21) | - |
+| `AdditionalResponseFieldType` | `enum` | WEBURL | - |
+| `BooleanEnumType` | `enum` | TRUE, FALSE | - |
+| `CommentStatusType` | `enum` | DRAFT, PUBLISHED, DELETED | - |
+| `CommentVisibilityType` | `enum` | PUBLIC, PRIVATE | - |
+| `ContentCategoryType` | `enum` | IMAGE, DOCUMENT, PDF, SPREADSHEET, PRESENTATION, AUDIO, VIDEO, SOURCE_CODE, OTHER | - |
+| `DocumentSourceType` | `enum` | ORIGINAL, WITH_COMMENTS | - |
+| `DocumentStatusType` | `enum` | INITIALIZED, ACTIVE | - |
+| `DocumentThumbnailType` | `enum` | SMALL, SMALL_HQ, LARGE | - |
+| `DocumentVersionStatus` | `enum` | ACTIVE | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.
