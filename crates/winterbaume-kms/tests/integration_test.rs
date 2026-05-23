@@ -660,6 +660,140 @@ async fn test_encrypt_decrypt_with_context() {
 }
 
 #[tokio::test]
+async fn test_decrypt_with_wrong_key_id_returns_incorrect_key_exception() {
+    use aws_sdk_kms::operation::decrypt::DecryptError;
+
+    let client = make_kms_client().await;
+    let key_a = create_key(&client).await;
+    let key_b = create_key(&client).await;
+
+    let enc = client
+        .encrypt()
+        .key_id(&key_a)
+        .plaintext(Blob::new(b"hello".to_vec()))
+        .send()
+        .await
+        .unwrap();
+
+    // Correct KeyId still succeeds.
+    let ok = client
+        .decrypt()
+        .ciphertext_blob(enc.ciphertext_blob().unwrap().clone())
+        .key_id(&key_a)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(ok.plaintext().unwrap().as_ref(), b"hello");
+
+    // Mismatched KeyId must be rejected with IncorrectKeyException, not
+    // silently decrypted using the key the ciphertext was actually
+    // encrypted under.
+    let err = client
+        .decrypt()
+        .ciphertext_blob(enc.ciphertext_blob().unwrap().clone())
+        .key_id(&key_b)
+        .send()
+        .await
+        .expect_err("decrypt with wrong KeyId must fail");
+
+    let svc_err = err.into_service_error();
+    assert!(
+        matches!(svc_err, DecryptError::IncorrectKeyException(_)),
+        "expected IncorrectKeyException, got {svc_err:?}"
+    );
+}
+
+#[tokio::test]
+async fn test_decrypt_with_key_arn_matches() {
+    let client = make_kms_client().await;
+    let key_id = create_key(&client).await;
+    let key_arn = format!("arn:aws:kms:us-east-1:123456789012:key/{key_id}");
+
+    let enc = client
+        .encrypt()
+        .key_id(&key_id)
+        .plaintext(Blob::new(b"hello".to_vec()))
+        .send()
+        .await
+        .unwrap();
+
+    // Passing the ARN form of the same key should resolve and succeed.
+    let resp = client
+        .decrypt()
+        .ciphertext_blob(enc.ciphertext_blob().unwrap().clone())
+        .key_id(&key_arn)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(resp.plaintext().unwrap().as_ref(), b"hello");
+}
+
+#[tokio::test]
+async fn test_decrypt_with_alias_for_correct_key_succeeds() {
+    let client = make_kms_client().await;
+    let key_id = create_key(&client).await;
+
+    client
+        .create_alias()
+        .alias_name("alias/decrypt-match")
+        .target_key_id(&key_id)
+        .send()
+        .await
+        .unwrap();
+
+    let enc = client
+        .encrypt()
+        .key_id(&key_id)
+        .plaintext(Blob::new(b"hello".to_vec()))
+        .send()
+        .await
+        .unwrap();
+
+    // An alias pointing at the same key as the ciphertext should succeed.
+    let resp = client
+        .decrypt()
+        .ciphertext_blob(enc.ciphertext_blob().unwrap().clone())
+        .key_id("alias/decrypt-match")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(resp.plaintext().unwrap().as_ref(), b"hello");
+}
+
+#[tokio::test]
+async fn test_re_encrypt_with_wrong_source_key_id_returns_incorrect_key_exception() {
+    use aws_sdk_kms::operation::re_encrypt::ReEncryptError;
+
+    let client = make_kms_client().await;
+    let key_a = create_key(&client).await;
+    let key_b = create_key(&client).await;
+    let key_dest = create_key(&client).await;
+
+    let enc = client
+        .encrypt()
+        .key_id(&key_a)
+        .plaintext(Blob::new(b"hello".to_vec()))
+        .send()
+        .await
+        .unwrap();
+
+    let err = client
+        .re_encrypt()
+        .ciphertext_blob(enc.ciphertext_blob().unwrap().clone())
+        .source_key_id(&key_b)
+        .destination_key_id(&key_dest)
+        .send()
+        .await
+        .expect_err("re_encrypt with wrong SourceKeyId must fail");
+
+    let svc_err = err.into_service_error();
+    assert!(
+        matches!(svc_err, ReEncryptError::IncorrectKeyException(_)),
+        "expected IncorrectKeyException, got {svc_err:?}"
+    );
+}
+
+#[tokio::test]
 async fn test_encrypt_using_alias_name() {
     let client = make_kms_client().await;
     let key_id = create_key(&client).await;

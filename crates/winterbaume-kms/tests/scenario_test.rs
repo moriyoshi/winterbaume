@@ -345,3 +345,252 @@ async fn test_hmac_generate_and_verify_workflow() {
         "error should indicate MAC verification failure, got: {err_str}"
     );
 }
+
+/// Scenario: multi-tenant envelope encryption with a key-binding metadata
+/// catalogue (the realistic shape of the bug fixed in GitHub issue #5).
+///
+/// An application that envelope-encrypts per tenant typically stores a
+/// `(tenant_id, key_id, ciphertext)` row alongside the ciphertext so the
+/// decrypt path knows which CMK to use. The application then passes the
+/// recorded `key_id` to `Decrypt(KeyId=...)`. If the metadata catalogue is
+/// corrupted -- a row mix-up, a stale id after a rotation, or a deliberate
+/// attempt to coax KMS into decrypting under the wrong key -- AWS rejects the
+/// call with `IncorrectKeyException` instead of silently returning plaintext.
+/// Without the fix, the mock returned the plaintext anyway, which would mask
+/// production bugs (e.g. a join that returns the wrong tenant's `key_id`).
+///
+/// 1. Two tenants, two distinct CMKs.
+/// 2. Encrypt each tenant's payload under its own CMK; record the resolved
+///    `KeyId` from the encrypt response into a local catalogue.
+/// 3. Decrypt using the catalogue's `KeyId` -- both tenants round-trip.
+/// 4. Simulate metadata corruption: swap tenant A's ciphertext with
+///    tenant B's `KeyId`. Decrypt with the corrupted pair: AWS rejects with
+///    `IncorrectKeyException` and the application sees the error rather than
+///    A's plaintext leaking under B's id.
+/// 5. Confirm the catalogue remains usable end-to-end after the rejection
+///    (i.e. the rejection is per-call and doesn't damage state).
+#[tokio::test]
+async fn test_multi_tenant_envelope_with_key_binding_catalogue() {
+    use aws_sdk_kms::operation::decrypt::DecryptError;
+
+    let client = make_kms_client().await;
+
+    // 1. Per-tenant CMKs.
+    let key_a = client
+        .create_key()
+        .description("tenant-a-cmk")
+        .send()
+        .await
+        .unwrap()
+        .key_metadata()
+        .unwrap()
+        .key_id()
+        .to_string();
+    let key_b = client
+        .create_key()
+        .description("tenant-b-cmk")
+        .send()
+        .await
+        .unwrap()
+        .key_metadata()
+        .unwrap()
+        .key_id()
+        .to_string();
+
+    // 2. Encrypt and record (tenant -> (key_id, ciphertext)).
+    let payload_a = b"tenant-a-secret".to_vec();
+    let payload_b = b"tenant-b-secret".to_vec();
+
+    let enc_a = client
+        .encrypt()
+        .key_id(&key_a)
+        .plaintext(Blob::new(payload_a.clone()))
+        .send()
+        .await
+        .unwrap();
+    let enc_b = client
+        .encrypt()
+        .key_id(&key_b)
+        .plaintext(Blob::new(payload_b.clone()))
+        .send()
+        .await
+        .unwrap();
+
+    // Encrypt's response key_id is the ARN; record it as the application
+    // would so the decrypt path uses an ARN form (Decrypt must accept it).
+    let mut catalogue: std::collections::HashMap<&str, (String, aws_sdk_kms::primitives::Blob)> =
+        std::collections::HashMap::new();
+    catalogue.insert(
+        "tenant-a",
+        (
+            enc_a.key_id().unwrap().to_string(),
+            enc_a.ciphertext_blob().unwrap().clone(),
+        ),
+    );
+    catalogue.insert(
+        "tenant-b",
+        (
+            enc_b.key_id().unwrap().to_string(),
+            enc_b.ciphertext_blob().unwrap().clone(),
+        ),
+    );
+
+    // 3. Catalogue-driven decrypt round-trips for both tenants.
+    for tenant in ["tenant-a", "tenant-b"] {
+        let (key_id, ciphertext) = catalogue.get(tenant).unwrap();
+        let dec = client
+            .decrypt()
+            .ciphertext_blob(ciphertext.clone())
+            .key_id(key_id)
+            .send()
+            .await
+            .unwrap_or_else(|e| panic!("decrypt for {tenant} should succeed: {e:?}"));
+        let expected: &[u8] = if tenant == "tenant-a" {
+            &payload_a
+        } else {
+            &payload_b
+        };
+        assert_eq!(
+            dec.plaintext().unwrap().as_ref(),
+            expected,
+            "{tenant}: catalogue-driven decrypt should round-trip"
+        );
+    }
+
+    // 4. Simulate metadata corruption: tenant-a's ciphertext, tenant-b's KeyId.
+    let (_a_key, a_ciphertext) = catalogue.get("tenant-a").unwrap();
+    let (b_key, _b_ciphertext) = catalogue.get("tenant-b").unwrap();
+
+    let err = client
+        .decrypt()
+        .ciphertext_blob(a_ciphertext.clone())
+        .key_id(b_key)
+        .send()
+        .await
+        .expect_err("decrypt with mismatched (ciphertext, KeyId) must be rejected");
+
+    let svc_err = err.into_service_error();
+    assert!(
+        matches!(svc_err, DecryptError::IncorrectKeyException(_)),
+        "corrupted catalogue must surface as IncorrectKeyException, got {svc_err:?}"
+    );
+
+    // 5. State is intact: subsequent correct lookups still work.
+    let (a_key, a_ciphertext) = catalogue.get("tenant-a").unwrap();
+    let dec_a = client
+        .decrypt()
+        .ciphertext_blob(a_ciphertext.clone())
+        .key_id(a_key)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(dec_a.plaintext().unwrap().as_ref(), &payload_a[..]);
+}
+
+/// Scenario: key-rotation pipeline with strict source-key binding via
+/// `ReEncrypt.SourceKeyId`.
+///
+/// A common rotation workflow re-encrypts data from an old CMK to a new
+/// CMK in batches, recording each row's current `key_id` in metadata. A
+/// well-behaved rotation calls `ReEncrypt(SourceKeyId=<recorded>)` so KMS
+/// rejects the call if the recorded id is stale (the row was already rotated
+/// to the new key by a concurrent worker). Without the fix, `ReEncrypt`
+/// ignored `SourceKeyId` entirely and the rotation could silently re-rotate
+/// already-rotated rows under the wrong key, double-paying for KMS calls
+/// and disguising idempotency bugs.
+///
+/// 1. Create old and new CMKs; encrypt a payload under the old key.
+/// 2. Worker #1 rotates the row -- `ReEncrypt(SourceKeyId=old, DestinationKeyId=new)`
+///    succeeds; the row's `key_id` becomes the new key's ARN.
+/// 3. Worker #2 runs against stale metadata that still thinks the row is
+///    under `old` and tries `ReEncrypt(SourceKeyId=old, ...)` against the
+///    *new* ciphertext. AWS rejects with `IncorrectKeyException`; the
+///    second worker sees the failure and skips the row instead of silently
+///    re-rotating it.
+/// 4. After the failure, normal decrypt under the *new* key still works,
+///    confirming the rejected `ReEncrypt` had no side effects.
+#[tokio::test]
+async fn test_key_rotation_pipeline_with_strict_source_binding() {
+    use aws_sdk_kms::operation::re_encrypt::ReEncryptError;
+
+    let client = make_kms_client().await;
+
+    // 1. Old and new CMKs.
+    let key_old = client
+        .create_key()
+        .description("rotation-old-cmk")
+        .send()
+        .await
+        .unwrap()
+        .key_metadata()
+        .unwrap()
+        .key_id()
+        .to_string();
+    let key_new = client
+        .create_key()
+        .description("rotation-new-cmk")
+        .send()
+        .await
+        .unwrap()
+        .key_metadata()
+        .unwrap()
+        .key_id()
+        .to_string();
+
+    let payload = b"rotation-payload".to_vec();
+    let enc = client
+        .encrypt()
+        .key_id(&key_old)
+        .plaintext(Blob::new(payload.clone()))
+        .send()
+        .await
+        .unwrap();
+    let ciphertext_under_old = enc.ciphertext_blob().unwrap().clone();
+    let mut recorded_key = enc.key_id().unwrap().to_string();
+    let expected_old_arn = format!("arn:aws:kms:us-east-1:123456789012:key/{key_old}");
+    assert_eq!(recorded_key, expected_old_arn);
+
+    // 2. Worker #1 rotates the row: source=old, destination=new.
+    let re_enc = client
+        .re_encrypt()
+        .ciphertext_blob(ciphertext_under_old.clone())
+        .source_key_id(&key_old)
+        .destination_key_id(&key_new)
+        .send()
+        .await
+        .expect("ReEncrypt with correct SourceKeyId should succeed");
+    let ciphertext_under_new = re_enc.ciphertext_blob().unwrap().clone();
+    recorded_key = re_enc.key_id().unwrap().to_string();
+    let expected_new_arn = format!("arn:aws:kms:us-east-1:123456789012:key/{key_new}");
+    assert_eq!(recorded_key, expected_new_arn);
+
+    // 3. Worker #2 runs against stale metadata and tries to "rotate" the
+    //    already-rotated ciphertext using the old SourceKeyId. AWS must
+    //    reject so the worker can skip the row instead of silently
+    //    re-rotating it under the wrong key.
+    let err = client
+        .re_encrypt()
+        .ciphertext_blob(ciphertext_under_new.clone())
+        .source_key_id(&key_old)
+        .destination_key_id(&key_new)
+        .send()
+        .await
+        .expect_err("ReEncrypt with stale SourceKeyId must be rejected");
+
+    let svc_err = err.into_service_error();
+    assert!(
+        matches!(svc_err, ReEncryptError::IncorrectKeyException(_)),
+        "stale-source ReEncrypt must surface as IncorrectKeyException, got {svc_err:?}"
+    );
+
+    // 4. The rejected ReEncrypt had no side effects -- decrypting the
+    //    current ciphertext under the new key still recovers the payload.
+    let dec = client
+        .decrypt()
+        .ciphertext_blob(ciphertext_under_new)
+        .key_id(&key_new)
+        .send()
+        .await
+        .expect("decrypt under the rotated key must still succeed");
+    assert_eq!(dec.plaintext().unwrap().as_ref(), &payload[..]);
+}

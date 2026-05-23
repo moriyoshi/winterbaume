@@ -1567,3 +1567,112 @@ The original two GitHub issues touched two narrow lines of S3 code. The downstre
 - Terraform E2E for `aws_cloudfront_continuous_deployment_policy` -- requires an upstream staging distribution to satisfy the provider's schema ; tracked as a future enhancement once the fixture is built.
 - Add-service workflow integration of the dossier's `## HTTP Bindings` section so new crates plumb modelled headers correctly on day one ( the workflow already reads the dossier ; codifying the binding-audit step is the missing link ).
 
+## 2026-05-24 — KMS Decrypt / ReEncrypt: enforce request-side KeyId against ciphertext ( GitHub issue #5 )
+
+### Bug
+
+GitHub issue #5: `winterbaume-kms`'s `Decrypt` handler resolved the key purely from the 36-byte key-ID prefix embedded in the ciphertext blob ( `state.rs` `KmsState::decrypt`, pre-fix lines 466-496 ) and silently ignored the request-side `KeyId` parameter. A `Decrypt` call with the wrong `KeyId` succeeded with the original plaintext instead of returning `IncorrectKeyException`. Per the AWS Decrypt API reference, the `KeyId` parameter is documented as "Enter a key ID of the KMS key that was used to encrypt the ciphertext. If you identify a different KMS key, the Decrypt operation throws an IncorrectKeyException" -- and `IncorrectKeyException` is in the modelled errors list for both `Decrypt` and `ReEncrypt` ( see `.agents/docs/services/kms.md` operation matrix ).
+
+### Fix
+
+Three files, +161 / -3:
+
+- `crates/winterbaume-kms/src/state.rs`: added `KmsError::IncorrectKey` variant ; `KmsState::decrypt` now takes `expected_key_id: Option<&str>` and, when supplied, resolves it via `resolve_key_id` ( accepting key id, ARN, or alias form ) and compares the resolved id to the key id parsed from the ciphertext header. Mismatch ( or unresolvable ref ) returns `KmsError::IncorrectKey`. `KmsState::re_encrypt` gained an analogous `source_key_id: Option<&str>` parameter that threads into the inner `decrypt` call, since the same modelled exception covers `ReEncrypt.SourceKeyId`.
+- `crates/winterbaume-kms/src/handlers.rs`: `handle_decrypt` now forwards `input.key_id.as_deref()` and `handle_re_encrypt` forwards `input.source_key_id.as_deref()`. `kms_error_response` maps `KmsError::IncorrectKey` to `( 400, "IncorrectKeyException" )`.
+- `crates/winterbaume-kms/tests/integration_test.rs`: four new regression tests -- `test_decrypt_with_wrong_key_id_returns_incorrect_key_exception`, `test_re_encrypt_with_wrong_source_key_id_returns_incorrect_key_exception`, plus happy-path coverage in `test_decrypt_with_key_arn_matches` and `test_decrypt_with_alias_for_correct_key_succeeds`. The mismatch tests use typed-variant assertions ( `matches!( svc_err, DecryptError::IncorrectKeyException( _ ) )` / `ReEncryptError::IncorrectKeyException( _ )` ) per the `error-tests-must-assert-typed-variant` rule.
+
+### Gate
+
+- `cargo clippy -p winterbaume-kms --all-targets --all-features -- -D warnings`: clean.
+- `cargo fmt -p winterbaume-kms -- --check`: clean.
+- `cargo test -p winterbaume-kms --no-fail-fast`: 123 integration tests + 4 scenario tests pass ( 119 + 4 pre-existing, +4 new ).
+
+### Root-cause analysis ( why we missed it )
+
+Third recurrence of the "handler signature drops a modelled input" pattern in recent issues -- S3 `PutObject.IfNoneMatch` ( issue #4 ), CloudFront 18 conditional `Delete*`/`Update*` ops ( commit 30388acb, fix/cloudfront-if-match-enforcement ), and now KMS `Decrypt.KeyId`. Compounding factors specific to this miss:
+
+1. **The existing safeguard memory was scoped too narrowly.** `feedback_handler_signatures_drop_modelled_fields.md` was framed around `@httpHeader` / `@httpQuery` / `@httpPayload` traits. KMS speaks `awsJson1_1`, where every input flows through the JSON body and *no* HTTP-binding traits exist on inputs. The KMS dossier even states "_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service ( typical for `awsJson1_*` protocols, where all input flows through the JSON body )._" -- which read as "nothing to audit" when it should have read as "audit the full input shape because there are no binding-trait clues to lean on."
+
+2. **The modelled errors list was a second safeguard that also wasn't checked.** The KMS dossier's operation matrix lists `IncorrectKeyException` among `Decrypt`'s and `ReEncrypt`'s modelled errors. A grep for any code path that produces it would have returned zero matches across the crate -- the bug was visible from the dossier alone. The recurring quality-gate's Step 5 ( modelled-errors lower-bound, added in the 2026-05-23 entry above ) is the right hook for this but is framed as "compare modelled errors to documented HTTP codes," not "ensure every modelled error has at least one production site in handler / state code."
+
+3. **The test corpus is moto-ported and moto has the same blind spot.** `tests/integration_test.rs` is translated from `moto/tests/test_kms/test_kms_encrypt.py`, which exercises Decrypt only with `KeyId` omitted. Porting moto faithfully copies moto's gaps -- by design it gets us to moto parity, but the ceiling is moto-parity, not AWS-parity. The `port-moto-tests` workflow needs an explicit "for each operation, add at least one test per high-suspicion input member that moto skipped" step.
+
+### Memory update
+
+Broadened `feedback_handler_signatures_drop_modelled_fields.md`:
+
+- Removed the implicit "HTTP-binding traits only" framing ; the rule now applies to *every* modelled input member regardless of protocol. Dossier's "HTTP Bindings: none" line is explicitly called out as a prompt to audit the operation matrix, not a clearance.
+- Added a new high-suspicion category: **cross-validation identifiers** -- fields the request supplies redundantly with state the server already has, where the server is meant to compare and reject mismatches. KMS `Decrypt.KeyId`, `ReEncrypt.SourceKeyId`, `Verify` / `VerifyMac` pairings, S3 `CopyObject.CopySourceIfMatch`, anything `Expected*` / `Source*Id` / `Source*VersionId`. Easy to mistake for decorative metadata because the operation functions without them.
+- Added the "every modelled error must have a production site" cross-check as a sibling audit. For KMS `Decrypt`, this audit alone would have flagged the bug.
+- Added a warning that moto-ported tests inherit moto's blind spots -- explicit additional tests are required for the cross-validation / conditional / idempotency categories above.
+
+### Followups not done in this session
+
+- Promote the strengthened input-audit rule into the recurring `quality-gate` skill so it fires regardless of protocol ( current Step 4 §2 leans on the dossier's `## HTTP Bindings` table, which is empty for awsJson services ; the broader audit should iterate the operation matrix's input column instead ).
+- The remaining two open issues, #3 ( S3 `HeadBucket` returns XML body on 4xx ) and #4 ( S3 `PutObject` does not enforce `If-None-Match` ) , are still outstanding.
+
+### Cross-crate sweep -- four other instances of the same bug class
+
+Spawned an `Explore` agent to look for the same "modelled optional input member silently dropped before reaching state" pattern in other services, then verified each finding directly. Four real defects of the same bug class, with file/line evidence:
+
+1. **`winterbaume-lambda` `Invoke` / `InvokeWithResponseStream` -- `Qualifier` dropped** ( `src/handlers.rs:1385` and `:2742` ). Both handlers call `state.get_function( &input.function_name )` and never reference `input.qualifier`; the response's `X-Amz-Executed-Version` header is hard-coded to `$LATEST`. Should resolve the qualifier against published versions / aliases and return `ResourceNotFoundException` on miss.
+
+2. **`winterbaume-lambda` `AddPermission` -- `RevisionId` dropped** ( `src/handlers.rs:2019` ). `state.add_permission` takes 6 args, none of them the revision id. Stale RevisionId should produce `PreconditionFailedException` ; currently silently appends.
+
+3. **`winterbaume-sns` `Publish` / `PublishBatch` -- FIFO control fields dropped** ( `src/handlers.rs:572`, `:613` ). Backend call is `self.backend.publish( account_id, region, topic_arn, input.message )`. Five modelled members are discarded ( `MessageGroupId`, `MessageDeduplicationId`, `MessageAttributes`, `MessageStructure`, `Subject` ). FIFO topic `Publish` without `MessageGroupId` should be rejected with `InvalidParameterValueException` ; dedup window goes entirely unimplemented.
+
+4. **`winterbaume-dynamodb` `PutItem` / `UpdateItem` / `DeleteItem` -- legacy `Expected` map dropped** ( `src/handlers.rs:541`, `:693`, `:1092` ). Only `ConditionExpression` is honoured; grep for `input.expected` returns zero hits. Older SDK clients still send `Expected` and AWS still evaluates it -- mismatch should produce `ConditionalCheckFailedException`. Same audit applies to `BatchExecuteStatement.ReturnValuesOnConditionCheckFailure` ( lower-confidence companion ).
+
+False positives filtered out:
+
+- **`winterbaume-sqs` `DeleteMessage` / `ChangeMessageVisibility` `ReceiptHandle`** -- handler does pass the handle through ; `state.rs:486-520` correctly returns `SqsError::InvalidReceiptHandle` on a stale handle. Doing the right thing.
+- **`winterbaume-sts` `AssumeRole.ExternalId`** -- different bug class. `StsState` ( `state.rs:21` ) only records `assumed_roles` after the fact ; there is no IAM-role registry or trust policy to compare `ExternalId` against. Validating it requires modelling role trust policies first, which is a feature gap rather than a dropped-input bug.
+
+Common shape: all four confirmed defects are an optional input member that's parsed from the request, then thrown away before reaching state. None were caught by the existing safeguard memory because three of the four ( Lambda is REST-JSON ; SNS uses query/XML ; DynamoDB is awsJson1_0 ) have no `@httpHeader` / `@httpQuery` / `@httpPayload` traits on the dropped inputs for the trait-based audit to grep for.
+
+Recorded each as a separate entry under `### Service-Specific Follow-Ups` in `TODO.md` with file/line evidence and a fix sketch ( `lambda-invoke-qualifier-dropped`, `lambda-add-permission-revision-id-dropped`, `sns-publish-fifo-fields-dropped`, `dynamodb-legacy-expected-dropped` ). Not fixed in this session.
+
+### EC2 sweep -- two systemic gaps, not single-op bugs
+
+The initial sweep above focused on awsJson services and explicitly omitted EC2 because of its 763-op surface. Followed up directly. EC2 uses the `ec2Query` protocol with form-encoded request bodies and no HTTP-binding traits, so it has the same audit-evasion property as awsJson services. Two findings, both systemic.
+
+**1. `DryRun` universally dropped -- 719 input shapes affected.**
+
+`grep -c "pub dry_run" crates/winterbaume-ec2-generated/src/model.rs` = **719**. Roughly one `DryRun: Option<bool>` per mutating EC2 operation. `grep "DryRun\|dry_run"` across `crates/winterbaume-ec2/src/handlers.rs` and `crates/winterbaume-ec2/src/state.rs` returns **zero** hits. Every EC2 mutation in winterbaume actually performs the mutation regardless of the `DryRun` flag.
+
+The AWS contract is: `DryRun=true` + permitted caller → HTTP 412 with code `DryRunOperation` and message `"Request would have succeeded, but DryRun flag is set."`. `DryRun=true` + unpermitted caller → `UnauthorizedOperation`. `DryRun` is the canonical "validate without applying" mechanism in EC2 ; terraform, CDK, boto3, and custom provisioning code commonly use it to dry-run a plan before commit. Against winterbaume, every one of those calls *applies* the change. This is the worst possible failure mode for the contract -- not silent success ( the previous KMS / Lambda / SNS / DynamoDB findings ) but silent *application of the opposite of what the user asked for*.
+
+Fix sketch: thread `params.get("DryRun") == Some("true")` through the ec2Query dispatch into a single short-circuit check before each handler's `state.write()` and return the `DryRunOperation` 412. Since the mock doesn't model IAM, treat all callers as permitted ( the `UnauthorizedOperation` branch is unreachable ). One central helper plus a per-handler one-liner. Regression test covers ~10 representative mutating ops.
+
+**2. `ClientToken` captured but not honoured for idempotency -- 214 input shapes affected.**
+
+`grep -c "pub client_token\|ClientToken" crates/winterbaume-ec2-generated/src/model.rs` = 214. Spot-check of how handlers use the token:
+
+- `handle_run_instances` ( `:5490` ): the most idempotency-critical EC2 op, and it does not even *read* `ClientToken`. Calling `RunInstances` twice with the same token creates two distinct reservations.
+- `handle_associate_trunk_interface` ( `:21289` ), `handle_disassociate_trunk_interface` ( `:21328` ), `handle_create_secondary_network` ( `:21358` ), `handle_modify_reserved_instances` ( `:21761` ), plus ~14 others: token is captured into a local, immediately echoed back into the response struct, never consulted against any registry. So the wire round-trip preserves the value but the semantics are absent.
+
+AWS contract: within the idempotency window ( typically 10 minutes, op-specific ), a request with a previously-seen `ClientToken` returns the *same* response as the original without re-performing the operation ; a request with the same token but a *different* request body returns `IdempotentParameterMismatch`. Fix sketch: shared `ClientTokenRegistry` keyed by `( account_id, region, operation_name, client_token )` storing the canonical request hash + serialised response. Start with `RunInstances`, `AllocateAddress`, `CreateImage`, `CreateSnapshot`, `CreateVolume`, `CreateNatGateway`, `CreateTransitGateway` family -- the ops where idempotent retry is load-bearing for real provisioning workflows.
+
+**3. `DryRun` is modelled but dropped on four other services too.**
+
+Audit beyond EC2: across all winterbaume crates, exactly **one** crate reads `dry_run` end-to-end -- `marketplacemetering` ( `crates/winterbaume-marketplacemetering/src/handlers.rs:131` ). The wire layer deserialises `dry_run` in EC2-generated, KMS, OpenSearch, Redshift, and Synthetics, but no handler in those crates consults it. KMS in particular maps `DryRun=true` to a typed `DryRunOperationException` -- the variant is already in the dossier's modelled errors list for `Decrypt` / `Encrypt` / `GenerateDataKey` / etc. and trivially producible. Mechanical fix once the EC2 pattern is established.
+
+Recorded as three separate entries under `### Service-Specific Follow-Ups` in `TODO.md` -- `ec2-dry-run-universally-dropped`, `ec2-client-token-idempotency-not-honored`, `dry-run-dropped-non-ec2` -- each with file / line evidence and a fix sketch. Not fixed in this session.
+
+### Reflection on the sweep
+
+The four awsJson findings ( Lambda Qualifier, Lambda RevisionId, SNS FIFO fields, DynamoDB legacy `Expected` ) are per-op fixes -- bounded scope, single regression test apiece, manageable PRs. The two EC2 findings are different in kind: each affects hundreds of operations and demands a central solution. The current `handler-signatures-drop-modelled-fields` rule guides you to enumerate inputs per-operation, which scales to the awsJson cases but doesn't help you notice the systemic patterns. The structural lesson is to also enumerate inputs *per-trait* across the whole crate: "every operation that models `DryRun` should call a `dry_run_short_circuit()` helper" and "every operation that models `ClientToken` should consult the idempotency registry" are check-once-per-crate properties, not check-once-per-op. Worth adding to the quality-gate skill as a new audit category alongside the existing per-op binding audit.
+
+### Terraform E2E coverage for the KMS fix -- earlier dismissal was wrong
+
+I initially claimed terraform doesn't drive `Decrypt` with a request-side `KeyId` ( see the integration-test section above ) and skipped the terraform E2E layer. That was wrong: terraform-provider-aws `internal/service/kms/secrets_data_source.go` line 109 sets `input.KeyId = aws.String(v)` when the per-secret block's optional `key_id` field is non-empty. `data "aws_kms_secrets"` therefore exercises the same Decrypt-with-KeyId path the fix changed. The Plugin Framework variant in `secrets_ephemeral.go` ( `ephemeral.aws_kms_secrets` ) does the same. The dismissal came from reading the data source's user-facing docs rather than the provider source -- a "consult the upstream code, not the prose" lesson worth keeping.
+
+Verified by fetching the data source schemas from the `hashicorp/terraform-provider-aws` `main` branch via `gh api`. Schema for `data "aws_kms_secrets"` is `secret { name(req), payload(req base64), key_id(opt), context(opt), grant_tokens(opt), encryption_algorithm(opt) }` ; the Read function decodes the base64 payload, conditionally sets `input.KeyId`, and calls `conn.Decrypt(ctx, input)`. The error path wraps with `"decrypting KMS Secret (<name>): <err>"`, so the AWS error code propagates verbatim into the terraform diagnostic.
+
+Two new terraform E2E tests added at `crates/winterbaume-e2e-tests/tests/terraform/kms.rs`, both isolated ( not `batch_apply` ) so the failure-expected variant doesn't poison sibling tests in the shared wave:
+
+- `test_kms_decrypt_with_wrong_key_id_fails`: creates key A and key B, encrypts `"issue5-wrong-key-payload"` under A via `data "aws_kms_ciphertext"` ( apply-time Encrypt ), then asks `data "aws_kms_secrets"` to decrypt the ciphertext with `key_id = aws_kms_key...B.key_id`. Asserts `terraform apply` fails and stderr contains both `IncorrectKeyException` and the secret's name `issue5` ( the latter confirming the failure originated from the provider's secrets path, not some unrelated error ).
+- `test_kms_decrypt_with_matching_key_id_succeeds`: the symmetric control case. Same shape but `key_id` matches the encrypting key. Asserts `apply` succeeds and the decrypted plaintext `"issue5-ok-payload"` round-trips into terraform state via an `output`. Guards against the fix accidentally rejecting matching ids.
+
+Both tests pass against the fixed crate: `cargo test -p winterbaume-e2e-tests --test terraform -- --ignored test_kms_decrypt_with` → 2 passed, 16.83s. Per-crate clippy + fmt clean.
+
