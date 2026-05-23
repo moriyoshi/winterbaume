@@ -1356,3 +1356,74 @@ Same per-crate gate as the `-p` fix: fmt clean, clippy `-D warnings` clean, 48/4
 ### Followup considered
 
 The "the schema of `cargo release <sub>` keeps drifting" pattern suggests we should pin the cargo-release version in the harness's Cargo.toml or at least document the version we validated against. Skipped for now — cargo-release is a global dev-tool install, not a workspace dep, and pinning it would mean either a `rust-toolchain.toml`-style version file or a build.rs check. Neither feels worth it for a harness only used by the maintainer.
+
+## 2026-05-23 — first external bug reports: S3 HeadBucket body + PutObject conditional, plus a sweep of the rest of the conditional surface
+
+mizzy filed our first two GitHub issues against the freshly-released `winterbaume-s3` 0.2:
+
+- **#3 — `HeadBucket` 4xx returns an XML body**, which forces `aws-sdk-rust` into the `Unhandled` branch instead of resolving `HeadBucketError::NotFound`.
+- **#4 — `PutObject` accepts `If-None-Match` but does not enforce it.** Second conditional PUT silently overwrites instead of returning 412.
+
+Both repros confirmed against the released crate. Fixed both at the surface they were reported, then escalated the investigation because the same class of bug almost certainly applied to the rest of the S3 operation surface.
+
+### Surface fixes ( `crates/winterbaume-s3/` )
+
+- `S3Error::PreconditionFailed { resource }` → `(412, "PreconditionFailed")` in `s3_error_response`.
+- `handle_head_bucket` and `handle_head_object` now route error responses through a new `head_error_response` helper that reuses `s3_error_response` for status + headers but drops the body. The SDK then resolves the typed `NotFound` variant cleanly. ( Real S3 documents that 4xx HEAD responses carry no body — the Smithy model encodes this obliquely via `NotFound: { type: structure, members: {} }`. )
+- `handle_put_object` takes `if_match: Option<&str>` and `if_none_match: Option<&str>`, plumbed from the dispatcher's request headers, and checks against the destination ETag *before* writing the blob ( so a rejected PUT does not orphan a blob version ).
+- New `etag_matches` + `normalize_etag` helpers handle the RFC 7232 syntax: `*` wildcard, quoted/unquoted ETags, weak `W/"…"` markers, comma-separated lists. mizzy and I caught two bugs in `normalize_etag` mid-review: asymmetric quoting was being silently peeled, and the inside-quotes form `"W/abc"` was leaking the `W/` through. Both fixed; unit tests added for the helpers in `handlers::tests`.
+
+Verbatim repros from #3 and #4 run end-to-end against the local fixes and report `ISSUE3: PASS` / `ISSUE4: PASS`. The repro project lives at `.agents-workspace/tmp/bug-repro/` ( standalone workspace, path-deps to the local crates ).
+
+### Diagnosis: why dossier research missed both
+
+The two bugs trace to the same structural omission in the `service-dossier` skill and its extractor. Both facts were technically in the Smithy model and the AWS docs, but neither stream surfaced them in a way that would have made the operator wire them into a handler.
+
+- The extractor's `Operation Detail Matrix` showed PutObject's `Required input` as `Bucket, Key`. `IfMatch` and `IfNoneMatch` are `@httpHeader`-bound but **optional**, so they never appeared in any column the operator was prompted to read. The extractor never looked at `@httpHeader` / `@httpQuery` / `@httpPrefixHeaders` / `@httpPayload` traits.
+- The `Important Shapes` table rendered `NotFound | structure | -`. The `-` was the same encoding used for "truncated at zero items", so the empty-member-set signal — which encodes "no response body" for HEAD operations — was destroyed.
+- `PreconditionFailed` is not in `PutObject.errors` in the Smithy model ( PutObject only models `EncryptionTypeMismatch`, `InvalidRequest`, `InvalidWriteOffset`, `TooManyParts` ). The matrix's `Errors` column is therefore a lower bound, not exhaustive, but the SKILL.md research prompts implicitly led the operator to treat it as exhaustive.
+- The §3 "Search for" / "Look specifically for" lists covered lifecycle, idempotency, quotas, tagging, IAM, cross-resource — but said nothing about RFC 7232 conditional headers, HTTP-method body semantics, or "modelled errors are a lower bound". So even where the dossier captured `Conditional writes apply to PutObject and CompleteMultipartUpload …` as a research bullet, there was no enforcement signal anywhere to escalate it from "noted" to "must implement".
+
+### Skill + extractor enhancements ( `.agents/skills/service-dossier/` )
+
+- `extract_model_dossier.py`: new `http_input_bindings()` helper reads `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, `@httpPayload`, `@httpLabel` traits per input member. New `## HTTP Bindings` section per dossier with a 4-column table ( Header / Query / Prefix headers / Payload ), emitting one row per operation that has any binding, plus a "Conditional-write/read coverage" trailer that auto-enumerates every operation modelling RFC 7232 headers. For awsJson1-style services with no HTTP-bound inputs, an explicit empty-state note is emitted instead of silently omitting the section. `shape_members()` now renders zero-member shapes as `**empty (no members)**` so the HEAD-body signal is no longer flattened to `-`.
+- `SKILL.md`: "Treat `vendor/api-models-aws` as the source of truth for …" now lists HTTP-binding traits and empty-member error shapes explicitly. §3 search prompts gained three conditional-only entries ( `<service> conditional requests preconditions 412`, `<service> HEAD response body`, `<service> error codes responses` ); "Look specifically for" gained three new bullets — RFC 7232 conditional headers and their HTTP codes, HEAD body / HTTP-method semantics, and "modelled errors is a lower bound, not the full set". §4 section ordering and the merge-sensitive section list both updated for `HTTP Bindings`.
+- The s3 dossier ( `.agents/docs/services/s3.md` ) was rewritten to include two new sub-sections under `Behavioural Model Notes` — *HTTP protocol pitfalls (HEAD response body)* and *Conditional-write headers* — and the new `HTTP Bindings` section was spliced in between `Operation Detail Matrix` and `Important Shapes`. Three new entries were added to the `Research Checklist for Parity Work`.
+- Verified the extractor against DynamoDB ( awsJson1_0 ) too: it surfaced exactly one previously invisible binding — `PutResourcePolicy.ConfirmRemoveSelfResourceAccess -> x-amz-confirm-remove-self-resource-access`. Confirms the change is not S3-specific.
+
+### Sweep of the rest of the conditional surface
+
+The extractor's auto-generated "Conditional-write/read coverage" trailer enumerated **seven** operations modelling RFC 7232 headers: `CompleteMultipartUpload, CopyObject, DeleteObject, GetObject, HeadObject, PutObject, RenameObject`. I had only fixed `PutObject`. The remaining six were silently dropping the same headers.
+
+Five new helpers added at the bottom of `handlers.rs`:
+
+- `PreconditionOutcome { Pass, PreconditionFailed, NotModified }` — `NotModified` only applies to safe methods.
+- `parse_http_date` — IMF-fixdate via RFC 2822, RFC 3339 fallback.
+- `check_write_preconditions` — `If-Match` / `If-None-Match` against destination ETag.
+- `check_read_preconditions` — RFC 7232 ordering: `If-Match` overrides `If-Unmodified-Since` ( 412 group ); `If-None-Match` overrides `If-Modified-Since` ( 304 group ).
+- `check_delete_preconditions` — AND'd `If-Match` + `x-amz-if-match-last-modified-time` + `x-amz-if-match-size`.
+- `not_modified_response`, `precondition_failed_response`, `precondition_failed_head_response` for the response side. The HEAD variant uses `head_error_response` so 412 HEAD responses stay bodyless, locking in the issue #3 protection across the conditional surface.
+
+Wired into every operation listed in the coverage trailer:
+
+| Operation | Honoured headers | Failure modes |
+|---|---|---|
+| `PutObject` ( refactored ) | `If-Match`, `If-None-Match` | 412 |
+| `CompleteMultipartUpload` | `If-Match`, `If-None-Match` ( destination ) | 412 before any blob assembly |
+| `CopyObject` | dest `If-Match`/`If-None-Match`; source `x-amz-copy-source-if-{match,none-match,modified-since,unmodified-since}` | 412 ( no destination written on failure ) |
+| `DeleteObject` | `If-Match`, `x-amz-if-match-last-modified-time`, `x-amz-if-match-size` ( AND'd ) | 412; absent-key still idempotent 204 |
+| `GetObject` | full RFC 7232 quartet | 412 / 304 per RFC ordering |
+| `HeadObject` | full RFC 7232 quartet | 412 / 304, both bodyless |
+| `RenameObject` | dest standard + source `x-amz-rename-source-if-*` | 412 ( 304-shape treated as 412 since write op ) |
+
+`DeleteObject`'s conditional-delete surface ( `x-amz-if-match-last-modified-time` + `x-amz-if-match-size` ) and `RenameObject`'s full surface were genuine finds — I had only internalised CompleteMultipartUpload + CopyObject + GetObject + HeadObject from reading AWS docs by hand. The extractor's coverage line caught the other two purely from the Smithy model.
+
+### Gate
+
+`./.agents/bin/cargo.sh fmt -p winterbaume-s3` clean; `clippy -p winterbaume-s3 --all-targets --all-features -- -D warnings` clean; **88 integration tests** ( 10 new conditional tests across all six operations plus the two original issue-#3/#4 regressions ), **7 scenario tests**, **4 smithy-mocks tests**, **3 lib-level unit tests** all green. Verbatim repros for #3 and #4 from the GitHub bug reports run end-to-end and report `PASS`.
+
+### Followups not done
+
+- The `HTTP Bindings` section was retro-fitted into `s3.md` but not into the other ~330 existing service dossiers. The SKILL.md merge guidance now tells future invocations of `service-dossier` to add it on next refresh; no bulk rewrite was attempted.
+- `PutObject`'s "modelled errors are a lower bound" insight applies to every write operation in S3 ( conditional writes can legally emit 412/409 even when the error isn't in `errors:` ) and probably to every other service with conditional or quota-bound surfaces. Worth a follow-up pass when we touch other services' write paths.
+- Two new feedback memories were saved during this work: `handler-signatures-drop-modelled-fields` and `error-tests-must-assert-typed-variant`. Both apply across services, not just S3.

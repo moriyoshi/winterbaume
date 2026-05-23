@@ -761,6 +761,16 @@ impl S3Service {
                         self.handle_copy_object(&blobs, &state, bucket, key, &request, metadata)
                             .await
                     } else {
+                        let if_match = request
+                            .headers
+                            .get(http::header::IF_MATCH)
+                            .and_then(|v| v.to_str().ok())
+                            .map(|s| s.to_string());
+                        let if_none_match = request
+                            .headers
+                            .get(http::header::IF_NONE_MATCH)
+                            .and_then(|v| v.to_str().ok())
+                            .map(|s| s.to_string());
                         self.handle_put_object(
                             &blobs,
                             &state,
@@ -769,6 +779,8 @@ impl S3Service {
                             request.body,
                             content_type.as_deref(),
                             metadata,
+                            if_match.as_deref(),
+                            if_none_match.as_deref(),
                         )
                         .await
                     }
@@ -941,7 +953,11 @@ impl S3Service {
                     body: Bytes::new(),
                 }
             }
-            Err(e) => s3_error_response(&e),
+            // S3's HEAD operations document that 4xx responses do not carry a
+            // body. aws-sdk-rust relies on that to resolve typed error variants
+            // (e.g. HeadBucketError::NotFound); a body forces the Unhandled
+            // branch. Drop the body for HEAD errors.
+            Err(e) => head_error_response(&e),
         }
     }
 
@@ -979,10 +995,29 @@ impl S3Service {
         body: Bytes,
         content_type: Option<&str>,
         metadata: Vec<(String, String)>,
+        if_match: Option<&str>,
+        if_none_match: Option<&str>,
     ) -> MockResponse {
         let content_length = body.len() as u64;
         let etag = compute_etag(&body);
         let blob_key = encode_blob_key(bucket_name, key);
+        // Enforce conditional headers before writing the blob, so a rejected
+        // PUT does not leave an orphan blob version behind.
+        if if_match.is_some() || if_none_match.is_some() {
+            let current_etag: Option<String> = {
+                let state = state.read().await;
+                state
+                    .get_object(bucket_name, key, None)
+                    .ok()
+                    .map(|obj| obj.etag.clone())
+            };
+            if matches!(
+                check_write_preconditions(if_match, if_none_match, current_etag.as_deref()),
+                PreconditionOutcome::PreconditionFailed
+            ) {
+                return precondition_failed_response(bucket_name, key);
+            }
+        }
         // When versioning is off, remember the old blob_version_id so we can clean it up.
         let old_blob_version_id: Option<String> = {
             let state = state.read().await;
@@ -1077,7 +1112,6 @@ impl S3Service {
                 Err(e) => Err(e),
             }
         };
-        let _ = request; // currently unused beyond version_id extraction via query
         match obj_info {
             Ok((
                 blob_key,
@@ -1089,6 +1123,43 @@ impl S3Service {
                 metadata,
                 vid,
             )) => {
+                // RFC 7232 conditional read. `If-Match` / `If-Unmodified-Since`
+                // fail with 412; `If-None-Match` / `If-Modified-Since` short-
+                // circuit to 304 Not Modified (the common cache-validation path).
+                let if_match = request
+                    .headers
+                    .get(http::header::IF_MATCH)
+                    .and_then(|v| v.to_str().ok());
+                let if_none_match = request
+                    .headers
+                    .get(http::header::IF_NONE_MATCH)
+                    .and_then(|v| v.to_str().ok());
+                let if_modified_since = request
+                    .headers
+                    .get(http::header::IF_MODIFIED_SINCE)
+                    .and_then(|v| v.to_str().ok())
+                    .and_then(parse_http_date);
+                let if_unmodified_since = request
+                    .headers
+                    .get(http::header::IF_UNMODIFIED_SINCE)
+                    .and_then(|v| v.to_str().ok())
+                    .and_then(parse_http_date);
+                match check_read_preconditions(
+                    if_match,
+                    if_none_match,
+                    if_modified_since,
+                    if_unmodified_since,
+                    &etag,
+                    last_modified,
+                ) {
+                    PreconditionOutcome::PreconditionFailed => {
+                        return precondition_failed_response(bucket_name, key);
+                    }
+                    PreconditionOutcome::NotModified => {
+                        return not_modified_response(&etag, last_modified);
+                    }
+                    PreconditionOutcome::Pass => {}
+                }
                 let body = {
                     let mut reader =
                         match blobs.get_version_reader(&blob_key, &blob_version_id).await {
@@ -1153,12 +1224,49 @@ impl S3Service {
         bucket_name: &str,
         key: &str,
         query: &std::collections::HashMap<String, String>,
-        _request: &MockRequest,
+        request: &MockRequest,
     ) -> MockResponse {
         let version_id = query.get("versionId").map(String::as_str);
         let state = state.read().await;
         match state.head_object(bucket_name, key, version_id) {
             Ok(obj) => {
+                // RFC 7232 conditional read (same surface as GetObject). HEAD
+                // responses must not carry a body on 4xx — use the bodyless
+                // helper so aws-sdk-rust can resolve the typed error variant.
+                let if_match = request
+                    .headers
+                    .get(http::header::IF_MATCH)
+                    .and_then(|v| v.to_str().ok());
+                let if_none_match = request
+                    .headers
+                    .get(http::header::IF_NONE_MATCH)
+                    .and_then(|v| v.to_str().ok());
+                let if_modified_since = request
+                    .headers
+                    .get(http::header::IF_MODIFIED_SINCE)
+                    .and_then(|v| v.to_str().ok())
+                    .and_then(parse_http_date);
+                let if_unmodified_since = request
+                    .headers
+                    .get(http::header::IF_UNMODIFIED_SINCE)
+                    .and_then(|v| v.to_str().ok())
+                    .and_then(parse_http_date);
+                match check_read_preconditions(
+                    if_match,
+                    if_none_match,
+                    if_modified_since,
+                    if_unmodified_since,
+                    &obj.etag,
+                    obj.last_modified,
+                ) {
+                    PreconditionOutcome::PreconditionFailed => {
+                        return precondition_failed_head_response(bucket_name, key);
+                    }
+                    PreconditionOutcome::NotModified => {
+                        return not_modified_response(&obj.etag, obj.last_modified);
+                    }
+                    PreconditionOutcome::Pass => {}
+                }
                 let mut headers = http::HeaderMap::new();
                 headers.insert("ETag", obj.etag.parse().unwrap());
                 headers.insert(
@@ -1186,7 +1294,8 @@ impl S3Service {
                     body: Bytes::new(),
                 }
             }
-            Err(e) => s3_error_response(&e),
+            // See handle_head_bucket: HEAD responses must not carry a body.
+            Err(e) => head_error_response(&e),
         }
     }
 
@@ -1197,10 +1306,58 @@ impl S3Service {
         bucket_name: &str,
         key: &str,
         query: &std::collections::HashMap<String, String>,
-        _request: &MockRequest,
+        request: &MockRequest,
     ) -> MockResponse {
         use crate::state::DeleteObjectOutcome;
         let version_id = query.get("versionId").map(String::as_str);
+
+        // Conditional delete: `If-Match` (ETag), `x-amz-if-match-last-modified-time`,
+        // `x-amz-if-match-size`. All supplied predicates must hold; otherwise 412.
+        // S3's conditional-delete docs note that when the key does not exist the
+        // operation is still idempotent — there is nothing to compare against,
+        // so the predicates evaluate as failed only when the key is present.
+        let if_match = request
+            .headers
+            .get(http::header::IF_MATCH)
+            .and_then(|v| v.to_str().ok());
+        let if_match_last_modified = request
+            .headers
+            .get("x-amz-if-match-last-modified-time")
+            .and_then(|v| v.to_str().ok())
+            .and_then(parse_http_date);
+        let if_match_size = request
+            .headers
+            .get("x-amz-if-match-size")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|s| s.parse::<u64>().ok());
+        if if_match.is_some() || if_match_last_modified.is_some() || if_match_size.is_some() {
+            let stored = {
+                let state = state.read().await;
+                state
+                    .get_object(bucket_name, key, version_id)
+                    .ok()
+                    .map(|obj| (obj.etag.clone(), obj.last_modified, obj.content_length))
+            };
+            if let Some((etag, last_modified, size)) = stored {
+                if matches!(
+                    check_delete_preconditions(
+                        if_match,
+                        if_match_last_modified,
+                        if_match_size,
+                        &etag,
+                        last_modified,
+                        size,
+                    ),
+                    PreconditionOutcome::PreconditionFailed
+                ) {
+                    return precondition_failed_response(bucket_name, key);
+                }
+            }
+            // If the key is absent, conditional delete still treats the
+            // request as idempotent (204 with no headers), matching S3's
+            // documented idempotency for DeleteObject.
+        }
+
         let delete_result = {
             let mut state = state.write().await;
             state.delete_object(bucket_name, key, version_id)
@@ -1293,6 +1450,7 @@ impl S3Service {
             source_content_length,
             source_content_type,
             source_metadata,
+            source_last_modified,
         ) = {
             let state = state.read().await;
             match state.get_object(source_bucket, source_key, None) {
@@ -1303,10 +1461,82 @@ impl S3Service {
                     object.content_length,
                     object.content_type.clone(),
                     object.metadata.clone(),
+                    object.last_modified,
                 ),
                 Err(err) => return s3_error_response(&err),
             }
         };
+
+        // Source-side conditional headers. CopyObject models
+        // `x-amz-copy-source-if-match`, `x-amz-copy-source-if-none-match`,
+        // `x-amz-copy-source-if-modified-since`, and
+        // `x-amz-copy-source-if-unmodified-since` against the source object.
+        let copy_source_if_match = request
+            .headers
+            .get("x-amz-copy-source-if-match")
+            .and_then(|v| v.to_str().ok());
+        let copy_source_if_none_match = request
+            .headers
+            .get("x-amz-copy-source-if-none-match")
+            .and_then(|v| v.to_str().ok());
+        let copy_source_if_modified_since = request
+            .headers
+            .get("x-amz-copy-source-if-modified-since")
+            .and_then(|v| v.to_str().ok())
+            .and_then(parse_http_date);
+        let copy_source_if_unmodified_since = request
+            .headers
+            .get("x-amz-copy-source-if-unmodified-since")
+            .and_then(|v| v.to_str().ok())
+            .and_then(parse_http_date);
+        if copy_source_if_match.is_some()
+            || copy_source_if_none_match.is_some()
+            || copy_source_if_modified_since.is_some()
+            || copy_source_if_unmodified_since.is_some()
+        {
+            // Source-side outcomes: per AWS docs, both 412 and 304-equivalent
+            // failure modes resolve to 412 PreconditionFailed at the API
+            // boundary, because CopyObject is a write operation and 304 has
+            // no semantic role here.
+            if !matches!(
+                check_read_preconditions(
+                    copy_source_if_match,
+                    copy_source_if_none_match,
+                    copy_source_if_modified_since,
+                    copy_source_if_unmodified_since,
+                    &source_etag,
+                    source_last_modified,
+                ),
+                PreconditionOutcome::Pass
+            ) {
+                return precondition_failed_response(bucket_name, key);
+            }
+        }
+
+        // Destination-side conditional headers (`If-Match`, `If-None-Match`).
+        let dest_if_match = request
+            .headers
+            .get(http::header::IF_MATCH)
+            .and_then(|v| v.to_str().ok());
+        let dest_if_none_match = request
+            .headers
+            .get(http::header::IF_NONE_MATCH)
+            .and_then(|v| v.to_str().ok());
+        if dest_if_match.is_some() || dest_if_none_match.is_some() {
+            let dest_etag: Option<String> = {
+                let state = state.read().await;
+                state
+                    .get_object(bucket_name, key, None)
+                    .ok()
+                    .map(|obj| obj.etag.clone())
+            };
+            if matches!(
+                check_write_preconditions(dest_if_match, dest_if_none_match, dest_etag.as_deref()),
+                PreconditionOutcome::PreconditionFailed
+            ) {
+                return precondition_failed_response(bucket_name, key);
+            }
+        }
 
         let dest_blob_key = encode_blob_key(bucket_name, key);
         let dest_old_blob_version_id: Option<String> = {
@@ -1638,6 +1868,34 @@ impl S3Service {
                 Err(err) => return s3_error_response(&err),
             }
         };
+
+        // Step 1b: enforce conditional headers on the destination key before
+        // doing any blob assembly. CompleteMultipartUpload models `If-Match` /
+        // `If-None-Match` on the destination just like PutObject; the docs
+        // define this as the atomic-create primitive for large objects.
+        let if_match = request
+            .headers
+            .get(http::header::IF_MATCH)
+            .and_then(|v| v.to_str().ok());
+        let if_none_match = request
+            .headers
+            .get(http::header::IF_NONE_MATCH)
+            .and_then(|v| v.to_str().ok());
+        if if_match.is_some() || if_none_match.is_some() {
+            let current_etag: Option<String> = {
+                let state = state.read().await;
+                state
+                    .get_object(bucket_name, key, None)
+                    .ok()
+                    .map(|obj| obj.etag.clone())
+            };
+            if matches!(
+                check_write_preconditions(if_match, if_none_match, current_etag.as_deref()),
+                PreconditionOutcome::PreconditionFailed
+            ) {
+                return precondition_failed_response(bucket_name, key);
+            }
+        }
 
         // Step 2: compute ETag and content-length from part metadata (no blob reads needed).
         // Real S3 multipart ETag = "{md5(concat(part_etag_bytes))}-{num_parts}".
@@ -4183,11 +4441,58 @@ impl S3Service {
         } else {
             rename_source
         };
+
+        // Conditional headers. Destination uses standard names (`If-Match`,
+        // `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`); source
+        // uses `x-amz-rename-source-if-*` prefixed variants. RenameObject is
+        // a write operation, so any non-Pass outcome — including the 304
+        // shape (`If-None-Match` matches or `If-Modified-Since` not-modified)
+        // — resolves to 412 PreconditionFailed at the API boundary.
+        let src_if_match = request
+            .headers
+            .get("x-amz-rename-source-if-match")
+            .and_then(|v| v.to_str().ok());
+        let src_if_none_match = request
+            .headers
+            .get("x-amz-rename-source-if-none-match")
+            .and_then(|v| v.to_str().ok());
+        let src_if_modified_since = request
+            .headers
+            .get("x-amz-rename-source-if-modified-since")
+            .and_then(|v| v.to_str().ok())
+            .and_then(parse_http_date);
+        let src_if_unmodified_since = request
+            .headers
+            .get("x-amz-rename-source-if-unmodified-since")
+            .and_then(|v| v.to_str().ok())
+            .and_then(parse_http_date);
+        let dst_if_match = request
+            .headers
+            .get(http::header::IF_MATCH)
+            .and_then(|v| v.to_str().ok());
+        let dst_if_none_match = request
+            .headers
+            .get(http::header::IF_NONE_MATCH)
+            .and_then(|v| v.to_str().ok());
+        let dst_if_modified_since = request
+            .headers
+            .get(http::header::IF_MODIFIED_SINCE)
+            .and_then(|v| v.to_str().ok())
+            .and_then(parse_http_date);
+        let dst_if_unmodified_since = request
+            .headers
+            .get(http::header::IF_UNMODIFIED_SINCE)
+            .and_then(|v| v.to_str().ok())
+            .and_then(parse_http_date);
+
         let mut state = state.write().await;
         let Some(bucket) = state.buckets.get_mut(bucket_name) else {
             return s3_error_response(&no_such_bucket(bucket_name));
         };
-        let obj = match bucket.objects.remove(&source_key) {
+
+        // Source-side conditional check — read the object without removing it
+        // yet, so a precondition failure leaves the original in place.
+        let source_obj = match bucket.objects.get(&source_key) {
             Some(obj) => obj,
             None => {
                 return s3_error_response(&S3Error::NoSuchKey {
@@ -4195,6 +4500,62 @@ impl S3Service {
                 });
             }
         };
+        if src_if_match.is_some()
+            || src_if_none_match.is_some()
+            || src_if_modified_since.is_some()
+            || src_if_unmodified_since.is_some()
+        {
+            if !matches!(
+                check_read_preconditions(
+                    src_if_match,
+                    src_if_none_match,
+                    src_if_modified_since,
+                    src_if_unmodified_since,
+                    &source_obj.etag,
+                    source_obj.last_modified,
+                ),
+                PreconditionOutcome::Pass
+            ) {
+                return precondition_failed_response(bucket_name, key);
+            }
+        }
+
+        // Destination-side conditional check against the current destination
+        // (or its absence). Treat the 304 shape as 412 since rename is a write.
+        if dst_if_match.is_some()
+            || dst_if_none_match.is_some()
+            || dst_if_modified_since.is_some()
+            || dst_if_unmodified_since.is_some()
+        {
+            let dst_meta = bucket
+                .objects
+                .get(key)
+                .map(|obj| (obj.etag.clone(), obj.last_modified));
+            let dst_outcome = if let Some((etag, last_modified)) = dst_meta {
+                check_read_preconditions(
+                    dst_if_match,
+                    dst_if_none_match,
+                    dst_if_modified_since,
+                    dst_if_unmodified_since,
+                    &etag,
+                    last_modified,
+                )
+            } else {
+                // Destination absent: `If-Match` / `If-Unmodified-Since`
+                // cannot be satisfied (the resource does not exist);
+                // `If-None-Match` / `If-Modified-Since` trivially pass.
+                if dst_if_match.is_some() || dst_if_unmodified_since.is_some() {
+                    PreconditionOutcome::PreconditionFailed
+                } else {
+                    PreconditionOutcome::Pass
+                }
+            };
+            if !matches!(dst_outcome, PreconditionOutcome::Pass) {
+                return precondition_failed_response(bucket_name, key);
+            }
+        }
+
+        let obj = bucket.objects.remove(&source_key).expect("checked above");
         let mut renamed = obj;
         renamed.key = key.to_string();
         bucket.objects.insert(key.to_string(), renamed);
@@ -4550,6 +4911,7 @@ fn s3_error_response(err: &S3Error) -> MockResponse {
         S3Error::NoSuchMetadataTableConfiguration { .. } => (404, "NoSuchConfiguration"),
         S3Error::NoSuchMetadataConfiguration { .. } => (404, "NoSuchConfiguration"),
         S3Error::MissingRenameSourceHeader { .. } => (400, "InvalidArgument"),
+        S3Error::PreconditionFailed { .. } => (412, "PreconditionFailed"),
     };
     let body = format!(
         r#"<?xml version="1.0" encoding="UTF-8"?>
@@ -4567,9 +4929,235 @@ fn s3_error_response(err: &S3Error) -> MockResponse {
     MockResponse::xml(status, body)
 }
 
+/// Test an S3 conditional-write header value against a stored object ETag.
+///
+/// Returns true if `condition` matches `stored_etag`. The condition value
+/// follows RFC 7232 syntax used by S3: a comma-separated list of double-quoted
+/// ETags, or the wildcard `*` which matches when an object is present.
+fn etag_matches(condition: &str, stored_etag: &str) -> bool {
+    for token in condition.split(',') {
+        let token = token.trim();
+        if token == "*" {
+            return true;
+        }
+        // Strip weak validator prefix and quotes for both sides before comparing.
+        if normalize_etag(token) == normalize_etag(stored_etag) {
+            return true;
+        }
+    }
+    false
+}
+
+/// Strip the optional `W/` weak validator marker and a single layer of
+/// matched surrounding quotes. RFC 7232 places `W/` outside the quotes
+/// (`W/"abc"`), but be defensive against the inside-quotes form (`"W/abc"`)
+/// as well. Quotes are only peeled when both ends carry one, so a stray
+/// trailing or leading quote is not silently absorbed.
+fn normalize_etag(s: &str) -> &str {
+    let s = s.trim();
+    let s = s.strip_prefix("W/").unwrap_or(s);
+    let s = match s
+        .strip_prefix('"')
+        .and_then(|inner| inner.strip_suffix('"'))
+    {
+        Some(inner) => inner,
+        None => s,
+    };
+    s.strip_prefix("W/").unwrap_or(s)
+}
+
+/// Outcome of evaluating RFC 7232 / S3 conditional headers against a stored
+/// object's metadata. `NotModified` only applies to safe methods (GET/HEAD).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum PreconditionOutcome {
+    Pass,
+    PreconditionFailed,
+    NotModified,
+}
+
+/// Parse an HTTP date header. S3 ships timestamps as RFC 7231 IMF-fixdate
+/// (`Sun, 06 Nov 1994 08:49:37 GMT`) and the AWS SDKs do the same on the wire;
+/// fall back to RFC 3339 for tolerance.
+fn parse_http_date(s: &str) -> Option<chrono::DateTime<chrono::Utc>> {
+    let s = s.trim();
+    if let Ok(dt) = chrono::DateTime::parse_from_rfc2822(s) {
+        return Some(dt.with_timezone(&chrono::Utc));
+    }
+    if let Ok(dt) = chrono::DateTime::parse_from_rfc3339(s) {
+        return Some(dt.with_timezone(&chrono::Utc));
+    }
+    None
+}
+
+/// Conditional check for write operations (PutObject, CompleteMultipartUpload,
+/// CopyObject destination, RenameObject destination). Per the S3 docs, only
+/// `If-Match` and `If-None-Match` apply on write inputs.
+///
+/// `current_etag` is the destination object's ETag, or `None` when the key
+/// does not exist.
+fn check_write_preconditions(
+    if_match: Option<&str>,
+    if_none_match: Option<&str>,
+    current_etag: Option<&str>,
+) -> PreconditionOutcome {
+    if let Some(cond) = if_none_match {
+        let matched = current_etag.map(|e| etag_matches(cond, e)).unwrap_or(false);
+        if matched {
+            return PreconditionOutcome::PreconditionFailed;
+        }
+    }
+    if let Some(cond) = if_match {
+        let matched = current_etag.map(|e| etag_matches(cond, e)).unwrap_or(false);
+        if !matched {
+            return PreconditionOutcome::PreconditionFailed;
+        }
+    }
+    PreconditionOutcome::Pass
+}
+
+/// Conditional check for safe-method read operations (GetObject, HeadObject,
+/// CopyObject source side). Per RFC 7232, `If-Match` overrides
+/// `If-Unmodified-Since` and `If-None-Match` overrides `If-Modified-Since`.
+/// `NotModified` is the 304 case; `PreconditionFailed` is the 412 case.
+fn check_read_preconditions(
+    if_match: Option<&str>,
+    if_none_match: Option<&str>,
+    if_modified_since: Option<chrono::DateTime<chrono::Utc>>,
+    if_unmodified_since: Option<chrono::DateTime<chrono::Utc>>,
+    stored_etag: &str,
+    stored_last_modified: chrono::DateTime<chrono::Utc>,
+) -> PreconditionOutcome {
+    if let Some(cond) = if_match {
+        if !etag_matches(cond, stored_etag) {
+            return PreconditionOutcome::PreconditionFailed;
+        }
+    } else if let Some(threshold) = if_unmodified_since {
+        if stored_last_modified.timestamp() > threshold.timestamp() {
+            return PreconditionOutcome::PreconditionFailed;
+        }
+    }
+    if let Some(cond) = if_none_match {
+        if etag_matches(cond, stored_etag) {
+            return PreconditionOutcome::NotModified;
+        }
+    } else if let Some(threshold) = if_modified_since {
+        if stored_last_modified.timestamp() <= threshold.timestamp() {
+            return PreconditionOutcome::NotModified;
+        }
+    }
+    PreconditionOutcome::Pass
+}
+
+/// Conditional-delete check (DeleteObject). All supplied predicates must hold;
+/// 412 on any mismatch. Modelled headers are `If-Match`,
+/// `x-amz-if-match-last-modified-time`, and `x-amz-if-match-size`.
+fn check_delete_preconditions(
+    if_match: Option<&str>,
+    if_match_last_modified: Option<chrono::DateTime<chrono::Utc>>,
+    if_match_size: Option<u64>,
+    stored_etag: &str,
+    stored_last_modified: chrono::DateTime<chrono::Utc>,
+    stored_size: u64,
+) -> PreconditionOutcome {
+    if let Some(cond) = if_match {
+        if !etag_matches(cond, stored_etag) {
+            return PreconditionOutcome::PreconditionFailed;
+        }
+    }
+    if let Some(threshold) = if_match_last_modified {
+        if stored_last_modified.timestamp() != threshold.timestamp() {
+            return PreconditionOutcome::PreconditionFailed;
+        }
+    }
+    if let Some(size) = if_match_size {
+        if stored_size != size {
+            return PreconditionOutcome::PreconditionFailed;
+        }
+    }
+    PreconditionOutcome::Pass
+}
+
+/// Build a bodyless 304 Not Modified response. Per RFC 7232 §4.1 the response
+/// SHOULD include any ETag and Last-Modified headers it would have included
+/// on a successful 200.
+fn not_modified_response(
+    stored_etag: &str,
+    stored_last_modified: chrono::DateTime<chrono::Utc>,
+) -> MockResponse {
+    let mut headers = http::HeaderMap::new();
+    headers.insert("ETag", stored_etag.parse().unwrap());
+    headers.insert(
+        "Last-Modified",
+        stored_last_modified
+            .format("%a, %d %b %Y %H:%M:%S GMT")
+            .to_string()
+            .parse()
+            .unwrap(),
+    );
+    MockResponse {
+        status: 304,
+        headers,
+        body: Bytes::new(),
+    }
+}
+
+/// Build a 412 Precondition Failed response with the conventional resource path.
+fn precondition_failed_response(bucket_name: &str, key: &str) -> MockResponse {
+    s3_error_response(&S3Error::PreconditionFailed {
+        resource: format!("/{bucket_name}/{key}"),
+    })
+}
+
+/// Same shape as `precondition_failed_response`, but emits a bodyless
+/// response for HEAD operations (where a body forces aws-sdk-rust into the
+/// Unhandled error branch — see GitHub issue #3).
+fn precondition_failed_head_response(bucket_name: &str, key: &str) -> MockResponse {
+    head_error_response(&S3Error::PreconditionFailed {
+        resource: format!("/{bucket_name}/{key}"),
+    })
+}
+
+/// Error response for HEAD operations. Same status code as `s3_error_response`
+/// would have produced, but the body is omitted so the SDK can resolve typed
+/// error variants (e.g. `HeadBucketError::NotFound`). See the S3 docs for
+/// `HeadBucket` and `HeadObject`: "A message body isn't included" on 4xx.
+fn head_error_response(err: &S3Error) -> MockResponse {
+    let full = s3_error_response(err);
+    MockResponse {
+        status: full.status,
+        headers: full.headers,
+        body: Bytes::new(),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn normalize_etag_strips_quotes_and_weak_marker() {
+        assert_eq!(normalize_etag("\"abc\""), "abc");
+        assert_eq!(normalize_etag("W/\"abc\""), "abc");
+        assert_eq!(normalize_etag("abc"), "abc");
+        // Defensive: weak marker accidentally wrapped inside the quotes.
+        assert_eq!(normalize_etag("\"W/abc\""), "abc");
+        // Asymmetric quoting must not be silently peeled.
+        assert_eq!(normalize_etag("\"abc"), "\"abc");
+        assert_eq!(normalize_etag("abc\""), "abc\"");
+        // Empty quoted ETag.
+        assert_eq!(normalize_etag("\"\""), "");
+    }
+
+    #[test]
+    fn etag_matches_wildcard_and_quoted_values() {
+        assert!(etag_matches("*", "\"abc\""));
+        assert!(etag_matches("\"abc\"", "\"abc\""));
+        assert!(etag_matches("W/\"abc\"", "\"abc\""));
+        assert!(!etag_matches("\"abc\"", "\"xyz\""));
+        // Comma-separated list, any match wins.
+        assert!(etag_matches("\"zzz\", \"abc\"", "\"abc\""));
+        assert!(!etag_matches("\"zzz\", \"yyy\"", "\"abc\""));
+    }
 
     #[test]
     fn test_parse_vhost_style() {

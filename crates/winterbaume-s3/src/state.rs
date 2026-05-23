@@ -209,6 +209,9 @@ pub enum S3Error {
 
     #[error("Missing x-amz-rename-source header.")]
     MissingRenameSourceHeader { resource: String },
+
+    #[error("At least one of the pre-conditions you specified did not hold.")]
+    PreconditionFailed { resource: String },
 }
 
 impl S3Error {
@@ -243,7 +246,8 @@ impl S3Error {
             | S3Error::NoSuchMetricsConfiguration { resource }
             | S3Error::NoSuchMetadataTableConfiguration { resource }
             | S3Error::NoSuchMetadataConfiguration { resource }
-            | S3Error::MissingRenameSourceHeader { resource } => resource.as_str(),
+            | S3Error::MissingRenameSourceHeader { resource }
+            | S3Error::PreconditionFailed { resource } => resource.as_str(),
             S3Error::InvalidPart { resource, .. }
             | S3Error::MethodNotAllowed { resource, .. }
             | S3Error::InternalError { resource, .. }

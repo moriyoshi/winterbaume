@@ -111,11 +111,49 @@ def family_name(operation_name: str) -> str:
 def shape_members(shape: dict[str, Any], max_members: int = 12) -> str:
     members = list(shape.get("members", {}).keys())
     if not members:
-        return "-"
+        # Empty member set carries documented meaning for error shapes (the
+        # HTTP response carries no body — important for HEAD operations) and
+        # for marker structures. Render it explicitly so readers do not confuse
+        # "model says zero members" with "extractor truncated".
+        return "**empty (no members)**"
     if len(members) > max_members:
         shown = ", ".join(members[:max_members])
         return f"{shown}, ... (+{len(members) - max_members})"
     return ", ".join(members)
+
+
+def http_input_bindings(input_shape: dict[str, Any]) -> dict[str, list[str]]:
+    """Return the input shape's HTTP transport bindings, grouped by trait.
+
+    Smithy models the wire location of every input member through traits such
+    as `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, and `@httpPayload`.
+    These traits define optional members that the operation matrix's
+    "Required input" column hides — including the entire conditional-write
+    surface (`If-Match`, `If-None-Match`) and `x-amz-*` modifier headers. The
+    extractor must surface them so dossier readers can plumb them into hand-
+    written handlers.
+    """
+    bindings: dict[str, list[str]] = {
+        "header": [],
+        "query": [],
+        "prefix_headers": [],
+        "payload": [],
+        "uri_label": [],
+    }
+    for name, member in input_shape.get("members", {}).items():
+        traits = member.get("traits", {})
+        if (value := traits.get("smithy.api#httpHeader")) is not None:
+            bindings["header"].append(f"{name} -> {value}")
+        if (value := traits.get("smithy.api#httpQuery")) is not None:
+            bindings["query"].append(f"{name} -> {value}")
+        if "smithy.api#httpPrefixHeaders" in traits:
+            value = traits["smithy.api#httpPrefixHeaders"]
+            bindings["prefix_headers"].append(f"{name} -> {value}*")
+        if "smithy.api#httpPayload" in traits:
+            bindings["payload"].append(name)
+        if "smithy.api#httpLabel" in traits:
+            bindings["uri_label"].append(name)
+    return bindings
 
 
 def main() -> None:
@@ -172,6 +210,7 @@ def main() -> None:
                 "output": short_name(output_target) if output_target else "Unit",
                 "errors": errors,
                 "doc": clean_doc(operation),
+                "bindings": http_input_bindings(input_shape),
             }
         )
 
@@ -195,6 +234,7 @@ def main() -> None:
                 "Resource Model",
                 "Operation Groups",
                 "Operation Detail Matrix",
+                "HTTP Bindings",
                 "Important Shapes",
                 "Research Checklist for Parity Work",
             }
@@ -343,6 +383,64 @@ def main() -> None:
             )
         )
     print()
+
+    print("## HTTP Bindings")
+    print()
+    print(
+        "Per-operation input members that bind to HTTP transport surfaces. "
+        "Optional members are easy to miss because they do not appear in the "
+        "operation matrix's Required input column. RFC 7232 conditional "
+        "headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, "
+        "`If-Unmodified-Since`) and service-specific modifier headers "
+        "(`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each "
+        "binding as honoured, intentionally unsupported, or ignored-with-rationale."
+    )
+    print()
+    bindings_rows = [
+        row
+        for row in operation_rows
+        if any(row["bindings"][key] for key in ("header", "query", "prefix_headers", "payload"))
+    ]
+    if bindings_rows:
+        print("| Operation | Header inputs | Query inputs | Prefix headers | Payload |")
+        print("|---|---|---|---|---|")
+        for row in bindings_rows:
+            print(
+                "| `{name}` | {header} | {query} | {prefix} | {payload} |".format(
+                    name=row["name"],
+                    header=", ".join(f"`{entry}`" for entry in row["bindings"]["header"]) or "-",
+                    query=", ".join(f"`{entry}`" for entry in row["bindings"]["query"]) or "-",
+                    prefix=", ".join(f"`{entry}`" for entry in row["bindings"]["prefix_headers"]) or "-",
+                    payload=", ".join(f"`{entry}`" for entry in row["bindings"]["payload"]) or "-",
+                )
+            )
+    else:
+        print(
+            "_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or "
+            "`@httpPayload` input members are modelled for this service "
+            "(typical for `awsJson1_*` protocols, where all input flows "
+            "through the JSON body)._"
+        )
+    print()
+    conditional_ops = [
+        row["name"]
+        for row in operation_rows
+        if any(
+            "If-Match" in entry or "If-None-Match" in entry or "If-Modified" in entry or "If-Unmodified" in entry
+            for entry in row["bindings"]["header"]
+        )
+    ]
+    if conditional_ops:
+        print(
+            "**Conditional-write/read coverage:** the following operations "
+            "model RFC 7232 conditional headers and therefore must enforce "
+            "412 PreconditionFailed (and may emit 409 ConditionalRequestConflict "
+            "on races) even though those error codes are typically not in the "
+            "modelled `errors:` list: "
+            + ", ".join(f"`{name}`" for name in conditional_ops)
+            + "."
+        )
+        print()
 
     important: dict[str, dict[str, Any]] = {}
     for shape_id, shape in shapes.items():
