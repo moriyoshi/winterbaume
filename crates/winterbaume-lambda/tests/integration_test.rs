@@ -340,6 +340,208 @@ async fn test_invoke_nonexistent_function_fails() {
     assert!(result.is_err());
 }
 
+// ========== Invoke Qualifier resolution tests ==========
+//
+// AWS Invoke / InvokeWithResponseStream model an optional Qualifier that
+// must resolve to a known version or alias.  Pre-fix the handler dropped
+// the field, executed against $LATEST regardless, and hard-coded
+// X-Amz-Executed-Version: $LATEST -- so a request for a published version
+// that didn't exist returned 200 with no diagnostic, defeating any
+// version-pinning the caller had asked for.
+
+async fn make_invoke_function(client: &aws_sdk_lambda::Client, name: &str) {
+    client
+        .create_function()
+        .function_name(name)
+        .runtime(aws_sdk_lambda::types::Runtime::Python312)
+        .handler("index.handler")
+        .role("arn:aws:iam::123456789012:role/lambda-role")
+        .code(
+            aws_sdk_lambda::types::FunctionCode::builder()
+                .zip_file(Blob::new(vec![0u8; 10]))
+                .build(),
+        )
+        .send()
+        .await
+        .unwrap();
+}
+
+#[tokio::test]
+async fn test_invoke_with_latest_qualifier_echoes_latest() {
+    let client = make_lambda_client().await;
+    make_invoke_function(&client, "invoke-q-latest").await;
+
+    let resp = client
+        .invoke()
+        .function_name("invoke-q-latest")
+        .qualifier("$LATEST")
+        .send()
+        .await
+        .expect("Invoke with $LATEST should succeed");
+
+    assert_eq!(resp.status_code(), 200);
+    assert_eq!(resp.executed_version(), Some("$LATEST"));
+}
+
+#[tokio::test]
+async fn test_invoke_with_published_version_qualifier_resolves() {
+    let client = make_lambda_client().await;
+    make_invoke_function(&client, "invoke-q-published").await;
+
+    let publish = client
+        .publish_version()
+        .function_name("invoke-q-published")
+        .send()
+        .await
+        .unwrap();
+    let version = publish.version().unwrap().to_string();
+
+    let resp = client
+        .invoke()
+        .function_name("invoke-q-published")
+        .qualifier(&version)
+        .send()
+        .await
+        .expect("Invoke with a known published version should succeed");
+
+    assert_eq!(resp.status_code(), 200);
+    assert_eq!(
+        resp.executed_version(),
+        Some(version.as_str()),
+        "X-Amz-Executed-Version must echo the resolved version, not the hard-coded $LATEST",
+    );
+}
+
+#[tokio::test]
+async fn test_invoke_with_unknown_numeric_qualifier_is_rejected() {
+    use aws_sdk_lambda::operation::invoke::InvokeError;
+
+    let client = make_lambda_client().await;
+    make_invoke_function(&client, "invoke-q-bad-version").await;
+
+    let err = client
+        .invoke()
+        .function_name("invoke-q-bad-version")
+        .qualifier("42")
+        .send()
+        .await
+        .expect_err("Invoke against unpublished version 42 must be rejected");
+
+    let svc_err = err.into_service_error();
+    assert!(
+        matches!(svc_err, InvokeError::ResourceNotFoundException(_)),
+        "expected ResourceNotFoundException, got {svc_err:?}",
+    );
+}
+
+#[tokio::test]
+async fn test_invoke_with_alias_qualifier_resolves_to_alias_target() {
+    let client = make_lambda_client().await;
+    make_invoke_function(&client, "invoke-q-alias").await;
+
+    let published = client
+        .publish_version()
+        .function_name("invoke-q-alias")
+        .send()
+        .await
+        .unwrap()
+        .version()
+        .unwrap()
+        .to_string();
+
+    client
+        .create_alias()
+        .function_name("invoke-q-alias")
+        .name("prod")
+        .function_version(&published)
+        .send()
+        .await
+        .unwrap();
+
+    let resp = client
+        .invoke()
+        .function_name("invoke-q-alias")
+        .qualifier("prod")
+        .send()
+        .await
+        .expect("Invoke against a known alias should succeed");
+
+    assert_eq!(resp.status_code(), 200);
+    assert_eq!(
+        resp.executed_version(),
+        Some(published.as_str()),
+        "alias-qualified Invoke must echo the alias's target version, not the alias name",
+    );
+}
+
+#[tokio::test]
+async fn test_invoke_with_unknown_alias_qualifier_is_rejected() {
+    use aws_sdk_lambda::operation::invoke::InvokeError;
+
+    let client = make_lambda_client().await;
+    make_invoke_function(&client, "invoke-q-bad-alias").await;
+
+    let err = client
+        .invoke()
+        .function_name("invoke-q-bad-alias")
+        .qualifier("staging")
+        .send()
+        .await
+        .expect_err("Invoke against an unknown alias must be rejected");
+
+    let svc_err = err.into_service_error();
+    assert!(
+        matches!(svc_err, InvokeError::ResourceNotFoundException(_)),
+        "expected ResourceNotFoundException, got {svc_err:?}",
+    );
+}
+
+#[tokio::test]
+async fn test_invoke_with_response_stream_qualifier_is_honoured() {
+    use aws_sdk_lambda::operation::invoke_with_response_stream::InvokeWithResponseStreamError;
+
+    let client = make_lambda_client().await;
+    make_invoke_function(&client, "invoke-stream-q").await;
+
+    // Happy path: published version echoes in executed_version.
+    let published = client
+        .publish_version()
+        .function_name("invoke-stream-q")
+        .send()
+        .await
+        .unwrap()
+        .version()
+        .unwrap()
+        .to_string();
+
+    let resp = client
+        .invoke_with_response_stream()
+        .function_name("invoke-stream-q")
+        .qualifier(&published)
+        .send()
+        .await
+        .expect("InvokeWithResponseStream with a known version should succeed");
+    assert_eq!(resp.executed_version(), Some(published.as_str()));
+
+    // Failure path: unknown version is rejected.
+    let err = client
+        .invoke_with_response_stream()
+        .function_name("invoke-stream-q")
+        .qualifier("999")
+        .send()
+        .await
+        .expect_err("InvokeWithResponseStream against an unknown version must be rejected");
+
+    let svc_err = err.into_service_error();
+    assert!(
+        matches!(
+            svc_err,
+            InvokeWithResponseStreamError::ResourceNotFoundException(_)
+        ),
+        "expected ResourceNotFoundException, got {svc_err:?}",
+    );
+}
+
 // ==================== Moto parity tests ====================
 
 /// Helper to compute expected CodeSha256 (base64 of SHA-256) for a given byte slice.

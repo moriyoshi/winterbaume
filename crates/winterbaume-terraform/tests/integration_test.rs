@@ -1486,6 +1486,186 @@ async fn test_inject_lambda_permission_bumps_revision_between_statements() {
 }
 
 // ---------------------------------------------------------------------------
+// aws_lambda_invocation qualifier-resolution tests
+//
+// These exercise the validation the converter performs against
+// LambdaService::resolve_qualifier — the same path that the Invoke API uses
+// to map `$LATEST` / numeric versions / alias names to a concrete version.
+// ---------------------------------------------------------------------------
+
+fn lambda_function_resource(name: &str, function_name: &str) -> winterbaume_tfstate::Resource {
+    make_resource(
+        "aws_lambda_function",
+        name,
+        json!({
+            "function_name": function_name,
+            "runtime": "python3.11",
+            "handler": "index.handler",
+            "role": "arn:aws:iam::123456789012:role/lambda-role",
+        }),
+    )
+}
+
+fn lambda_alias_resource(
+    name: &str,
+    function_name: &str,
+    alias_name: &str,
+    function_version: &str,
+) -> winterbaume_tfstate::Resource {
+    make_resource(
+        "aws_lambda_alias",
+        name,
+        json!({
+            "name": alias_name,
+            "function_name": function_name,
+            "function_version": function_version,
+        }),
+    )
+}
+
+#[tokio::test]
+async fn test_inject_lambda_invocation_with_latest_qualifier_succeeds() {
+    use winterbaume_lambda::LambdaService;
+    use winterbaume_terraform::converters::lambda::{
+        AwsLambdaFunctionConverter, AwsLambdaInvocationConverter,
+    };
+
+    let lambda = Arc::new(LambdaService::new());
+    let ctx = default_ctx();
+
+    let mut injector = TerraformInjector::new();
+    injector.register(AwsLambdaFunctionConverter::new(Arc::clone(&lambda)));
+    injector.register(AwsLambdaInvocationConverter::new(Arc::clone(&lambda)));
+
+    let tfstate = make_tfstate(vec![
+        lambda_function_resource("fn", "qual-latest"),
+        make_resource(
+            "aws_lambda_invocation",
+            "inv",
+            json!({
+                "function_name": "qual-latest",
+                "input": "{}",
+                // qualifier omitted -> defaults to $LATEST
+            }),
+        ),
+    ]);
+
+    let report = injector.inject_all(&tfstate, &ctx).await;
+    assert!(report.is_success(), "errors: {:?}", report.errors);
+}
+
+#[tokio::test]
+async fn test_inject_lambda_invocation_with_alias_qualifier_succeeds() {
+    use winterbaume_lambda::LambdaService;
+    use winterbaume_terraform::converters::lambda::{
+        AwsLambdaAliasConverter, AwsLambdaFunctionConverter, AwsLambdaInvocationConverter,
+    };
+
+    let lambda = Arc::new(LambdaService::new());
+    let ctx = default_ctx();
+
+    let mut injector = TerraformInjector::new();
+    injector.register(AwsLambdaFunctionConverter::new(Arc::clone(&lambda)));
+    injector.register(AwsLambdaAliasConverter::new(Arc::clone(&lambda)));
+    injector.register(AwsLambdaInvocationConverter::new(Arc::clone(&lambda)));
+
+    let tfstate = make_tfstate(vec![
+        lambda_function_resource("fn", "qual-alias"),
+        lambda_alias_resource("live", "qual-alias", "live", "$LATEST"),
+        make_resource(
+            "aws_lambda_invocation",
+            "inv",
+            json!({
+                "function_name": "qual-alias",
+                "input": "{}",
+                "qualifier": "live",
+            }),
+        ),
+    ]);
+
+    let report = injector.inject_all(&tfstate, &ctx).await;
+    assert!(report.is_success(), "errors: {:?}", report.errors);
+}
+
+#[tokio::test]
+async fn test_inject_lambda_invocation_with_unknown_alias_is_rejected() {
+    use winterbaume_lambda::LambdaService;
+    use winterbaume_terraform::converters::lambda::{
+        AwsLambdaFunctionConverter, AwsLambdaInvocationConverter,
+    };
+
+    let lambda = Arc::new(LambdaService::new());
+    let ctx = default_ctx();
+
+    let mut injector = TerraformInjector::new();
+    injector.register(AwsLambdaFunctionConverter::new(Arc::clone(&lambda)));
+    injector.register(AwsLambdaInvocationConverter::new(Arc::clone(&lambda)));
+
+    let tfstate = make_tfstate(vec![
+        lambda_function_resource("fn", "qual-bad-alias"),
+        make_resource(
+            "aws_lambda_invocation",
+            "inv",
+            json!({
+                "function_name": "qual-bad-alias",
+                "input": "{}",
+                "qualifier": "ghost",
+            }),
+        ),
+    ]);
+
+    let report = injector.inject_all(&tfstate, &ctx).await;
+    assert!(
+        !report.errors.is_empty(),
+        "expected an error for unknown alias qualifier, got success",
+    );
+    let detail = format!("{:?}", report.errors);
+    assert!(
+        detail.contains("qualifier") && detail.contains("ghost"),
+        "expected error to name the qualifier; got {detail}",
+    );
+}
+
+#[tokio::test]
+async fn test_inject_lambda_invocation_with_unknown_version_is_rejected() {
+    use winterbaume_lambda::LambdaService;
+    use winterbaume_terraform::converters::lambda::{
+        AwsLambdaFunctionConverter, AwsLambdaInvocationConverter,
+    };
+
+    let lambda = Arc::new(LambdaService::new());
+    let ctx = default_ctx();
+
+    let mut injector = TerraformInjector::new();
+    injector.register(AwsLambdaFunctionConverter::new(Arc::clone(&lambda)));
+    injector.register(AwsLambdaInvocationConverter::new(Arc::clone(&lambda)));
+
+    let tfstate = make_tfstate(vec![
+        lambda_function_resource("fn", "qual-bad-version"),
+        make_resource(
+            "aws_lambda_invocation",
+            "inv",
+            json!({
+                "function_name": "qual-bad-version",
+                "input": "{}",
+                "qualifier": "42",
+            }),
+        ),
+    ]);
+
+    let report = injector.inject_all(&tfstate, &ctx).await;
+    assert!(
+        !report.errors.is_empty(),
+        "expected an error for unpublished numeric qualifier",
+    );
+    let detail = format!("{:?}", report.errors);
+    assert!(
+        detail.contains("qualifier") && detail.contains("42"),
+        "expected error to name the qualifier; got {detail}",
+    );
+}
+
+// ---------------------------------------------------------------------------
 // ECS injection tests
 // ---------------------------------------------------------------------------
 

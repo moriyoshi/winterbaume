@@ -37,6 +37,22 @@ impl LambdaService {
     pub fn scopes_with_state(&self) -> Vec<(String, String)> {
         self.state.scopes_with_state()
     }
+
+    /// Resolve an `Invoke` Qualifier against this service's state for the
+    /// given scope. Mirrors [`LambdaState::resolve_qualifier`] but exposed
+    /// publicly so external crates (e.g. `winterbaume-terraform`) can apply
+    /// the same alias/version validation that the Invoke handler now uses.
+    pub async fn resolve_qualifier(
+        &self,
+        account_id: &str,
+        region: &str,
+        function_name: &str,
+        qualifier: Option<&str>,
+    ) -> Result<String, LambdaError> {
+        let state = self.state.get(account_id, region);
+        let guard = state.read().await;
+        guard.resolve_qualifier(function_name, qualifier)
+    }
 }
 
 impl Default for LambdaService {
@@ -1382,12 +1398,12 @@ impl LambdaService {
             Err(e) => return rest_json_error(400, "ValidationException", &e),
         };
         let state = state.read().await;
-        match state.get_function(&input.function_name) {
-            Ok(_func) => {
+        match state.resolve_qualifier(&input.function_name, input.qualifier.as_deref()) {
+            Ok(resolved_version) => {
                 let mut response = MockResponse::rest_json(200, "{}".to_string());
                 response
                     .headers
-                    .insert(X_AMZ_EXECUTED_VERSION, "$LATEST".parse().unwrap());
+                    .insert(X_AMZ_EXECUTED_VERSION, resolved_version.parse().unwrap());
                 response
             }
             Err(e) => lambda_error_response(&e),
@@ -2752,16 +2768,23 @@ impl LambdaService {
                 Err(e) => return rest_json_error(400, "ValidationException", &e),
             };
         let state = state.read().await;
-        match state.get_function(&input.function_name) {
-            Ok(_) => {
+        match state.resolve_qualifier(&input.function_name, input.qualifier.as_deref()) {
+            Ok(resolved_version) => {
                 let resp = model::InvokeWithResponseStreamResponse {
-                    executed_version: Some("$LATEST".to_string()),
+                    executed_version: Some(resolved_version.clone()),
                     response_stream_content_type: Some(
                         "application/vnd.amazon.eventstream".to_string(),
                     ),
                     ..Default::default()
                 };
-                wire::serialize_invoke_with_response_stream_response(&resp)
+                let mut response = wire::serialize_invoke_with_response_stream_response(&resp);
+                // The wire layer leaves header-bound members for the handler
+                // to set: X-Amz-Executed-Version comes from the @httpHeader
+                // binding on the ExecutedVersion model member.
+                response
+                    .headers
+                    .insert(X_AMZ_EXECUTED_VERSION, resolved_version.parse().unwrap());
+                response
             }
             Err(e) => lambda_error_response(&e),
         }

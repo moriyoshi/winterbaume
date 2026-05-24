@@ -170,6 +170,53 @@ impl LambdaState {
             })
     }
 
+    /// Resolve an `Invoke` Qualifier to a concrete version string.
+    ///
+    /// Returns the value that should appear in the `X-Amz-Executed-Version`
+    /// response header.  AWS contract:
+    ///
+    /// - omitted / empty / `$LATEST` → resolves to `$LATEST` (only valid if
+    ///   the function exists at all).
+    /// - numeric (`"1"`, `"42"`) → must match a previously published version.
+    /// - any other string → must match an alias on this function; the
+    ///   resolved value is the alias's `function_version`.
+    ///
+    /// An unresolved qualifier surfaces as `LambdaError::ResourceNotFound`,
+    /// which the handler layer maps to `ResourceNotFoundException` / 404 --
+    /// matching AWS's behaviour for `Invoke` against an unknown
+    /// version / alias.
+    pub fn resolve_qualifier(
+        &self,
+        function_name: &str,
+        qualifier: Option<&str>,
+    ) -> Result<String, LambdaError> {
+        let resolved = self.resolve_name(function_name);
+        let func = self.get_function(&resolved)?;
+
+        let qualifier = match qualifier {
+            None | Some("") | Some("$LATEST") => return Ok("$LATEST".to_string()),
+            Some(q) => q,
+        };
+
+        if qualifier.chars().all(|c| c.is_ascii_digit()) {
+            if func.versions.iter().any(|v| v.version == qualifier) {
+                return Ok(qualifier.to_string());
+            }
+            return Err(LambdaError::ResourceNotFound(format!(
+                "{}:{qualifier}",
+                func.function_arn
+            )));
+        }
+
+        let alias_key = format!("{resolved}:{qualifier}");
+        self.aliases
+            .get(&alias_key)
+            .map(|a| a.function_version.clone())
+            .ok_or_else(|| {
+                LambdaError::ResourceNotFound(format!("{}:{qualifier}", func.function_arn))
+            })
+    }
+
     pub fn get_function_mut(&mut self, name: &str) -> Result<&mut LambdaFunction, LambdaError> {
         let resolved = self.resolve_name(name);
         let region = if self.region.is_empty() {

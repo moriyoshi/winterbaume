@@ -1261,11 +1261,11 @@ impl AwsLambdaFunctionUrlConverter {
 /// Converts `aws_lambda_invocation` Terraform resources.
 ///
 /// Lambda invocations are ephemeral side-effects with no durable state in
-/// winterbaume, so injection only validates the payload and extraction
-/// returns nothing. The TF resource itself is a one-shot trigger that does
-/// not own a steady-state representation.
+/// winterbaume, so injection only validates the payload (including the
+/// `qualifier` against the current Lambda state) and extraction returns
+/// nothing. The TF resource itself is a one-shot trigger that does not own
+/// a steady-state representation.
 pub struct AwsLambdaInvocationConverter {
-    #[allow(dead_code)]
     service: Arc<LambdaService>,
 }
 
@@ -1281,7 +1281,11 @@ impl TerraformResourceConverter for AwsLambdaInvocationConverter {
     }
 
     fn depends_on_types(&self) -> Vec<&str> {
-        vec!["aws_lambda_function"]
+        // Alias is listed alongside function so that an invocation pinned to
+        // `qualifier = aws_lambda_alias.<x>.name` can be resolved during
+        // injection — without this the alias may not be in state yet when
+        // we call resolve_qualifier below.
+        vec!["aws_lambda_function", "aws_lambda_alias"]
     }
 
     fn inject<'a>(
@@ -1292,8 +1296,32 @@ impl TerraformResourceConverter for AwsLambdaInvocationConverter {
         Box::pin(async move {
             let attrs = &instance.attributes;
             let region = extract_region(attrs, &ctx.default_region);
-            let _model: lambda_gen::LambdaInvocationTfModel = serde_json::from_value(attrs.clone())
+            let model: lambda_gen::LambdaInvocationTfModel = serde_json::from_value(attrs.clone())
                 .map_err(|e| classify_deserialize_error("aws_lambda_invocation", e))?;
+
+            // Validate the qualifier against the current Lambda state.  Real
+            // `terraform apply` would surface an unresolved alias/version as
+            // ResourceNotFoundException from the Invoke API; mirror that
+            // here so a stale tfstate fails injection loudly rather than
+            // appearing to succeed.
+            self.service
+                .resolve_qualifier(
+                    &ctx.default_account_id,
+                    &region,
+                    &model.function_name,
+                    model.qualifier.as_deref(),
+                )
+                .await
+                .map_err(|e| ConversionError::InvalidAttribute {
+                    resource_type: "aws_lambda_invocation".to_string(),
+                    attribute: "qualifier".to_string(),
+                    detail: format!(
+                        "function {:?} qualifier {:?}: {}",
+                        model.function_name,
+                        model.qualifier.as_deref().unwrap_or("$LATEST"),
+                        e,
+                    ),
+                })?;
 
             Ok(ConversionResult {
                 region,

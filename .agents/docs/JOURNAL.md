@@ -1753,3 +1753,44 @@ Seven new integration tests in `crates/winterbaume-lambda/tests/integration_test
 
 The TODO entry's separate-map state shape was an over-engineered first guess. Co-locating revisions on the resource ( `LambdaFunction.revision_id`, `LayerVersion.policy_revision_id` ) is cleaner because every relevant state path already has the resource in scope. Worth noting for future per-resource revision work elsewhere: prefer a field on the resource over a parallel `HashMap<resource_key, revision>` unless the revision can outlive the resource ( e.g. tombstones across re-creates ), which is not the case for Lambda.
 
+## 2026-05-24 — Lambda Invoke / InvokeWithResponseStream: honour Qualifier ( sweep follow-up )
+
+Second of the awsJson sweep follow-ups from KMS issue #5. The Lambda RevisionId fix is its own branch ( `fix/lambda-permission-revision-id` ) and not yet on main ; this Qualifier fix branches off main independently so the two are reviewable separately.
+
+### Bug
+
+`handle_invoke` ( `crates/winterbaume-lambda/src/handlers.rs:1385` pre-fix ) and `handle_invoke_with_response_stream` ( `:2742` pre-fix ) called `state.get_function(&input.function_name)` and never forwarded `input.qualifier`. The response's `X-Amz-Executed-Version` header was hard-coded to `$LATEST` regardless of what the caller asked for. AWS contract: `Invoke` with a `Qualifier` that doesn't match a published version or an alias returns `ResourceNotFoundException`. Real workflows version-pin their invocations specifically to avoid landing on `$LATEST` mid-deploy ; against winterbaume those pinned invocations silently fell back to `$LATEST` with no diagnostic.
+
+### Fix
+
+New `LambdaState::resolve_qualifier( function_name, qualifier: Option<&str> ) -> Result<String, LambdaError>` resolves:
+
+- omitted / empty / `"$LATEST"` → `"$LATEST"` ( only valid if the function exists at all ).
+- all-digits → must match a previously published version on the function ; `ResourceNotFound` otherwise.
+- anything else → must match an alias on the function ; returns the alias's `function_version` ( not the alias name ), so the executed-version header reflects what actually ran. `ResourceNotFound` on miss.
+
+`handle_invoke` now calls the resolver and writes the resolved version into the `X-Amz-Executed-Version` header. `handle_invoke_with_response_stream` does the same -- with a subtlety: the wire layer's `serialize_invoke_with_response_stream_response` leaves header-bound members for the handler to set ( comment `// Header "x-amz-executed-version": set by caller from executed_version field` ), so the handler now explicitly inserts the header on the returned `MockResponse` rather than relying on the response struct field alone. The first test run caught the omission ( `executed_version()` returned `None` because the header wasn't set ) -- worth keeping that gotcha in the journal for the next handler that touches a `restJson` response with header-bound output members.
+
+### Tests
+
+Six new integration tests in `crates/winterbaume-lambda/tests/integration_test.rs`:
+
+- `test_invoke_with_latest_qualifier_echoes_latest`: positive sanity -- `Qualifier=$LATEST` returns 200 + `X-Amz-Executed-Version: $LATEST`.
+- `test_invoke_with_published_version_qualifier_resolves`: publish a version, then `Invoke( Qualifier=version )` -- the header echoes the resolved version, not the hard-coded `$LATEST`.
+- `test_invoke_with_unknown_numeric_qualifier_is_rejected`: typed-variant `InvokeError::ResourceNotFoundException` for an unpublished version.
+- `test_invoke_with_alias_qualifier_resolves_to_alias_target`: publish a version, create an alias `prod` → published, then `Invoke( Qualifier=prod )` -- the header echoes the *target version* ( e.g. `"1"` ), not the alias name `"prod"`.
+- `test_invoke_with_unknown_alias_qualifier_is_rejected`: typed-variant `InvokeError::ResourceNotFoundException` for an unknown alias.
+- `test_invoke_with_response_stream_qualifier_is_honoured`: both halves of the contract for `InvokeWithResponseStream` -- positive resolved version in `executed_version`, negative rejected with `InvokeWithResponseStreamError::ResourceNotFoundException`.
+
+### Gate
+
+- `cargo clippy -p winterbaume-lambda --all-targets --all-features -- -D warnings`: clean.
+- `cargo fmt -p winterbaume-lambda -- --check`: clean.
+- `cargo test -p winterbaume-lambda --no-fail-fast`: 145 integration tests pass ( +6 from this fix ; 0 regressions ).
+
+### Scope deferred
+
+`InvokeAsyncRequest` does *not* model a `Qualifier` field in the current SDK -- the op is legacy and has been superseded by `Invoke` with `InvocationType=Event`. No fix needed there.
+
+A handful of other Lambda invocation-adjacent ops model `Qualifier` ( e.g. `GetFunction`, `GetFunctionConfiguration`, `GetFunctionEventInvokeConfig`, `GetProvisionedConcurrencyConfig` ). They have analogous validation requirements but separate state / response shapes ; out of scope for this fix.
+

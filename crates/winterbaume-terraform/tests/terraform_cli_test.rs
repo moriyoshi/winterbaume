@@ -1851,3 +1851,147 @@ resource "aws_lambda_permission" "allow_events" {
 
     cleanup_tf_dir(&dir);
 }
+
+// ---------------------------------------------------------------------------
+// Lambda invocation Qualifier tests
+//
+// Regression coverage for the Invoke / InvokeWithResponseStream Qualifier
+// fix (handle_invoke now threads through input.qualifier via
+// LambdaState::resolve_qualifier).  Before the fix, a qualifier-pinned
+// invocation against an unknown alias or unpublished numeric version
+// silently fell back to $LATEST -- breaking the deploy-time
+// version-pinning workflows the Qualifier exists to support.
+// ---------------------------------------------------------------------------
+
+/// Write a minimal (empty-archive) ZIP at `<dir>/lambda.zip`.  The mock
+/// Lambda service hashes whatever bytes arrive; the AWS provider only
+/// validates that the file exists and is readable, so the bare EOCD record
+/// is enough to drive `terraform apply` end-to-end.
+fn write_minimal_lambda_zip(dir: &Path) {
+    // 22-byte End Of Central Directory record == empty ZIP.
+    const EMPTY_ZIP: &[u8] = &[
+        0x50, 0x4b, 0x05, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    ];
+    std::fs::write(dir.join("lambda.zip"), EMPTY_ZIP).unwrap();
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+#[ignore]
+async fn test_terraform_apply_lambda_invocation_with_alias_qualifier() {
+    let port = start_server(lambda_services()).await;
+    let url = format!("http://127.0.0.1:{port}");
+    let dir = create_tf_dir("apply-lambda-invocation-alias");
+
+    write_provider_tf_with_lambda(&dir, &url);
+    write_minimal_lambda_zip(&dir);
+    std::fs::write(
+        dir.join("main.tf"),
+        r#"
+resource "aws_lambda_function" "test" {
+  function_name = "tf-qual-alias-fn"
+  role          = "arn:aws:iam::123456789012:role/lambda-exec"
+  handler       = "index.handler"
+  runtime       = "python3.12"
+  filename      = "lambda.zip"
+  publish       = true
+}
+
+resource "aws_lambda_alias" "live" {
+  name             = "live"
+  function_name    = aws_lambda_function.test.function_name
+  function_version = aws_lambda_function.test.version
+}
+
+resource "aws_lambda_invocation" "live_invoke" {
+  function_name = aws_lambda_function.test.function_name
+  qualifier     = aws_lambda_alias.live.name
+  input         = jsonencode({ hello = "world" })
+}
+"#,
+    )
+    .unwrap();
+
+    terraform_init(&dir).await;
+
+    let (ok, stdout, stderr) = terraform_apply(&dir).await;
+    assert!(
+        ok,
+        "terraform apply failed -- the Invoke fix in fd43dcfe should let \
+         alias-pinned invocations resolve to the alias's target version:\n\
+         stdout:\n{stdout}\nstderr:\n{stderr}",
+    );
+    assert!(
+        stdout.contains("Resources: 3 added"),
+        "Expected 3 resources added (function + alias + invocation):\n{stdout}",
+    );
+
+    let state_content = std::fs::read_to_string(dir.join("terraform.tfstate")).unwrap();
+    assert!(state_content.contains("tf-qual-alias-fn"));
+    assert!(state_content.contains("\"live\""));
+    // Mock Invoke returns an empty JSON body; terraform records that as
+    // the `result` attribute on aws_lambda_invocation.
+    assert!(
+        state_content.contains("\"result\""),
+        "expected aws_lambda_invocation to record a result attribute:\n{state_content}",
+    );
+
+    cleanup_tf_dir(&dir);
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+#[ignore]
+async fn test_terraform_apply_lambda_invocation_with_invalid_qualifier_fails() {
+    // The opposite-direction regression: before the Qualifier fix, an
+    // invocation against a non-existent alias would have succeeded
+    // (silently fell back to $LATEST). After the fix the server returns
+    // ResourceNotFoundException and `terraform apply` must surface that
+    // as a hard failure.
+    let port = start_server(lambda_services()).await;
+    let url = format!("http://127.0.0.1:{port}");
+    let dir = create_tf_dir("apply-lambda-invocation-bad-qualifier");
+
+    write_provider_tf_with_lambda(&dir, &url);
+    write_minimal_lambda_zip(&dir);
+    std::fs::write(
+        dir.join("main.tf"),
+        r#"
+resource "aws_lambda_function" "test" {
+  function_name = "tf-qual-bad-fn"
+  role          = "arn:aws:iam::123456789012:role/lambda-exec"
+  handler       = "index.handler"
+  runtime       = "python3.12"
+  filename      = "lambda.zip"
+}
+
+resource "aws_lambda_invocation" "ghost" {
+  function_name = aws_lambda_function.test.function_name
+  qualifier     = "ghost-alias"
+  input         = jsonencode({})
+
+  depends_on = [aws_lambda_function.test]
+}
+"#,
+    )
+    .unwrap();
+
+    terraform_init(&dir).await;
+
+    let (ok, stdout, stderr) = terraform_apply(&dir).await;
+    assert!(
+        !ok,
+        "terraform apply should have failed for the unknown qualifier \
+         'ghost-alias' (the function exists but no such alias / version):\n\
+         stdout:\n{stdout}\nstderr:\n{stderr}",
+    );
+    let combined = format!("{stdout}\n{stderr}");
+    assert!(
+        combined.contains("ResourceNotFoundException")
+            || combined.contains("ResourceNotFound")
+            || combined.contains("404"),
+        "expected ResourceNotFoundException-style failure in terraform \
+         output, got:\n{combined}",
+    );
+
+    cleanup_tf_dir(&dir);
+}
