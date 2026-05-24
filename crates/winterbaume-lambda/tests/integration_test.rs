@@ -1817,6 +1817,369 @@ async fn test_remove_permission_with_matching_revision_id_succeeds() {
     assert!(result.is_err());
 }
 
+// ========== RevisionId on function/alias config + layer-version policy ==========
+//
+// Companion to the function-policy RevisionId tests above.  AWS models a
+// RevisionId precondition on five additional Lambda surfaces, all with
+// the same contract:  if supplied and stale → PreconditionFailedException;
+// if supplied and matching → succeeds and the revision bumps.  Covered
+// here are UpdateFunctionConfiguration, UpdateFunctionCode, PublishVersion,
+// UpdateAlias, AddLayerVersionPermission, RemoveLayerVersionPermission.
+
+#[tokio::test]
+async fn test_get_function_returns_revision_id_and_update_bumps_it() {
+    let client = make_lambda_client().await;
+    create_test_function(&client, "rev-func-config").await;
+
+    let initial = client
+        .get_function()
+        .function_name("rev-func-config")
+        .send()
+        .await
+        .unwrap();
+    let rev1 = initial
+        .configuration()
+        .unwrap()
+        .revision_id()
+        .unwrap()
+        .to_string();
+    assert!(!rev1.is_empty(), "revision_id must be populated on create");
+
+    client
+        .update_function_configuration()
+        .function_name("rev-func-config")
+        .description("bumped")
+        .revision_id(&rev1)
+        .send()
+        .await
+        .expect("UpdateFunctionConfiguration with matching revision must succeed");
+
+    let after = client
+        .get_function()
+        .function_name("rev-func-config")
+        .send()
+        .await
+        .unwrap();
+    let rev2 = after
+        .configuration()
+        .unwrap()
+        .revision_id()
+        .unwrap()
+        .to_string();
+    assert_ne!(
+        rev1, rev2,
+        "function revision id must bump after UpdateFunctionConfiguration",
+    );
+}
+
+#[tokio::test]
+async fn test_update_function_configuration_with_stale_revision_id_is_rejected() {
+    use aws_sdk_lambda::operation::update_function_configuration::UpdateFunctionConfigurationError;
+
+    let client = make_lambda_client().await;
+    create_test_function(&client, "rev-update-cfg-stale").await;
+
+    let err = client
+        .update_function_configuration()
+        .function_name("rev-update-cfg-stale")
+        .description("should not apply")
+        .revision_id("00000000-0000-0000-0000-000000000000")
+        .send()
+        .await
+        .expect_err("UpdateFunctionConfiguration with stale revision must be rejected");
+
+    let svc_err = err.into_service_error();
+    assert!(
+        matches!(
+            svc_err,
+            UpdateFunctionConfigurationError::PreconditionFailedException(_)
+        ),
+        "expected PreconditionFailedException, got {svc_err:?}",
+    );
+
+    // The rejection must not have mutated the function.
+    let after = client
+        .get_function()
+        .function_name("rev-update-cfg-stale")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        after.configuration().unwrap().description(),
+        Some(""),
+        "stale-revision UpdateFunctionConfiguration must not mutate the function",
+    );
+}
+
+#[tokio::test]
+async fn test_update_function_code_with_stale_revision_id_is_rejected() {
+    use aws_sdk_lambda::operation::update_function_code::UpdateFunctionCodeError;
+
+    let client = make_lambda_client().await;
+    create_test_function(&client, "rev-update-code-stale").await;
+
+    let err = client
+        .update_function_code()
+        .function_name("rev-update-code-stale")
+        .zip_file(Blob::new(vec![1u8; 12]))
+        .revision_id("00000000-0000-0000-0000-000000000000")
+        .send()
+        .await
+        .expect_err("UpdateFunctionCode with stale revision must be rejected");
+
+    let svc_err = err.into_service_error();
+    assert!(
+        matches!(
+            svc_err,
+            UpdateFunctionCodeError::PreconditionFailedException(_)
+        ),
+        "expected PreconditionFailedException, got {svc_err:?}",
+    );
+}
+
+#[tokio::test]
+async fn test_publish_version_with_stale_revision_id_is_rejected() {
+    use aws_sdk_lambda::operation::publish_version::PublishVersionError;
+
+    let client = make_lambda_client().await;
+    create_test_function(&client, "rev-publish-stale").await;
+
+    let err = client
+        .publish_version()
+        .function_name("rev-publish-stale")
+        .revision_id("00000000-0000-0000-0000-000000000000")
+        .send()
+        .await
+        .expect_err("PublishVersion with stale revision must be rejected");
+
+    let svc_err = err.into_service_error();
+    assert!(
+        matches!(svc_err, PublishVersionError::PreconditionFailedException(_)),
+        "expected PreconditionFailedException, got {svc_err:?}",
+    );
+
+    // The rejected publish must not have created a version.
+    let versions = client
+        .list_versions_by_function()
+        .function_name("rev-publish-stale")
+        .send()
+        .await
+        .unwrap();
+    // Only $LATEST should be present.
+    assert_eq!(versions.versions().len(), 1);
+}
+
+#[tokio::test]
+async fn test_publish_version_does_not_bump_function_revision() {
+    // PublishVersion captures the current config into a new version but
+    // does not modify $LATEST, so the function's revision id stays stable
+    // across a publish.  Distinguishes it from Update* ops.
+    let client = make_lambda_client().await;
+    create_test_function(&client, "rev-publish-stable").await;
+
+    let rev_before = client
+        .get_function()
+        .function_name("rev-publish-stable")
+        .send()
+        .await
+        .unwrap()
+        .configuration()
+        .unwrap()
+        .revision_id()
+        .unwrap()
+        .to_string();
+
+    client
+        .publish_version()
+        .function_name("rev-publish-stable")
+        .revision_id(&rev_before)
+        .send()
+        .await
+        .unwrap();
+
+    let rev_after = client
+        .get_function()
+        .function_name("rev-publish-stable")
+        .send()
+        .await
+        .unwrap()
+        .configuration()
+        .unwrap()
+        .revision_id()
+        .unwrap()
+        .to_string();
+    assert_eq!(
+        rev_before, rev_after,
+        "PublishVersion must not bump $LATEST's revision id",
+    );
+}
+
+#[tokio::test]
+async fn test_update_alias_with_stale_revision_id_is_rejected() {
+    use aws_sdk_lambda::operation::update_alias::UpdateAliasError;
+
+    let client = make_lambda_client().await;
+    create_test_function(&client, "rev-alias-stale").await;
+    client
+        .publish_version()
+        .function_name("rev-alias-stale")
+        .send()
+        .await
+        .unwrap();
+    let created = client
+        .create_alias()
+        .function_name("rev-alias-stale")
+        .name("rev")
+        .function_version("1")
+        .send()
+        .await
+        .unwrap();
+    let rev_initial = created.revision_id().unwrap().to_string();
+
+    let err = client
+        .update_alias()
+        .function_name("rev-alias-stale")
+        .name("rev")
+        .description("bumped")
+        .revision_id("00000000-0000-0000-0000-000000000000")
+        .send()
+        .await
+        .expect_err("UpdateAlias with stale revision must be rejected");
+
+    let svc_err = err.into_service_error();
+    assert!(
+        matches!(svc_err, UpdateAliasError::PreconditionFailedException(_)),
+        "expected PreconditionFailedException, got {svc_err:?}",
+    );
+
+    // Matching revision must succeed and bump.
+    let updated = client
+        .update_alias()
+        .function_name("rev-alias-stale")
+        .name("rev")
+        .description("ok-bumped")
+        .revision_id(&rev_initial)
+        .send()
+        .await
+        .unwrap();
+    assert_ne!(rev_initial, updated.revision_id().unwrap());
+}
+
+#[tokio::test]
+async fn test_layer_version_permission_revision_id_round_trip() {
+    use aws_sdk_lambda::operation::add_layer_version_permission::AddLayerVersionPermissionError;
+
+    let client = make_lambda_client().await;
+
+    let layer = client
+        .publish_layer_version()
+        .layer_name("rev-layer")
+        .content(
+            aws_sdk_lambda::types::LayerVersionContentInput::builder()
+                .zip_file(Blob::new(vec![0u8; 16]))
+                .build(),
+        )
+        .send()
+        .await
+        .unwrap();
+    let version = layer.version();
+
+    // First AddLayerVersionPermission populates the revision and returns it.
+    let first = client
+        .add_layer_version_permission()
+        .layer_name("rev-layer")
+        .version_number(version)
+        .statement_id("public")
+        .action("lambda:GetLayerVersion")
+        .principal("*")
+        .send()
+        .await
+        .unwrap();
+    let rev1 = first.revision_id().unwrap().to_string();
+    assert!(!rev1.is_empty());
+
+    // GetLayerVersionPolicy returns the same revision id.
+    let policy = client
+        .get_layer_version_policy()
+        .layer_name("rev-layer")
+        .version_number(version)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        policy.revision_id(),
+        Some(rev1.as_str()),
+        "GetLayerVersionPolicy must return the stored revision id",
+    );
+
+    // Stale revision id on Add must be rejected.
+    let err = client
+        .add_layer_version_permission()
+        .layer_name("rev-layer")
+        .version_number(version)
+        .statement_id("second")
+        .action("lambda:GetLayerVersion")
+        .principal("*")
+        .revision_id("00000000-0000-0000-0000-000000000000")
+        .send()
+        .await
+        .expect_err("AddLayerVersionPermission with stale revision must be rejected");
+    let svc_err = err.into_service_error();
+    assert!(
+        matches!(
+            svc_err,
+            AddLayerVersionPermissionError::PreconditionFailedException(_)
+        ),
+        "expected PreconditionFailedException, got {svc_err:?}",
+    );
+
+    // Matching revision succeeds and bumps.
+    let second = client
+        .add_layer_version_permission()
+        .layer_name("rev-layer")
+        .version_number(version)
+        .statement_id("second")
+        .action("lambda:GetLayerVersion")
+        .principal("*")
+        .revision_id(&rev1)
+        .send()
+        .await
+        .unwrap();
+    let rev2 = second.revision_id().unwrap().to_string();
+    assert_ne!(rev1, rev2);
+
+    // Remove with stale revision is rejected and state preserved.
+    use aws_sdk_lambda::operation::remove_layer_version_permission::RemoveLayerVersionPermissionError;
+    let err = client
+        .remove_layer_version_permission()
+        .layer_name("rev-layer")
+        .version_number(version)
+        .statement_id("public")
+        .revision_id(&rev1)
+        .send()
+        .await
+        .expect_err("RemoveLayerVersionPermission with stale revision must be rejected");
+    let svc_err = err.into_service_error();
+    assert!(
+        matches!(
+            svc_err,
+            RemoveLayerVersionPermissionError::PreconditionFailedException(_)
+        ),
+        "expected PreconditionFailedException, got {svc_err:?}",
+    );
+
+    // Remove with matching revision succeeds.
+    client
+        .remove_layer_version_permission()
+        .layer_name("rev-layer")
+        .version_number(version)
+        .statement_id("public")
+        .revision_id(&rev2)
+        .send()
+        .await
+        .expect("RemoveLayerVersionPermission with matching revision must succeed");
+}
+
 // ========== Concurrency tests ==========
 
 #[tokio::test]

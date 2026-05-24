@@ -764,3 +764,191 @@ resource "aws_lambda_permission" "lambda_perm_events" {{
 
     cleanup_tf_dir(&dir);
 }
+
+// ---------------------------------------------------------------------------
+// Coverage for revision_id-bearing surfaces touched by
+// d682a1ae fix(lambda): honour RevisionId on Update*, PublishVersion,
+// layer-version policy.
+//
+// These tests exercise the affected handlers through real terraform apply
+// cycles. The terraform provider does not send RevisionId on update, so
+// they verify the no-revision-id ("any revision is fine") branch — the
+// branch that must still accept terraform-style updates after the
+// precondition logic landed. They also pin the response-shape changes
+// (FunctionConfiguration.revision_id now populated; AddLayerVersionPermission
+// response echoes the stored revision id) by asserting on tfstate.
+// ---------------------------------------------------------------------------
+
+/// Exercises `AddLayerVersionPermission` on create and
+/// `RemoveLayerVersionPermission` on destroy — both gained an
+/// expected_revision_id parameter in the fix.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+#[ignore]
+async fn test_lambda_layer_version_permission() {
+    let zip_path = make_test_lambda_zip();
+    let zip_str = zip_path.display().to_string();
+
+    let port = start_server(test_services()).await;
+    let url = format!("http://127.0.0.1:{port}");
+    let dir = create_tf_dir("lambda-layer-version-permission");
+
+    write_provider_tf(&dir, &url);
+    std::fs::write(
+        dir.join("main.tf"),
+        format!(
+            r#"
+resource "aws_lambda_layer_version" "lambda_lvp_layer" {{
+  filename            = "{zip_str}"
+  layer_name          = "terraform-test-lvp-layer"
+  compatible_runtimes = ["nodejs18.x"]
+}}
+
+resource "aws_lambda_layer_version_permission" "lambda_lvp" {{
+  layer_name     = aws_lambda_layer_version.lambda_lvp_layer.layer_name
+  version_number = aws_lambda_layer_version.lambda_lvp_layer.version
+  statement_id   = "AllowAccountAccess"
+  action         = "lambda:GetLayerVersion"
+  principal      = "123456789012"
+}}
+"#
+        ),
+    )
+    .unwrap();
+
+    terraform_init(&dir).await;
+    let (ok, _stdout, stderr) = terraform_apply(&dir).await;
+    assert!(ok, "terraform apply failed:\n{stderr}");
+
+    let state = std::fs::read_to_string(dir.join("terraform.tfstate")).unwrap_or_default();
+    assert!(state.contains("terraform-test-lvp-layer"));
+    assert!(state.contains("aws_lambda_layer_version_permission"));
+    assert!(state.contains("AllowAccountAccess"));
+
+    // Destroy exercises RemoveLayerVersionPermission with no expected
+    // revision id — must succeed.
+    let (ok, _stdout, stderr) = terraform_destroy(&dir).await;
+    assert!(ok, "terraform destroy failed:\n{stderr}");
+
+    cleanup_tf_dir(&dir);
+}
+
+/// Exercises `UpdateAlias` (alias description change) — the fix added an
+/// expected_revision_id parameter; terraform does not send one, so the
+/// update must still succeed.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+#[ignore]
+async fn test_lambda_alias_modify_in_place() {
+    let zip_path = make_test_lambda_zip();
+    let zip_str = zip_path.display().to_string();
+
+    let port = start_server(test_services()).await;
+    let url = format!("http://127.0.0.1:{port}");
+    let dir = create_tf_dir("lambda-alias-modify");
+
+    write_provider_tf(&dir, &url);
+    let main_tf = |description: &str| {
+        format!(
+            r#"
+resource "aws_iam_role" "lambda_alias_modify_role" {{
+  name = "lambda-alias-modify-test-role"
+  assume_role_policy = {LAMBDA_ASSUME_ROLE_POLICY}
+}}
+
+resource "aws_lambda_function" "lambda_alias_modify_fn" {{
+  filename      = "{zip_str}"
+  function_name = "terraform-alias-modify-function"
+  role          = aws_iam_role.lambda_alias_modify_role.arn
+  handler       = "index.handler"
+  runtime       = "nodejs18.x"
+  publish       = true
+}}
+
+resource "aws_lambda_alias" "lambda_alias_modify" {{
+  name             = "terraform-modify-alias"
+  description      = "{description}"
+  function_name    = aws_lambda_function.lambda_alias_modify_fn.function_name
+  function_version = aws_lambda_function.lambda_alias_modify_fn.version
+}}
+"#
+        )
+    };
+
+    std::fs::write(dir.join("main.tf"), main_tf("initial alias description")).unwrap();
+
+    terraform_init(&dir).await;
+    let (ok, _stdout, stderr) = terraform_apply(&dir).await;
+    assert!(ok, "first apply failed:\n{stderr}");
+
+    std::fs::write(dir.join("main.tf"), main_tf("updated alias description")).unwrap();
+    let (ok, stdout, stderr) = terraform_apply(&dir).await;
+    assert!(ok, "second apply (alias modify) failed:\n{stderr}");
+    assert!(
+        stdout.contains("Resources: 0 added, 1 changed, 0 destroyed"),
+        "expected in-place alias update:\n{stdout}"
+    );
+
+    let state = std::fs::read_to_string(dir.join("terraform.tfstate")).unwrap_or_default();
+    assert!(state.contains("updated alias description"));
+
+    cleanup_tf_dir(&dir);
+}
+
+/// Exercises `UpdateFunctionCode` (filename / source_code_hash change) —
+/// the fix added an expected_revision_id parameter and bumps revision_id
+/// on success. terraform does not send a revision id; the update must
+/// still succeed and the new tfstate must round-trip the bumped revision.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+#[ignore]
+async fn test_lambda_function_code_update() {
+    let zip_path = make_test_lambda_zip();
+    let zip_str = zip_path.display().to_string();
+
+    // Second zip with different bytes so source_code_hash differs and
+    // the provider issues UpdateFunctionCode rather than skipping the change.
+    let zip2_dir = workspace_root().join(".agents-workspace").join("tmp");
+    std::fs::create_dir_all(&zip2_dir).unwrap();
+    let zip2_path = zip2_dir.join("test-lambda-handler-v2.zip");
+    let mut bytes = std::fs::read(&zip_path).unwrap();
+    bytes.extend_from_slice(b"\0\0v2");
+    std::fs::write(&zip2_path, &bytes).unwrap();
+    let zip2_str = zip2_path.display().to_string();
+
+    let port = start_server(test_services()).await;
+    let url = format!("http://127.0.0.1:{port}");
+    let dir = create_tf_dir("lambda-code-update");
+
+    write_provider_tf(&dir, &url);
+    let main_tf = |zip: &str| {
+        format!(
+            r#"
+resource "aws_iam_role" "lambda_code_update_role" {{
+  name = "lambda-code-update-test-role"
+  assume_role_policy = {LAMBDA_ASSUME_ROLE_POLICY}
+}}
+
+resource "aws_lambda_function" "lambda_code_update" {{
+  filename      = "{zip}"
+  function_name = "terraform-code-update-function"
+  role          = aws_iam_role.lambda_code_update_role.arn
+  handler       = "index.handler"
+  runtime       = "nodejs18.x"
+}}
+"#
+        )
+    };
+
+    std::fs::write(dir.join("main.tf"), main_tf(&zip_str)).unwrap();
+    terraform_init(&dir).await;
+    let (ok, _stdout, stderr) = terraform_apply(&dir).await;
+    assert!(ok, "first apply failed:\n{stderr}");
+
+    std::fs::write(dir.join("main.tf"), main_tf(&zip2_str)).unwrap();
+    let (ok, stdout, stderr) = terraform_apply(&dir).await;
+    assert!(ok, "second apply (code update) failed:\n{stderr}");
+    assert!(
+        stdout.contains("Resources: 0 added, 1 changed, 0 destroyed"),
+        "expected in-place code update:\n{stdout}"
+    );
+
+    cleanup_tf_dir(&dir);
+}

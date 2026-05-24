@@ -93,6 +93,8 @@ pub struct LambdaFunctionView {
     pub state: String,
     pub version: String,
     #[serde(default)]
+    pub revision_id: String,
+    #[serde(default)]
     pub tags: HashMap<String, String>,
     #[serde(default)]
     pub versions: Vec<FunctionVersionView>,
@@ -189,6 +191,8 @@ pub struct LayerVersionView {
     pub code_size: i64,
     #[serde(default)]
     pub permissions: Vec<LayerPermissionView>,
+    #[serde(default)]
+    pub policy_revision_id: String,
 }
 
 /// Serializable view of a layer permission.
@@ -318,6 +322,7 @@ impl From<&LambdaFunction> for LambdaFunctionView {
             last_modified: f.last_modified.to_rfc3339(),
             state: f.state.clone(),
             version: f.version.clone(),
+            revision_id: f.revision_id.clone(),
             tags: f.tags.clone(),
             versions: f.versions.iter().map(FunctionVersionView::from).collect(),
             reserved_concurrent_executions: f.reserved_concurrent_executions,
@@ -407,6 +412,7 @@ impl From<&LayerVersion> for LayerVersionView {
                 .iter()
                 .map(LayerPermissionView::from)
                 .collect(),
+            policy_revision_id: lv.policy_revision_id.clone(),
         }
     }
 }
@@ -554,6 +560,11 @@ impl From<LambdaFunctionView> for LambdaFunction {
             last_modified,
             state: v.state,
             version: v.version,
+            revision_id: if v.revision_id.is_empty() {
+                uuid::Uuid::new_v4().to_string()
+            } else {
+                v.revision_id
+            },
             tags: v.tags,
             versions: v.versions.into_iter().map(FunctionVersion::from).collect(),
             reserved_concurrent_executions: v.reserved_concurrent_executions,
@@ -645,6 +656,7 @@ impl From<LayerVersionView> for LayerVersion {
                 .into_iter()
                 .map(LayerPermission::from)
                 .collect(),
+            policy_revision_id: v.policy_revision_id,
         }
     }
 }

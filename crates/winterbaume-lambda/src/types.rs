@@ -19,6 +19,11 @@ pub struct LambdaFunction {
     pub last_modified: DateTime<Utc>,
     pub state: String,
     pub version: String,
+    /// Resource-level configuration revision id.  AWS bumps this on every
+    /// successful UpdateFunctionConfiguration / UpdateFunctionCode and uses
+    /// it as the optimistic-concurrency token across those ops plus
+    /// PublishVersion.
+    pub revision_id: String,
     pub tags: HashMap<String, String>,
     pub versions: Vec<FunctionVersion>,
     pub reserved_concurrent_executions: Option<i32>,
@@ -90,6 +95,11 @@ pub struct LayerVersion {
     pub code_sha256: String,
     pub code_size: i64,
     pub permissions: Vec<LayerPermission>,
+    /// Layer-version policy revision id.  Empty until the first
+    /// `AddLayerVersionPermission` populates it; bumped on every successful
+    /// add or remove so callers can use the modelled `RevisionId`
+    /// optimistic-concurrency check.
+    pub policy_revision_id: String,
 }
 
 #[derive(Debug, Clone)]

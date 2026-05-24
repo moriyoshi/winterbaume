@@ -1406,7 +1406,7 @@ impl LambdaService {
             Err(e) => return rest_json_error(400, "ValidationException", &e),
         };
         let mut state = state.write().await;
-        match state.update_function_code(&input.function_name) {
+        match state.update_function_code(&input.function_name, input.revision_id.as_deref()) {
             Ok(func) => {
                 let resp = function_configuration_from(func);
                 wire::serialize_update_function_code_response(&resp)
@@ -1466,6 +1466,7 @@ impl LambdaService {
             timeout,
             input.runtime.as_deref(),
             environment,
+            input.revision_id.as_deref(),
         ) {
             Ok(func) => {
                 let resp = function_configuration_from(func);
@@ -1560,6 +1561,7 @@ impl LambdaService {
             input.function_version.as_deref(),
             input.description.as_deref(),
             routing_config,
+            input.revision_id.as_deref(),
         ) {
             Ok(alias) => {
                 let resp = alias_configuration_from(alias);
@@ -1929,11 +1931,12 @@ impl LambdaService {
             action,
             &input.principal,
             input.organization_id.as_deref(),
+            input.revision_id.as_deref(),
         ) {
-            Ok(statement) => {
+            Ok((statement, revision_id)) => {
                 let resp = model::AddLayerVersionPermissionResponse {
                     statement: Some(statement),
-                    revision_id: Some(uuid::Uuid::new_v4().to_string()),
+                    revision_id: Some(revision_id),
                 };
                 wire::serialize_add_layer_version_permission_response(&resp)
             }
@@ -1959,8 +1962,9 @@ impl LambdaService {
             &input.layer_name,
             input.version_number,
             &input.statement_id,
+            input.revision_id.as_deref(),
         ) {
-            Ok(()) => wire::serialize_remove_layer_version_permission_response(),
+            Ok(_revision_id) => wire::serialize_remove_layer_version_permission_response(),
             Err(e) => lambda_error_response(&e),
         }
     }
@@ -1979,10 +1983,10 @@ impl LambdaService {
         };
         let state = state.read().await;
         match state.get_layer_version_policy(&input.layer_name, input.version_number) {
-            Ok(policy) => {
+            Ok((policy, revision_id)) => {
                 let resp = model::GetLayerVersionPolicyResponse {
                     policy: Some(policy),
-                    revision_id: Some(uuid::Uuid::new_v4().to_string()),
+                    revision_id: Some(revision_id),
                 };
                 wire::serialize_get_layer_version_policy_response(&resp)
             }
@@ -2561,7 +2565,11 @@ impl LambdaService {
         };
 
         let mut state = state.write().await;
-        match state.publish_version(&input.function_name, input.description.as_deref()) {
+        match state.publish_version(
+            &input.function_name,
+            input.description.as_deref(),
+            input.revision_id.as_deref(),
+        ) {
             Ok((func, version_str)) => {
                 let mut resp = function_configuration_from(func);
                 resp.version = Some(version_str.clone());
@@ -3767,6 +3775,7 @@ fn function_configuration_from(
         ),
         version: Some(func.version.clone()),
         state: Some(func.state.clone()),
+        revision_id: Some(func.revision_id.clone()),
         package_type: Some("Zip".to_string()),
         architectures: Some(vec!["x86_64".to_string()]),
         ephemeral_storage: Some(model::EphemeralStorage { size: 512 }),

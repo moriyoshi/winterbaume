@@ -1710,3 +1710,46 @@ Five new integration tests in `crates/winterbaume-lambda/tests/integration_test.
 
 Lambda models `RevisionId` on five other input shapes -- `UpdateAliasRequest`, `UpdateFunctionCodeRequest`, `UpdateFunctionConfigurationRequest`, `PublishVersionRequest` ( all targeting function/alias *configuration* revisions, distinct from the policy ), plus `AddLayerVersionPermissionRequest` / `RemoveLayerVersionPermissionRequest` ( layer-version policy, distinct registry ). These need analogous per-resource revision counters but the state shape and error path are identical to what this fix introduces. Tracked separately as `lambda-revision-id-other-ops` in TODO ; closing them is a straightforward repeat of the pattern.
 
+## 2026-05-24 — Lambda RevisionId on Update*, PublishVersion, layer-version policy ( sweep follow-up )
+
+Third in the awsJson sweep follow-ups from KMS issue #5. Stacks on `fix/lambda-permission-revision-id` ( the prior Lambda fix that introduced `LambdaError::PreconditionFailed` and the 412 / `PreconditionFailedException` mapping ).
+
+### Scope
+
+Five Lambda surfaces that model `RevisionId`:
+
+- `UpdateFunctionConfigurationRequest`, `UpdateFunctionCodeRequest` -- function configuration revision.
+- `PublishVersionRequest` -- precondition on the function configuration ( capture-current-config-only-if-revision-matches ); does *not* bump.
+- `UpdateAliasRequest` -- alias revision ( field already existed and was bumped on each update ; precondition check was missing ).
+- `AddLayerVersionPermissionRequest`, `RemoveLayerVersionPermissionRequest` -- layer-version policy revision.
+
+### State design
+
+Earlier the TODO entry had sketched separate maps ( `function_configuration_revisions: HashMap<String, String>` etc. ). In practice the revisions belong on the resources themselves -- the functions and layer versions are already in state, so adding fields is cleaner than parallel maps that have to be kept in sync. The final shape:
+
+- New field `LambdaFunction.revision_id: String` -- initialised on `create_function`, bumped on `UpdateFunctionConfiguration` / `UpdateFunctionCode`. `PublishVersion`'s precondition reads it without bumping. Surfaced in `FunctionConfiguration` response.
+- New field `LayerVersion.policy_revision_id: String` -- empty until first `AddLayerVersionPermission`, bumped on every successful add / remove. Surfaced in `GetLayerVersionPolicy` response ( replacing the previous random-uuid-on-every-call bug, same shape as the prior `GetPolicy` fix ).
+- `Alias.revision_id` -- field and bump logic already present from earlier work; this fix added the missing precondition check on `update_alias`.
+
+### Tests
+
+Seven new integration tests in `crates/winterbaume-lambda/tests/integration_test.rs`:
+
+- `test_get_function_returns_revision_id_and_update_bumps_it` -- positive sanity: `GetFunction` returns a populated revision id, and `UpdateFunctionConfiguration` bumps it.
+- `test_update_function_configuration_with_stale_revision_id_is_rejected` -- typed-variant `UpdateFunctionConfigurationError::PreconditionFailedException`, plus state-not-mutated assertion ( description unchanged after the rejection ).
+- `test_update_function_code_with_stale_revision_id_is_rejected` -- typed `UpdateFunctionCodeError::PreconditionFailedException`.
+- `test_publish_version_with_stale_revision_id_is_rejected` -- typed `PublishVersionError::PreconditionFailedException`, plus assertion that no version was created ( only `$LATEST` present in `ListVersionsByFunction` ).
+- `test_publish_version_does_not_bump_function_revision` -- captures the distinguishing behaviour of `PublishVersion` versus `Update*` ( the function's revision id stays stable across a successful publish, since publishing is semantically read-only on `$LATEST` ).
+- `test_update_alias_with_stale_revision_id_is_rejected` -- typed `UpdateAliasError::PreconditionFailedException` plus a matching-revision happy-path assertion confirming the revision bump.
+- `test_layer_version_permission_revision_id_round_trip` -- end-to-end coverage for the layer-version policy: first `AddLayerVersionPermission` returns a populated `RevisionId`; `GetLayerVersionPolicy` returns the same id ( regression for the random-uuid response bug ); stale revision on Add rejected with typed `AddLayerVersionPermissionError::PreconditionFailedException`; matching revision succeeds and bumps; stale revision on Remove rejected; matching revision on Remove succeeds.
+
+### Gate
+
+- `cargo clippy -p winterbaume-lambda --all-targets --all-features -- -D warnings`: clean.
+- `cargo fmt -p winterbaume-lambda -- --check`: clean.
+- `cargo test -p winterbaume-lambda --no-fail-fast`: 151 integration tests pass ( +7 from this fix on top of the prior +5 ; 0 regressions across the 144-test baseline ).
+
+### Lessons
+
+The TODO entry's separate-map state shape was an over-engineered first guess. Co-locating revisions on the resource ( `LambdaFunction.revision_id`, `LayerVersion.policy_revision_id` ) is cleaner because every relevant state path already has the resource in scope. Worth noting for future per-resource revision work elsewhere: prefer a field on the resource over a parallel `HashMap<resource_key, revision>` unless the revision can outlive the resource ( e.g. tombstones across re-creates ), which is not the case for Lambda.
+

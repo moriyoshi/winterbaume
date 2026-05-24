@@ -172,6 +172,7 @@ impl AwsLambdaFunctionConverter {
             snap_start,
             tracing_config,
             vpc_config,
+            revision_id: uuid::Uuid::new_v4().to_string(),
         };
 
         let mut state_view = minimal_lambda_state_view(&ctx.default_account_id, &region);
@@ -1425,6 +1426,7 @@ impl AwsLambdaLayerVersionConverter {
                 .and_then(|v| v.as_i64())
                 .unwrap_or(0),
             permissions: vec![],
+            policy_revision_id: String::new(),
         };
 
         let mut state_view = self
@@ -1565,6 +1567,7 @@ impl AwsLambdaLayerVersionPermissionConverter {
                 lv.permissions
                     .retain(|p| p.statement_id != perm.statement_id);
                 lv.permissions.push(perm);
+                lv.policy_revision_id = uuid::Uuid::new_v4().to_string();
             } else {
                 warnings.push(format!(
                     "layer version {}:{} not found; permission skipped",
