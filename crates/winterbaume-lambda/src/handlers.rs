@@ -2023,8 +2023,9 @@ impl LambdaService {
             &input.principal,
             input.source_arn.as_deref(),
             input.source_account.as_deref(),
+            input.revision_id.as_deref(),
         ) {
-            Ok(statement) => {
+            Ok((statement, _revision_id)) => {
                 let resp = model::AddPermissionResponse {
                     statement: Some(statement),
                 };
@@ -2046,8 +2047,12 @@ impl LambdaService {
             Err(e) => return rest_json_error(400, "ValidationException", &e),
         };
         let mut state = state.write().await;
-        match state.remove_permission(&input.function_name, &input.statement_id) {
-            Ok(()) => wire::serialize_remove_permission_response(),
+        match state.remove_permission(
+            &input.function_name,
+            &input.statement_id,
+            input.revision_id.as_deref(),
+        ) {
+            Ok(_revision_id) => wire::serialize_remove_permission_response(),
             Err(e) => lambda_error_response(&e),
         }
     }
@@ -2065,10 +2070,10 @@ impl LambdaService {
         };
         let state = state.read().await;
         match state.get_policy(&input.function_name) {
-            Ok(policy) => {
+            Ok((policy, revision_id)) => {
                 let resp = model::GetPolicyResponse {
                     policy: Some(policy),
-                    revision_id: Some(uuid::Uuid::new_v4().to_string()),
+                    revision_id: Some(revision_id),
                 };
                 wire::serialize_get_policy_response(&resp)
             }
@@ -3979,6 +3984,7 @@ fn lambda_error_response(err: &LambdaError) -> MockResponse {
         }
         LambdaError::CapacityProviderNotFound(_) => (404, "ResourceNotFoundException"),
         LambdaError::DurableExecutionNotFound(_) => (404, "ResourceNotFoundException"),
+        LambdaError::PreconditionFailed => (412, "PreconditionFailedException"),
     };
     let body = json!({
         "Type": "User",

@@ -39,6 +39,9 @@ pub struct LambdaStateView {
     /// Function policies keyed by function name.
     #[serde(default)]
     pub function_permissions: HashMap<String, Vec<PermissionView>>,
+    /// Per-function policy revision ids keyed by function name.
+    #[serde(default)]
+    pub function_policy_revisions: HashMap<String, String>,
     /// Function event invoke configs keyed by function name.
     #[serde(default)]
     pub function_event_invoke_configs: HashMap<String, FunctionEventInvokeConfigView>,
@@ -279,6 +282,7 @@ impl From<&LambdaState> for LambdaStateView {
                 .iter()
                 .map(|(k, v)| (k.clone(), v.iter().map(PermissionView::from).collect()))
                 .collect(),
+            function_policy_revisions: state.function_policy_revisions.clone(),
             function_event_invoke_configs: state
                 .function_event_invoke_configs
                 .iter()
@@ -508,6 +512,7 @@ impl LambdaStateView {
                 .into_iter()
                 .map(|(k, v)| (k, v.into_iter().map(Permission::from).collect()))
                 .collect(),
+            function_policy_revisions: self.function_policy_revisions,
             function_event_invoke_configs: self
                 .function_event_invoke_configs
                 .into_iter()
@@ -780,6 +785,9 @@ impl StatefulService for LambdaService {
                     .function_permissions
                     .insert(name, perms.into_iter().map(Permission::from).collect());
             }
+            guard
+                .function_policy_revisions
+                .extend(view.function_policy_revisions);
             for (name, feic_view) in view.function_event_invoke_configs {
                 guard
                     .function_event_invoke_configs

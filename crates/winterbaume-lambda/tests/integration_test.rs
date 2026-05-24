@@ -1584,6 +1584,239 @@ async fn test_remove_permission() {
     assert!(result.is_err());
 }
 
+// ========== RevisionId optimistic-concurrency tests ==========
+//
+// AddPermission and RemovePermission both model an optional RevisionId.
+// Prior to the fix, the handler dropped the value and the GetPolicy response
+// minted a fresh uuid on every call, making the RevisionId useless for
+// optimistic concurrency.  The fix maintains a per-policy revision id that
+// bumps on every successful mutation; passing a stale id must surface as
+// PreconditionFailedException (HTTP 412).
+
+#[tokio::test]
+async fn test_get_policy_revision_id_is_stable_across_reads() {
+    let client = make_lambda_client().await;
+    create_test_function(&client, "rev-stable-func").await;
+    client
+        .add_permission()
+        .function_name("rev-stable-func")
+        .statement_id("stmt-stable")
+        .action("lambda:InvokeFunction")
+        .principal("events.amazonaws.com")
+        .send()
+        .await
+        .unwrap();
+
+    let first = client
+        .get_policy()
+        .function_name("rev-stable-func")
+        .send()
+        .await
+        .unwrap();
+    let second = client
+        .get_policy()
+        .function_name("rev-stable-func")
+        .send()
+        .await
+        .unwrap();
+
+    let r1 = first.revision_id().unwrap();
+    let r2 = second.revision_id().unwrap();
+    assert!(!r1.is_empty(), "revision_id should be populated");
+    assert_eq!(
+        r1, r2,
+        "GetPolicy must return a stable revision id across reads, got {r1} vs {r2}",
+    );
+}
+
+#[tokio::test]
+async fn test_add_permission_bumps_revision_id() {
+    let client = make_lambda_client().await;
+    create_test_function(&client, "rev-bump-func").await;
+
+    client
+        .add_permission()
+        .function_name("rev-bump-func")
+        .statement_id("stmt-a")
+        .action("lambda:InvokeFunction")
+        .principal("events.amazonaws.com")
+        .send()
+        .await
+        .unwrap();
+    let rev1 = client
+        .get_policy()
+        .function_name("rev-bump-func")
+        .send()
+        .await
+        .unwrap()
+        .revision_id()
+        .unwrap()
+        .to_string();
+
+    client
+        .add_permission()
+        .function_name("rev-bump-func")
+        .statement_id("stmt-b")
+        .action("lambda:InvokeFunction")
+        .principal("events.amazonaws.com")
+        .revision_id(&rev1)
+        .send()
+        .await
+        .expect("AddPermission with matching RevisionId must succeed");
+    let rev2 = client
+        .get_policy()
+        .function_name("rev-bump-func")
+        .send()
+        .await
+        .unwrap()
+        .revision_id()
+        .unwrap()
+        .to_string();
+
+    assert_ne!(
+        rev1, rev2,
+        "RevisionId must change after a successful AddPermission",
+    );
+}
+
+#[tokio::test]
+async fn test_add_permission_with_stale_revision_id_is_rejected() {
+    use aws_sdk_lambda::operation::add_permission::AddPermissionError;
+
+    let client = make_lambda_client().await;
+    create_test_function(&client, "rev-stale-add-func").await;
+
+    client
+        .add_permission()
+        .function_name("rev-stale-add-func")
+        .statement_id("stmt-1")
+        .action("lambda:InvokeFunction")
+        .principal("events.amazonaws.com")
+        .send()
+        .await
+        .unwrap();
+
+    let err = client
+        .add_permission()
+        .function_name("rev-stale-add-func")
+        .statement_id("stmt-2")
+        .action("lambda:InvokeFunction")
+        .principal("events.amazonaws.com")
+        .revision_id("00000000-0000-0000-0000-000000000000")
+        .send()
+        .await
+        .expect_err("AddPermission with stale RevisionId must be rejected");
+
+    let svc_err = err.into_service_error();
+    assert!(
+        matches!(svc_err, AddPermissionError::PreconditionFailedException(_)),
+        "expected PreconditionFailedException, got {svc_err:?}",
+    );
+
+    // The rejected call must not have mutated state -- the second statement
+    // must still be absent.
+    let policy = client
+        .get_policy()
+        .function_name("rev-stale-add-func")
+        .send()
+        .await
+        .unwrap();
+    assert!(policy.policy().unwrap().contains("stmt-1"));
+    assert!(
+        !policy.policy().unwrap().contains("stmt-2"),
+        "stmt-2 must not be present after the rejected AddPermission",
+    );
+}
+
+#[tokio::test]
+async fn test_remove_permission_with_stale_revision_id_is_rejected() {
+    use aws_sdk_lambda::operation::remove_permission::RemovePermissionError;
+
+    let client = make_lambda_client().await;
+    create_test_function(&client, "rev-stale-remove-func").await;
+
+    client
+        .add_permission()
+        .function_name("rev-stale-remove-func")
+        .statement_id("stmt-keep")
+        .action("lambda:InvokeFunction")
+        .principal("events.amazonaws.com")
+        .send()
+        .await
+        .unwrap();
+
+    let err = client
+        .remove_permission()
+        .function_name("rev-stale-remove-func")
+        .statement_id("stmt-keep")
+        .revision_id("00000000-0000-0000-0000-000000000000")
+        .send()
+        .await
+        .expect_err("RemovePermission with stale RevisionId must be rejected");
+
+    let svc_err = err.into_service_error();
+    assert!(
+        matches!(
+            svc_err,
+            RemovePermissionError::PreconditionFailedException(_)
+        ),
+        "expected PreconditionFailedException, got {svc_err:?}",
+    );
+
+    // The rejected call must not have mutated state -- the statement must
+    // still be present.
+    let policy = client
+        .get_policy()
+        .function_name("rev-stale-remove-func")
+        .send()
+        .await
+        .unwrap();
+    assert!(policy.policy().unwrap().contains("stmt-keep"));
+}
+
+#[tokio::test]
+async fn test_remove_permission_with_matching_revision_id_succeeds() {
+    let client = make_lambda_client().await;
+    create_test_function(&client, "rev-match-remove-func").await;
+
+    client
+        .add_permission()
+        .function_name("rev-match-remove-func")
+        .statement_id("stmt-bye")
+        .action("lambda:InvokeFunction")
+        .principal("events.amazonaws.com")
+        .send()
+        .await
+        .unwrap();
+
+    let rev = client
+        .get_policy()
+        .function_name("rev-match-remove-func")
+        .send()
+        .await
+        .unwrap()
+        .revision_id()
+        .unwrap()
+        .to_string();
+
+    client
+        .remove_permission()
+        .function_name("rev-match-remove-func")
+        .statement_id("stmt-bye")
+        .revision_id(&rev)
+        .send()
+        .await
+        .expect("RemovePermission with matching RevisionId must succeed");
+
+    // Policy is now empty -- AWS returns ResourceNotFoundException.
+    let result = client
+        .get_policy()
+        .function_name("rev-match-remove-func")
+        .send()
+        .await;
+    assert!(result.is_err());
+}
+
 // ========== Concurrency tests ==========
 
 #[tokio::test]

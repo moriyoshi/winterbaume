@@ -451,10 +451,17 @@ impl AwsLambdaPermissionConverter {
             .await;
         let perms = state_view
             .function_permissions
-            .entry(function_name)
+            .entry(function_name.clone())
             .or_default();
         perms.retain(|p| p.statement_id != statement_id);
         perms.push(perm_view);
+        // Bump the policy revision id to mirror what AddPermission does on the
+        // live API: a function with permissions must always carry a non-empty
+        // revision id, otherwise GetPolicy returns "" and the AWS provider's
+        // optimistic-concurrency contract is broken.
+        state_view
+            .function_policy_revisions
+            .insert(function_name, uuid::Uuid::new_v4().to_string());
         self.service
             .restore(&ctx.default_account_id, &region, state_view)
             .await?;

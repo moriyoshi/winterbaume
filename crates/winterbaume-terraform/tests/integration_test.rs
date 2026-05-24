@@ -1413,6 +1413,76 @@ async fn test_inject_lambda_permission() {
     assert_eq!(perms.len(), 1);
     assert_eq!(perms[0].statement_id, "AllowExecutionFromEvents");
     assert_eq!(perms[0].principal, "events.amazonaws.com");
+    // The converter must bump function_policy_revisions in lockstep with
+    // function_permissions so that GetPolicy returns a non-empty RevisionId
+    // (regression for the AddPermission/GetPolicy revision-id fix).
+    let revision = view
+        .function_policy_revisions
+        .get("my-fn")
+        .expect("revision id missing for injected permission");
+    assert!(!revision.is_empty(), "revision id should be non-empty");
+}
+
+#[tokio::test]
+async fn test_inject_lambda_permission_bumps_revision_between_statements() {
+    use winterbaume_lambda::LambdaService;
+    use winterbaume_terraform::converters::lambda::{
+        AwsLambdaFunctionConverter, AwsLambdaPermissionConverter,
+    };
+
+    let lambda = Arc::new(LambdaService::new());
+    let ctx = default_ctx();
+
+    let mut injector = TerraformInjector::new();
+    injector.register(AwsLambdaFunctionConverter::new(Arc::clone(&lambda)));
+    injector.register(AwsLambdaPermissionConverter::new(Arc::clone(&lambda)));
+
+    let tfstate = make_tfstate(vec![
+        make_resource(
+            "aws_lambda_function",
+            "fn",
+            json!({
+                "function_name": "multi-perm-fn",
+                "runtime": "python3.11",
+                "handler": "index.handler",
+                "role": "arn:aws:iam::123456789012:role/lambda-role",
+            }),
+        ),
+        make_resource(
+            "aws_lambda_permission",
+            "allow_events",
+            json!({
+                "statement_id": "AllowEvents",
+                "action": "lambda:InvokeFunction",
+                "function_name": "multi-perm-fn",
+                "principal": "events.amazonaws.com",
+                "source_arn": "arn:aws:events:us-east-1:123456789012:rule/my-rule",
+            }),
+        ),
+        make_resource(
+            "aws_lambda_permission",
+            "allow_sns",
+            json!({
+                "statement_id": "AllowSns",
+                "action": "lambda:InvokeFunction",
+                "function_name": "multi-perm-fn",
+                "principal": "sns.amazonaws.com",
+                "source_arn": "arn:aws:sns:us-east-1:123456789012:my-topic",
+            }),
+        ),
+    ]);
+
+    let report = injector.inject_all(&tfstate, &ctx).await;
+    assert!(report.is_success(), "errors: {:?}", report.errors);
+
+    let view = lambda.snapshot(&ctx.default_account_id, "us-east-1").await;
+    let perms = view.function_permissions.get("multi-perm-fn").unwrap();
+    assert_eq!(perms.len(), 2);
+    let revision = view
+        .function_policy_revisions
+        .get("multi-perm-fn")
+        .expect("revision id missing");
+    assert!(!revision.is_empty(), "revision id should be non-empty");
 }
 
 // ---------------------------------------------------------------------------

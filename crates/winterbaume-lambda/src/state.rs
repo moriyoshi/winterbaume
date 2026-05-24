@@ -14,6 +14,11 @@ pub struct LambdaState {
     pub layer_next_version: HashMap<String, i64>, // key: layer_name -> next version number
     pub function_url_configs: HashMap<String, FunctionUrlConfig>, // key: function_name
     pub function_permissions: HashMap<String, Vec<Permission>>, // key: function_name
+    /// Per-function resource-policy revision id.  Bumped on every successful
+    /// `AddPermission` / `RemovePermission` so callers can use the modelled
+    /// `RevisionId` optimistic-concurrency check.  Absent until the first
+    /// permission is added, cleared when the function is deleted.
+    pub function_policy_revisions: HashMap<String, String>, // key: function_name
     pub function_event_invoke_configs: HashMap<String, FunctionEventInvokeConfig>, // key: function_name
     pub account_id: String,
     pub region: String,
@@ -78,6 +83,10 @@ pub enum LambdaError {
     CapacityProviderNotFound(String),
     #[error("Durable execution not found: {0}")]
     DurableExecutionNotFound(String),
+    #[error(
+        "The Revision Id provided does not match the latest Revision Id. Call the GetFunction/GetAlias API to retrieve the latest Revision Id"
+    )]
+    PreconditionFailed,
 }
 
 impl LambdaState {
@@ -191,6 +200,7 @@ impl LambdaState {
             .retain(|k, _| !k.starts_with(&format!("{resolved}:")));
         self.function_url_configs.remove(&resolved);
         self.function_permissions.remove(&resolved);
+        self.function_policy_revisions.remove(&resolved);
         self.function_event_invoke_configs.remove(&resolved);
         Ok(())
     }
@@ -753,12 +763,23 @@ impl LambdaState {
         principal: &str,
         source_arn: Option<&str>,
         source_account: Option<&str>,
-    ) -> Result<String, LambdaError> {
+        expected_revision_id: Option<&str>,
+    ) -> Result<(String, String), LambdaError> {
         let resolved = self.resolve_name(function_name);
         let func = self
             .functions
             .get(&resolved)
             .ok_or_else(|| LambdaError::FunctionNotFound(resolved.clone()))?;
+
+        // Optimistic concurrency: when supplied, RevisionId must match the
+        // policy's current revision.  An empty string is treated as absent
+        // (the SDK omits empty strings on the wire, but be defensive).
+        if let Some(expected) = expected_revision_id.filter(|s| !s.is_empty()) {
+            let current = self.function_policy_revisions.get(&resolved);
+            if current.map(String::as_str) != Some(expected) {
+                return Err(LambdaError::PreconditionFailed);
+            }
+        }
 
         let perms = self
             .function_permissions
@@ -778,6 +799,10 @@ impl LambdaState {
             source_account: source_account.map(|s| s.to_string()),
         };
         perms.push(perm);
+
+        let new_revision = uuid::Uuid::new_v4().to_string();
+        self.function_policy_revisions
+            .insert(resolved.clone(), new_revision.clone());
 
         // Build principal: if it looks like an account ID (all digits), use it directly
         // If it contains a dot (like "lambda.amazonaws.com"), it's a service principal
@@ -803,16 +828,25 @@ impl LambdaState {
             );
         }
 
-        Ok(statement.to_string())
+        Ok((statement.to_string(), new_revision))
     }
 
     pub fn remove_permission(
         &mut self,
         function_name: &str,
         statement_id: &str,
-    ) -> Result<(), LambdaError> {
+        expected_revision_id: Option<&str>,
+    ) -> Result<String, LambdaError> {
         let resolved = self.resolve_name(function_name);
         self.get_function(&resolved)?;
+
+        if let Some(expected) = expected_revision_id.filter(|s| !s.is_empty()) {
+            let current = self.function_policy_revisions.get(&resolved);
+            if current.map(String::as_str) != Some(expected) {
+                return Err(LambdaError::PreconditionFailed);
+            }
+        }
+
         let perms = self
             .function_permissions
             .get_mut(&resolved)
@@ -823,10 +857,14 @@ impl LambdaState {
         if perms.len() == len_before {
             return Err(LambdaError::PermissionNotFound(statement_id.to_string()));
         }
-        Ok(())
+
+        let new_revision = uuid::Uuid::new_v4().to_string();
+        self.function_policy_revisions
+            .insert(resolved, new_revision.clone());
+        Ok(new_revision)
     }
 
-    pub fn get_policy(&self, function_name: &str) -> Result<String, LambdaError> {
+    pub fn get_policy(&self, function_name: &str) -> Result<(String, String), LambdaError> {
         let resolved = self.resolve_name(function_name);
         let func = self.get_function(&resolved)?;
         let perms = self.function_permissions.get(&resolved);
@@ -866,7 +904,16 @@ impl LambdaState {
             "Id": "default",
             "Statement": statements,
         });
-        Ok(policy.to_string())
+        // A policy always has a revision id once it has any statements.  The
+        // unwrap is safe because add_permission populates the entry before
+        // returning Ok, and remove_permission preserves the entry while at
+        // least one statement remains.
+        let revision_id = self
+            .function_policy_revisions
+            .get(&resolved)
+            .cloned()
+            .unwrap_or_default();
+        Ok((policy.to_string(), revision_id))
     }
 
     // ========== Concurrency operations ==========

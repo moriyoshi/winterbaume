@@ -1676,3 +1676,37 @@ Two new terraform E2E tests added at `crates/winterbaume-e2e-tests/tests/terrafo
 
 Both tests pass against the fixed crate: `cargo test -p winterbaume-e2e-tests --test terraform -- --ignored test_kms_decrypt_with` → 2 passed, 16.83s. Per-crate clippy + fmt clean.
 
+## 2026-05-24 — Lambda AddPermission / RemovePermission: honour RevisionId ( first sweep-followup closed )
+
+First of the four awsJson sweep follow-ups discovered while fixing KMS issue #5 ( see the previous entry ). Picked the most contained one to deliver end-to-end before moving on: Lambda function-policy `RevisionId`.
+
+### Bug
+
+`handle_add_permission` and `handle_remove_permission` ( `crates/winterbaume-lambda/src/handlers.rs:2019` and `:2049` pre-fix ) dropped the modelled `input.revision_id` -- a stale value was silently accepted instead of producing `PreconditionFailedException`. Compounding the bug, `handle_get_policy` ( `:2071` pre-fix ) minted a fresh `uuid::Uuid::new_v4().to_string()` for the response's revision id on *every* call, so clients that recorded the value and submitted it back could never replay it successfully. The two halves together meant the optimistic-concurrency contract was unusable end-to-end.
+
+### Fix
+
+- `state.rs`: new sibling field `function_policy_revisions: HashMap<String, String>` on `LambdaState`. `add_permission` and `remove_permission` gained `expected_revision_id: Option<&str>`. When supplied ( non-empty ), the helper compares against the current per-function revision and returns the new `LambdaError::PreconditionFailed` on mismatch. Both bump the revision to a fresh uuid on success. `get_policy` now returns `(String, String)` so the handler can echo the stored id. `delete_function` clears the revision entry alongside the existing permission cleanup.
+- `handlers.rs`: handlers thread `input.revision_id.as_deref()`, unpack the `(statement, revision_id)` / `revision_id` tuple from state, and surface the stable revision id in the `GetPolicy` response. New error variant maps to `(412, "PreconditionFailedException")`.
+- `views.rs`: `LambdaStateView` gained the matching `function_policy_revisions` field with `#[serde(default)]` for backward-compatible deserialisation, and the snapshot / restore / merge paths thread it through.
+
+### Tests
+
+Five new integration tests in `crates/winterbaume-lambda/tests/integration_test.rs`:
+
+- `test_get_policy_revision_id_is_stable_across_reads`: direct regression for the random-uuid response bug -- two consecutive `GetPolicy` calls must return the same revision id.
+- `test_add_permission_bumps_revision_id`: revision changes after a second successful `AddPermission` ( supplying the prior revision id ).
+- `test_add_permission_with_stale_revision_id_is_rejected`: typed-variant assertion `AddPermissionError::PreconditionFailedException(_)`, plus state-not-mutated check ( the rejected statement must not appear in the policy ).
+- `test_remove_permission_with_stale_revision_id_is_rejected`: typed-variant assertion `RemovePermissionError::PreconditionFailedException(_)`, plus state-not-mutated check.
+- `test_remove_permission_with_matching_revision_id_succeeds`: positive path -- supplying the current revision id removes the statement, and the now-empty policy returns `ResourceNotFoundException` from `GetPolicy`.
+
+### Gate
+
+- `cargo clippy -p winterbaume-lambda --all-targets --all-features -- -D warnings`: clean.
+- `cargo fmt -p winterbaume-lambda -- --check`: clean.
+- `cargo test -p winterbaume-lambda --no-fail-fast`: 144 integration tests pass ( +5 from this fix ; 0 regressions from the new state-shape changes ).
+
+### Scope deferred
+
+Lambda models `RevisionId` on five other input shapes -- `UpdateAliasRequest`, `UpdateFunctionCodeRequest`, `UpdateFunctionConfigurationRequest`, `PublishVersionRequest` ( all targeting function/alias *configuration* revisions, distinct from the policy ), plus `AddLayerVersionPermissionRequest` / `RemoveLayerVersionPermissionRequest` ( layer-version policy, distinct registry ). These need analogous per-resource revision counters but the state shape and error path are identical to what this fix introduces. Tracked separately as `lambda-revision-id-other-ops` in TODO ; closing them is a straightforward repeat of the pattern.
+

@@ -524,3 +524,243 @@ resource "aws_lambda_layer_version" "lambda_layer" {{
 
     cleanup_tf_dir(&dir);
 }
+
+/// Regression for the GetPolicy random-uuid bug fixed in 5e3ba012: GetPolicy
+/// used to mint a fresh RevisionId on every read, so the AWS provider's refresh
+/// after apply would see a different RevisionId from the one in state and
+/// report drift. A second `terraform plan` after apply must show no changes.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+#[ignore]
+async fn test_lambda_permission_plan_idempotent_after_apply() {
+    let zip_path = make_test_lambda_zip();
+    let zip_str = zip_path.display().to_string();
+
+    let port = start_server(test_services()).await;
+    let url = format!("http://127.0.0.1:{port}");
+    let dir = create_tf_dir("lambda-permission-idempotent");
+
+    write_provider_tf(&dir, &url);
+    std::fs::write(
+        dir.join("main.tf"),
+        format!(
+            r#"
+resource "aws_iam_role" "lambda_perm_idempotent_role" {{
+  name = "lambda-perm-idempotent-role"
+  assume_role_policy = {LAMBDA_ASSUME_ROLE_POLICY}
+}}
+
+resource "aws_lambda_function" "lambda_perm_idempotent_fn" {{
+  filename      = "{zip_str}"
+  function_name = "terraform-perm-idempotent-fn"
+  role          = aws_iam_role.lambda_perm_idempotent_role.arn
+  handler       = "index.handler"
+  runtime       = "nodejs18.x"
+}}
+
+resource "aws_lambda_permission" "lambda_perm_idempotent" {{
+  statement_id  = "AllowEvents"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.lambda_perm_idempotent_fn.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = "arn:aws:events:us-east-1:123456789012:rule/my-rule"
+}}
+"#
+        ),
+    )
+    .unwrap();
+
+    terraform_init(&dir).await;
+    let (ok, _stdout, stderr) = terraform_apply(&dir).await;
+    assert!(ok, "terraform apply failed:\n{stderr}");
+
+    // -detailed-exitcode: 0 = no changes, 2 = changes pending.
+    let (ok, stdout, stderr) = terraform_plan(&dir).await;
+    assert!(
+        ok,
+        "terraform plan shows changes after apply (expected idempotent):\nstdout:\n{stdout}\nstderr:\n{stderr}"
+    );
+    assert!(
+        stdout.contains("No changes"),
+        "Expected 'No changes' in plan output:\n{stdout}"
+    );
+
+    cleanup_tf_dir(&dir);
+}
+
+/// Apply + destroy exercises RemovePermission. The AWS provider reads the
+/// policy first, then passes the resulting RevisionId as the `RevisionId` query
+/// parameter of `DELETE /2015-03-31/functions/{name}/policy/{sid}`. Before
+/// 5e3ba012 the handler ignored that query parameter, so a stale value would be
+/// silently accepted; after the fix it must match the stored revision for the
+/// call to succeed.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+#[ignore]
+async fn test_lambda_permission_apply_and_destroy() {
+    let zip_path = make_test_lambda_zip();
+    let zip_str = zip_path.display().to_string();
+
+    let port = start_server(test_services()).await;
+    let url = format!("http://127.0.0.1:{port}");
+    let dir = create_tf_dir("lambda-permission-apply-destroy");
+
+    write_provider_tf(&dir, &url);
+    std::fs::write(
+        dir.join("main.tf"),
+        format!(
+            r#"
+resource "aws_iam_role" "lambda_perm_destroy_role" {{
+  name = "lambda-perm-destroy-role"
+  assume_role_policy = {LAMBDA_ASSUME_ROLE_POLICY}
+}}
+
+resource "aws_lambda_function" "lambda_perm_destroy_fn" {{
+  filename      = "{zip_str}"
+  function_name = "terraform-perm-destroy-fn"
+  role          = aws_iam_role.lambda_perm_destroy_role.arn
+  handler       = "index.handler"
+  runtime       = "nodejs18.x"
+}}
+
+resource "aws_lambda_permission" "lambda_perm_destroy" {{
+  statement_id  = "AllowEvents"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.lambda_perm_destroy_fn.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = "arn:aws:events:us-east-1:123456789012:rule/my-rule"
+}}
+"#
+        ),
+    )
+    .unwrap();
+
+    terraform_init(&dir).await;
+
+    let (ok, stdout, stderr) = terraform_apply(&dir).await;
+    assert!(ok, "terraform apply failed:\n{stderr}");
+    assert!(
+        stdout.contains("Resources: 3 added"),
+        "Unexpected apply output:\n{stdout}"
+    );
+
+    let (ok, stdout, stderr) = terraform_destroy(&dir).await;
+    assert!(ok, "terraform destroy failed:\n{stderr}");
+    assert!(
+        stdout.contains("Resources: 3 destroyed")
+            || stdout.contains("Destroy complete! Resources: 3 destroyed"),
+        "Unexpected destroy output:\n{stdout}"
+    );
+
+    cleanup_tf_dir(&dir);
+}
+
+/// Apply two distinct `aws_lambda_permission` statements on the same function,
+/// then remove only one of them. Exercises AddPermission bumping the revision
+/// id between statements and RemovePermission honouring the latest revision id
+/// when the provider deletes the dropped statement; the surviving permission
+/// must remain in state and the dropped one must not.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+#[ignore]
+async fn test_lambda_permission_apply_then_drop_one() {
+    let zip_path = make_test_lambda_zip();
+    let zip_str = zip_path.display().to_string();
+
+    let port = start_server(test_services()).await;
+    let url = format!("http://127.0.0.1:{port}");
+    let dir = create_tf_dir("lambda-permission-drop-one");
+
+    write_provider_tf(&dir, &url);
+    std::fs::write(
+        dir.join("main.tf"),
+        format!(
+            r#"
+resource "aws_iam_role" "lambda_perm_multi_role" {{
+  name = "lambda-perm-multi-role"
+  assume_role_policy = {LAMBDA_ASSUME_ROLE_POLICY}
+}}
+
+resource "aws_lambda_function" "lambda_perm_multi_fn" {{
+  filename      = "{zip_str}"
+  function_name = "terraform-perm-multi-fn"
+  role          = aws_iam_role.lambda_perm_multi_role.arn
+  handler       = "index.handler"
+  runtime       = "nodejs18.x"
+}}
+
+resource "aws_lambda_permission" "lambda_perm_events" {{
+  statement_id  = "AllowEvents"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.lambda_perm_multi_fn.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = "arn:aws:events:us-east-1:123456789012:rule/my-rule"
+}}
+
+resource "aws_lambda_permission" "lambda_perm_sns" {{
+  statement_id  = "AllowSns"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.lambda_perm_multi_fn.function_name
+  principal     = "sns.amazonaws.com"
+  source_arn    = "arn:aws:sns:us-east-1:123456789012:my-topic"
+}}
+"#
+        ),
+    )
+    .unwrap();
+
+    terraform_init(&dir).await;
+
+    let (ok, stdout, stderr) = terraform_apply(&dir).await;
+    assert!(ok, "first terraform apply failed:\n{stderr}");
+    assert!(
+        stdout.contains("Resources: 4 added"),
+        "Unexpected first-apply output:\n{stdout}"
+    );
+
+    // Drop the SNS statement and re-apply: exactly one resource should be removed.
+    std::fs::write(
+        dir.join("main.tf"),
+        format!(
+            r#"
+resource "aws_iam_role" "lambda_perm_multi_role" {{
+  name = "lambda-perm-multi-role"
+  assume_role_policy = {LAMBDA_ASSUME_ROLE_POLICY}
+}}
+
+resource "aws_lambda_function" "lambda_perm_multi_fn" {{
+  filename      = "{zip_str}"
+  function_name = "terraform-perm-multi-fn"
+  role          = aws_iam_role.lambda_perm_multi_role.arn
+  handler       = "index.handler"
+  runtime       = "nodejs18.x"
+}}
+
+resource "aws_lambda_permission" "lambda_perm_events" {{
+  statement_id  = "AllowEvents"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.lambda_perm_multi_fn.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = "arn:aws:events:us-east-1:123456789012:rule/my-rule"
+}}
+"#
+        ),
+    )
+    .unwrap();
+
+    let (ok, stdout, stderr) = terraform_apply(&dir).await;
+    assert!(ok, "second terraform apply failed:\n{stderr}");
+    assert!(
+        stdout.contains("Resources: 0 added, 0 changed, 1 destroyed"),
+        "Unexpected second-apply output:\n{stdout}"
+    );
+
+    let state = std::fs::read_to_string(dir.join("terraform.tfstate")).unwrap_or_default();
+    assert!(
+        state.contains("AllowEvents"),
+        "Surviving permission missing from state:\n{state}"
+    );
+    assert!(
+        !state.contains("AllowSns"),
+        "Dropped permission still present in state:\n{state}"
+    );
+
+    cleanup_tf_dir(&dir);
+}
