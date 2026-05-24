@@ -1413,6 +1413,256 @@ async fn test_inject_lambda_permission() {
     assert_eq!(perms.len(), 1);
     assert_eq!(perms[0].statement_id, "AllowExecutionFromEvents");
     assert_eq!(perms[0].principal, "events.amazonaws.com");
+    // The converter must bump function_policy_revisions in lockstep with
+    // function_permissions so that GetPolicy returns a non-empty RevisionId
+    // (regression for the AddPermission/GetPolicy revision-id fix).
+    let revision = view
+        .function_policy_revisions
+        .get("my-fn")
+        .expect("revision id missing for injected permission");
+    assert!(!revision.is_empty(), "revision id should be non-empty");
+}
+
+#[tokio::test]
+async fn test_inject_lambda_permission_bumps_revision_between_statements() {
+    use winterbaume_lambda::LambdaService;
+    use winterbaume_terraform::converters::lambda::{
+        AwsLambdaFunctionConverter, AwsLambdaPermissionConverter,
+    };
+
+    let lambda = Arc::new(LambdaService::new());
+    let ctx = default_ctx();
+
+    let mut injector = TerraformInjector::new();
+    injector.register(AwsLambdaFunctionConverter::new(Arc::clone(&lambda)));
+    injector.register(AwsLambdaPermissionConverter::new(Arc::clone(&lambda)));
+
+    let tfstate = make_tfstate(vec![
+        make_resource(
+            "aws_lambda_function",
+            "fn",
+            json!({
+                "function_name": "multi-perm-fn",
+                "runtime": "python3.11",
+                "handler": "index.handler",
+                "role": "arn:aws:iam::123456789012:role/lambda-role",
+            }),
+        ),
+        make_resource(
+            "aws_lambda_permission",
+            "allow_events",
+            json!({
+                "statement_id": "AllowEvents",
+                "action": "lambda:InvokeFunction",
+                "function_name": "multi-perm-fn",
+                "principal": "events.amazonaws.com",
+                "source_arn": "arn:aws:events:us-east-1:123456789012:rule/my-rule",
+            }),
+        ),
+        make_resource(
+            "aws_lambda_permission",
+            "allow_sns",
+            json!({
+                "statement_id": "AllowSns",
+                "action": "lambda:InvokeFunction",
+                "function_name": "multi-perm-fn",
+                "principal": "sns.amazonaws.com",
+                "source_arn": "arn:aws:sns:us-east-1:123456789012:my-topic",
+            }),
+        ),
+    ]);
+
+    let report = injector.inject_all(&tfstate, &ctx).await;
+    assert!(report.is_success(), "errors: {:?}", report.errors);
+
+    let view = lambda.snapshot(&ctx.default_account_id, "us-east-1").await;
+    let perms = view.function_permissions.get("multi-perm-fn").unwrap();
+    assert_eq!(perms.len(), 2);
+    let revision = view
+        .function_policy_revisions
+        .get("multi-perm-fn")
+        .expect("revision id missing");
+    assert!(!revision.is_empty(), "revision id should be non-empty");
+}
+
+// ---------------------------------------------------------------------------
+// aws_lambda_invocation qualifier-resolution tests
+//
+// These exercise the validation the converter performs against
+// LambdaService::resolve_qualifier — the same path that the Invoke API uses
+// to map `$LATEST` / numeric versions / alias names to a concrete version.
+// ---------------------------------------------------------------------------
+
+fn lambda_function_resource(name: &str, function_name: &str) -> winterbaume_tfstate::Resource {
+    make_resource(
+        "aws_lambda_function",
+        name,
+        json!({
+            "function_name": function_name,
+            "runtime": "python3.11",
+            "handler": "index.handler",
+            "role": "arn:aws:iam::123456789012:role/lambda-role",
+        }),
+    )
+}
+
+fn lambda_alias_resource(
+    name: &str,
+    function_name: &str,
+    alias_name: &str,
+    function_version: &str,
+) -> winterbaume_tfstate::Resource {
+    make_resource(
+        "aws_lambda_alias",
+        name,
+        json!({
+            "name": alias_name,
+            "function_name": function_name,
+            "function_version": function_version,
+        }),
+    )
+}
+
+#[tokio::test]
+async fn test_inject_lambda_invocation_with_latest_qualifier_succeeds() {
+    use winterbaume_lambda::LambdaService;
+    use winterbaume_terraform::converters::lambda::{
+        AwsLambdaFunctionConverter, AwsLambdaInvocationConverter,
+    };
+
+    let lambda = Arc::new(LambdaService::new());
+    let ctx = default_ctx();
+
+    let mut injector = TerraformInjector::new();
+    injector.register(AwsLambdaFunctionConverter::new(Arc::clone(&lambda)));
+    injector.register(AwsLambdaInvocationConverter::new(Arc::clone(&lambda)));
+
+    let tfstate = make_tfstate(vec![
+        lambda_function_resource("fn", "qual-latest"),
+        make_resource(
+            "aws_lambda_invocation",
+            "inv",
+            json!({
+                "function_name": "qual-latest",
+                "input": "{}",
+                // qualifier omitted -> defaults to $LATEST
+            }),
+        ),
+    ]);
+
+    let report = injector.inject_all(&tfstate, &ctx).await;
+    assert!(report.is_success(), "errors: {:?}", report.errors);
+}
+
+#[tokio::test]
+async fn test_inject_lambda_invocation_with_alias_qualifier_succeeds() {
+    use winterbaume_lambda::LambdaService;
+    use winterbaume_terraform::converters::lambda::{
+        AwsLambdaAliasConverter, AwsLambdaFunctionConverter, AwsLambdaInvocationConverter,
+    };
+
+    let lambda = Arc::new(LambdaService::new());
+    let ctx = default_ctx();
+
+    let mut injector = TerraformInjector::new();
+    injector.register(AwsLambdaFunctionConverter::new(Arc::clone(&lambda)));
+    injector.register(AwsLambdaAliasConverter::new(Arc::clone(&lambda)));
+    injector.register(AwsLambdaInvocationConverter::new(Arc::clone(&lambda)));
+
+    let tfstate = make_tfstate(vec![
+        lambda_function_resource("fn", "qual-alias"),
+        lambda_alias_resource("live", "qual-alias", "live", "$LATEST"),
+        make_resource(
+            "aws_lambda_invocation",
+            "inv",
+            json!({
+                "function_name": "qual-alias",
+                "input": "{}",
+                "qualifier": "live",
+            }),
+        ),
+    ]);
+
+    let report = injector.inject_all(&tfstate, &ctx).await;
+    assert!(report.is_success(), "errors: {:?}", report.errors);
+}
+
+#[tokio::test]
+async fn test_inject_lambda_invocation_with_unknown_alias_is_rejected() {
+    use winterbaume_lambda::LambdaService;
+    use winterbaume_terraform::converters::lambda::{
+        AwsLambdaFunctionConverter, AwsLambdaInvocationConverter,
+    };
+
+    let lambda = Arc::new(LambdaService::new());
+    let ctx = default_ctx();
+
+    let mut injector = TerraformInjector::new();
+    injector.register(AwsLambdaFunctionConverter::new(Arc::clone(&lambda)));
+    injector.register(AwsLambdaInvocationConverter::new(Arc::clone(&lambda)));
+
+    let tfstate = make_tfstate(vec![
+        lambda_function_resource("fn", "qual-bad-alias"),
+        make_resource(
+            "aws_lambda_invocation",
+            "inv",
+            json!({
+                "function_name": "qual-bad-alias",
+                "input": "{}",
+                "qualifier": "ghost",
+            }),
+        ),
+    ]);
+
+    let report = injector.inject_all(&tfstate, &ctx).await;
+    assert!(
+        !report.errors.is_empty(),
+        "expected an error for unknown alias qualifier, got success",
+    );
+    let detail = format!("{:?}", report.errors);
+    assert!(
+        detail.contains("qualifier") && detail.contains("ghost"),
+        "expected error to name the qualifier; got {detail}",
+    );
+}
+
+#[tokio::test]
+async fn test_inject_lambda_invocation_with_unknown_version_is_rejected() {
+    use winterbaume_lambda::LambdaService;
+    use winterbaume_terraform::converters::lambda::{
+        AwsLambdaFunctionConverter, AwsLambdaInvocationConverter,
+    };
+
+    let lambda = Arc::new(LambdaService::new());
+    let ctx = default_ctx();
+
+    let mut injector = TerraformInjector::new();
+    injector.register(AwsLambdaFunctionConverter::new(Arc::clone(&lambda)));
+    injector.register(AwsLambdaInvocationConverter::new(Arc::clone(&lambda)));
+
+    let tfstate = make_tfstate(vec![
+        lambda_function_resource("fn", "qual-bad-version"),
+        make_resource(
+            "aws_lambda_invocation",
+            "inv",
+            json!({
+                "function_name": "qual-bad-version",
+                "input": "{}",
+                "qualifier": "42",
+            }),
+        ),
+    ]);
+
+    let report = injector.inject_all(&tfstate, &ctx).await;
+    assert!(
+        !report.errors.is_empty(),
+        "expected an error for unpublished numeric qualifier",
+    );
+    let detail = format!("{:?}", report.errors);
+    assert!(
+        detail.contains("qualifier") && detail.contains("42"),
+        "expected error to name the qualifier; got {detail}",
+    );
 }
 
 // ---------------------------------------------------------------------------

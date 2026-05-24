@@ -1546,3 +1546,452 @@ resource "aws_chatbot_microsoft_teams_channel_configuration" "test" {
 
     cleanup_tf_dir(&dir);
 }
+
+// ---------------------------------------------------------------------------
+// Lambda permission tests
+// ---------------------------------------------------------------------------
+
+fn lambda_services() -> Vec<Arc<dyn MockService>> {
+    vec![
+        Arc::new(winterbaume_sts::StsService::new()),
+        Arc::new(winterbaume_iam::IamService::new()),
+        Arc::new(winterbaume_lambda::LambdaService::new()),
+    ]
+}
+
+fn write_provider_tf_with_lambda(dir: &Path, server_url: &str) {
+    let content = format!(
+        r#"terraform {{
+  required_providers {{
+    aws = {{
+      source = "hashicorp/aws"
+    }}
+  }}
+}}
+
+provider "aws" {{
+  region                      = "us-east-1"
+  skip_credentials_validation = true
+  skip_metadata_api_check     = true
+  skip_requesting_account_id  = true
+
+  endpoints {{
+    lambda = "{server_url}"
+    iam    = "{server_url}"
+    sts    = "{server_url}"
+  }}
+
+  access_key = "test"
+  secret_key = "test"
+}}
+"#
+    );
+    std::fs::write(dir.join("provider.tf"), content).unwrap();
+}
+
+/// Write a minimal valid zip file (End-of-Central-Directory record only).
+/// The Lambda mock only decodes the bytes to hash them, so an empty archive is fine.
+fn write_empty_zip(dir: &Path, filename: &str) {
+    let empty_zip: [u8; 22] = [
+        0x50, 0x4b, 0x05, 0x06, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    ];
+    std::fs::write(dir.join(filename), empty_zip).unwrap();
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+#[ignore]
+async fn test_terraform_apply_lambda_permission() {
+    let port = start_server(lambda_services()).await;
+    let url = format!("http://127.0.0.1:{port}");
+    let dir = create_tf_dir("apply-lambda-permission");
+
+    write_provider_tf_with_lambda(&dir, &url);
+    write_empty_zip(&dir, "lambda.zip");
+    std::fs::write(
+        dir.join("main.tf"),
+        r#"
+resource "aws_lambda_function" "fn" {
+  function_name = "tf-test-fn"
+  role          = "arn:aws:iam::123456789012:role/lambda-role"
+  runtime       = "python3.12"
+  handler       = "index.handler"
+  filename      = "lambda.zip"
+}
+
+resource "aws_lambda_permission" "allow_events" {
+  statement_id  = "AllowEvents"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.fn.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = "arn:aws:events:us-east-1:123456789012:rule/my-rule"
+}
+"#,
+    )
+    .unwrap();
+
+    terraform_init(&dir).await;
+
+    let (ok, stdout, stderr) = terraform_apply(&dir).await;
+    assert!(ok, "terraform apply failed:\n{stderr}");
+    assert!(
+        stdout.contains("Apply complete! Resources: 2 added"),
+        "Unexpected apply output:\n{stdout}"
+    );
+
+    let state_content = std::fs::read_to_string(dir.join("terraform.tfstate")).unwrap();
+    assert!(state_content.contains("tf-test-fn"));
+    assert!(state_content.contains("AllowEvents"));
+
+    cleanup_tf_dir(&dir);
+}
+
+/// Regression for the GetPolicy random-uuid bug fixed in 5e3ba012. GetPolicy used
+/// to mint a fresh RevisionId on every read; the AWS provider's refresh would
+/// then see a different value from the one in state and report drift. A second
+/// `terraform plan` after apply must show no changes.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+#[ignore]
+async fn test_terraform_plan_idempotent_lambda_permission_after_apply() {
+    let port = start_server(lambda_services()).await;
+    let url = format!("http://127.0.0.1:{port}");
+    let dir = create_tf_dir("plan-idempotent-lambda-permission");
+
+    write_provider_tf_with_lambda(&dir, &url);
+    write_empty_zip(&dir, "lambda.zip");
+    std::fs::write(
+        dir.join("main.tf"),
+        r#"
+resource "aws_lambda_function" "fn" {
+  function_name = "tf-idempotent-fn"
+  role          = "arn:aws:iam::123456789012:role/lambda-role"
+  runtime       = "python3.12"
+  handler       = "index.handler"
+  filename      = "lambda.zip"
+}
+
+resource "aws_lambda_permission" "allow_events" {
+  statement_id  = "AllowEvents"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.fn.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = "arn:aws:events:us-east-1:123456789012:rule/my-rule"
+}
+"#,
+    )
+    .unwrap();
+
+    terraform_init(&dir).await;
+
+    let (ok, _stdout, stderr) = terraform_apply(&dir).await;
+    assert!(ok, "terraform apply failed:\n{stderr}");
+
+    // -detailed-exitcode: 0 = no changes, 2 = changes pending
+    let (ok, stdout, stderr) = terraform_plan(&dir).await;
+    assert!(
+        ok,
+        "terraform plan shows changes after apply (expected idempotent):\nstdout:\n{stdout}\nstderr:\n{stderr}"
+    );
+    assert!(
+        stdout.contains("No changes"),
+        "Expected 'No changes' in plan output:\n{stdout}"
+    );
+
+    cleanup_tf_dir(&dir);
+}
+
+/// Apply + destroy exercises RemovePermission. The AWS provider reads the
+/// policy first, then passes the resulting RevisionId as the `RevisionId` query
+/// parameter of `DELETE /2015-03-31/functions/{name}/policy/{sid}`. Before
+/// 5e3ba012 the handler ignored that query parameter, so a stale value would be
+/// silently accepted; after the fix it must match the stored revision for the
+/// call to succeed.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+#[ignore]
+async fn test_terraform_apply_and_destroy_lambda_permission() {
+    let port = start_server(lambda_services()).await;
+    let url = format!("http://127.0.0.1:{port}");
+    let dir = create_tf_dir("apply-destroy-lambda-permission");
+
+    write_provider_tf_with_lambda(&dir, &url);
+    write_empty_zip(&dir, "lambda.zip");
+    std::fs::write(
+        dir.join("main.tf"),
+        r#"
+resource "aws_lambda_function" "fn" {
+  function_name = "tf-destroy-fn"
+  role          = "arn:aws:iam::123456789012:role/lambda-role"
+  runtime       = "python3.12"
+  handler       = "index.handler"
+  filename      = "lambda.zip"
+}
+
+resource "aws_lambda_permission" "allow_events" {
+  statement_id  = "AllowEvents"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.fn.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = "arn:aws:events:us-east-1:123456789012:rule/my-rule"
+}
+"#,
+    )
+    .unwrap();
+
+    terraform_init(&dir).await;
+
+    let (ok, stdout, stderr) = terraform_apply(&dir).await;
+    assert!(ok, "terraform apply failed:\n{stderr}");
+    assert!(
+        stdout.contains("Resources: 2 added"),
+        "Unexpected apply output:\n{stdout}"
+    );
+
+    let (ok, stdout, stderr) = terraform_destroy(&dir).await;
+    assert!(ok, "terraform destroy failed:\n{stderr}");
+    assert!(
+        stdout.contains("Resources: 2 destroyed")
+            || stdout.contains("Destroy complete! Resources: 2 destroyed"),
+        "Unexpected destroy output:\n{stdout}"
+    );
+
+    cleanup_tf_dir(&dir);
+}
+
+/// Add two distinct `aws_lambda_permission` statements on the same function,
+/// then remove only one of them. Exercises AddPermission bumping the revision id
+/// between statements and RemovePermission honouring the latest revision id
+/// when the provider deletes the dropped statement; the surviving permission
+/// must remain in state and the dropped one must not.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+#[ignore]
+async fn test_terraform_apply_lambda_permission_then_drop_one() {
+    let port = start_server(lambda_services()).await;
+    let url = format!("http://127.0.0.1:{port}");
+    let dir = create_tf_dir("apply-lambda-permission-drop-one");
+
+    write_provider_tf_with_lambda(&dir, &url);
+    write_empty_zip(&dir, "lambda.zip");
+    std::fs::write(
+        dir.join("main.tf"),
+        r#"
+resource "aws_lambda_function" "fn" {
+  function_name = "tf-multi-fn"
+  role          = "arn:aws:iam::123456789012:role/lambda-role"
+  runtime       = "python3.12"
+  handler       = "index.handler"
+  filename      = "lambda.zip"
+}
+
+resource "aws_lambda_permission" "allow_events" {
+  statement_id  = "AllowEvents"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.fn.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = "arn:aws:events:us-east-1:123456789012:rule/my-rule"
+}
+
+resource "aws_lambda_permission" "allow_sns" {
+  statement_id  = "AllowSns"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.fn.function_name
+  principal     = "sns.amazonaws.com"
+  source_arn    = "arn:aws:sns:us-east-1:123456789012:my-topic"
+}
+"#,
+    )
+    .unwrap();
+
+    terraform_init(&dir).await;
+
+    let (ok, stdout, stderr) = terraform_apply(&dir).await;
+    assert!(ok, "terraform apply failed:\n{stderr}");
+    assert!(
+        stdout.contains("Resources: 3 added"),
+        "Unexpected apply output:\n{stdout}"
+    );
+
+    // Drop the SNS statement and re-apply: exactly one permission should be removed.
+    std::fs::write(
+        dir.join("main.tf"),
+        r#"
+resource "aws_lambda_function" "fn" {
+  function_name = "tf-multi-fn"
+  role          = "arn:aws:iam::123456789012:role/lambda-role"
+  runtime       = "python3.12"
+  handler       = "index.handler"
+  filename      = "lambda.zip"
+}
+
+resource "aws_lambda_permission" "allow_events" {
+  statement_id  = "AllowEvents"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.fn.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = "arn:aws:events:us-east-1:123456789012:rule/my-rule"
+}
+"#,
+    )
+    .unwrap();
+
+    let (ok, stdout, stderr) = terraform_apply(&dir).await;
+    assert!(ok, "second terraform apply failed:\n{stderr}");
+    assert!(
+        stdout.contains("Resources: 0 added, 0 changed, 1 destroyed"),
+        "Unexpected second-apply output:\n{stdout}"
+    );
+
+    let state_content = std::fs::read_to_string(dir.join("terraform.tfstate")).unwrap();
+    assert!(
+        state_content.contains("AllowEvents"),
+        "Surviving permission missing from state:\n{state_content}"
+    );
+    assert!(
+        !state_content.contains("AllowSns"),
+        "Dropped permission still present in state:\n{state_content}"
+    );
+
+    cleanup_tf_dir(&dir);
+}
+
+// ---------------------------------------------------------------------------
+// Lambda invocation Qualifier tests
+//
+// Regression coverage for the Invoke / InvokeWithResponseStream Qualifier
+// fix (handle_invoke now threads through input.qualifier via
+// LambdaState::resolve_qualifier).  Before the fix, a qualifier-pinned
+// invocation against an unknown alias or unpublished numeric version
+// silently fell back to $LATEST -- breaking the deploy-time
+// version-pinning workflows the Qualifier exists to support.
+// ---------------------------------------------------------------------------
+
+/// Write a minimal (empty-archive) ZIP at `<dir>/lambda.zip`.  The mock
+/// Lambda service hashes whatever bytes arrive; the AWS provider only
+/// validates that the file exists and is readable, so the bare EOCD record
+/// is enough to drive `terraform apply` end-to-end.
+fn write_minimal_lambda_zip(dir: &Path) {
+    // 22-byte End Of Central Directory record == empty ZIP.
+    const EMPTY_ZIP: &[u8] = &[
+        0x50, 0x4b, 0x05, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    ];
+    std::fs::write(dir.join("lambda.zip"), EMPTY_ZIP).unwrap();
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+#[ignore]
+async fn test_terraform_apply_lambda_invocation_with_alias_qualifier() {
+    let port = start_server(lambda_services()).await;
+    let url = format!("http://127.0.0.1:{port}");
+    let dir = create_tf_dir("apply-lambda-invocation-alias");
+
+    write_provider_tf_with_lambda(&dir, &url);
+    write_minimal_lambda_zip(&dir);
+    std::fs::write(
+        dir.join("main.tf"),
+        r#"
+resource "aws_lambda_function" "test" {
+  function_name = "tf-qual-alias-fn"
+  role          = "arn:aws:iam::123456789012:role/lambda-exec"
+  handler       = "index.handler"
+  runtime       = "python3.12"
+  filename      = "lambda.zip"
+  publish       = true
+}
+
+resource "aws_lambda_alias" "live" {
+  name             = "live"
+  function_name    = aws_lambda_function.test.function_name
+  function_version = aws_lambda_function.test.version
+}
+
+resource "aws_lambda_invocation" "live_invoke" {
+  function_name = aws_lambda_function.test.function_name
+  qualifier     = aws_lambda_alias.live.name
+  input         = jsonencode({ hello = "world" })
+}
+"#,
+    )
+    .unwrap();
+
+    terraform_init(&dir).await;
+
+    let (ok, stdout, stderr) = terraform_apply(&dir).await;
+    assert!(
+        ok,
+        "terraform apply failed -- the Invoke fix in fd43dcfe should let \
+         alias-pinned invocations resolve to the alias's target version:\n\
+         stdout:\n{stdout}\nstderr:\n{stderr}",
+    );
+    assert!(
+        stdout.contains("Resources: 3 added"),
+        "Expected 3 resources added (function + alias + invocation):\n{stdout}",
+    );
+
+    let state_content = std::fs::read_to_string(dir.join("terraform.tfstate")).unwrap();
+    assert!(state_content.contains("tf-qual-alias-fn"));
+    assert!(state_content.contains("\"live\""));
+    // Mock Invoke returns an empty JSON body; terraform records that as
+    // the `result` attribute on aws_lambda_invocation.
+    assert!(
+        state_content.contains("\"result\""),
+        "expected aws_lambda_invocation to record a result attribute:\n{state_content}",
+    );
+
+    cleanup_tf_dir(&dir);
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+#[ignore]
+async fn test_terraform_apply_lambda_invocation_with_invalid_qualifier_fails() {
+    // The opposite-direction regression: before the Qualifier fix, an
+    // invocation against a non-existent alias would have succeeded
+    // (silently fell back to $LATEST). After the fix the server returns
+    // ResourceNotFoundException and `terraform apply` must surface that
+    // as a hard failure.
+    let port = start_server(lambda_services()).await;
+    let url = format!("http://127.0.0.1:{port}");
+    let dir = create_tf_dir("apply-lambda-invocation-bad-qualifier");
+
+    write_provider_tf_with_lambda(&dir, &url);
+    write_minimal_lambda_zip(&dir);
+    std::fs::write(
+        dir.join("main.tf"),
+        r#"
+resource "aws_lambda_function" "test" {
+  function_name = "tf-qual-bad-fn"
+  role          = "arn:aws:iam::123456789012:role/lambda-exec"
+  handler       = "index.handler"
+  runtime       = "python3.12"
+  filename      = "lambda.zip"
+}
+
+resource "aws_lambda_invocation" "ghost" {
+  function_name = aws_lambda_function.test.function_name
+  qualifier     = "ghost-alias"
+  input         = jsonencode({})
+
+  depends_on = [aws_lambda_function.test]
+}
+"#,
+    )
+    .unwrap();
+
+    terraform_init(&dir).await;
+
+    let (ok, stdout, stderr) = terraform_apply(&dir).await;
+    assert!(
+        !ok,
+        "terraform apply should have failed for the unknown qualifier \
+         'ghost-alias' (the function exists but no such alias / version):\n\
+         stdout:\n{stdout}\nstderr:\n{stderr}",
+    );
+    let combined = format!("{stdout}\n{stderr}");
+    assert!(
+        combined.contains("ResourceNotFoundException")
+            || combined.contains("ResourceNotFound")
+            || combined.contains("404"),
+        "expected ResourceNotFoundException-style failure in terraform \
+         output, got:\n{combined}",
+    );
+
+    cleanup_tf_dir(&dir);
+}

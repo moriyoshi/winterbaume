@@ -37,6 +37,22 @@ impl LambdaService {
     pub fn scopes_with_state(&self) -> Vec<(String, String)> {
         self.state.scopes_with_state()
     }
+
+    /// Resolve an `Invoke` Qualifier against this service's state for the
+    /// given scope. Mirrors [`LambdaState::resolve_qualifier`] but exposed
+    /// publicly so external crates (e.g. `winterbaume-terraform`) can apply
+    /// the same alias/version validation that the Invoke handler now uses.
+    pub async fn resolve_qualifier(
+        &self,
+        account_id: &str,
+        region: &str,
+        function_name: &str,
+        qualifier: Option<&str>,
+    ) -> Result<String, LambdaError> {
+        let state = self.state.get(account_id, region);
+        let guard = state.read().await;
+        guard.resolve_qualifier(function_name, qualifier)
+    }
 }
 
 impl Default for LambdaService {
@@ -1382,12 +1398,12 @@ impl LambdaService {
             Err(e) => return rest_json_error(400, "ValidationException", &e),
         };
         let state = state.read().await;
-        match state.get_function(&input.function_name) {
-            Ok(_func) => {
+        match state.resolve_qualifier(&input.function_name, input.qualifier.as_deref()) {
+            Ok(resolved_version) => {
                 let mut response = MockResponse::rest_json(200, "{}".to_string());
                 response
                     .headers
-                    .insert(X_AMZ_EXECUTED_VERSION, "$LATEST".parse().unwrap());
+                    .insert(X_AMZ_EXECUTED_VERSION, resolved_version.parse().unwrap());
                 response
             }
             Err(e) => lambda_error_response(&e),
@@ -1406,7 +1422,7 @@ impl LambdaService {
             Err(e) => return rest_json_error(400, "ValidationException", &e),
         };
         let mut state = state.write().await;
-        match state.update_function_code(&input.function_name) {
+        match state.update_function_code(&input.function_name, input.revision_id.as_deref()) {
             Ok(func) => {
                 let resp = function_configuration_from(func);
                 wire::serialize_update_function_code_response(&resp)
@@ -1466,6 +1482,7 @@ impl LambdaService {
             timeout,
             input.runtime.as_deref(),
             environment,
+            input.revision_id.as_deref(),
         ) {
             Ok(func) => {
                 let resp = function_configuration_from(func);
@@ -1560,6 +1577,7 @@ impl LambdaService {
             input.function_version.as_deref(),
             input.description.as_deref(),
             routing_config,
+            input.revision_id.as_deref(),
         ) {
             Ok(alias) => {
                 let resp = alias_configuration_from(alias);
@@ -1929,11 +1947,12 @@ impl LambdaService {
             action,
             &input.principal,
             input.organization_id.as_deref(),
+            input.revision_id.as_deref(),
         ) {
-            Ok(statement) => {
+            Ok((statement, revision_id)) => {
                 let resp = model::AddLayerVersionPermissionResponse {
                     statement: Some(statement),
-                    revision_id: Some(uuid::Uuid::new_v4().to_string()),
+                    revision_id: Some(revision_id),
                 };
                 wire::serialize_add_layer_version_permission_response(&resp)
             }
@@ -1959,8 +1978,9 @@ impl LambdaService {
             &input.layer_name,
             input.version_number,
             &input.statement_id,
+            input.revision_id.as_deref(),
         ) {
-            Ok(()) => wire::serialize_remove_layer_version_permission_response(),
+            Ok(_revision_id) => wire::serialize_remove_layer_version_permission_response(),
             Err(e) => lambda_error_response(&e),
         }
     }
@@ -1979,10 +1999,10 @@ impl LambdaService {
         };
         let state = state.read().await;
         match state.get_layer_version_policy(&input.layer_name, input.version_number) {
-            Ok(policy) => {
+            Ok((policy, revision_id)) => {
                 let resp = model::GetLayerVersionPolicyResponse {
                     policy: Some(policy),
-                    revision_id: Some(uuid::Uuid::new_v4().to_string()),
+                    revision_id: Some(revision_id),
                 };
                 wire::serialize_get_layer_version_policy_response(&resp)
             }
@@ -2023,8 +2043,9 @@ impl LambdaService {
             &input.principal,
             input.source_arn.as_deref(),
             input.source_account.as_deref(),
+            input.revision_id.as_deref(),
         ) {
-            Ok(statement) => {
+            Ok((statement, _revision_id)) => {
                 let resp = model::AddPermissionResponse {
                     statement: Some(statement),
                 };
@@ -2046,8 +2067,12 @@ impl LambdaService {
             Err(e) => return rest_json_error(400, "ValidationException", &e),
         };
         let mut state = state.write().await;
-        match state.remove_permission(&input.function_name, &input.statement_id) {
-            Ok(()) => wire::serialize_remove_permission_response(),
+        match state.remove_permission(
+            &input.function_name,
+            &input.statement_id,
+            input.revision_id.as_deref(),
+        ) {
+            Ok(_revision_id) => wire::serialize_remove_permission_response(),
             Err(e) => lambda_error_response(&e),
         }
     }
@@ -2065,10 +2090,10 @@ impl LambdaService {
         };
         let state = state.read().await;
         match state.get_policy(&input.function_name) {
-            Ok(policy) => {
+            Ok((policy, revision_id)) => {
                 let resp = model::GetPolicyResponse {
                     policy: Some(policy),
-                    revision_id: Some(uuid::Uuid::new_v4().to_string()),
+                    revision_id: Some(revision_id),
                 };
                 wire::serialize_get_policy_response(&resp)
             }
@@ -2556,7 +2581,11 @@ impl LambdaService {
         };
 
         let mut state = state.write().await;
-        match state.publish_version(&input.function_name, input.description.as_deref()) {
+        match state.publish_version(
+            &input.function_name,
+            input.description.as_deref(),
+            input.revision_id.as_deref(),
+        ) {
             Ok((func, version_str)) => {
                 let mut resp = function_configuration_from(func);
                 resp.version = Some(version_str.clone());
@@ -2739,16 +2768,23 @@ impl LambdaService {
                 Err(e) => return rest_json_error(400, "ValidationException", &e),
             };
         let state = state.read().await;
-        match state.get_function(&input.function_name) {
-            Ok(_) => {
+        match state.resolve_qualifier(&input.function_name, input.qualifier.as_deref()) {
+            Ok(resolved_version) => {
                 let resp = model::InvokeWithResponseStreamResponse {
-                    executed_version: Some("$LATEST".to_string()),
+                    executed_version: Some(resolved_version.clone()),
                     response_stream_content_type: Some(
                         "application/vnd.amazon.eventstream".to_string(),
                     ),
                     ..Default::default()
                 };
-                wire::serialize_invoke_with_response_stream_response(&resp)
+                let mut response = wire::serialize_invoke_with_response_stream_response(&resp);
+                // The wire layer leaves header-bound members for the handler
+                // to set: X-Amz-Executed-Version comes from the @httpHeader
+                // binding on the ExecutedVersion model member.
+                response
+                    .headers
+                    .insert(X_AMZ_EXECUTED_VERSION, resolved_version.parse().unwrap());
+                response
             }
             Err(e) => lambda_error_response(&e),
         }
@@ -3762,6 +3798,7 @@ fn function_configuration_from(
         ),
         version: Some(func.version.clone()),
         state: Some(func.state.clone()),
+        revision_id: Some(func.revision_id.clone()),
         package_type: Some("Zip".to_string()),
         architectures: Some(vec!["x86_64".to_string()]),
         ephemeral_storage: Some(model::EphemeralStorage { size: 512 }),
@@ -3979,6 +4016,7 @@ fn lambda_error_response(err: &LambdaError) -> MockResponse {
         }
         LambdaError::CapacityProviderNotFound(_) => (404, "ResourceNotFoundException"),
         LambdaError::DurableExecutionNotFound(_) => (404, "ResourceNotFoundException"),
+        LambdaError::PreconditionFailed => (412, "PreconditionFailedException"),
     };
     let body = json!({
         "Type": "User",

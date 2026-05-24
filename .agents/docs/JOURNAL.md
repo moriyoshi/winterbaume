@@ -1676,3 +1676,121 @@ Two new terraform E2E tests added at `crates/winterbaume-e2e-tests/tests/terrafo
 
 Both tests pass against the fixed crate: `cargo test -p winterbaume-e2e-tests --test terraform -- --ignored test_kms_decrypt_with` → 2 passed, 16.83s. Per-crate clippy + fmt clean.
 
+## 2026-05-24 — Lambda AddPermission / RemovePermission: honour RevisionId ( first sweep-followup closed )
+
+First of the four awsJson sweep follow-ups discovered while fixing KMS issue #5 ( see the previous entry ). Picked the most contained one to deliver end-to-end before moving on: Lambda function-policy `RevisionId`.
+
+### Bug
+
+`handle_add_permission` and `handle_remove_permission` ( `crates/winterbaume-lambda/src/handlers.rs:2019` and `:2049` pre-fix ) dropped the modelled `input.revision_id` -- a stale value was silently accepted instead of producing `PreconditionFailedException`. Compounding the bug, `handle_get_policy` ( `:2071` pre-fix ) minted a fresh `uuid::Uuid::new_v4().to_string()` for the response's revision id on *every* call, so clients that recorded the value and submitted it back could never replay it successfully. The two halves together meant the optimistic-concurrency contract was unusable end-to-end.
+
+### Fix
+
+- `state.rs`: new sibling field `function_policy_revisions: HashMap<String, String>` on `LambdaState`. `add_permission` and `remove_permission` gained `expected_revision_id: Option<&str>`. When supplied ( non-empty ), the helper compares against the current per-function revision and returns the new `LambdaError::PreconditionFailed` on mismatch. Both bump the revision to a fresh uuid on success. `get_policy` now returns `(String, String)` so the handler can echo the stored id. `delete_function` clears the revision entry alongside the existing permission cleanup.
+- `handlers.rs`: handlers thread `input.revision_id.as_deref()`, unpack the `(statement, revision_id)` / `revision_id` tuple from state, and surface the stable revision id in the `GetPolicy` response. New error variant maps to `(412, "PreconditionFailedException")`.
+- `views.rs`: `LambdaStateView` gained the matching `function_policy_revisions` field with `#[serde(default)]` for backward-compatible deserialisation, and the snapshot / restore / merge paths thread it through.
+
+### Tests
+
+Five new integration tests in `crates/winterbaume-lambda/tests/integration_test.rs`:
+
+- `test_get_policy_revision_id_is_stable_across_reads`: direct regression for the random-uuid response bug -- two consecutive `GetPolicy` calls must return the same revision id.
+- `test_add_permission_bumps_revision_id`: revision changes after a second successful `AddPermission` ( supplying the prior revision id ).
+- `test_add_permission_with_stale_revision_id_is_rejected`: typed-variant assertion `AddPermissionError::PreconditionFailedException(_)`, plus state-not-mutated check ( the rejected statement must not appear in the policy ).
+- `test_remove_permission_with_stale_revision_id_is_rejected`: typed-variant assertion `RemovePermissionError::PreconditionFailedException(_)`, plus state-not-mutated check.
+- `test_remove_permission_with_matching_revision_id_succeeds`: positive path -- supplying the current revision id removes the statement, and the now-empty policy returns `ResourceNotFoundException` from `GetPolicy`.
+
+### Gate
+
+- `cargo clippy -p winterbaume-lambda --all-targets --all-features -- -D warnings`: clean.
+- `cargo fmt -p winterbaume-lambda -- --check`: clean.
+- `cargo test -p winterbaume-lambda --no-fail-fast`: 144 integration tests pass ( +5 from this fix ; 0 regressions from the new state-shape changes ).
+
+### Scope deferred
+
+Lambda models `RevisionId` on five other input shapes -- `UpdateAliasRequest`, `UpdateFunctionCodeRequest`, `UpdateFunctionConfigurationRequest`, `PublishVersionRequest` ( all targeting function/alias *configuration* revisions, distinct from the policy ), plus `AddLayerVersionPermissionRequest` / `RemoveLayerVersionPermissionRequest` ( layer-version policy, distinct registry ). These need analogous per-resource revision counters but the state shape and error path are identical to what this fix introduces. Tracked separately as `lambda-revision-id-other-ops` in TODO ; closing them is a straightforward repeat of the pattern.
+
+## 2026-05-24 — Lambda RevisionId on Update*, PublishVersion, layer-version policy ( sweep follow-up )
+
+Third in the awsJson sweep follow-ups from KMS issue #5. Stacks on `fix/lambda-permission-revision-id` ( the prior Lambda fix that introduced `LambdaError::PreconditionFailed` and the 412 / `PreconditionFailedException` mapping ).
+
+### Scope
+
+Five Lambda surfaces that model `RevisionId`:
+
+- `UpdateFunctionConfigurationRequest`, `UpdateFunctionCodeRequest` -- function configuration revision.
+- `PublishVersionRequest` -- precondition on the function configuration ( capture-current-config-only-if-revision-matches ); does *not* bump.
+- `UpdateAliasRequest` -- alias revision ( field already existed and was bumped on each update ; precondition check was missing ).
+- `AddLayerVersionPermissionRequest`, `RemoveLayerVersionPermissionRequest` -- layer-version policy revision.
+
+### State design
+
+Earlier the TODO entry had sketched separate maps ( `function_configuration_revisions: HashMap<String, String>` etc. ). In practice the revisions belong on the resources themselves -- the functions and layer versions are already in state, so adding fields is cleaner than parallel maps that have to be kept in sync. The final shape:
+
+- New field `LambdaFunction.revision_id: String` -- initialised on `create_function`, bumped on `UpdateFunctionConfiguration` / `UpdateFunctionCode`. `PublishVersion`'s precondition reads it without bumping. Surfaced in `FunctionConfiguration` response.
+- New field `LayerVersion.policy_revision_id: String` -- empty until first `AddLayerVersionPermission`, bumped on every successful add / remove. Surfaced in `GetLayerVersionPolicy` response ( replacing the previous random-uuid-on-every-call bug, same shape as the prior `GetPolicy` fix ).
+- `Alias.revision_id` -- field and bump logic already present from earlier work; this fix added the missing precondition check on `update_alias`.
+
+### Tests
+
+Seven new integration tests in `crates/winterbaume-lambda/tests/integration_test.rs`:
+
+- `test_get_function_returns_revision_id_and_update_bumps_it` -- positive sanity: `GetFunction` returns a populated revision id, and `UpdateFunctionConfiguration` bumps it.
+- `test_update_function_configuration_with_stale_revision_id_is_rejected` -- typed-variant `UpdateFunctionConfigurationError::PreconditionFailedException`, plus state-not-mutated assertion ( description unchanged after the rejection ).
+- `test_update_function_code_with_stale_revision_id_is_rejected` -- typed `UpdateFunctionCodeError::PreconditionFailedException`.
+- `test_publish_version_with_stale_revision_id_is_rejected` -- typed `PublishVersionError::PreconditionFailedException`, plus assertion that no version was created ( only `$LATEST` present in `ListVersionsByFunction` ).
+- `test_publish_version_does_not_bump_function_revision` -- captures the distinguishing behaviour of `PublishVersion` versus `Update*` ( the function's revision id stays stable across a successful publish, since publishing is semantically read-only on `$LATEST` ).
+- `test_update_alias_with_stale_revision_id_is_rejected` -- typed `UpdateAliasError::PreconditionFailedException` plus a matching-revision happy-path assertion confirming the revision bump.
+- `test_layer_version_permission_revision_id_round_trip` -- end-to-end coverage for the layer-version policy: first `AddLayerVersionPermission` returns a populated `RevisionId`; `GetLayerVersionPolicy` returns the same id ( regression for the random-uuid response bug ); stale revision on Add rejected with typed `AddLayerVersionPermissionError::PreconditionFailedException`; matching revision succeeds and bumps; stale revision on Remove rejected; matching revision on Remove succeeds.
+
+### Gate
+
+- `cargo clippy -p winterbaume-lambda --all-targets --all-features -- -D warnings`: clean.
+- `cargo fmt -p winterbaume-lambda -- --check`: clean.
+- `cargo test -p winterbaume-lambda --no-fail-fast`: 151 integration tests pass ( +7 from this fix on top of the prior +5 ; 0 regressions across the 144-test baseline ).
+
+### Lessons
+
+The TODO entry's separate-map state shape was an over-engineered first guess. Co-locating revisions on the resource ( `LambdaFunction.revision_id`, `LayerVersion.policy_revision_id` ) is cleaner because every relevant state path already has the resource in scope. Worth noting for future per-resource revision work elsewhere: prefer a field on the resource over a parallel `HashMap<resource_key, revision>` unless the revision can outlive the resource ( e.g. tombstones across re-creates ), which is not the case for Lambda.
+
+## 2026-05-24 — Lambda Invoke / InvokeWithResponseStream: honour Qualifier ( sweep follow-up )
+
+Second of the awsJson sweep follow-ups from KMS issue #5. The Lambda RevisionId fix is its own branch ( `fix/lambda-permission-revision-id` ) and not yet on main ; this Qualifier fix branches off main independently so the two are reviewable separately.
+
+### Bug
+
+`handle_invoke` ( `crates/winterbaume-lambda/src/handlers.rs:1385` pre-fix ) and `handle_invoke_with_response_stream` ( `:2742` pre-fix ) called `state.get_function(&input.function_name)` and never forwarded `input.qualifier`. The response's `X-Amz-Executed-Version` header was hard-coded to `$LATEST` regardless of what the caller asked for. AWS contract: `Invoke` with a `Qualifier` that doesn't match a published version or an alias returns `ResourceNotFoundException`. Real workflows version-pin their invocations specifically to avoid landing on `$LATEST` mid-deploy ; against winterbaume those pinned invocations silently fell back to `$LATEST` with no diagnostic.
+
+### Fix
+
+New `LambdaState::resolve_qualifier( function_name, qualifier: Option<&str> ) -> Result<String, LambdaError>` resolves:
+
+- omitted / empty / `"$LATEST"` → `"$LATEST"` ( only valid if the function exists at all ).
+- all-digits → must match a previously published version on the function ; `ResourceNotFound` otherwise.
+- anything else → must match an alias on the function ; returns the alias's `function_version` ( not the alias name ), so the executed-version header reflects what actually ran. `ResourceNotFound` on miss.
+
+`handle_invoke` now calls the resolver and writes the resolved version into the `X-Amz-Executed-Version` header. `handle_invoke_with_response_stream` does the same -- with a subtlety: the wire layer's `serialize_invoke_with_response_stream_response` leaves header-bound members for the handler to set ( comment `// Header "x-amz-executed-version": set by caller from executed_version field` ), so the handler now explicitly inserts the header on the returned `MockResponse` rather than relying on the response struct field alone. The first test run caught the omission ( `executed_version()` returned `None` because the header wasn't set ) -- worth keeping that gotcha in the journal for the next handler that touches a `restJson` response with header-bound output members.
+
+### Tests
+
+Six new integration tests in `crates/winterbaume-lambda/tests/integration_test.rs`:
+
+- `test_invoke_with_latest_qualifier_echoes_latest`: positive sanity -- `Qualifier=$LATEST` returns 200 + `X-Amz-Executed-Version: $LATEST`.
+- `test_invoke_with_published_version_qualifier_resolves`: publish a version, then `Invoke( Qualifier=version )` -- the header echoes the resolved version, not the hard-coded `$LATEST`.
+- `test_invoke_with_unknown_numeric_qualifier_is_rejected`: typed-variant `InvokeError::ResourceNotFoundException` for an unpublished version.
+- `test_invoke_with_alias_qualifier_resolves_to_alias_target`: publish a version, create an alias `prod` → published, then `Invoke( Qualifier=prod )` -- the header echoes the *target version* ( e.g. `"1"` ), not the alias name `"prod"`.
+- `test_invoke_with_unknown_alias_qualifier_is_rejected`: typed-variant `InvokeError::ResourceNotFoundException` for an unknown alias.
+- `test_invoke_with_response_stream_qualifier_is_honoured`: both halves of the contract for `InvokeWithResponseStream` -- positive resolved version in `executed_version`, negative rejected with `InvokeWithResponseStreamError::ResourceNotFoundException`.
+
+### Gate
+
+- `cargo clippy -p winterbaume-lambda --all-targets --all-features -- -D warnings`: clean.
+- `cargo fmt -p winterbaume-lambda -- --check`: clean.
+- `cargo test -p winterbaume-lambda --no-fail-fast`: 145 integration tests pass ( +6 from this fix ; 0 regressions ).
+
+### Scope deferred
+
+`InvokeAsyncRequest` does *not* model a `Qualifier` field in the current SDK -- the op is legacy and has been superseded by `Invoke` with `InvocationType=Event`. No fix needed there.
+
+A handful of other Lambda invocation-adjacent ops model `Qualifier` ( e.g. `GetFunction`, `GetFunctionConfiguration`, `GetFunctionEventInvokeConfig`, `GetProvisionedConcurrencyConfig` ). They have analogous validation requirements but separate state / response shapes ; out of scope for this fix.
+

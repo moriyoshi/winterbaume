@@ -14,6 +14,11 @@ pub struct LambdaState {
     pub layer_next_version: HashMap<String, i64>, // key: layer_name -> next version number
     pub function_url_configs: HashMap<String, FunctionUrlConfig>, // key: function_name
     pub function_permissions: HashMap<String, Vec<Permission>>, // key: function_name
+    /// Per-function resource-policy revision id.  Bumped on every successful
+    /// `AddPermission` / `RemovePermission` so callers can use the modelled
+    /// `RevisionId` optimistic-concurrency check.  Absent until the first
+    /// permission is added, cleared when the function is deleted.
+    pub function_policy_revisions: HashMap<String, String>, // key: function_name
     pub function_event_invoke_configs: HashMap<String, FunctionEventInvokeConfig>, // key: function_name
     pub account_id: String,
     pub region: String,
@@ -78,6 +83,10 @@ pub enum LambdaError {
     CapacityProviderNotFound(String),
     #[error("Durable execution not found: {0}")]
     DurableExecutionNotFound(String),
+    #[error(
+        "The Revision Id provided does not match the latest Revision Id. Call the GetFunction/GetAlias API to retrieve the latest Revision Id"
+    )]
+    PreconditionFailed,
 }
 
 impl LambdaState {
@@ -121,6 +130,7 @@ impl LambdaState {
             last_modified: Utc::now(),
             state: "Active".to_string(),
             version: "$LATEST".to_string(),
+            revision_id: uuid::Uuid::new_v4().to_string(),
             tags,
             versions: Vec::new(),
             reserved_concurrent_executions: None,
@@ -160,6 +170,53 @@ impl LambdaState {
             })
     }
 
+    /// Resolve an `Invoke` Qualifier to a concrete version string.
+    ///
+    /// Returns the value that should appear in the `X-Amz-Executed-Version`
+    /// response header.  AWS contract:
+    ///
+    /// - omitted / empty / `$LATEST` → resolves to `$LATEST` (only valid if
+    ///   the function exists at all).
+    /// - numeric (`"1"`, `"42"`) → must match a previously published version.
+    /// - any other string → must match an alias on this function; the
+    ///   resolved value is the alias's `function_version`.
+    ///
+    /// An unresolved qualifier surfaces as `LambdaError::ResourceNotFound`,
+    /// which the handler layer maps to `ResourceNotFoundException` / 404 --
+    /// matching AWS's behaviour for `Invoke` against an unknown
+    /// version / alias.
+    pub fn resolve_qualifier(
+        &self,
+        function_name: &str,
+        qualifier: Option<&str>,
+    ) -> Result<String, LambdaError> {
+        let resolved = self.resolve_name(function_name);
+        let func = self.get_function(&resolved)?;
+
+        let qualifier = match qualifier {
+            None | Some("") | Some("$LATEST") => return Ok("$LATEST".to_string()),
+            Some(q) => q,
+        };
+
+        if qualifier.chars().all(|c| c.is_ascii_digit()) {
+            if func.versions.iter().any(|v| v.version == qualifier) {
+                return Ok(qualifier.to_string());
+            }
+            return Err(LambdaError::ResourceNotFound(format!(
+                "{}:{qualifier}",
+                func.function_arn
+            )));
+        }
+
+        let alias_key = format!("{resolved}:{qualifier}");
+        self.aliases
+            .get(&alias_key)
+            .map(|a| a.function_version.clone())
+            .ok_or_else(|| {
+                LambdaError::ResourceNotFound(format!("{}:{qualifier}", func.function_arn))
+            })
+    }
+
     pub fn get_function_mut(&mut self, name: &str) -> Result<&mut LambdaFunction, LambdaError> {
         let resolved = self.resolve_name(name);
         let region = if self.region.is_empty() {
@@ -191,6 +248,7 @@ impl LambdaState {
             .retain(|k, _| !k.starts_with(&format!("{resolved}:")));
         self.function_url_configs.remove(&resolved);
         self.function_permissions.remove(&resolved);
+        self.function_policy_revisions.remove(&resolved);
         self.function_event_invoke_configs.remove(&resolved);
         Ok(())
     }
@@ -208,12 +266,20 @@ impl LambdaState {
         timeout: Option<i32>,
         runtime: Option<&str>,
         environment: Option<HashMap<String, String>>,
+        expected_revision_id: Option<&str>,
     ) -> Result<&LambdaFunction, LambdaError> {
         let resolved = self.resolve_name(name);
         let func = self
             .functions
             .get_mut(&resolved)
             .ok_or_else(|| LambdaError::FunctionNotFound(resolved.clone()))?;
+
+        // Optimistic concurrency on the function's configuration revision.
+        if let Some(expected) = expected_revision_id.filter(|s| !s.is_empty())
+            && expected != func.revision_id
+        {
+            return Err(LambdaError::PreconditionFailed);
+        }
 
         if let Some(d) = description {
             func.description = d.to_string();
@@ -234,19 +300,31 @@ impl LambdaState {
             func.environment = e;
         }
         func.last_modified = Utc::now();
+        func.revision_id = uuid::Uuid::new_v4().to_string();
 
         Ok(self.functions.get(&resolved).unwrap())
     }
 
-    pub fn update_function_code(&mut self, name: &str) -> Result<&LambdaFunction, LambdaError> {
+    pub fn update_function_code(
+        &mut self,
+        name: &str,
+        expected_revision_id: Option<&str>,
+    ) -> Result<&LambdaFunction, LambdaError> {
         let resolved = self.resolve_name(name);
         let func = self
             .functions
             .get_mut(&resolved)
             .ok_or_else(|| LambdaError::FunctionNotFound(resolved.clone()))?;
 
+        if let Some(expected) = expected_revision_id.filter(|s| !s.is_empty())
+            && expected != func.revision_id
+        {
+            return Err(LambdaError::PreconditionFailed);
+        }
+
         func.code_sha256 = mock_code_sha256(&uuid::Uuid::new_v4().to_string());
         func.last_modified = Utc::now();
+        func.revision_id = uuid::Uuid::new_v4().to_string();
 
         Ok(self.functions.get(&resolved).unwrap())
     }
@@ -307,6 +385,7 @@ impl LambdaState {
         function_version: Option<&str>,
         description: Option<&str>,
         routing_config: Option<Option<HashMap<String, f64>>>,
+        expected_revision_id: Option<&str>,
     ) -> Result<&Alias, LambdaError> {
         let resolved = self.resolve_name(function_name);
         let key = format!("{resolved}:{alias_name}");
@@ -314,6 +393,12 @@ impl LambdaState {
             .aliases
             .get_mut(&key)
             .ok_or_else(|| LambdaError::AliasNotFound(alias_name.to_string()))?;
+
+        if let Some(expected) = expected_revision_id.filter(|s| !s.is_empty())
+            && expected != alias.revision_id
+        {
+            return Err(LambdaError::PreconditionFailed);
+        }
 
         if let Some(v) = function_version {
             alias.function_version = v.to_string();
@@ -493,6 +578,7 @@ impl LambdaState {
             code_sha256: mock_code_sha256(layer_name),
             code_size: 262144,
             permissions: Vec::new(),
+            policy_revision_id: String::new(),
         };
 
         versions.push(lv);
@@ -563,7 +649,8 @@ impl LambdaState {
         action: &str,
         principal: &str,
         organization_id: Option<&str>,
-    ) -> Result<String, LambdaError> {
+        expected_revision_id: Option<&str>,
+    ) -> Result<(String, String), LambdaError> {
         let versions = self
             .layers
             .get_mut(layer_name)
@@ -572,6 +659,12 @@ impl LambdaState {
             .iter_mut()
             .find(|v| v.version == version)
             .ok_or_else(|| LambdaError::LayerVersionNotFound(format!("{layer_name}:{version}")))?;
+
+        if let Some(expected) = expected_revision_id.filter(|s| !s.is_empty())
+            && expected != lv.policy_revision_id
+        {
+            return Err(LambdaError::PreconditionFailed);
+        }
 
         if lv
             .permissions
@@ -590,16 +683,26 @@ impl LambdaState {
             organization_id: organization_id.map(|s| s.to_string()),
         };
         lv.permissions.push(perm);
+        lv.policy_revision_id = uuid::Uuid::new_v4().to_string();
 
         // Build policy statement JSON
+        // FIX(terraform-e2e): the layer-version permission principal must match
+        // real AWS IAM policy syntax — wildcards and AWS account IDs are bare
+        // strings (or {"AWS": ...}), only service principals are wrapped as
+        // {"Service": ...}. Unconditionally wrapping every principal in
+        // {"Service": ...} produced policies like {"Service": "123456789012"},
+        // and the terraform-provider-aws lambda layer-permission Read path then
+        // called arn.Parse on the account ID and failed with "arn: invalid
+        // prefix". Mirrors the same logic used for aws_lambda_permission below.
+        let principal_value = layer_principal_value(principal);
         let statement = serde_json::json!({
             "Sid": statement_id,
             "Effect": "Allow",
-            "Principal": {"Service": principal},
+            "Principal": principal_value,
             "Action": action,
             "Resource": lv.layer_version_arn,
         });
-        Ok(statement.to_string())
+        Ok((statement.to_string(), lv.policy_revision_id.clone()))
     }
 
     pub fn remove_layer_version_permission(
@@ -607,7 +710,8 @@ impl LambdaState {
         layer_name: &str,
         version: i64,
         statement_id: &str,
-    ) -> Result<(), LambdaError> {
+        expected_revision_id: Option<&str>,
+    ) -> Result<String, LambdaError> {
         let versions = self
             .layers
             .get_mut(layer_name)
@@ -617,19 +721,26 @@ impl LambdaState {
             .find(|v| v.version == version)
             .ok_or_else(|| LambdaError::LayerVersionNotFound(format!("{layer_name}:{version}")))?;
 
+        if let Some(expected) = expected_revision_id.filter(|s| !s.is_empty())
+            && expected != lv.policy_revision_id
+        {
+            return Err(LambdaError::PreconditionFailed);
+        }
+
         let len_before = lv.permissions.len();
         lv.permissions.retain(|p| p.statement_id != statement_id);
         if lv.permissions.len() == len_before {
             return Err(LambdaError::PermissionNotFound(statement_id.to_string()));
         }
-        Ok(())
+        lv.policy_revision_id = uuid::Uuid::new_v4().to_string();
+        Ok(lv.policy_revision_id.clone())
     }
 
     pub fn get_layer_version_policy(
         &self,
         layer_name: &str,
         version: i64,
-    ) -> Result<String, LambdaError> {
+    ) -> Result<(String, String), LambdaError> {
         let lv = self.get_layer_version(layer_name, version)?;
         if lv.permissions.is_empty() {
             return Err(LambdaError::ResourceDoesNotExist);
@@ -638,10 +749,12 @@ impl LambdaState {
             .permissions
             .iter()
             .map(|p| {
+                // FIX(terraform-e2e): same principal-shaping fix as in
+                // add_layer_version_permission — see comment there.
                 serde_json::json!({
                     "Sid": p.statement_id,
                     "Effect": "Allow",
-                    "Principal": {"Service": p.principal},
+                    "Principal": layer_principal_value(&p.principal),
                     "Action": p.action,
                     "Resource": lv.layer_version_arn,
                 })
@@ -652,7 +765,7 @@ impl LambdaState {
             "Id": "default",
             "Statement": statements,
         });
-        Ok(policy.to_string())
+        Ok((policy.to_string(), lv.policy_revision_id.clone()))
     }
 
     // ========== Function URL Config operations ==========
@@ -753,12 +866,23 @@ impl LambdaState {
         principal: &str,
         source_arn: Option<&str>,
         source_account: Option<&str>,
-    ) -> Result<String, LambdaError> {
+        expected_revision_id: Option<&str>,
+    ) -> Result<(String, String), LambdaError> {
         let resolved = self.resolve_name(function_name);
         let func = self
             .functions
             .get(&resolved)
             .ok_or_else(|| LambdaError::FunctionNotFound(resolved.clone()))?;
+
+        // Optimistic concurrency: when supplied, RevisionId must match the
+        // policy's current revision.  An empty string is treated as absent
+        // (the SDK omits empty strings on the wire, but be defensive).
+        if let Some(expected) = expected_revision_id.filter(|s| !s.is_empty()) {
+            let current = self.function_policy_revisions.get(&resolved);
+            if current.map(String::as_str) != Some(expected) {
+                return Err(LambdaError::PreconditionFailed);
+            }
+        }
 
         let perms = self
             .function_permissions
@@ -778,6 +902,10 @@ impl LambdaState {
             source_account: source_account.map(|s| s.to_string()),
         };
         perms.push(perm);
+
+        let new_revision = uuid::Uuid::new_v4().to_string();
+        self.function_policy_revisions
+            .insert(resolved.clone(), new_revision.clone());
 
         // Build principal: if it looks like an account ID (all digits), use it directly
         // If it contains a dot (like "lambda.amazonaws.com"), it's a service principal
@@ -803,16 +931,25 @@ impl LambdaState {
             );
         }
 
-        Ok(statement.to_string())
+        Ok((statement.to_string(), new_revision))
     }
 
     pub fn remove_permission(
         &mut self,
         function_name: &str,
         statement_id: &str,
-    ) -> Result<(), LambdaError> {
+        expected_revision_id: Option<&str>,
+    ) -> Result<String, LambdaError> {
         let resolved = self.resolve_name(function_name);
         self.get_function(&resolved)?;
+
+        if let Some(expected) = expected_revision_id.filter(|s| !s.is_empty()) {
+            let current = self.function_policy_revisions.get(&resolved);
+            if current.map(String::as_str) != Some(expected) {
+                return Err(LambdaError::PreconditionFailed);
+            }
+        }
+
         let perms = self
             .function_permissions
             .get_mut(&resolved)
@@ -823,10 +960,14 @@ impl LambdaState {
         if perms.len() == len_before {
             return Err(LambdaError::PermissionNotFound(statement_id.to_string()));
         }
-        Ok(())
+
+        let new_revision = uuid::Uuid::new_v4().to_string();
+        self.function_policy_revisions
+            .insert(resolved, new_revision.clone());
+        Ok(new_revision)
     }
 
-    pub fn get_policy(&self, function_name: &str) -> Result<String, LambdaError> {
+    pub fn get_policy(&self, function_name: &str) -> Result<(String, String), LambdaError> {
         let resolved = self.resolve_name(function_name);
         let func = self.get_function(&resolved)?;
         let perms = self.function_permissions.get(&resolved);
@@ -866,7 +1007,16 @@ impl LambdaState {
             "Id": "default",
             "Statement": statements,
         });
-        Ok(policy.to_string())
+        // A policy always has a revision id once it has any statements.  The
+        // unwrap is safe because add_permission populates the entry before
+        // returning Ok, and remove_permission preserves the entry while at
+        // least one statement remains.
+        let revision_id = self
+            .function_policy_revisions
+            .get(&resolved)
+            .cloned()
+            .unwrap_or_default();
+        Ok((policy.to_string(), revision_id))
     }
 
     // ========== Concurrency operations ==========
@@ -1063,6 +1213,7 @@ impl LambdaState {
         &mut self,
         function_name: &str,
         description: Option<&str>,
+        expected_revision_id: Option<&str>,
     ) -> Result<(&LambdaFunction, String), LambdaError> {
         let resolved = self.resolve_name(function_name);
         let region = if self.region.is_empty() {
@@ -1082,6 +1233,19 @@ impl LambdaState {
                 name: resolved.clone(),
             }
         })?;
+
+        // PublishVersion's RevisionId guards against publishing a stale
+        // configuration: if the function has been updated since the caller
+        // last observed the revision id, AWS rejects rather than capturing
+        // an unintended snapshot.  Unlike Update*, a successful
+        // PublishVersion does *not* bump $LATEST's revision id -- it
+        // captures the current config into a new version, leaving $LATEST
+        // semantically unchanged.
+        if let Some(expected) = expected_revision_id.filter(|s| !s.is_empty())
+            && expected != func.revision_id
+        {
+            return Err(LambdaError::PreconditionFailed);
+        }
 
         let version_num = func.versions.len() as u64 + 1;
         let version_str = version_num.to_string();
@@ -1572,6 +1736,19 @@ impl LambdaState {
         }
         // Might be just a function name
         Ok(arn.to_string())
+    }
+}
+
+/// Shape an `AddLayerVersionPermission` principal into the JSON value the AWS
+/// layer-version policy uses. Service principals (those containing a dot, e.g.
+/// `lambda.amazonaws.com`) are wrapped as `{"Service": "..."}`; everything
+/// else (account IDs, `*`) is emitted as a bare string so the terraform
+/// provider's policy parser can round-trip it.
+fn layer_principal_value(principal: &str) -> serde_json::Value {
+    if principal.contains('.') {
+        serde_json::json!({"Service": principal})
+    } else {
+        serde_json::json!(principal)
     }
 }
 
