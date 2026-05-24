@@ -243,6 +243,9 @@ pub enum KmsError {
 
     #[error("{0} is disabled.")]
     KeyDisabled(String),
+
+    #[error("The key ID in the request does not identify a CMK that can perform this operation.")]
+    IncorrectKey,
 }
 
 /// Result of GenerateDataKey.
@@ -467,6 +470,7 @@ impl KmsState {
         &self,
         ciphertext_blob: &[u8],
         encryption_context: &HashMap<String, String>,
+        expected_key_id: Option<&str>,
     ) -> Result<DecryptResult, KmsError> {
         if ciphertext_blob.len() < HEADER_LEN {
             return Err(invalid_ciphertext_error());
@@ -478,6 +482,17 @@ impl KmsState {
             .map_err(|_| invalid_ciphertext_error())?
             .trim_end_matches('\0')
             .to_string();
+
+        // If the caller supplied a KeyId, AWS validates it against the
+        // ciphertext's key and returns IncorrectKeyException on mismatch.
+        // Resolution accepts key id, ARN, or alias; an unresolved ref also
+        // counts as a mismatch.
+        if let Some(expected) = expected_key_id.filter(|s| !s.is_empty()) {
+            let resolved = self.resolve_key_id(expected).unwrap_or_default();
+            if resolved != key_id {
+                return Err(KmsError::IncorrectKey);
+            }
+        }
 
         let key = self
             .keys
@@ -891,11 +906,14 @@ impl KmsState {
         &self,
         ciphertext_blob: &[u8],
         source_encryption_context: &HashMap<String, String>,
+        source_key_id: Option<&str>,
         destination_key_id_or_alias: &str,
         destination_encryption_context: &HashMap<String, String>,
     ) -> Result<ReEncryptResult, KmsError> {
-        // First decrypt with source key
-        let decrypt_result = self.decrypt(ciphertext_blob, source_encryption_context)?;
+        // First decrypt with source key; AWS validates the optional
+        // SourceKeyId against the ciphertext just like Decrypt's KeyId.
+        let decrypt_result =
+            self.decrypt(ciphertext_blob, source_encryption_context, source_key_id)?;
 
         // Then encrypt with destination key
         let dest_key_id = self.resolve_key_id(destination_key_id_or_alias)?;

@@ -442,7 +442,11 @@ impl KmsService {
         let encryption_context = input.encryption_context.unwrap_or_default();
 
         let state = state.read().await;
-        match state.decrypt(&ciphertext_blob, &encryption_context) {
+        match state.decrypt(
+            &ciphertext_blob,
+            &encryption_context,
+            input.key_id.as_deref(),
+        ) {
             Ok(result) => wire::serialize_decrypt_response(&wire::DecryptResponse {
                 plaintext: Some(BASE64.encode(&result.plaintext)),
                 key_id: Some(result.key_arn.clone()),
@@ -1152,6 +1156,7 @@ impl KmsService {
         match state.re_encrypt(
             &ciphertext_blob,
             &source_encryption_context,
+            input.source_key_id.as_deref(),
             &input.destination_key_id,
             &destination_encryption_context,
         ) {
@@ -1963,6 +1968,7 @@ fn kms_error_response(err: &KmsError) -> MockResponse {
         KmsError::InvalidCiphertext => (400, "InvalidCiphertextException"),
         KmsError::EncryptionFailed => (500, "KMSInternalException"),
         KmsError::KeyDisabled(_) => (400, "DisabledException"),
+        KmsError::IncorrectKey => (400, "IncorrectKeyException"),
     };
     json_error_response(status, error_type, &err.to_string())
 }
