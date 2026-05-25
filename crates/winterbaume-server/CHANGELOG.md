@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.2 - 2026-05-25
+
+### Internal
+
+- Bumped dependency versions to pull in patch releases of `winterbaume-cloudfront`, `winterbaume-cloudfrontkeyvaluestore`, `winterbaume-kms`, `winterbaume-lambda`, `winterbaume-s3`, and `winterbaume-terraform`; no changes to server logic.
+
 ## v0.2.1 - 2026-05-19
 
 ### Changed

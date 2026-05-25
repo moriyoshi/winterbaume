@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.2.2 - 2026-05-25
+
+### Fixed
+- Lambda converter: correctly handles the `Qualifier` parameter for `Invoke` and `InvokeWithResponseStream`, and honours `RevisionId` on `AddPermission`, `RemovePermission`, `GetPolicy`, `UpdateFunctionCode`, `UpdateFunctionConfiguration`, `PublishVersion`, and layer-version policy operations.
+
 ## v0.2.1 - 2026-05-18
 
 ### Fixed

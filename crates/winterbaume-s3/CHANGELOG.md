@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.2.1 - 2026-05-25
+
+### Fixed
+
+- Corrected conditional-request handling and ensured HEAD responses return no body.
+
+### Tests
+
+- Added integration tests covering conditional-request and HEAD-body behaviour.
+
 ## v0.2.0 - 2026-05-14
 
 ### Internal

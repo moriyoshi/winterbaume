@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-05-25
+
+- `winterbaume` v0.4.0: see [`crates/winterbaume/CHANGELOG.md`](crates/winterbaume/CHANGELOG.md).
+- `winterbaume-cloudfront` v0.3.0: see [`crates/winterbaume-cloudfront/CHANGELOG.md`](crates/winterbaume-cloudfront/CHANGELOG.md).
+- `winterbaume-cloudfrontkeyvaluestore` v0.2.1: see [`crates/winterbaume-cloudfrontkeyvaluestore/CHANGELOG.md`](crates/winterbaume-cloudfrontkeyvaluestore/CHANGELOG.md).
+- `winterbaume-kms` v0.2.1: see [`crates/winterbaume-kms/CHANGELOG.md`](crates/winterbaume-kms/CHANGELOG.md).
+- `winterbaume-lambda` v0.3.0: see [`crates/winterbaume-lambda/CHANGELOG.md`](crates/winterbaume-lambda/CHANGELOG.md).
+- `winterbaume-s3` v0.2.1: see [`crates/winterbaume-s3/CHANGELOG.md`](crates/winterbaume-s3/CHANGELOG.md).
+- `winterbaume-server` v0.2.2: see [`crates/winterbaume-server/CHANGELOG.md`](crates/winterbaume-server/CHANGELOG.md).
+- `winterbaume-terraform` v0.2.2: see [`crates/winterbaume-terraform/CHANGELOG.md`](crates/winterbaume-terraform/CHANGELOG.md).
+
+## v0.4.0 - 2026-05-25
+
+### Fixed
+
+- **Lambda**: `Qualifier` is now honoured on `Invoke` and `InvokeWithResponseStream`; `RevisionId` is enforced on `UpdateFunctionCode`, `UpdateFunctionConfiguration`, `PublishVersion`, layer-version policy mutations, `AddPermission`, `RemovePermission`, and `GetPolicy`.
+- **KMS**: Decryption operations now enforce the specified key ID against the key that actually performed the decryption.
+- **CloudFront**: `If-Match` precondition is now enforced on mutating distribution and configuration APIs.
+- **S3**: Conditional-request evaluation corrected; `HEAD` responses no longer include a message body.
+
+### Internal
+
+- Release harness: umbrella-crate changelog generation now scopes the `git log` path filter to `.` rather than `/`, fixing spurious commit inclusion in changelog drafts.
+
 This file summarises notable winterbaume releases across the workspace and serves
 as the changelog for the umbrella `winterbaume` crate. Detailed per-crate notes
 live in each crate's own `CHANGELOG.md` under `crates/<crate>/`.

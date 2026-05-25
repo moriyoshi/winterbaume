@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.2.1 - 2026-05-25
+
+### Fixed
+- `If-Match` / `IfMatch` header is now enforced: mutating operations reject requests whose `If-Match` value does not match the current entity tag, returning the appropriate error response.
+
+### Tests
+- Added integration test coverage for `If-Match` enforcement on mutating operations.
+
 ## v0.2.0 - 2026-05-13
 
 ### Internal
