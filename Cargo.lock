@@ -11576,7 +11576,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-cloudfrontkeyvaluestore"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13287,7 +13287,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-kms"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "aes-gcm",
  "aws-config",
@@ -14351,7 +14351,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-s3"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -14630,7 +14630,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-server"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -15429,7 +15429,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-terraform"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "aws-config",
  "aws-credential-types",
