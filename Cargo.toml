@@ -626,7 +626,7 @@ winterbaume-ssm = { version = "0.2.0", path = "crates/winterbaume-ssm" }
 winterbaume-secretsmanager = { version = "0.2.0", path = "crates/winterbaume-secretsmanager" }
 winterbaume-cloudwatchlogs = { version = "0.2.0", path = "crates/winterbaume-cloudwatchlogs" }
 winterbaume-sns = { version = "0.2.0", path = "crates/winterbaume-sns" }
-winterbaume-lambda = { version = "0.2.0", path = "crates/winterbaume-lambda" }
+winterbaume-lambda = { version = "1.0.0", path = "crates/winterbaume-lambda" }
 winterbaume-ecr = { version = "0.2.0", path = "crates/winterbaume-ecr" }
 winterbaume-eventbridge = { version = "0.2.0", path = "crates/winterbaume-eventbridge" }
 winterbaume-sfn = { version = "0.2.0", path = "crates/winterbaume-sfn" }
@@ -639,7 +639,7 @@ winterbaume-apigatewayv2 = { version = "0.2.0", path = "crates/winterbaume-apiga
 winterbaume-eks = { version = "0.2.0", path = "crates/winterbaume-eks" }
 winterbaume-kinesis = { version = "0.2.1", path = "crates/winterbaume-kinesis" }
 winterbaume-cloudformation = { version = "0.2.0", path = "crates/winterbaume-cloudformation" }
-winterbaume-cloudfront = { version = "0.2.0", path = "crates/winterbaume-cloudfront" }
+winterbaume-cloudfront = { version = "1.0.0", path = "crates/winterbaume-cloudfront" }
 winterbaume-firehose = { version = "0.2.0", path = "crates/winterbaume-firehose" }
 winterbaume-organizations = { version = "1.0.0", path = "crates/winterbaume-organizations" }
 winterbaume-ecs = { version = "0.2.0", path = "crates/winterbaume-ecs" }

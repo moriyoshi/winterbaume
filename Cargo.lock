@@ -11553,7 +11553,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-cloudfront"
-version = "0.2.0"
+version = "1.0.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13333,7 +13333,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-lambda"
-version = "0.2.0"
+version = "1.0.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
