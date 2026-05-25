@@ -132,7 +132,16 @@ fn polish_prompt(
 
     let pathspec = {
         let rel = crate_dir.strip_prefix(root).unwrap_or(crate_dir);
-        format!("{}/", rel.display())
+        let s = rel.display().to_string();
+        if s.is_empty() {
+            // Umbrella crate sits at the workspace root; `strip_prefix`
+            // yields an empty path. `git log -- /` is rejected as outside
+            // the repo, so scope to the whole working tree via `.` (the
+            // `run_git` cwd is already `root`).
+            ".".to_string()
+        } else {
+            format!("{s}/")
+        }
     };
     let from_ref = entry.last_tag.clone().unwrap_or_else(|| "HEAD".to_string());
     let commits = if entry.last_tag.is_some() {
