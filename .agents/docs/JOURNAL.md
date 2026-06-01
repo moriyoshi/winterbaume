@@ -1794,3 +1794,111 @@ Six new integration tests in `crates/winterbaume-lambda/tests/integration_test.r
 
 A handful of other Lambda invocation-adjacent ops model `Qualifier` ( e.g. `GetFunction`, `GetFunctionConfiguration`, `GetFunctionEventInvokeConfig`, `GetProvisionedConcurrencyConfig` ). They have analogous validation requirements but separate state / response shapes ; out of scope for this fix.
 
+
+## 2026-06-01 — sccache-wrapper bug: E0463 on transitive deps when workspace has two simultaneously-resolved versions of the same crate
+
+While doing a routine `cargo build -p winterbaume-cloudformation-engine --lib` from a fresh worktree session, the engine compile failed with 30 `error[E0463]: can't find crate for winterbaume_X` errors covering ~30 of the engine's per-service deps ( `winterbaume_accessanalyzer`, `winterbaume_appflow`, `winterbaume_athena`, `winterbaume_cfn_template`, `winterbaume_scheduler`, `winterbaume_sfn`, etc. — mostly but not exclusively wave-13 candidates ). Every rmeta the error referenced was physically present at the path cargo's `--extern` pointed to, with non-zero size and a valid rmeta header ( `head -c 100 ... | xxd` shows the `rust\0\0\0\0…+rustc 1.93.0-nightly` magic ).
+
+### Diagnostic walkthrough
+
+Reproduced the failure outside cargo by extracting the engine's rustc command verbatim from `cargo build --verbose` and running it directly ( first via the sccache-wrapper binary, then bare rustc skipping the wrapper ). Same 30 errors both times — so the wrapper was not currently mangling args, the wrapper had ALREADY corrupted state by hardlinking the wrong rmeta in earlier runs.
+
+The decisive evidence came from `RUSTC_LOG="rustc_metadata=info" bash /tmp/engine_rustc.sh 2>&1 | grep -E "Rejecting"`:
+
+```
+INFO rustc_metadata::locator Rejecting via hash: expected ac8f865f30d145b8675421fc95bf2943
+                                                 got      65ff9b4ba96da08f6e9144eb369c57f5
+```
+
+repeated for several files including `libthiserror-15c3d45635fb0c42.rmeta`. The cargo-derived filename suffix matched what the engine expected, but the file CONTENT had a different internal hash. `Rejecting via proc macro: expected false got true` rejections also appeared, suggesting some macro-vs-rlib crossover in the same restored entries.
+
+The two hashes correspond to the two thiserror versions in `Cargo.lock`:
+
+```
+name = "thiserror"
+version = "1.0.69"    # pulled in by x509-parser → asn1-rs (uses thiserror ^1.0)
+---
+name = "thiserror"
+version = "2.0.18"    # workspace pin
+```
+
+### Bug hypothesis
+
+`tools/sccache-wrapper/src/main.rs:627-635` documents the intent:
+
+> --extern name=PATH — prefer to identify the dep by its OWN cache key ( read from a sidecar file the wrapper writes next to each restored/stored artifact ).  This is workspace-independent, so cross-worktree caching works even when cargo computes different `-C metadata=` hashes for the dep in different trees.  Crucially, the dep's cache key is derived from the dep's source content — if the dep changes, the dep's key changes, and our key changes, so we correctly miss rather than serve a stale parent .rlib that internally references the wrong dep crate hash ( E0460 ).
+
+So the sidecar-chaining design exists *specifically* to prevent the E0463 / E0460 hash-mismatch we hit. It still fired. Two likely failure modes inside that intent:
+
+1. **Fallback to `extern_basename_key` when the sidecar is missing.** When the wrapper restores a hardlink for `libthiserror-15c3d45635fb0c42.rmeta` from cache, it should also write the matching `.cachekey` sidecar so downstream parents can chain off it. If the sidecar write is skipped, lost, or the file is restored from an entry that never had one ( e.g. a proc-macro path, per the comment around line 644 ), downstream compiles fall back to `extern_basename_key`, which uses the cargo metadata hash embedded in the filename. That hash discriminates thiserror 1.0.69 from 2.0.18 *under one cargo resolver run*, but two parallel sessions can mint different `-NNNN` suffixes for the same `(version, features, dep set)` tuple if the resolver tie-breaks differently — in which case wrapper cache keys collide across versions and the wrong rmeta gets hardlinked.
+2. **Two-versions-of-same-crate edge case in the manifest format.** The cache-store manifest records `file:libthiserror-<NNNN>.rmeta` plus `extra-filename:-<NNNN>`. The `rewrite_extra_filename` step on restore ( `tools/sccache-wrapper/src/main.rs:299` and ~ ) renames cached files into the current build's expected `-MMMM` suffix. When the same `crate_name` ( `thiserror` ) has TWO live entries with different `extra-filename` markers and the dep set the caller passed via `--extern` only narrowed by basename ( not by sidecar key ), the wrapper can match the wrong entry, rewrite its filename to the requested suffix, and silently swap a thiserror-1.0.69 rmeta into the slot where a 2.0.18 rmeta was expected. Downstream rustc then sees correct filename, wrong internal hash, errors out.
+
+I lean toward hypothesis 1 — the sidecar-write path is the more failure-prone link, and rebuilding accessanalyzer.rmeta with `cargo clean -p` left the sidecar absent ( cargo cleaned it ), forcing the basename fallback that comment line 638 calls out as the "proc-macro case" weakness.
+
+### Reproducer ( minimal )
+
+1. Make a workspace where one direct member depends on `thiserror = "2"` and another transitive dep ( e.g. `x509-parser` versions before whatever cleared the `asn1-rs` thiserror ^1 pin ) resolves `thiserror = "1"`.
+2. Build the full workspace in one worktree ( wrapper caches everything ).
+3. In a second worktree, run `cargo clean -p <one dep>` then rebuild only the engine that depends on the cleaned crate via `cargo build -p <engine>`.
+4. The wrapper restores everything else from cache. Engine compile fails with E0463 on the cleaned crate's transitive thiserror.
+
+The trigger in this incident: a `cargo clean -p winterbaume-cloudformation-engine` after a disk-space-driven kill of an earlier build left the wrapper cache holding entries that were ALREADY internally inconsistent ( built across multiple agent sessions ), then the partial rebuild reactivated the inconsistency.
+
+### Workaround that fixed it
+
+```
+# Permission required from user (auto-mode classifier blocks both):
+./.agents/bin/cargo.sh clean                                                  # nukes session target
+rm -rf /Users/moriyoshi/Source/winterbaume/.agents-workspace/tmp/winterbaume-rustc-cache/  # nukes wrapper cache
+./.agents/bin/cargo.sh build -p winterbaume-cloudformation-engine --lib       # full 12-minute fresh compile
+```
+
+After the second clean the engine compiled in 12m 00s with 0 errors. Both clean steps were necessary: nuking just the session target was not enough because the wrapper immediately re-poisoned `deps/` from its persistent cross-worktree cache.
+
+### Suggested follow-ups for whoever picks this up
+
+1. Add a regression test in `tools/sccache-wrapper/` that constructs a two-thiserror workspace ( e.g. via a fixture pulling in `asn1-rs` ) and asserts that a `cargo clean -p` of an intermediate crate plus a downstream rebuild does not produce E0463.
+2. Audit `cache_store` ( `main.rs:843+` ) to confirm sidecars are written for EVERY restored / stored artifact, not just the leaf one.
+3. Consider making `extern_basename_key` ( `main.rs:513` ) include the rmeta's actual internal-hash header bytes when the sidecar is missing — that would make the cache key reflect content, not just cargo's metadata hash.
+4. Add an `is_debug()` trace at the cache-restore site that prints the dep tree the restored entry was built against, so future incidents have a paper trail without needing `RUSTC_LOG=rustc_metadata=info`.
+
+Cross-reference: this debugging happened in worktree `cfn-data-layer` during CFN converter wave-13 verification ; the post-mortem is in that worktree's JOURNAL.md under the same date. The wave-13 build eventually passed after the double-clean workaround, but the root-cause is a workspace-level wrapper bug, not anything the wave-13 changes introduced — same workspace deps were already present pre-wave-13.
+
+
+## 2026-06-01 — sccache-wrapper bug follow-up: code audit and defensive hardening of sidecar I/O
+
+Follow-up to the prior 2026-06-01 entry. The user's other coding agent had asked me to look into the reported wrapper bug; this is the audit + the hardening I applied.
+
+### Audit findings
+
+Worked through the wrapper code path-by-path against the two hypotheses the prior entry raised. The TL;DR is that I could not identify a steady-state code bug that produces the observed E0463 hash mismatch, and the prior entry's hypothesis 1 is now stale.
+
+- **Hypothesis 1 (sidecar fallback when the dep is a proc-macro) is stale.** Commit `96a1b4db` (2026-05-17, "fix(sccache-wrapper): cache proc-macros to stabilise SVH chains") already started caching `crate-type = proc-macro`. The wrapper's `parse_rustc_args` allows proc-macros through ( only `bin | cdylib | staticlib` are rejected at `main.rs:262` ), `expected_output_files` emits the per-OS dylib stem ( `main.rs:300-307` ), and both `cache_restore` ( `main.rs:824` ) and `cache_store` ( `main.rs:1005` ) write `.cachekey` sidecars for them via `cachekey_sidecar_for_output`. The "proc-macros aren't cached → sidecar missing → basename fallback" failure mode no longer exists. The earlier `arc_swap` E0463 ( resolved in the `sqs-redis-redrive-receive-budget` TODO ) was the same shape and is closed.
+
+- **Sidecar chaining is theoretically sound in steady state.** Two thiserror versions (1.0.69 from `asn1-rs`, 2.0.18 from the workspace pin) get distinct `-Cmetadata=` and `-Cextra-filename=` from cargo because the version is part of cargo's package id; their wrapper cache keys then diverge because (a) the source-tree hashes differ ( different registry source roots ) and (b) the args differ. The `--extern` chain on the parent always reads from `<parent_extern_dir>/<bare_stem>.cachekey`, where `<bare_stem>` already encodes cargo's metadata hash, so the two versions can never alias each other's sidecar even when both live in the same `deps/` dir.
+
+- **Cache-store and cache-restore sidecar audit (follow-up item 2 in the prior entry).** Both write the sidecar to `out_dir/{crate_name}{extra_filename}.cachekey` ( from `cachekey_sidecar_for_output` ), and both `cachekey_sidecar_for_extern` and `cachekey_sidecar_for_output` agree on the canonical form ( strip optional leading `lib` from the stem, drop the file extension ). The two sites and the read site in `compute_cache_key` are consistent; the sidecar is written on every cacheable compile, restore or store.
+
+- **Most plausible incident cause: SIGKILL + non-atomic write, not a logic bug.** The prior entry's incident immediately followed two events the wave-13 work documented earlier in this journal ( see the entries dated 2026-05-30 around lines 1459 and 1489 ): APFS hit 100 % saturation, the build was killed by ENOSPC mid-link, and a subsequent `cargo clean -p winterbaume-cloudformation-engine` only cleaned the engine's own artefacts ( transitive dep rmetas + sidecars left as-is ). Sidecar writes were `fs::write(path, key)` — which truncates `path` before `write_all` completes — so a SIGKILL between `File::create` and `write_all` would leave a zero-byte or short sidecar. A later session would `raw.trim()` that and chain a malformed dep key into the parent's cache key. The "nuke `winterbaume-rustc-cache/` to recover" workaround that resolved the incident is consistent with corrupted on-disk state rather than a code-level miscomputation.
+
+### Hardening implemented
+
+User chose follow-up items 1 + 2 from this section, scoped to defensive sidecar I/O. Implemented in `tools/sccache-wrapper/src/main.rs`:
+
+1. **`is_valid_cache_key(s: &str) -> bool`** — accepts a string only if it is exactly 64 lowercase hex characters. Matches the wrapper's own write format ( `format!("{b:02x}")` over the SHA-256 digest in `compute_cache_key` ), so uppercase / truncated / non-hex content is rejected as malformed.
+
+2. **`write_sidecar_atomic(path: &Path, key: &str) -> io::Result<()>`** — writes to `<path>.tmp.<pid>` and `fs::rename`s onto the target. `rename` is atomic on POSIX and Windows when source and destination share a filesystem; the tmp file is a sibling of the destination so this is always the case here. Cleans up the tmp on either write or rename failure. Replaces both `fs::write(cachekey_sidecar_for_output(parsed), key)` call sites ( in `cache_restore` and the trailing block of `cache_store` ).
+
+3. **Validation gate on the read side.** In `compute_cache_key`, the `--extern` sidecar branch now checks `is_valid_cache_key(&dep_key)` before chaining it into the parent's hash. Invalid sidecars fall through to `extern_basename_key` exactly the way a missing sidecar would, with an `is_debug()` trace recording the path and observed byte length so future incidents leave a paper trail without needing `RUSTC_LOG=rustc_metadata=info`.
+
+4. **9 new unit tests under `tests` mod**, all green: 6 covering `is_valid_cache_key`'s rejection logic ( empty as the SIGKILL-mid-write case, truncated, too-long, uppercase hex, non-hex, plus the positive 64-hex-lowercase acceptance ) and 3 covering `write_sidecar_atomic` ( writes full content with no stray `*.tmp.*` siblings left in the deps dir, overwrites an existing sidecar with shorter or longer content, and returns `Err` cleanly for a nonexistent parent directory rather than panicking ).
+
+### Verification
+
+- `./.agents/bin/cargo.sh fmt -p sccache-wrapper -- --check` clean.
+- `./.agents/bin/cargo.sh clippy -p sccache-wrapper --all-targets --all-features -- -D warnings` clean.
+- `./.agents/bin/cargo.sh test -p sccache-wrapper` — 33 / 33 pass ( 24 pre-existing + 9 new ).
+
+### What this does and does not fix
+
+The hardening eliminates the "SIGKILL writes a truncated sidecar that a later session silently chains" failure mode that I believe was the actual root cause of the reported incident. It does **not** add the deeper content-hash check that the prior entry's follow-up item 3 suggested — `extern_basename_key` still keys off the artifact filename alone, so a "same filename, different on-disk content" scenario ( whatever could produce it ) would still hit. That requires either reading the rmeta header or hashing the file size into the cache key on every `--extern`; left out deliberately to keep the change small and reviewable. The other follow-ups from the prior entry are similarly untouched: no two-thiserror end-to-end regression test ( the unit tests cover the new helpers but the integration scenario would need a fixture workspace ), and no dep-tree dump at cache-restore time beyond the existing `is_debug()` traces.
