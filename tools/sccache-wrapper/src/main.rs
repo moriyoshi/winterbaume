@@ -524,6 +524,52 @@ fn cachekey_sidecar_for_output(parsed: &ParsedArgs) -> PathBuf {
     ))
 }
 
+/// Whether a string looks like a well-formed cache key (lowercase SHA-256
+/// hex, exactly 64 characters).  Used to reject truncated or otherwise
+/// corrupt sidecar contents — e.g. the result of a SIGKILL during a prior
+/// session's non-atomic sidecar write — so the caller falls back to the
+/// basename-based key instead of silently chaining a junk dep key into the
+/// parent crate's cache key.
+fn is_valid_cache_key(s: &str) -> bool {
+    s.len() == 64
+        && s.bytes()
+            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+}
+
+/// Write the cache-key sidecar atomically: write to a per-process tmp file
+/// in the same directory, then rename onto the target.  rename is atomic on
+/// POSIX and Windows when source and target live on the same filesystem,
+/// which is always the case here since the tmp file is sibling to the
+/// destination.  Without this, `fs::write` truncates the target before
+/// writing — and a SIGKILL between truncate and write_all leaves a
+/// zero-byte or short sidecar that a later session would read as the
+/// dep's cache key.
+fn write_sidecar_atomic(path: &Path, key: &str) -> io::Result<()> {
+    let tmp = match (path.parent(), path.file_name()) {
+        (Some(parent), Some(name)) => {
+            let mut tmp_name = name.to_owned();
+            tmp_name.push(format!(".tmp.{}", std::process::id()));
+            parent.join(tmp_name)
+        }
+        _ => {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "sidecar path has no parent or no file name",
+            ));
+        }
+    };
+    let write_result = fs::write(&tmp, key);
+    if let Err(e) = write_result {
+        let _ = fs::remove_file(&tmp);
+        return Err(e);
+    }
+    if let Err(e) = fs::rename(&tmp, path) {
+        let _ = fs::remove_file(&tmp);
+        return Err(e);
+    }
+    Ok(())
+}
+
 /// Cache-key fragment for an `--extern name=PATH` argument when no sidecar
 /// is available.  Returns `name=<basename>` rather than `name=<full path>`
 /// so that the same dep resolves to the same cache key across different
@@ -676,17 +722,25 @@ fn compute_cache_key(
                     && let Ok(raw) = fs::read_to_string(&sidecar)
                 {
                     let dep_key = raw.trim().to_owned();
-                    hasher.update(name.as_bytes());
-                    hasher.update(b"=");
-                    hasher.update(dep_key.as_bytes());
-                    if debug {
+                    if is_valid_cache_key(&dep_key) {
+                        hasher.update(name.as_bytes());
+                        hasher.update(b"=");
+                        hasher.update(dep_key.as_bytes());
+                        if debug {
+                            eprintln!(
+                                "  cache-key arg[{i}]: --extern {name}=<dep_key:{}>",
+                                &dep_key[..12.min(dep_key.len())]
+                            );
+                        }
+                        deps.push((name.to_owned(), dep_key));
+                        used_sidecar = true;
+                    } else if debug {
                         eprintln!(
-                            "  cache-key arg[{i}]: --extern {name}=<dep_key:{}>",
-                            &dep_key[..12.min(dep_key.len())]
+                            "  cache-key arg[{i}]: --extern {name}=<sidecar at {} invalid ({} bytes); falling back to basename>",
+                            sidecar.display(),
+                            dep_key.len(),
                         );
                     }
-                    deps.push((name.to_owned(), dep_key));
-                    used_sidecar = true;
                 }
                 if !used_sidecar {
                     let key_part = extern_basename_key(val);
@@ -818,10 +872,12 @@ fn cache_restore(key: &str, parsed: &ParsedArgs, workspace_root: &str) -> Option
 
         // Drop a sidecar file recording this entry's cache key, so future
         // parent-crate compilations can identify this dep by its key rather
-        // than by its workspace-dependent metadata-hash filename.  Sidecar
-        // failure is non-fatal — it only degrades dep-resolution to the
-        // path-based fallback.
-        if let Err(e) = fs::write(cachekey_sidecar_for_output(parsed), key)
+        // than by its workspace-dependent metadata-hash filename.  Written
+        // atomically (tmp + rename) so a SIGKILL mid-write cannot publish a
+        // truncated sidecar that a later session would treat as a valid
+        // dep key.  Sidecar failure is non-fatal — it only degrades
+        // dep-resolution to the path-based fallback.
+        if let Err(e) = write_sidecar_atomic(&cachekey_sidecar_for_output(parsed), key)
             && is_debug()
         {
             eprintln!(
@@ -1000,9 +1056,11 @@ fn cache_store(
 
     // Drop a sidecar file in the deps dir recording this entry's cache key.
     // Future parent-crate compilations read it via `--extern` to identify
-    // this dep by its workspace-independent key.  Sidecar failure is
-    // non-fatal — it only degrades dep-resolution to the path-based fallback.
-    if let Err(e) = fs::write(cachekey_sidecar_for_output(parsed), key)
+    // this dep by its workspace-independent key.  Written atomically
+    // (tmp + rename) so a SIGKILL mid-write cannot publish a truncated
+    // sidecar.  Sidecar failure is non-fatal — it only degrades
+    // dep-resolution to the path-based fallback.
+    if let Err(e) = write_sidecar_atomic(&cachekey_sidecar_for_output(parsed), key)
         && is_debug()
     {
         eprintln!(
@@ -1808,7 +1866,12 @@ fn passthrough_exec() -> ExitCode {
 
 #[cfg(test)]
 mod tests {
-    use super::{extern_basename_key, rewrite_extra_filename, rewrite_extra_filename_in_d_content};
+    use std::fs;
+
+    use super::{
+        extern_basename_key, is_valid_cache_key, rewrite_extra_filename,
+        rewrite_extra_filename_in_d_content, write_sidecar_atomic,
+    };
 
     #[test]
     fn extern_basename_strips_workspace_target_dir() {
@@ -1988,5 +2051,110 @@ mod tests {
             rewrite_extra_filename_in_d_content(content, "", "-abc", "-def"),
             content,
         );
+    }
+
+    // ---- sidecar validation ----
+
+    #[test]
+    fn valid_cache_key_accepts_64_hex_lowercase() {
+        assert!(is_valid_cache_key(
+            "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        ));
+    }
+
+    #[test]
+    fn valid_cache_key_rejects_empty() {
+        // Empty is what a SIGKILL between `File::create` (truncate) and
+        // `write_all` leaves behind.
+        assert!(!is_valid_cache_key(""));
+    }
+
+    #[test]
+    fn valid_cache_key_rejects_truncated() {
+        assert!(!is_valid_cache_key(
+            "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcde"
+        ));
+    }
+
+    #[test]
+    fn valid_cache_key_rejects_too_long() {
+        assert!(!is_valid_cache_key(
+            "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0"
+        ));
+    }
+
+    #[test]
+    fn valid_cache_key_rejects_uppercase_hex() {
+        // The wrapper always writes lowercase via `format!("{b:02x}")`; treat
+        // anything else as suspect rather than silently chaining it.
+        assert!(!is_valid_cache_key(
+            "0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF"
+        ));
+    }
+
+    #[test]
+    fn valid_cache_key_rejects_non_hex() {
+        assert!(!is_valid_cache_key(
+            "g123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        ));
+    }
+
+    // ---- atomic sidecar write ----
+
+    fn unique_tmp_dir(label: &str) -> std::path::PathBuf {
+        let dir = std::env::temp_dir().join(format!(
+            "sccache-wrapper-test-{}-{}-{}",
+            label,
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_nanos())
+                .unwrap_or(0),
+        ));
+        fs::create_dir_all(&dir).expect("create tmp dir");
+        dir
+    }
+
+    #[test]
+    fn atomic_sidecar_writes_full_content() {
+        let dir = unique_tmp_dir("atomic-write");
+        let path = dir.join("foo-abc123.cachekey");
+        let key = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+        write_sidecar_atomic(&path, key).expect("write");
+        let got = fs::read_to_string(&path).expect("read back");
+        assert_eq!(got, key);
+        // No stray tmp file should remain in the directory.
+        let strays: Vec<_> = fs::read_dir(&dir)
+            .unwrap()
+            .filter_map(Result::ok)
+            .filter(|e| e.file_name().to_string_lossy().contains(".cachekey.tmp."))
+            .collect();
+        assert!(strays.is_empty(), "stray tmp file left behind: {strays:?}");
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn atomic_sidecar_overwrites_existing() {
+        let dir = unique_tmp_dir("atomic-overwrite");
+        let path = dir.join("foo-abc123.cachekey");
+        // Simulate a prior session's sidecar already on disk.
+        fs::write(&path, "stale-content-shorter-than-64").expect("seed");
+        let new_key = "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210";
+        write_sidecar_atomic(&path, new_key).expect("write");
+        assert_eq!(fs::read_to_string(&path).unwrap(), new_key);
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn atomic_sidecar_fails_cleanly_on_missing_parent() {
+        // A nonexistent parent must not panic — it must return an error and
+        // leave nothing behind.  This guards the wrapper's `if let Err` debug
+        // branch from triggering for invalid invocations.
+        let bogus = std::path::PathBuf::from("/nonexistent-sccache-wrapper-test-dir/foo.cachekey");
+        let err = write_sidecar_atomic(
+            &bogus,
+            "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        );
+        assert!(err.is_err(), "expected error for nonexistent parent");
     }
 }
