@@ -193,6 +193,143 @@ async fn scenario_kms_key_full_lifecycle_applies_cfn_schema() {
     assert!(err.into_service_error().is_resource_not_found_exception());
 }
 
+/// Scenario: AWS::DynamoDB::Table full lifecycle with CFN-schema shaping.
+///
+/// Regression for https://github.com/moriyoshi/winterbaume/issues/7. Walks the
+/// minimal `awscc_dynamodb_table` create / get / update / list / delete path
+/// and asserts the read-handler-shaped output at every step: writeOnly
+/// (`ImportSourceSpecification`) stripped, readOnly (`Arn`) generated, and
+/// the seven schema-default specification blocks reported even when omitted
+/// from the create input.
+#[tokio::test]
+async fn scenario_dynamodb_table_full_lifecycle_applies_cfn_schema() {
+    let client = make_client().await;
+
+    let table_name = "jti-store";
+    client
+        .create_resource()
+        .type_name("AWS::DynamoDB::Table")
+        .desired_state(
+            r#"{
+                "TableName": "jti-store",
+                "AttributeDefinitions": [{"AttributeName": "jti", "AttributeType": "S"}],
+                "KeySchema": [{"AttributeName": "jti", "KeyType": "HASH"}],
+                "BillingMode": "PAY_PER_REQUEST",
+                "ImportSourceSpecification": {"S3BucketSource": {"S3Bucket": "ignored"}}
+            }"#,
+        )
+        .send()
+        .await
+        .expect("create should succeed");
+
+    // Step 1: GetResource — full shape per issue #7 expected output.
+    let get1 = client
+        .get_resource()
+        .type_name("AWS::DynamoDB::Table")
+        .identifier(table_name)
+        .send()
+        .await
+        .expect("get by TableName should succeed");
+    let props1 = parse_properties(&get1);
+
+    // writeOnly stripped.
+    assert!(props1.get("ImportSourceSpecification").is_none());
+
+    // readOnly generated.
+    let arn = props1["Arn"].as_str().expect("Arn must be present");
+    assert!(
+        arn.starts_with("arn:aws:dynamodb:us-east-1:"),
+        "got Arn={arn}"
+    );
+    assert!(arn.ends_with(":table/jti-store"), "got Arn={arn}");
+
+    // All seven schema defaults filled.
+    assert_eq!(props1["ContributorInsightsSpecification"]["Enabled"], false);
+    assert_eq!(props1["DeletionProtectionEnabled"], false);
+    assert_eq!(
+        props1["PointInTimeRecoverySpecification"]["PointInTimeRecoveryEnabled"],
+        false
+    );
+    assert_eq!(props1["SSESpecification"]["SSEEnabled"], false);
+    assert_eq!(props1["TimeToLiveSpecification"]["Enabled"], false);
+    assert!(props1["Tags"].as_array().unwrap().is_empty());
+    assert_eq!(props1["WarmThroughput"]["ReadUnitsPerSecond"], 12000);
+    assert_eq!(props1["WarmThroughput"]["WriteUnitsPerSecond"], 4000);
+
+    // Pass-through.
+    assert_eq!(props1["TableName"], "jti-store");
+    assert_eq!(props1["BillingMode"], "PAY_PER_REQUEST");
+
+    // Step 2: List includes this table.
+    let listed = client
+        .list_resources()
+        .type_name("AWS::DynamoDB::Table")
+        .send()
+        .await
+        .expect("list should succeed");
+    let ids: Vec<&str> = listed
+        .resource_descriptions()
+        .iter()
+        .filter_map(|d| d.identifier())
+        .collect();
+    assert!(
+        ids.contains(&table_name),
+        "ListResources should surface TableName {table_name}; got {ids:?}"
+    );
+
+    // Step 3: UpdateResource — flip a default, change a pass-through, and try
+    // to smuggle back a writeOnly property.
+    client
+        .update_resource()
+        .type_name("AWS::DynamoDB::Table")
+        .identifier(table_name)
+        .patch_document(
+            r#"[
+                {"op": "replace", "path": "/DeletionProtectionEnabled", "value": true},
+                {"op": "add", "path": "/ImportSourceSpecification", "value": {"S3BucketSource": {"S3Bucket": "smuggled"}}}
+            ]"#,
+        )
+        .send()
+        .await
+        .expect("update should succeed");
+
+    let get2 = client
+        .get_resource()
+        .type_name("AWS::DynamoDB::Table")
+        .identifier(table_name)
+        .send()
+        .await
+        .expect("second get should succeed");
+    let props2 = parse_properties(&get2);
+
+    // writeOnly re-introduced via patch must be stripped again.
+    assert!(
+        props2.get("ImportSourceSpecification").is_none(),
+        "writeOnly property reintroduced by patch must be stripped on store"
+    );
+    assert_eq!(props2["DeletionProtectionEnabled"], true);
+    // readOnly survives the update unchanged.
+    assert_eq!(props2["Arn"].as_str(), Some(arn));
+
+    // Step 4: Delete, then confirm Get fails with ResourceNotFoundException.
+    client
+        .delete_resource()
+        .type_name("AWS::DynamoDB::Table")
+        .identifier(table_name)
+        .send()
+        .await
+        .expect("delete should succeed");
+
+    let err = client
+        .get_resource()
+        .type_name("AWS::DynamoDB::Table")
+        .identifier(table_name)
+        .send()
+        .await
+        .expect_err("get should fail after delete");
+    assert!(err.into_service_error().is_resource_not_found_exception());
+}
+
 /// Scenario: an unshaped type round-trips verbatim.
 ///
 /// Regression guard against accidentally routing every type through a shaper

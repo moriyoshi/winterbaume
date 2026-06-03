@@ -9,6 +9,7 @@
 //! unregistered types fall back to storing the create-time desired state
 //! verbatim (the prior behaviour).
 
+mod dynamodb_table;
 mod kms_key;
 
 use std::collections::HashMap;
@@ -59,6 +60,10 @@ fn registry() -> &'static HashMap<&'static str, ShaperBox> {
     static REGISTRY: OnceLock<HashMap<&'static str, ShaperBox>> = OnceLock::new();
     REGISTRY.get_or_init(|| {
         let mut m: HashMap<&'static str, ShaperBox> = HashMap::new();
+        m.insert(
+            "AWS::DynamoDB::Table",
+            Box::new(dynamodb_table::DynamoDbTableShaper),
+        );
         m.insert("AWS::KMS::Key", Box::new(kms_key::KmsKeyShaper));
         m
     })
