@@ -1902,3 +1902,76 @@ User chose follow-up items 1 + 2 from this section, scoped to defensive sidecar 
 ### What this does and does not fix
 
 The hardening eliminates the "SIGKILL writes a truncated sidecar that a later session silently chains" failure mode that I believe was the actual root cause of the reported incident. It does **not** add the deeper content-hash check that the prior entry's follow-up item 3 suggested — `extern_basename_key` still keys off the artifact filename alone, so a "same filename, different on-disk content" scenario ( whatever could produce it ) would still hit. That requires either reading the rmeta header or hashing the file size into the cache key on every `--extern`; left out deliberately to keep the change small and reviewable. The other follow-ups from the prior entry are similarly untouched: no two-thiserror end-to-end regression test ( the unit tests cover the new helpers but the integration scenario would need a fixture workspace ), and no dep-tree dump at cache-restore time beyond the existing `is_debug()` traces.
+
+
+## 2026-06-03 — cloudcontrol AWS::KMS::Key GetResource fidelity (issue #6)
+
+mizzy filed https://github.com/moriyoshi/winterbaume/issues/6 reporting that `GetResource` on `AWS::KMS::Key` returns the create-time `DesiredState` verbatim, where real Cloud Control reshapes the read model from the resource type's CloudFormation schema: `writeOnlyProperties` stripped ( e.g. `PendingWindowInDays` ), `readOnlyProperties` generated ( `Arn`, `KeyId` ), and schema `default`s filled in ( `KeySpec=SYMMETRIC_DEFAULT`, `KeyUsage=ENCRYPT_DECRYPT`, `Origin=AWS_KMS`, `MultiRegion=false`, `Enabled=true`, `EnableKeyRotation=false`, `Tags=[]` ).
+
+### Root cause
+
+`crates/winterbaume-cloudcontrol/src/state.rs::create_resource` stored `resource_model = desired_state` unchanged, and `get_resource` returned it unmodified. The Smithy `cloudcontrolapi` model exposes `DesiredState` and `Properties` as opaque JSON strings, so there was no codegen-driven path that would surface the per-type contract.
+
+### Fix
+
+Added a per-CFN-resource-type shaping layer under `crates/winterbaume-cloudcontrol/src/cfn_schema/`:
+
+- `mod.rs` defines `CfnResourceShaper`, `ShapeContext` ( region + account_id ), `ShapedResource` ( primary_identifier + properties ), and a `OnceLock`-backed registry keyed by `AWS::*::*` type name. Types without a registered shaper fall through to the prior "store DesiredState verbatim" behaviour, so existing integration tests for `AWS::S3::Bucket`, `AWS::Lambda::Function`, `AWS::DynamoDB::Table` keep passing unchanged.
+- `kms_key.rs` implements `AWS::KMS::Key` per its CloudFormation schema: strips the three writeOnly properties, generates `KeyId` ( UUID ) and `Arn` ( `arn:aws:kms:{region}:{account_id}:key/{key_id}` ), and inserts the seven schema defaults when omitted from input. `shape_update` re-applies strip + defaults so a JSON patch cannot reintroduce a writeOnly property into the stored model.
+
+State and handler plumbing:
+
+- `state.rs::create_resource` and `update_resource` now take `&ShapeContext` and consult `lookup_shaper(type_name)`. For shaped types the shaper's `primary_identifier` becomes the resource identifier ( so `KeyId` keys the resources map for KMS keys, instead of the legacy `extract_identifier_from_model` fallback that scans `Id`/`Name`/`Arn`/... ).
+- `handlers.rs::dispatch` constructs the `ShapeContext` from `region` and `account_id` already extracted at the top of the function and threads it through `handle_create_resource` and `handle_update_resource`.
+
+Regression tests added in `crates/winterbaume-cloudcontrol/tests/integration_test.rs`:
+
+- `test_get_resource_kms_key_applies_cfn_schema` mirrors the bug's reproduction: create with `Description + KeyPolicy + PendingWindowInDays`, then assert `GetResource` strips `PendingWindowInDays`, surfaces `KeyId` + `Arn` ( with the expected `arn:aws:kms:...:key/{key_id}` shape ), and fills the seven schema defaults.
+- `test_update_resource_kms_key_strips_write_only` asserts that an `UpdateResource` patch trying to add `PendingWindowInDays` does not leak it into the stored model.
+
+### Per-crate lint gate
+
+- `./.agents/bin/cargo.sh fmt -p winterbaume-cloudcontrol -- --check` clean.
+- `./.agents/bin/cargo.sh clippy -p winterbaume-cloudcontrol --all-targets --all-features -- -D warnings` clean.
+- `./.agents/bin/cargo.sh test -p winterbaume-cloudcontrol --no-fail-fast` — 20 / 20 pass ( 18 pre-existing + 2 new ).
+
+### Why we missed it ( durable lesson, saved to memory as `cloudcontrol-cfn-schema-contract` )
+
+1. **Smithy is blind to the CFN handler contract.** `DesiredState` / `Properties` are typed as opaque `String` in `cloudcontrolapi`'s model. The fidelity contract lives in a separate corpus ( `schema.cloudformation.us-east-1.amazonaws.com`, per-`AWS::*::*` type ), which this repo does not vendor, so no codegen step could ever see it.
+2. **Existing tests only checked the meta-service surface.** `test_get_resource_after_create` and `test_full_lifecycle` asserted `desc.identifier()` and `properties().is_some()` but never the *content*. A verbatim round-trip mock passes them.
+3. **moto's CloudControl is also a pass-through**, so moto-parity work would not have surfaced the gap. CloudControl is one of the rare services where moto is not a useful reference.
+4. **Terraform E2E bypasses CloudControl entirely** — the AWS provider talks to per-service APIs ( KMS, S3, ... ) directly, so our main behavioural cross-check never exercises this indirection.
+5. **The service dossier captured the operation surface but not the handler contract.** `.agents/docs/services/cloudcontrol.md` lists operations / errors / pagination but does not say "the read model is shaped by the per-type CFN schema, not by the API model itself", so neither `write-tests` nor `add-service` prompted the right assertions.
+
+### Suggested follow-ups for whoever picks this up
+
+1. Backfill shapers for the most common Cloud Control resource types referenced by Terraform plans or moto fixtures ( S3 Bucket, Lambda Function, IAM Role, DynamoDB Table, EC2 SecurityGroup ) once a bug report or test surfaces a discrepancy. The registry in `cfn_schema/mod.rs` is the single insertion point.
+2. Update `.agents/docs/services/cloudcontrol.md` with a "Resource-type handler contract" section pointing at the CFN registry schema corpus and stating that per-type fidelity is shaper-driven, not Smithy-driven. Cross-link to this entry.
+3. When extending `write-tests` or `add-service` to cover CloudControl coverage, mandate at least one assertion per shaped type that ( a ) feeds a writeOnly property and asserts it is stripped, ( b ) asserts every readOnly property appears, ( c ) asserts each default value surfaces when omitted. Plain `properties().is_some()` is not enough.
+4. Consider vendoring a subset of `schema.cloudformation.us-east-1.amazonaws.com/*.json` under `vendor/` for the most-used types so shapers can be generated from schema rather than hand-coded. Out of scope for this issue; mentioned because the hand-coded path scales poorly past ~10 types.
+
+### 2026-06-03 addendum — Rust-level scenario test instead of awscc Terraform E2E
+
+User asked whether the Terraform E2E coverage should be extended to catch this class of bug. The structurally correct answer is "wire up the Terraform `awscc` provider" ( separate from the regular `aws` provider that bypasses CloudControl ), but that needs a new vendored provider binary, a new E2E crate, and per-resource-type starter coverage — a meaningful new harness.
+
+User chose the cheaper "Rust-level scenario test" path. Added `crates/winterbaume-cloudcontrol/tests/scenario_test.rs` with two scenarios:
+
+- `scenario_kms_key_full_lifecycle_applies_cfn_schema` — walks create → get → list → update ( re-introducing a writeOnly property via JSON-Patch and replacing a default ) → get → delete → verify-gone, asserting at every step that writeOnly stays stripped, readOnly ( `KeyId`, `Arn` ) survives unchanged across updates, defaults stay stable, and pass-through properties round-trip. Mirrors what an `awscc_kms_key` Terraform plan would exercise.
+- `scenario_unshaped_type_round_trips_verbatim` — regression guard that unshaped types ( e.g. `AWS::S3::Bucket` ) still round-trip the literal `DesiredState` so the existing per-service integration suites keep passing once the registry grows.
+
+Per-crate gate after the addition: fmt clean, clippy `-D warnings` clean ( one `manual_contains` warning surfaced and fixed ), `cargo test -p winterbaume-cloudcontrol --no-fail-fast` reports 22 / 22 ( 20 integration + 2 scenario ).
+
+Open follow-up ( does **not** belong on this fix ): a real Terraform `awscc`-provider E2E harness would catch divergence the Rust scenario tests can't — e.g. provider-side validation, drift detection, and the round-trip Terraform performs to compare plan vs. apply state. Worth tracking on TODO.md when someone has appetite for the new crate.
+
+### 2026-06-03 second addendum — end-to-end CLI verification against winterbaume-server
+
+Replayed the bug-report's exact reproduction snippet to confirm the fix lands the way the report's expected-behaviour section described.
+
+- Built `winterbaume-server` ( `./.agents/bin/cargo.sh build -p winterbaume-server` ; binary at `.agents-workspace/tmp/target-claude-26738/debug/winterbaume-server`, ~720 MB debug build ).
+- Started it on `127.0.0.1:5599`, the same port the bug report used.
+- Ran the bug's CLI snippet verbatim against it ( `AWS_ENDPOINT_URL=http://127.0.0.1:5599` with throwaway test creds ): `aws cloudcontrol create-resource --type-name AWS::KMS::Key --desired-state '{...PendingWindowInDays:7...}'` then `aws cloudcontrol get-resource --type-name AWS::KMS::Key --identifier <returned-id>`.
+- All 12 rows of the bug report's expected / actual diff table verified PASS via `jq` assertions on the `GetResource` Properties payload: `PendingWindowInDays` absent, `Arn` shape `arn:aws:kms:us-east-1:123456789012:key/<KeyId>`, `KeyId` echoes the generated identifier, every default ( `KeySpec=SYMMETRIC_DEFAULT`, `KeyUsage=ENCRYPT_DECRYPT`, `Origin=AWS_KMS`, `MultiRegion=false`, `Enabled=true`, `EnableKeyRotation=false`, `Tags=[]` ) materialises, `Description="probe"` passes through, `KeyPolicy` is an object.
+- The create response itself already carries the shaped `ResourceModel` ( the same JSON the subsequent Get returns ) — so callers that use the create-time progress event for the resource shape instead of polling Get also see the fixed behaviour. Worth noting because Terraform's `awscc` provider does exactly this on the apply path.
+- Captured outputs left under `.agents-workspace/tmp/issue6-verify/` ( `create.json`, `get.json`, `get-properties.json`, `server.log` ) for audit. Server process killed; port 5599 free.
+
+Verdict: ready to ship.
