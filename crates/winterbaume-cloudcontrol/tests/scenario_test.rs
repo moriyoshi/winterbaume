@@ -330,6 +330,142 @@ async fn scenario_dynamodb_table_full_lifecycle_applies_cfn_schema() {
     assert!(err.into_service_error().is_resource_not_found_exception());
 }
 
+/// Scenario: AWS::ECS::Cluster full lifecycle with CFN-schema shaping.
+///
+/// Regression for https://github.com/moriyoshi/winterbaume/issues/8.
+/// Verifies that the primaryIdentifier is `ClusterName` (so `get-resource
+/// --identifier <ClusterName>` works), that `Arn` is synthesised, and that
+/// the read handler reports `DefaultCapacityProviderStrategy: []` when
+/// omitted from the create input.
+#[tokio::test]
+async fn scenario_ecs_cluster_full_lifecycle_applies_cfn_schema() {
+    let client = make_client().await;
+
+    let cluster_name = "wb-probe-ecs";
+    let create_resp = client
+        .create_resource()
+        .type_name("AWS::ECS::Cluster")
+        .desired_state(
+            r#"{
+                "ClusterName": "wb-probe-ecs",
+                "CapacityProviders": ["FARGATE", "FARGATE_SPOT"],
+                "ClusterSettings": [{"Name": "containerInsights", "Value": "enabled"}],
+                "Tags": [{"Key": "Environment", "Value": "probe"}],
+                "ServiceConnectDefaults": {"Namespace": "ignored"}
+            }"#,
+        )
+        .send()
+        .await
+        .expect("create should succeed");
+
+    // primaryIdentifier MUST be ClusterName, not a UUID.
+    assert_eq!(
+        create_resp.progress_event().and_then(|e| e.identifier()),
+        Some(cluster_name),
+        "create must return ClusterName as the identifier, not a UUID (issue #8)"
+    );
+
+    // GetResource by ClusterName succeeds — this fails on a UUID-keyed store.
+    let get1 = client
+        .get_resource()
+        .type_name("AWS::ECS::Cluster")
+        .identifier(cluster_name)
+        .send()
+        .await
+        .expect("get by ClusterName should succeed");
+    let props1 = parse_properties(&get1);
+
+    // writeOnly stripped.
+    assert!(props1.get("ServiceConnectDefaults").is_none());
+
+    // readOnly generated.
+    let arn = props1["Arn"].as_str().expect("Arn must be present");
+    assert!(arn.starts_with("arn:aws:ecs:us-east-1:"), "got Arn={arn}");
+    assert!(arn.ends_with(":cluster/wb-probe-ecs"), "got Arn={arn}");
+
+    // Schema default filled.
+    assert!(
+        props1["DefaultCapacityProviderStrategy"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
+
+    // Pass-through.
+    assert_eq!(props1["ClusterName"], cluster_name);
+    assert_eq!(props1["CapacityProviders"][1], "FARGATE_SPOT");
+    assert_eq!(props1["ClusterSettings"][0]["Name"], "containerInsights");
+
+    // List includes this cluster.
+    let listed = client
+        .list_resources()
+        .type_name("AWS::ECS::Cluster")
+        .send()
+        .await
+        .expect("list should succeed");
+    let ids: Vec<&str> = listed
+        .resource_descriptions()
+        .iter()
+        .filter_map(|d| d.identifier())
+        .collect();
+    assert!(
+        ids.contains(&cluster_name),
+        "ListResources should surface ClusterName; got {ids:?}"
+    );
+
+    // Update: replace a default, then smuggle back the writeOnly.
+    client
+        .update_resource()
+        .type_name("AWS::ECS::Cluster")
+        .identifier(cluster_name)
+        .patch_document(
+            r#"[
+                {"op": "replace", "path": "/DefaultCapacityProviderStrategy", "value": [{"CapacityProvider": "FARGATE", "Weight": 1}]},
+                {"op": "add", "path": "/ServiceConnectDefaults", "value": {"Namespace": "smuggled"}}
+            ]"#,
+        )
+        .send()
+        .await
+        .expect("update should succeed");
+
+    let get2 = client
+        .get_resource()
+        .type_name("AWS::ECS::Cluster")
+        .identifier(cluster_name)
+        .send()
+        .await
+        .expect("second get should succeed");
+    let props2 = parse_properties(&get2);
+
+    assert!(
+        props2.get("ServiceConnectDefaults").is_none(),
+        "writeOnly property reintroduced by patch must be stripped on store"
+    );
+    assert_eq!(
+        props2["DefaultCapacityProviderStrategy"][0]["CapacityProvider"],
+        "FARGATE"
+    );
+    assert_eq!(props2["Arn"].as_str(), Some(arn));
+
+    // Delete, then verify gone.
+    client
+        .delete_resource()
+        .type_name("AWS::ECS::Cluster")
+        .identifier(cluster_name)
+        .send()
+        .await
+        .expect("delete should succeed");
+
+    let err = client
+        .get_resource()
+        .type_name("AWS::ECS::Cluster")
+        .identifier(cluster_name)
+        .send()
+        .await
+        .expect_err("get should fail after delete");
+    assert!(err.into_service_error().is_resource_not_found_exception());
+}
+
 /// Scenario: an unshaped type round-trips verbatim.
 ///
 /// Regression guard against accidentally routing every type through a shaper

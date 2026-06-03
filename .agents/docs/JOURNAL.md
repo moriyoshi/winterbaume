@@ -1975,3 +1975,46 @@ Replayed the bug-report's exact reproduction snippet to confirm the fix lands th
 - Captured outputs left under `.agents-workspace/tmp/issue6-verify/` ( `create.json`, `get.json`, `get-properties.json`, `server.log` ) for audit. Server process killed; port 5599 free.
 
 Verdict: ready to ship.
+
+## 2026-06-04 — cloudcontrol AWS::DynamoDB::Table + AWS::ECS::Cluster GetResource fidelity ( issues #7, #8 )
+
+Same root cause as #6: the CloudControl layer stored `DesiredState` verbatim and the read path never consulted the per-`AWS::*::*` CloudFormation registry schema. Reporter filed two follow-up issues with concrete diff tables captured from a live AWS account.
+
+- **#7 — `AWS::DynamoDB::Table`**: `GetResource` returned the four sent keys verbatim. Real AWS adds `Arn` ( `readOnlyProperty`, formed as `arn:aws:dynamodb:<region>:<account>:table/<TableName>` ) and seven specification blocks that the read handler always reports — `ContributorInsightsSpecification: {Enabled: false}`, `DeletionProtectionEnabled: false`, `PointInTimeRecoverySpecification: {PointInTimeRecoveryEnabled: false}`, `SSESpecification: {SSEEnabled: false}`, `TimeToLiveSpecification: {Enabled: false}`, `Tags: []`, `WarmThroughput: {ReadUnitsPerSecond: 12000, WriteUnitsPerSecond: 4000}`.
+- **#8 — `AWS::ECS::Cluster`**: `GetResource` returned the sent keys verbatim *and* assigned a random UUID identifier instead of using the schema's `primaryIdentifier` ( `/properties/ClusterName` ), so `get-resource --identifier <ClusterName>` failed with `ResourceNotFoundException`. Real AWS uses `ClusterName` as the identifier, synthesises `Arn` ( `arn:aws:ecs:<region>:<account>:cluster/<ClusterName>` ), and the read handler always reports `DefaultCapacityProviderStrategy: []`.
+
+### Fix
+
+Two new shapers slot into the registry that landed for #6 — `crates/winterbaume-cloudcontrol/src/cfn_schema/`. Same trait, same pattern as `kms_key.rs`. Split into one commit per issue on `fix/cloudcontrol-cfn-schema-shaping` so each closes its own GitHub issue cleanly:
+
+- **0d756f26** ( #7 ) — `dynamodb_table.rs`: primary identifier `TableName`, writeOnly `ImportSourceSpecification`, readOnly `Arn`, fills the seven runtime defaults above. `StreamArn` is also readOnly per the schema but only present when streams are enabled, so the shaper does not synthesise it ( a future patch can pull it from the wired DynamoDB Streams state ).
+- ( this commit ) ( #8 ) — `ecs_cluster.rs`: primary identifier `ClusterName`, writeOnly `ServiceConnectDefaults`, readOnly `Arn`, fills `DefaultCapacityProviderStrategy: []`.
+
+Both register in `cfn_schema/mod.rs::registry()` alongside `AWS::KMS::Key`. No changes needed to `state.rs` / `handlers.rs` — the existing `ShapeContext` plumbing carries `region` + `account_id` from the SigV4 request into the shaper, and `shape_update` re-applies the strip-writeOnly + fill-defaults pass after a JSON patch so a patch cannot smuggle a writeOnly property back into the stored model.
+
+Footnote on the "schema vs. handler" distinction: neither schema declares `default` values on the affected properties. The values come from the *read handler*, which is what real `GetResource` calls return. The bug reporter captured them from a live account, so they are the contract we have to mirror — documented in each shaper's module comment.
+
+### Regression coverage
+
+- `tests/integration_test.rs` — two new bug-report mirrors: `test_get_resource_dynamodb_table_applies_cfn_schema` ( DesiredState from the #7 reproduction snippet, with `ImportSourceSpecification` added to assert writeOnly stripping ), `test_get_resource_ecs_cluster_applies_cfn_schema` ( DesiredState from the #8 reproduction snippet, including the `assert_eq!(identifier, "wb-probe-ecs")` that guards against the UUID-identifier regression specifically called out in #8 ).
+- `tests/scenario_test.rs` — two new full-lifecycle scenarios that walk create → get → list → update ( with a writeOnly smuggle attempt and a default-replacement ) → get → delete → verify-gone, asserting at every step on the stored model content.
+
+### Per-crate lint gate
+
+- `./.agents/bin/cargo.sh fmt -p winterbaume-cloudcontrol -- --check` clean ( one `assert_eq!` formatting nit caught and fixed ).
+- `./.agents/bin/cargo.sh clippy -p winterbaume-cloudcontrol --all-targets --all-features -- -D warnings` clean.
+- `./.agents/bin/cargo.sh test -p winterbaume-cloudcontrol --no-fail-fast` — 22 integration + 4 scenario tests pass. `test_full_lifecycle` ( which uses `AWS::DynamoDB::Table` and predates the shaper ) still passes unchanged because the shaper's primary identifier matches the heuristic's old `TableName` extraction and `BillingMode` is neither writeOnly nor a defaulted property.
+
+### End-to-end CLI verification against winterbaume-server
+
+Replayed both bug reports' exact reproduction snippets to confirm the fix matches the reporter's expected-behaviour tables. Built `winterbaume-server` ( `./.agents/bin/cargo.sh build -p winterbaume-server` ; binary at `.agents-workspace/tmp/target-claude-26738/debug/winterbaume-server` ), started it on `127.0.0.1:5610`, ran each repro verbatim with `AWS_ENDPOINT_URL=http://127.0.0.1:5610` and throwaway creds.
+
+**Issue #7 ( AWS::DynamoDB::Table )**: `create-resource` with the bug's four-key DesiredState ( `TableName=jti-store`, `AttributeDefinitions`, `KeySchema`, `BillingMode=PAY_PER_REQUEST` ) returns `Identifier=jti-store` and `ResourceModel` carrying `Arn=arn:aws:dynamodb:us-east-1:123456789012:table/jti-store` plus all seven defaults exactly as the bug-report expected-behaviour JSON shows. Subsequent `get-resource --identifier jti-store` returns the same shape. Every row of the bug's expected/actual diff table verified PASS.
+
+**Issue #8 ( AWS::ECS::Cluster )**: `create-resource` returns `Identifier=wb-probe-ecs` ( the `ClusterName`, NOT a UUID — the regression #8 specifically called out ). `ResourceModel` carries `Arn=arn:aws:ecs:us-east-1:123456789012:cluster/wb-probe-ecs` and `DefaultCapacityProviderStrategy: []`. `get-resource --identifier wb-probe-ecs` succeeds and returns the same shape — previously this would have failed with `ResourceNotFoundException` because the cluster was stored under a UUID key.
+
+Captured outputs left under `.agents-workspace/tmp/issue78-verify/` ( `ddb-create.json`, `ddb-get.json`, `ecs-create.json`, `ecs-get.json`, `server.log` ) for audit. Server process killed; port 5610 free.
+
+### Follow-ups still open
+
+These two shapers consume two of the five candidates listed under `cloudcontrol-cfn-shapers-backfill` in `TODO.md`. The remaining wave ( `AWS::S3::Bucket`, `AWS::Lambda::Function`, `AWS::IAM::Role`, `AWS::EC2::SecurityGroup` ) is still untouched and waits on the same trigger pattern — a user-filed bug or a test exposing a discrepancy. The hand-coded path scales fine for this size of backlog; the `cloudcontrol-cfn-schema-vendoring` follow-up only becomes relevant past ~10 types.

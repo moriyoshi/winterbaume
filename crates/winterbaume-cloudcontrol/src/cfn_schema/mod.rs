@@ -10,6 +10,7 @@
 //! verbatim (the prior behaviour).
 
 mod dynamodb_table;
+mod ecs_cluster;
 mod kms_key;
 
 use std::collections::HashMap;
@@ -64,6 +65,7 @@ fn registry() -> &'static HashMap<&'static str, ShaperBox> {
             "AWS::DynamoDB::Table",
             Box::new(dynamodb_table::DynamoDbTableShaper),
         );
+        m.insert("AWS::ECS::Cluster", Box::new(ecs_cluster::EcsClusterShaper));
         m.insert("AWS::KMS::Key", Box::new(kms_key::KmsKeyShaper));
         m
     })
