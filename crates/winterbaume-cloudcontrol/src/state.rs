@@ -4,6 +4,7 @@ use chrono::Utc;
 use thiserror::Error;
 use uuid::Uuid;
 
+use crate::cfn_schema::{ShapeContext, lookup as lookup_shaper};
 use crate::types::{ManagedResource, OperationStatus, OperationType, ResourceRequest};
 
 /// Domain-specific error enum for Cloud Control API.
@@ -42,14 +43,34 @@ pub struct CloudControlState {
 
 impl CloudControlState {
     /// Create a resource. Operations complete synchronously in the mock.
+    ///
+    /// When a CFN resource-type shaper is registered for `type_name`, the
+    /// stored model is the schema-shaped output: `writeOnlyProperties`
+    /// stripped, `readOnlyProperties` generated, schema defaults filled in.
+    /// Unknown types fall back to storing `desired_state` verbatim.
     pub fn create_resource(
         &mut self,
         type_name: &str,
         desired_state: &str,
+        ctx: &ShapeContext<'_>,
     ) -> Result<ResourceRequest, CloudControlError> {
-        // Parse the desired state to extract an identifier, or generate one.
-        let identifier = extract_identifier_from_model(desired_state)
-            .unwrap_or_else(|| Uuid::new_v4().to_string());
+        let (identifier, stored_model) = if let Some(shaper) = lookup_shaper(type_name) {
+            let desired_json: serde_json::Value =
+                serde_json::from_str(desired_state).map_err(|e| {
+                    CloudControlError::InvalidRequest {
+                        message: format!("DesiredState is not valid JSON: {e}"),
+                    }
+                })?;
+            let shaped = shaper
+                .shape_create(&desired_json, ctx)
+                .map_err(|message| CloudControlError::InvalidRequest { message })?;
+            let json = serde_json::to_string(&shaped.properties).unwrap_or_default();
+            (shaped.primary_identifier, json)
+        } else {
+            let id = extract_identifier_from_model(desired_state)
+                .unwrap_or_else(|| Uuid::new_v4().to_string());
+            (id, desired_state.to_string())
+        };
 
         let key = (type_name.to_string(), identifier.clone());
         if self.resources.contains_key(&key) {
@@ -62,7 +83,7 @@ impl CloudControlState {
         let resource = ManagedResource {
             type_name: type_name.to_string(),
             identifier: identifier.clone(),
-            resource_model: desired_state.to_string(),
+            resource_model: stored_model.clone(),
         };
         self.resources.insert(key, resource);
 
@@ -74,7 +95,7 @@ impl CloudControlState {
             operation: OperationType::Create,
             operation_status: OperationStatus::Success,
             event_time: Utc::now(),
-            resource_model: Some(desired_state.to_string()),
+            resource_model: Some(stored_model),
             status_message: None,
             error_code: None,
         };
@@ -120,6 +141,7 @@ impl CloudControlState {
         type_name: &str,
         identifier: &str,
         patch_document: &str,
+        ctx: &ShapeContext<'_>,
     ) -> Result<ResourceRequest, CloudControlError> {
         let key = (type_name.to_string(), identifier.to_string());
         let resource =
@@ -131,12 +153,18 @@ impl CloudControlState {
                 })?;
 
         // Apply the patch: parse existing model and patch operations.
-        let mut model: serde_json::Value = serde_json::from_str(&resource.resource_model)
+        let previous: serde_json::Value = serde_json::from_str(&resource.resource_model)
             .unwrap_or(serde_json::Value::Object(serde_json::Map::new()));
+        let mut model = previous.clone();
         let patches: Vec<serde_json::Value> =
             serde_json::from_str(patch_document).unwrap_or_default();
         for patch in &patches {
             apply_json_patch(&mut model, patch);
+        }
+        if let Some(shaper) = lookup_shaper(type_name) {
+            model = shaper
+                .shape_update(&previous, model, ctx)
+                .map_err(|message| CloudControlError::InvalidRequest { message })?;
         }
         let updated_model = serde_json::to_string(&model).unwrap_or_default();
         resource.resource_model = updated_model.clone();

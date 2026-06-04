@@ -1,3 +1,4 @@
+pub mod cfn_schema;
 pub mod handlers;
 pub(crate) mod model;
 pub mod state;

@@ -8,6 +8,7 @@ use winterbaume_core::{
     json_error_response,
 };
 
+use crate::cfn_schema::ShapeContext;
 use crate::state::{CloudControlError, CloudControlState};
 use crate::types::ResourceRequest;
 use crate::views::CloudControlStateView;
@@ -101,10 +102,15 @@ impl CloudControlService {
 
         let state = self.state.get(account_id, &region);
 
+        let ctx = ShapeContext {
+            region: &region,
+            account_id,
+        };
+
         let response = match action.as_str() {
-            "CreateResource" => self.handle_create_resource(&state, body_bytes).await,
+            "CreateResource" => self.handle_create_resource(&state, body_bytes, &ctx).await,
             "DeleteResource" => self.handle_delete_resource(&state, body_bytes).await,
-            "UpdateResource" => self.handle_update_resource(&state, body_bytes).await,
+            "UpdateResource" => self.handle_update_resource(&state, body_bytes, &ctx).await,
             "GetResource" => self.handle_get_resource(&state, body_bytes).await,
             "ListResources" => self.handle_list_resources(&state, body_bytes).await,
             "GetResourceRequestStatus" => {
@@ -139,6 +145,7 @@ impl CloudControlService {
         &self,
         state: &Arc<tokio::sync::RwLock<CloudControlState>>,
         body: &[u8],
+        ctx: &ShapeContext<'_>,
     ) -> MockResponse {
         let input = match wire::deserialize_create_resource_request(body) {
             Ok(v) => v,
@@ -162,7 +169,7 @@ impl CloudControlService {
         let desired_state = input.desired_state.as_str();
 
         let mut guard = state.write().await;
-        match guard.create_resource(type_name, desired_state) {
+        match guard.create_resource(type_name, desired_state, ctx) {
             Ok(request) => create_response(&request),
             Err(e) => service_error_response(&e),
         }
@@ -205,6 +212,7 @@ impl CloudControlService {
         &self,
         state: &Arc<tokio::sync::RwLock<CloudControlState>>,
         body: &[u8],
+        ctx: &ShapeContext<'_>,
     ) -> MockResponse {
         let input = match wire::deserialize_update_resource_request(body) {
             Ok(v) => v,
@@ -236,7 +244,7 @@ impl CloudControlService {
         let patch_document = input.patch_document.as_str();
 
         let mut guard = state.write().await;
-        match guard.update_resource(type_name, identifier, patch_document) {
+        match guard.update_resource(type_name, identifier, patch_document, ctx) {
             Ok(request) => update_response(&request),
             Err(e) => service_error_response(&e),
         }
