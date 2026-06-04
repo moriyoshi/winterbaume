@@ -2018,3 +2018,58 @@ Captured outputs left under `.agents-workspace/tmp/issue78-verify/` ( `ddb-creat
 ### Follow-ups still open
 
 These two shapers consume two of the five candidates listed under `cloudcontrol-cfn-shapers-backfill` in `TODO.md`. The remaining wave ( `AWS::S3::Bucket`, `AWS::Lambda::Function`, `AWS::IAM::Role`, `AWS::EC2::SecurityGroup` ) is still untouched and waits on the same trigger pattern — a user-filed bug or a test exposing a discrepancy. The hand-coded path scales fine for this size of backlog; the `cloudcontrol-cfn-schema-vendoring` follow-up only becomes relevant past ~10 types.
+
+## 2026-06-04 — cloudcontrol AWS::ElasticLoadBalancingV2::{TargetGroup, LoadBalancer, Listener} GetResource fidelity ( issues #9, #10, #11 )
+
+Same root cause again as #6/#7/#8. Reporter filed three follow-up issues covering the ELBv2 trio that a real ALB stack walks through ( `TargetGroup` -> `LoadBalancer` -> `Listener` ), each with a captured live-account expected-behaviour table. The CloudControl read path still stored `DesiredState` verbatim and the per-`AWS::*::*` shaper registry did not yet cover any ELBv2 type, so:
+
+- **#9 — `AWS::ElasticLoadBalancingV2::TargetGroup`**: `GetResource` returned the seven sent keys verbatim and used `Name` as the identifier. Real AWS surfaces `TargetGroupArn` ( the schema's `primaryIdentifier` ) as the create identifier, synthesises `TargetGroupArn` / `TargetGroupName` / `TargetGroupFullName` / `LoadBalancerArns: []` ( all `readOnlyProperties` ), and the read handler reports `IpAddressType: ipv4`, every health-check default ( `HealthCheckEnabled: true`, `HealthCheckIntervalSeconds: 30`, `HealthCheckProtocol: HTTP`, `HealthCheckPort: "traffic-port"`, `HealthCheckTimeoutSeconds: 5`, `HealthyThresholdCount: 5`, `UnhealthyThresholdCount: 2` ), `ProtocolVersion: HTTP1`, `Matcher: {HttpCode: "200"}`, `Targets: []`, and a 14-entry `TargetGroupAttributes` block.
+- **#10 — `AWS::ElasticLoadBalancingV2::LoadBalancer`**: same verbatim-return + `Name` identifier issue. Real AWS surfaces `LoadBalancerArn` as the create identifier, synthesises five `readOnlyProperties` ( `LoadBalancerArn`, `LoadBalancerName`, `LoadBalancerFullName`, `DNSName`, `CanonicalHostedZoneID` ), strips the writeOnly `EnableCapacityReservationProvisionStabilize`, fills `IpAddressType: ipv4` and `EnablePrefixForIpv6SourceNat: "off"` plus a 22-entry `LoadBalancerAttributes` block, and derives `SubnetMappings` from the bare `Subnets` list when the caller does not supply explicit mappings.
+- **#11 — `AWS::ElasticLoadBalancingV2::Listener`**: verbatim-return *and* random-UUID identifier ( same regression flavour as #8 ). Real AWS derives `ListenerArn` from the supplied `LoadBalancerArn` ( `arn:...:loadbalancer/<scheme>/<name>/<lb-id>` -> `arn:...:listener/<scheme>/<name>/<lb-id>/<listener-id>` ), the read handler fills an 11-entry `ListenerAttributes` block, and every `{Type: forward, TargetGroupArn}` default action is expanded into a full `ForwardConfig` with `TargetGroupStickinessConfig: {Enabled: false}` and `TargetGroups: [{TargetGroupArn, Weight: 1}]`. The schema also declares a nested writeOnly path — `/properties/DefaultActions/*/AuthenticateOidcConfig/ClientSecret` — that must be stripped from the stored model.
+
+### Fix
+
+Three new shapers slot into the registry that landed for #6 — `crates/winterbaume-cloudcontrol/src/cfn_schema/`. Same trait, same pattern as `kms_key.rs`. Split into one commit per issue on `fix/cloudcontrol-cfn-schema-shaping-elbv2` so each closes its own GitHub issue cleanly:
+
+- **8d7a5ce1** ( #9 ) — `elbv2_target_group.rs`: primary identifier `TargetGroupArn`, no writeOnly properties, four readOnly properties synthesised, all health-check + attribute defaults filled. ARN form `arn:aws:elasticloadbalancing:<region>:<account>:targetgroup/<Name>/<16-hex>` ( the 16-hex suffix is drawn from `Uuid::new_v4().simple()`, matching the AWS-side opaque suffix length ).
+- **133bf261** ( #10 ) — `elbv2_load_balancer.rs`: primary identifier `LoadBalancerArn`, writeOnly `EnableCapacityReservationProvisionStabilize` stripped, five readOnly properties synthesised, defaults plus 22-entry attribute block filled, `SubnetMappings` derived. ARN scheme segment maps from `Type` (`application` -> `app`, `network` -> `net`, `gateway` -> `gwy`). `CanonicalHostedZoneID` returns a real published zone ID from the `us-east-1` row of the AWS zone-ID table, keyed by LB type — the value is region-specific in real AWS but for a fake the format and stability matter more than the exact region. `DNSName` follows the real format `<name>-<10-decimal-digits>.<region>.elb.amazonaws.com` ( the decimal suffix is derived from UUID bytes to keep the shape without taking on a `rand` dependency ).
+- ( this commit ) ( #11 ) — `elbv2_listener.rs`: primary identifier `ListenerArn` ( derived from `LoadBalancerArn` by splitting on `":loadbalancer/"` and re-stitching with `":listener/"` + a 16-hex suffix ), readOnly `ListenerArn` synthesised, writeOnly nested `ClientSecret` stripped, 11-entry `ListenerAttributes` filled, and every `{Type: forward, TargetGroupArn}` default action enriched with a full `ForwardConfig`. The Listener shaper hard-errs when `LoadBalancerArn` is missing from the create input — there is no sensible synthetic LB ARN to fall back to, and on real AWS the create call also rejects it.
+
+All three register in `cfn_schema/mod.rs::registry()` alongside `AWS::KMS::Key`, `AWS::DynamoDB::Table`, and `AWS::ECS::Cluster`. `shape_update` for each re-applies the strip-writeOnly + fill-defaults pass after a JSON patch, so a patch cannot smuggle a writeOnly property back into the stored model. As with #7/#8, the schemas themselves do not declare per-property `default`s for the affected properties — the values come from the read handler, captured by the bug reporter from a live account, and documented in each shaper's module comment.
+
+### Pitfall encountered: nested JSON Patch paths
+
+While writing the Listener scenario test I initially tried to mutate the nested OIDC `ClientSecret` via a path-deep patch:
+
+```
+[{"op": "add", "path": "/DefaultActions/0/AuthenticateOidcConfig", "value": {...}}]
+```
+
+That silently no-oped. The `apply_json_patch` helper in `crates/winterbaume-cloudcontrol/src/state.rs` is intentionally minimal — it only handles top-level paths like `/PropertyName` ( strips the leading `/`, inserts at the root object, otherwise ignores ). Anything deeper falls into the `_ =>` arm. The fix in the test was to replace the entire `DefaultActions` array via `op: replace, path: /DefaultActions`, which exercises the same strip-writeOnly contract because the new array carries the smuggled `ClientSecret` at the same nested position the shaper has to dig into. Leaving the helper minimal is the right call — full RFC 6902 support is not what CloudControl fidelity needs — but worth noting in any future scenario test that wants to mutate sub-properties.
+
+### Regression coverage
+
+- `tests/integration_test.rs` — three new bug-report mirrors: `test_get_resource_elbv2_target_group_applies_cfn_schema`, `test_get_resource_elbv2_load_balancer_applies_cfn_schema`, `test_get_resource_elbv2_listener_applies_cfn_schema`. Each builds the DesiredState from the corresponding issue's reproduction snippet, asserts on identifier shape ( ARN-form, not Name / UUID ), readOnly synthesis, default counts ( 14 / 22 / 11 attribute entries ), and `ForwardConfig` enrichment for the Listener.
+- `tests/scenario_test.rs` — three new full-lifecycle scenarios that walk create -> get -> list -> update ( with a writeOnly smuggle attempt and a default-replacement ) -> get -> delete -> verify-gone, asserting at every step on the stored model content. The Listener scenario in particular asserts that after the smuggled-OIDC update, `ClientId` survives the strip pass but `ClientSecret` is gone.
+
+### Per-crate lint gate
+
+- `./.agents/bin/cargo.sh fmt -p winterbaume-cloudcontrol -- --check` clean ( one useless-`format!` clippy lint caught and fixed in the Listener scenario expected-prefix string ).
+- `./.agents/bin/cargo.sh clippy -p winterbaume-cloudcontrol --all-targets --all-features -- -D warnings` clean.
+- `./.agents/bin/cargo.sh test -p winterbaume-cloudcontrol --no-fail-fast` — 25 integration + 7 scenario tests pass.
+
+### End-to-end CLI verification against winterbaume-server
+
+Replayed all three bug reports' exact reproduction snippets to confirm the fixes match the reporter's expected-behaviour tables. Built `winterbaume-server` ( binary at `.agents-workspace/tmp/target-claude-5672/debug/winterbaume-server` ), started it on `127.0.0.1:5612`, ran each repro verbatim with `AWS_ENDPOINT_URL=http://127.0.0.1:5612 AWS_DEFAULT_OUTPUT=json` and throwaway creds.
+
+**Issue #9 ( AWS::ElasticLoadBalancingV2::TargetGroup )**: `create-resource` returns `Identifier=arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/wb-probe-tg/<16-hex>` — the `TargetGroupArn`, NOT `Name`, exactly per the schema's `primaryIdentifier`. The returned ResourceModel carries the full read-handler-shaped output: `TargetGroupArn`, `TargetGroupName`, `TargetGroupFullName`, `LoadBalancerArns: []`, `IpAddressType: ipv4`, `HealthCheckEnabled: true`, `HealthCheckIntervalSeconds: 30`, `Matcher: {HttpCode: "200"}`, `Targets: []`, `ProtocolVersion: HTTP1`, and `TargetGroupAttributes` with 14 entries. Subsequent `get-resource --identifier <ARN>` returns the same shape. Every row of the bug's expected/actual diff table verified PASS.
+
+**Issue #10 ( AWS::ElasticLoadBalancingV2::LoadBalancer )**: `create-resource` returns `Identifier=arn:aws:elasticloadbalancing:us-east-1:123456789012:loadbalancer/app/wb-probe-alb/<16-hex>`. `ResourceModel` includes the five synthesised readOnly properties — `LoadBalancerArn`, `LoadBalancerName: "wb-probe-alb"`, `LoadBalancerFullName: "app/wb-probe-alb/<16-hex>"`, `DNSName: "wb-probe-alb-<10-digits>.us-east-1.elb.amazonaws.com"`, `CanonicalHostedZoneID: "Z35SXDOTRQ7X7K"` — the defaults `IpAddressType: ipv4` and `EnablePrefixForIpv6SourceNat: "off"`, the 22-entry `LoadBalancerAttributes` block, and `SubnetMappings: [{SubnetId: "subnet-aaa"}, {SubnetId: "subnet-bbb"}]` derived from `Subnets`. `get-resource --identifier <ARN>` returns the same shape.
+
+**Issue #11 ( AWS::ElasticLoadBalancingV2::Listener )**: `create-resource` with `LoadBalancerArn` set to the LB ARN above returns `Identifier=arn:aws:elasticloadbalancing:us-east-1:123456789012:listener/app/wb-probe-alb/<lb-16-hex>/<listener-16-hex>` — the `ListenerArn` derived from the LB ARN, NOT a random UUID ( the regression #11 specifically called out ). `ResourceModel` carries the 11-entry `ListenerAttributes` block and the enriched `DefaultActions[0].ForwardConfig` with `TargetGroupStickinessConfig: {Enabled: false}` and `TargetGroups: [{TargetGroupArn, Weight: 1}]`. `get-resource --identifier <ListenerArn>` returns the same shape — previously this would have failed with `ResourceNotFoundException` because the listener was stored under a UUID key.
+
+Captured outputs left under `.agents-workspace/tmp/issue9-11-verify/` ( `tg-create.json`, `tg-get.json`, `alb-create.json`, `alb-get.json`, `lis-create.json`, `lis-get.json`, `server.log` ) for audit. Server process killed; port 5612 free.
+
+### Follow-ups still open
+
+These three shapers consume three more of the `cloudcontrol-cfn-shapers-backfill` candidates in `TODO.md`. The remaining wave ( `AWS::S3::Bucket`, `AWS::Lambda::Function`, `AWS::IAM::Role`, `AWS::EC2::SecurityGroup` ) is still untouched. The `cloudcontrol-cfn-schema-vendoring` follow-up still only becomes relevant past ~10 types; we are now at six.
