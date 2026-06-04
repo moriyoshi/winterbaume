@@ -11,6 +11,7 @@
 
 mod dynamodb_table;
 mod ecs_cluster;
+mod elbv2_target_group;
 mod kms_key;
 
 use std::collections::HashMap;
@@ -66,6 +67,10 @@ fn registry() -> &'static HashMap<&'static str, ShaperBox> {
             Box::new(dynamodb_table::DynamoDbTableShaper),
         );
         m.insert("AWS::ECS::Cluster", Box::new(ecs_cluster::EcsClusterShaper));
+        m.insert(
+            "AWS::ElasticLoadBalancingV2::TargetGroup",
+            Box::new(elbv2_target_group::ElbV2TargetGroupShaper),
+        );
         m.insert("AWS::KMS::Key", Box::new(kms_key::KmsKeyShaper));
         m
     })

@@ -741,6 +741,113 @@ async fn test_get_resource_dynamodb_table_applies_cfn_schema() {
 }
 
 // ---------------------------------------------------------------------------
+// CFN resource-type shaping: AWS::ElasticLoadBalancingV2::TargetGroup (#9)
+// ---------------------------------------------------------------------------
+
+#[tokio::test]
+async fn test_get_resource_elbv2_target_group_applies_cfn_schema() {
+    // Real Cloud Control returns TargetGroupArn (the primaryIdentifier) as the
+    // create identifier, synthesises TargetGroupArn / TargetGroupName /
+    // TargetGroupFullName / LoadBalancerArns, and fills every health-check
+    // default plus the 14-entry TargetGroupAttributes block.
+    // Regression for https://github.com/moriyoshi/winterbaume/issues/9.
+    let client = make_client().await;
+
+    let desired_state = r#"{
+        "Name": "wb-probe-tg",
+        "Protocol": "HTTP",
+        "Port": 8080,
+        "VpcId": "vpc-085f4b7505f74650d",
+        "TargetType": "ip",
+        "HealthCheckPath": "/health",
+        "Tags": [{"Key": "Environment", "Value": "probe"}]
+    }"#;
+
+    let create_resp = client
+        .create_resource()
+        .type_name("AWS::ElasticLoadBalancingV2::TargetGroup")
+        .desired_state(desired_state)
+        .send()
+        .await
+        .expect("create_resource should succeed");
+
+    // primaryIdentifier must be TargetGroupArn, not Name.
+    let identifier = create_resp
+        .progress_event()
+        .and_then(|e| e.identifier())
+        .expect("create should return primary identifier")
+        .to_string();
+    assert!(
+        identifier.starts_with("arn:aws:elasticloadbalancing:")
+            && identifier.contains(":targetgroup/wb-probe-tg/"),
+        "identifier must be the TargetGroupArn (primaryIdentifier), not Name; got {identifier}"
+    );
+
+    let get_resp = client
+        .get_resource()
+        .type_name("AWS::ElasticLoadBalancingV2::TargetGroup")
+        .identifier(&identifier)
+        .send()
+        .await
+        .expect("get_resource by TargetGroupArn should succeed");
+
+    let props: serde_json::Value = serde_json::from_str(
+        get_resp
+            .resource_description()
+            .and_then(|d| d.properties())
+            .expect("should have properties"),
+    )
+    .expect("properties should be valid JSON");
+
+    // readOnly properties synthesised.
+    let arn = props["TargetGroupArn"]
+        .as_str()
+        .expect("TargetGroupArn must be present");
+    assert!(arn.starts_with("arn:aws:elasticloadbalancing:"), "{arn}");
+    assert!(arn.contains(":targetgroup/wb-probe-tg/"), "{arn}");
+    assert_eq!(props["TargetGroupName"], "wb-probe-tg");
+    let full_name = props["TargetGroupFullName"]
+        .as_str()
+        .expect("TargetGroupFullName must be present");
+    assert!(
+        full_name.starts_with("targetgroup/wb-probe-tg/"),
+        "{full_name}"
+    );
+    assert!(props["LoadBalancerArns"].as_array().unwrap().is_empty());
+
+    // Pass-through.
+    assert_eq!(props["Name"], "wb-probe-tg");
+    assert_eq!(props["Protocol"], "HTTP");
+    assert_eq!(props["Port"], 8080);
+    assert_eq!(props["VpcId"], "vpc-085f4b7505f74650d");
+    assert_eq!(props["TargetType"], "ip");
+    assert_eq!(props["HealthCheckPath"], "/health");
+    assert_eq!(props["Tags"][0]["Key"], "Environment");
+
+    // Read-handler defaults.
+    assert_eq!(props["IpAddressType"], "ipv4");
+    assert_eq!(props["HealthCheckEnabled"], true);
+    assert_eq!(props["HealthCheckIntervalSeconds"], 30);
+    assert_eq!(props["HealthCheckProtocol"], "HTTP");
+    assert_eq!(props["HealthCheckPort"], "traffic-port");
+    assert_eq!(props["HealthCheckTimeoutSeconds"], 5);
+    assert_eq!(props["HealthyThresholdCount"], 5);
+    assert_eq!(props["UnhealthyThresholdCount"], 2);
+    assert_eq!(props["ProtocolVersion"], "HTTP1");
+    assert_eq!(props["Matcher"]["HttpCode"], "200");
+    assert!(props["Targets"].as_array().unwrap().is_empty());
+    let attrs = props["TargetGroupAttributes"]
+        .as_array()
+        .expect("TargetGroupAttributes must be an array");
+    assert_eq!(
+        attrs.len(),
+        14,
+        "expected 14 attribute defaults; got {}",
+        attrs.len()
+    );
+}
+
+// ---------------------------------------------------------------------------
 // CFN resource-type shaping: AWS::ECS::Cluster (regression for issue #8)
 // ---------------------------------------------------------------------------
 

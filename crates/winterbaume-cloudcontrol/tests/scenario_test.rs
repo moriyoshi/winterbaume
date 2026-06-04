@@ -503,3 +503,133 @@ async fn scenario_unshaped_type_round_trips_verbatim() {
     assert_eq!(props["VersioningConfiguration"]["Status"], "Enabled");
     assert_eq!(props["Tags"][0]["Key"], "env");
 }
+
+/// Scenario: AWS::ElasticLoadBalancingV2::TargetGroup full lifecycle.
+///
+/// Regression for https://github.com/moriyoshi/winterbaume/issues/9. Walks
+/// create -> get -> list -> update (with default flip) -> get -> delete and
+/// asserts on the read-handler-shaped output at every step: primaryIdentifier
+/// is TargetGroupArn, readOnly properties are synthesised, and the 14-entry
+/// TargetGroupAttributes block plus all health-check defaults are filled.
+#[tokio::test]
+async fn scenario_elbv2_target_group_full_lifecycle_applies_cfn_schema() {
+    let client = make_client().await;
+
+    let create_resp = client
+        .create_resource()
+        .type_name("AWS::ElasticLoadBalancingV2::TargetGroup")
+        .desired_state(
+            r#"{
+                "Name": "wb-probe-tg",
+                "Protocol": "HTTP",
+                "Port": 8080,
+                "VpcId": "vpc-085f4b7505f74650d",
+                "TargetType": "ip",
+                "HealthCheckPath": "/health",
+                "Tags": [{"Key": "Environment", "Value": "probe"}]
+            }"#,
+        )
+        .send()
+        .await
+        .expect("create should succeed");
+
+    let arn = create_resp
+        .progress_event()
+        .and_then(|e| e.identifier())
+        .expect("create must return primary identifier")
+        .to_string();
+    assert!(
+        arn.starts_with("arn:aws:elasticloadbalancing:us-east-1:")
+            && arn.contains(":targetgroup/wb-probe-tg/"),
+        "identifier must be the TargetGroupArn (issue #9); got {arn}"
+    );
+
+    // Step 1: GetResource by TargetGroupArn returns the fully shaped model.
+    let get1 = client
+        .get_resource()
+        .type_name("AWS::ElasticLoadBalancingV2::TargetGroup")
+        .identifier(&arn)
+        .send()
+        .await
+        .expect("get by TargetGroupArn should succeed");
+    let props1 = parse_properties(&get1);
+
+    assert_eq!(props1["TargetGroupArn"].as_str(), Some(arn.as_str()));
+    assert_eq!(props1["TargetGroupName"], "wb-probe-tg");
+    assert!(
+        props1["TargetGroupFullName"]
+            .as_str()
+            .unwrap_or("")
+            .starts_with("targetgroup/wb-probe-tg/")
+    );
+    assert!(props1["LoadBalancerArns"].as_array().unwrap().is_empty());
+    assert_eq!(props1["Matcher"]["HttpCode"], "200");
+    assert_eq!(props1["HealthCheckEnabled"], true);
+    assert_eq!(props1["IpAddressType"], "ipv4");
+    assert_eq!(
+        props1["TargetGroupAttributes"].as_array().unwrap().len(),
+        14
+    );
+
+    // Step 2: List includes this TargetGroup.
+    let listed = client
+        .list_resources()
+        .type_name("AWS::ElasticLoadBalancingV2::TargetGroup")
+        .send()
+        .await
+        .expect("list should succeed");
+    let ids: Vec<&str> = listed
+        .resource_descriptions()
+        .iter()
+        .filter_map(|d| d.identifier())
+        .collect();
+    assert!(
+        ids.contains(&arn.as_str()),
+        "ListResources should surface the TargetGroupArn; got {ids:?}"
+    );
+
+    // Step 3: UpdateResource — flip a default.
+    client
+        .update_resource()
+        .type_name("AWS::ElasticLoadBalancingV2::TargetGroup")
+        .identifier(&arn)
+        .patch_document(
+            r#"[
+                {"op": "replace", "path": "/HealthCheckIntervalSeconds", "value": 10},
+                {"op": "replace", "path": "/HealthyThresholdCount", "value": 3}
+            ]"#,
+        )
+        .send()
+        .await
+        .expect("update should succeed");
+
+    let get2 = client
+        .get_resource()
+        .type_name("AWS::ElasticLoadBalancingV2::TargetGroup")
+        .identifier(&arn)
+        .send()
+        .await
+        .expect("second get should succeed");
+    let props2 = parse_properties(&get2);
+    assert_eq!(props2["HealthCheckIntervalSeconds"], 10);
+    assert_eq!(props2["HealthyThresholdCount"], 3);
+    assert_eq!(props2["TargetGroupArn"].as_str(), Some(arn.as_str()));
+
+    // Step 4: Delete, then verify gone.
+    client
+        .delete_resource()
+        .type_name("AWS::ElasticLoadBalancingV2::TargetGroup")
+        .identifier(&arn)
+        .send()
+        .await
+        .expect("delete should succeed");
+
+    let err = client
+        .get_resource()
+        .type_name("AWS::ElasticLoadBalancingV2::TargetGroup")
+        .identifier(&arn)
+        .send()
+        .await
+        .expect_err("get should fail after delete");
+    assert!(err.into_service_error().is_resource_not_found_exception());
+}
