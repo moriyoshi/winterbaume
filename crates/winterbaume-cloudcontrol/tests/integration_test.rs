@@ -848,6 +848,111 @@ async fn test_get_resource_elbv2_target_group_applies_cfn_schema() {
 }
 
 // ---------------------------------------------------------------------------
+// CFN resource-type shaping: AWS::ElasticLoadBalancingV2::LoadBalancer (#10)
+// ---------------------------------------------------------------------------
+
+#[tokio::test]
+async fn test_get_resource_elbv2_load_balancer_applies_cfn_schema() {
+    // primaryIdentifier is LoadBalancerArn; readOnly properties (Arn, DNSName,
+    // CanonicalHostedZoneID, LoadBalancerName, LoadBalancerFullName) are
+    // synthesised; SubnetMappings is derived from Subnets; the 22-entry
+    // LoadBalancerAttributes block is filled.
+    // Regression for https://github.com/moriyoshi/winterbaume/issues/10.
+    let client = make_client().await;
+
+    let desired_state = r#"{
+        "Name": "wb-probe-alb",
+        "Type": "application",
+        "Scheme": "internet-facing",
+        "Subnets": ["subnet-aaa", "subnet-bbb"],
+        "SecurityGroups": ["sg-ccc"],
+        "Tags": [{"Key": "Environment", "Value": "probe"}]
+    }"#;
+
+    let create_resp = client
+        .create_resource()
+        .type_name("AWS::ElasticLoadBalancingV2::LoadBalancer")
+        .desired_state(desired_state)
+        .send()
+        .await
+        .expect("create_resource should succeed");
+
+    let identifier = create_resp
+        .progress_event()
+        .and_then(|e| e.identifier())
+        .expect("create should return primary identifier")
+        .to_string();
+    assert!(
+        identifier.starts_with("arn:aws:elasticloadbalancing:")
+            && identifier.contains(":loadbalancer/app/wb-probe-alb/"),
+        "identifier must be the LoadBalancerArn, not Name; got {identifier}"
+    );
+
+    let get_resp = client
+        .get_resource()
+        .type_name("AWS::ElasticLoadBalancingV2::LoadBalancer")
+        .identifier(&identifier)
+        .send()
+        .await
+        .expect("get_resource by LoadBalancerArn should succeed");
+
+    let props: serde_json::Value = serde_json::from_str(
+        get_resp
+            .resource_description()
+            .and_then(|d| d.properties())
+            .expect("should have properties"),
+    )
+    .expect("properties should be valid JSON");
+
+    // readOnly properties.
+    let arn = props["LoadBalancerArn"].as_str().expect("LoadBalancerArn");
+    assert!(arn.starts_with("arn:aws:elasticloadbalancing:"), "{arn}");
+    assert!(arn.contains(":loadbalancer/app/wb-probe-alb/"), "{arn}");
+    assert_eq!(props["LoadBalancerName"], "wb-probe-alb");
+    let full_name = props["LoadBalancerFullName"]
+        .as_str()
+        .expect("LoadBalancerFullName");
+    assert!(full_name.starts_with("app/wb-probe-alb/"), "{full_name}");
+    let dns = props["DNSName"].as_str().expect("DNSName");
+    assert!(dns.starts_with("wb-probe-alb-"), "{dns}");
+    assert!(dns.ends_with(".us-east-1.elb.amazonaws.com"), "{dns}");
+    assert!(
+        props["CanonicalHostedZoneID"]
+            .as_str()
+            .unwrap_or("")
+            .starts_with('Z')
+    );
+
+    // Pass-through.
+    assert_eq!(props["Type"], "application");
+    assert_eq!(props["Scheme"], "internet-facing");
+    assert_eq!(props["Subnets"][0], "subnet-aaa");
+    assert_eq!(props["SecurityGroups"][0], "sg-ccc");
+    assert_eq!(props["Tags"][0]["Value"], "probe");
+
+    // Read-handler defaults.
+    assert_eq!(props["IpAddressType"], "ipv4");
+    assert_eq!(props["EnablePrefixForIpv6SourceNat"], "off");
+    let attrs = props["LoadBalancerAttributes"]
+        .as_array()
+        .expect("LoadBalancerAttributes must be an array");
+    assert_eq!(
+        attrs.len(),
+        22,
+        "expected 22 attribute defaults; got {}",
+        attrs.len()
+    );
+
+    // SubnetMappings derived from Subnets.
+    let mappings = props["SubnetMappings"]
+        .as_array()
+        .expect("SubnetMappings must be an array");
+    assert_eq!(mappings.len(), 2);
+    assert_eq!(mappings[0]["SubnetId"], "subnet-aaa");
+    assert_eq!(mappings[1]["SubnetId"], "subnet-bbb");
+}
+
+// ---------------------------------------------------------------------------
 // CFN resource-type shaping: AWS::ECS::Cluster (regression for issue #8)
 // ---------------------------------------------------------------------------
 

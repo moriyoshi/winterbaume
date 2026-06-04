@@ -633,3 +633,161 @@ async fn scenario_elbv2_target_group_full_lifecycle_applies_cfn_schema() {
         .expect_err("get should fail after delete");
     assert!(err.into_service_error().is_resource_not_found_exception());
 }
+/// Scenario: AWS::ElasticLoadBalancingV2::LoadBalancer full lifecycle.
+///
+/// Regression for https://github.com/moriyoshi/winterbaume/issues/10. Asserts
+/// the primaryIdentifier is the LoadBalancerArn (not Name), that DNSName /
+/// CanonicalHostedZoneID / LoadBalancerName / LoadBalancerFullName are
+/// synthesised, that SubnetMappings is derived from Subnets, and that
+/// LoadBalancerAttributes is the 22-entry default block. The writeOnly
+/// EnableCapacityReservationProvisionStabilize is stripped on store.
+#[tokio::test]
+async fn scenario_elbv2_load_balancer_full_lifecycle_applies_cfn_schema() {
+    let client = make_client().await;
+
+    let create_resp = client
+        .create_resource()
+        .type_name("AWS::ElasticLoadBalancingV2::LoadBalancer")
+        .desired_state(
+            r#"{
+                "Name": "wb-probe-alb",
+                "Type": "application",
+                "Scheme": "internet-facing",
+                "Subnets": ["subnet-aaa", "subnet-bbb"],
+                "SecurityGroups": ["sg-ccc"],
+                "EnableCapacityReservationProvisionStabilize": false,
+                "Tags": [{"Key": "Environment", "Value": "probe"}]
+            }"#,
+        )
+        .send()
+        .await
+        .expect("create should succeed");
+
+    let arn = create_resp
+        .progress_event()
+        .and_then(|e| e.identifier())
+        .expect("create must return primary identifier")
+        .to_string();
+    assert!(
+        arn.starts_with("arn:aws:elasticloadbalancing:us-east-1:")
+            && arn.contains(":loadbalancer/app/wb-probe-alb/"),
+        "identifier must be the LoadBalancerArn (issue #10); got {arn}"
+    );
+
+    // Step 1: GetResource by LoadBalancerArn returns the fully shaped model.
+    let get1 = client
+        .get_resource()
+        .type_name("AWS::ElasticLoadBalancingV2::LoadBalancer")
+        .identifier(&arn)
+        .send()
+        .await
+        .expect("get by LoadBalancerArn should succeed");
+    let props1 = parse_properties(&get1);
+
+    // writeOnly stripped.
+    assert!(
+        props1
+            .get("EnableCapacityReservationProvisionStabilize")
+            .is_none(),
+        "writeOnly property must be stripped"
+    );
+
+    // readOnly synthesised.
+    assert_eq!(props1["LoadBalancerArn"].as_str(), Some(arn.as_str()));
+    assert_eq!(props1["LoadBalancerName"], "wb-probe-alb");
+    assert!(
+        props1["LoadBalancerFullName"]
+            .as_str()
+            .unwrap_or("")
+            .starts_with("app/wb-probe-alb/")
+    );
+    let dns = props1["DNSName"].as_str().expect("DNSName");
+    assert!(dns.starts_with("wb-probe-alb-"), "{dns}");
+    assert!(dns.ends_with(".us-east-1.elb.amazonaws.com"), "{dns}");
+    assert!(
+        props1["CanonicalHostedZoneID"]
+            .as_str()
+            .unwrap_or("")
+            .starts_with('Z')
+    );
+
+    // Defaults.
+    assert_eq!(props1["IpAddressType"], "ipv4");
+    assert_eq!(props1["EnablePrefixForIpv6SourceNat"], "off");
+    assert_eq!(
+        props1["LoadBalancerAttributes"].as_array().unwrap().len(),
+        22
+    );
+
+    // SubnetMappings derived.
+    let mappings = props1["SubnetMappings"].as_array().unwrap();
+    assert_eq!(mappings.len(), 2);
+    assert_eq!(mappings[0]["SubnetId"], "subnet-aaa");
+
+    // Step 2: List includes this load balancer.
+    let listed = client
+        .list_resources()
+        .type_name("AWS::ElasticLoadBalancingV2::LoadBalancer")
+        .send()
+        .await
+        .expect("list should succeed");
+    let ids: Vec<&str> = listed
+        .resource_descriptions()
+        .iter()
+        .filter_map(|d| d.identifier())
+        .collect();
+    assert!(
+        ids.contains(&arn.as_str()),
+        "ListResources should surface the LoadBalancerArn; got {ids:?}"
+    );
+
+    // Step 3: Update — flip a default, then try to smuggle writeOnly back.
+    client
+        .update_resource()
+        .type_name("AWS::ElasticLoadBalancingV2::LoadBalancer")
+        .identifier(&arn)
+        .patch_document(
+            r#"[
+                {"op": "replace", "path": "/IpAddressType", "value": "dualstack"},
+                {"op": "add", "path": "/EnableCapacityReservationProvisionStabilize", "value": true}
+            ]"#,
+        )
+        .send()
+        .await
+        .expect("update should succeed");
+
+    let get2 = client
+        .get_resource()
+        .type_name("AWS::ElasticLoadBalancingV2::LoadBalancer")
+        .identifier(&arn)
+        .send()
+        .await
+        .expect("second get should succeed");
+    let props2 = parse_properties(&get2);
+    assert!(
+        props2
+            .get("EnableCapacityReservationProvisionStabilize")
+            .is_none(),
+        "writeOnly property reintroduced by patch must be stripped on store"
+    );
+    assert_eq!(props2["IpAddressType"], "dualstack");
+    assert_eq!(props2["LoadBalancerArn"].as_str(), Some(arn.as_str()));
+
+    // Step 4: Delete, then verify gone.
+    client
+        .delete_resource()
+        .type_name("AWS::ElasticLoadBalancingV2::LoadBalancer")
+        .identifier(&arn)
+        .send()
+        .await
+        .expect("delete should succeed");
+
+    let err = client
+        .get_resource()
+        .type_name("AWS::ElasticLoadBalancingV2::LoadBalancer")
+        .identifier(&arn)
+        .send()
+        .await
+        .expect_err("get should fail after delete");
+    assert!(err.into_service_error().is_resource_not_found_exception());
+}
