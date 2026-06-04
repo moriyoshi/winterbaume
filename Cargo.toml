@@ -761,7 +761,7 @@ winterbaume-mediapackagev2 = { version = "0.2.0", path = "crates/winterbaume-med
 winterbaume-osis = { version = "0.2.0", path = "crates/winterbaume-osis" }
 winterbaume-outposts = { version = "0.2.0", path = "crates/winterbaume-outposts" }
 winterbaume-fis = { version = "0.2.0", path = "crates/winterbaume-fis" }
-winterbaume-cloudcontrol = { version = "0.2.0", path = "crates/winterbaume-cloudcontrol" }
+winterbaume-cloudcontrol = { version = "1.0.0", path = "crates/winterbaume-cloudcontrol" }
 winterbaume-keyspaces = { version = "0.2.0", path = "crates/winterbaume-keyspaces" }
 winterbaume-rolesanywhere = { version = "0.2.0", path = "crates/winterbaume-rolesanywhere" }
 winterbaume-servicecatalog = { version = "0.2.0", path = "crates/winterbaume-servicecatalog" }
