@@ -11,6 +11,7 @@
 
 mod dynamodb_table;
 mod ecs_cluster;
+mod elbv2_listener;
 mod elbv2_load_balancer;
 mod elbv2_target_group;
 mod kms_key;
@@ -68,6 +69,10 @@ fn registry() -> &'static HashMap<&'static str, ShaperBox> {
             Box::new(dynamodb_table::DynamoDbTableShaper),
         );
         m.insert("AWS::ECS::Cluster", Box::new(ecs_cluster::EcsClusterShaper));
+        m.insert(
+            "AWS::ElasticLoadBalancingV2::Listener",
+            Box::new(elbv2_listener::ElbV2ListenerShaper),
+        );
         m.insert(
             "AWS::ElasticLoadBalancingV2::LoadBalancer",
             Box::new(elbv2_load_balancer::ElbV2LoadBalancerShaper),

@@ -952,6 +952,99 @@ async fn test_get_resource_elbv2_load_balancer_applies_cfn_schema() {
     assert_eq!(mappings[1]["SubnetId"], "subnet-bbb");
 }
 
+// CFN resource-type shaping: AWS::ElasticLoadBalancingV2::Listener (#11)
+// ---------------------------------------------------------------------------
+
+#[tokio::test]
+async fn test_get_resource_elbv2_listener_applies_cfn_schema() {
+    // primaryIdentifier is ListenerArn (derived from LoadBalancerArn), NOT a
+    // random UUID; the 11-entry ListenerAttributes block is filled; bare
+    // `{Type: forward, TargetGroupArn}` default actions are expanded with a
+    // full ForwardConfig.
+    // Regression for https://github.com/moriyoshi/winterbaume/issues/11.
+    let client = make_client().await;
+
+    let lb_arn = "arn:aws:elasticloadbalancing:us-east-1:123456789012:loadbalancer/app/wb-probe-alb/1fd4ae3b7fe406b4";
+    let tg_arn = "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/wb-probe-tg/2ad83a8df02d600e";
+    let desired_state = format!(
+        r#"{{
+            "LoadBalancerArn": "{lb_arn}",
+            "Port": 80,
+            "Protocol": "HTTP",
+            "DefaultActions": [{{"Type": "forward", "TargetGroupArn": "{tg_arn}"}}]
+        }}"#
+    );
+
+    let create_resp = client
+        .create_resource()
+        .type_name("AWS::ElasticLoadBalancingV2::Listener")
+        .desired_state(&desired_state)
+        .send()
+        .await
+        .expect("create_resource should succeed");
+
+    let identifier = create_resp
+        .progress_event()
+        .and_then(|e| e.identifier())
+        .expect("create should return primary identifier")
+        .to_string();
+    assert!(
+        identifier.starts_with(
+            "arn:aws:elasticloadbalancing:us-east-1:123456789012:listener/app/wb-probe-alb/1fd4ae3b7fe406b4/"
+        ),
+        "identifier must be the ListenerArn derived from LoadBalancerArn, not a UUID; got {identifier}"
+    );
+
+    let get_resp = client
+        .get_resource()
+        .type_name("AWS::ElasticLoadBalancingV2::Listener")
+        .identifier(&identifier)
+        .send()
+        .await
+        .expect("get_resource by ListenerArn should succeed");
+
+    let props: serde_json::Value = serde_json::from_str(
+        get_resp
+            .resource_description()
+            .and_then(|d| d.properties())
+            .expect("should have properties"),
+    )
+    .expect("properties should be valid JSON");
+
+    // readOnly: ListenerArn synthesised.
+    assert_eq!(props["ListenerArn"].as_str(), Some(identifier.as_str()));
+
+    // Pass-through.
+    assert_eq!(props["LoadBalancerArn"], lb_arn);
+    assert_eq!(props["Port"], 80);
+    assert_eq!(props["Protocol"], "HTTP");
+
+    // DefaultActions enriched with ForwardConfig.
+    let action = &props["DefaultActions"][0];
+    assert_eq!(action["Type"], "forward");
+    assert_eq!(action["TargetGroupArn"], tg_arn);
+    assert_eq!(
+        action["ForwardConfig"]["TargetGroupStickinessConfig"]["Enabled"],
+        false
+    );
+    assert_eq!(
+        action["ForwardConfig"]["TargetGroups"][0]["TargetGroupArn"],
+        tg_arn
+    );
+    assert_eq!(action["ForwardConfig"]["TargetGroups"][0]["Weight"], 1);
+
+    // Read-handler default: ListenerAttributes.
+    let attrs = props["ListenerAttributes"]
+        .as_array()
+        .expect("ListenerAttributes must be an array");
+    assert_eq!(
+        attrs.len(),
+        11,
+        "expected 11 attribute defaults; got {}",
+        attrs.len()
+    );
+}
+
 // ---------------------------------------------------------------------------
 // CFN resource-type shaping: AWS::ECS::Cluster (regression for issue #8)
 // ---------------------------------------------------------------------------

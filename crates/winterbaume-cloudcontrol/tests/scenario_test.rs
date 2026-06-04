@@ -791,3 +791,164 @@ async fn scenario_elbv2_load_balancer_full_lifecycle_applies_cfn_schema() {
         .expect_err("get should fail after delete");
     assert!(err.into_service_error().is_resource_not_found_exception());
 }
+
+/// Scenario: AWS::ElasticLoadBalancingV2::Listener full lifecycle.
+///
+/// Regression for https://github.com/moriyoshi/winterbaume/issues/11. Asserts
+/// the primaryIdentifier is the ListenerArn (derived from LoadBalancerArn,
+/// not a random UUID), that ListenerAttributes is the 11-entry default block,
+/// and that `{Type: forward, TargetGroupArn}` default actions get a full
+/// ForwardConfig.
+#[tokio::test]
+async fn scenario_elbv2_listener_full_lifecycle_applies_cfn_schema() {
+    let client = make_client().await;
+
+    let lb_arn = "arn:aws:elasticloadbalancing:us-east-1:123456789012:loadbalancer/app/wb-probe-alb/1fd4ae3b7fe406b4";
+    let tg_arn = "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/wb-probe-tg/2ad83a8df02d600e";
+
+    let desired_state = format!(
+        r#"{{
+            "LoadBalancerArn": "{lb_arn}",
+            "Port": 80,
+            "Protocol": "HTTP",
+            "DefaultActions": [{{"Type": "forward", "TargetGroupArn": "{tg_arn}"}}]
+        }}"#
+    );
+
+    let create_resp = client
+        .create_resource()
+        .type_name("AWS::ElasticLoadBalancingV2::Listener")
+        .desired_state(&desired_state)
+        .send()
+        .await
+        .expect("create should succeed");
+
+    let listener_arn = create_resp
+        .progress_event()
+        .and_then(|e| e.identifier())
+        .expect("create must return primary identifier")
+        .to_string();
+    let expected_prefix = "arn:aws:elasticloadbalancing:us-east-1:123456789012:listener/app/wb-probe-alb/1fd4ae3b7fe406b4/";
+    assert!(
+        listener_arn.starts_with(expected_prefix),
+        "identifier must be the ListenerArn derived from LoadBalancerArn (issue #11), not a UUID; got {listener_arn}"
+    );
+
+    // Step 1: GetResource by ListenerArn returns the fully shaped model.
+    let get1 = client
+        .get_resource()
+        .type_name("AWS::ElasticLoadBalancingV2::Listener")
+        .identifier(&listener_arn)
+        .send()
+        .await
+        .expect("get by ListenerArn should succeed");
+    let props1 = parse_properties(&get1);
+
+    assert_eq!(props1["ListenerArn"].as_str(), Some(listener_arn.as_str()));
+    assert_eq!(props1["LoadBalancerArn"], lb_arn);
+    assert_eq!(props1["Port"], 80);
+    assert_eq!(props1["Protocol"], "HTTP");
+
+    // DefaultActions enriched.
+    let action = &props1["DefaultActions"][0];
+    assert_eq!(action["Type"], "forward");
+    assert_eq!(action["TargetGroupArn"], tg_arn);
+    assert_eq!(
+        action["ForwardConfig"]["TargetGroupStickinessConfig"]["Enabled"],
+        false
+    );
+    assert_eq!(
+        action["ForwardConfig"]["TargetGroups"][0]["TargetGroupArn"],
+        tg_arn
+    );
+    assert_eq!(action["ForwardConfig"]["TargetGroups"][0]["Weight"], 1);
+
+    // ListenerAttributes default.
+    assert_eq!(props1["ListenerAttributes"].as_array().unwrap().len(), 11);
+
+    // Step 2: List includes this listener.
+    let listed = client
+        .list_resources()
+        .type_name("AWS::ElasticLoadBalancingV2::Listener")
+        .send()
+        .await
+        .expect("list should succeed");
+    let ids: Vec<&str> = listed
+        .resource_descriptions()
+        .iter()
+        .filter_map(|d| d.identifier())
+        .collect();
+    assert!(
+        ids.contains(&listener_arn.as_str()),
+        "ListResources should surface the ListenerArn; got {ids:?}"
+    );
+
+    // Step 3: Update — flip Port and replace DefaultActions with a new array
+    // that contains a smuggled OIDC ClientSecret. The shaper must drop the
+    // nested writeOnly on the way back to storage while keeping ClientId.
+    let smuggled_actions = format!(
+        r#"[{{
+            "Type": "authenticate-oidc",
+            "TargetGroupArn": "{tg_arn}",
+            "AuthenticateOidcConfig": {{
+                "Issuer": "https://example.com",
+                "AuthorizationEndpoint": "https://example.com/auth",
+                "TokenEndpoint": "https://example.com/token",
+                "UserInfoEndpoint": "https://example.com/userinfo",
+                "ClientId": "abc",
+                "ClientSecret": "smuggled"
+            }}
+        }}]"#
+    );
+    let patch = format!(
+        r#"[
+            {{"op": "replace", "path": "/Port", "value": 8080}},
+            {{"op": "replace", "path": "/DefaultActions", "value": {smuggled_actions}}}
+        ]"#
+    );
+    client
+        .update_resource()
+        .type_name("AWS::ElasticLoadBalancingV2::Listener")
+        .identifier(&listener_arn)
+        .patch_document(&patch)
+        .send()
+        .await
+        .expect("update should succeed");
+
+    let get2 = client
+        .get_resource()
+        .type_name("AWS::ElasticLoadBalancingV2::Listener")
+        .identifier(&listener_arn)
+        .send()
+        .await
+        .expect("second get should succeed");
+    let props2 = parse_properties(&get2);
+
+    assert_eq!(props2["Port"], 8080);
+    assert_eq!(props2["ListenerArn"].as_str(), Some(listener_arn.as_str()));
+    let oidc = &props2["DefaultActions"][0]["AuthenticateOidcConfig"];
+    assert_eq!(oidc["ClientId"], "abc");
+    assert_eq!(oidc["Issuer"], "https://example.com");
+    assert!(
+        oidc.get("ClientSecret").is_none(),
+        "nested writeOnly ClientSecret must be stripped on store"
+    );
+
+    // Step 4: Delete, then verify gone.
+    client
+        .delete_resource()
+        .type_name("AWS::ElasticLoadBalancingV2::Listener")
+        .identifier(&listener_arn)
+        .send()
+        .await
+        .expect("delete should succeed");
+
+    let err = client
+        .get_resource()
+        .type_name("AWS::ElasticLoadBalancingV2::Listener")
+        .identifier(&listener_arn)
+        .send()
+        .await
+        .expect_err("get should fail after delete");
+    assert!(err.into_service_error().is_resource_not_found_exception());
+}
