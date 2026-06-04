@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.1 - 2026-06-04
+
+### Fixed
+
+- Applied CFN resource-type schema shaping for `AWS::ElasticLoadBalancingV2::Listener`, `AWS::ElasticLoadBalancingV2::LoadBalancer`, and `AWS::ElasticLoadBalancingV2::TargetGroup` in `GetResource` responses, ensuring returned `Properties` conform to the CloudFormation schema for each type.
+
 ## v0.3.0 - 2026-06-04
 
 ### Fixed

@@ -2,6 +2,18 @@
 
 ## 2026-06-04
 
+- `winterbaume` v0.6.0: see [`crates/winterbaume/CHANGELOG.md`](crates/winterbaume/CHANGELOG.md).
+- `winterbaume-cloudcontrol` v1.0.1: see [`crates/winterbaume-cloudcontrol/CHANGELOG.md`](crates/winterbaume-cloudcontrol/CHANGELOG.md).
+- `winterbaume-server` v0.2.4: see [`crates/winterbaume-server/CHANGELOG.md`](crates/winterbaume-server/CHANGELOG.md).
+
+## v0.6.0 - 2026-06-04
+
+### Internal
+
+- Maintenance release; no user-visible changes to the umbrella crate in this cycle.
+
+## 2026-06-04
+
 - `winterbaume` v0.5.0: see [`crates/winterbaume/CHANGELOG.md`](crates/winterbaume/CHANGELOG.md).
 - `winterbaume-cloudcontrol` v0.3.0: see [`crates/winterbaume-cloudcontrol/CHANGELOG.md`](crates/winterbaume-cloudcontrol/CHANGELOG.md).
 - `winterbaume-server` v0.2.3: see [`crates/winterbaume-server/CHANGELOG.md`](crates/winterbaume-server/CHANGELOG.md).

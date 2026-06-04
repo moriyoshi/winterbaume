@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.4 - 2026-06-04
+
+### Internal
+
+- Patch release to pick up fixes in `winterbaume-cloudcontrol` v0.2.4; no changes to this crate's own source.
+
 ## v0.2.3 - 2026-06-04
 
 ### Internal
