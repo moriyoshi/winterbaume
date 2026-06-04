@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.3 - 2026-06-04
+
+### Internal
+
+- Bumped dependency on `winterbaume-cloudcontrol` to pick up patch fixes in that crate; no changes to `winterbaume-server` itself.
+
 ## v0.2.2 - 2026-05-25
 
 ### Internal

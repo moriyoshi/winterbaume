@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-06-04
+
+- `winterbaume` v0.5.0: see [`crates/winterbaume/CHANGELOG.md`](crates/winterbaume/CHANGELOG.md).
+- `winterbaume-cloudcontrol` v0.3.0: see [`crates/winterbaume-cloudcontrol/CHANGELOG.md`](crates/winterbaume-cloudcontrol/CHANGELOG.md).
+- `winterbaume-server` v0.2.3: see [`crates/winterbaume-server/CHANGELOG.md`](crates/winterbaume-server/CHANGELOG.md).
+
+## v0.5.0 - 2026-06-04
+
+### Internal
+
+- Maintenance release — no user-visible changes to the root `winterbaume` crate; updates in this window belong to constituent service crates (`winterbaume-cloudcontrol`) and build tooling (`sccache-wrapper`).
+
 ## 2026-05-25
 
 - `winterbaume` v0.4.0: see [`crates/winterbaume/CHANGELOG.md`](crates/winterbaume/CHANGELOG.md).
