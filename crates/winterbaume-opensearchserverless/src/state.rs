@@ -296,9 +296,21 @@ fn generate_vpc_endpoint_id() -> String {
     )
 }
 
+/// Monotonic per-process counter appended to generated policy versions.
+///
+/// Real AOSS returns opaque, always-unique `policyVersion` tokens; the only
+/// contract callers ( and `UpdateSecurityPolicy` optimistic-concurrency
+/// checks ) rely on is that a fresh version differs from the previous one. A
+/// bare millisecond timestamp collides when a create and an immediately
+/// following update land in the same millisecond, which makes
+/// `test_update_security_policy`'s `assert_ne!` flaky on fast runners. The
+/// counter guarantees every generated version is distinct within the process.
+static POLICY_VERSION_SEQ: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
 fn generate_policy_version() -> String {
     // Policy versions look like "MTY4OTk3NzM4OTkzOV8x"
-    format!("v{}", now_millis())
+    let seq = POLICY_VERSION_SEQ.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    format!("v{}_{}", now_millis(), seq)
 }
 
 fn now_millis() -> i64 {

@@ -2073,3 +2073,11 @@ Captured outputs left under `.agents-workspace/tmp/issue9-11-verify/` ( `tg-crea
 ### Follow-ups still open
 
 These three shapers consume three more of the `cloudcontrol-cfn-shapers-backfill` candidates in `TODO.md`. The remaining wave ( `AWS::S3::Bucket`, `AWS::Lambda::Function`, `AWS::IAM::Role`, `AWS::EC2::SecurityGroup` ) is still untouched. The `cloudcontrol-cfn-schema-vendoring` follow-up still only becomes relevant past ~10 types; we are now at six.
+
+## 2026-07-02 — Flaky test: opensearchserverless policy-version timestamp collision
+
+`winterbaume-opensearchserverless::test_update_security_policy` failed intermittently in CI ( surfaced on an unrelated PR's workspace test run ). The test creates a security policy then immediately updates it and asserts the `policyVersion` changed ( `assert_ne!` ). `generate_policy_version()` in `state.rs` returned `format!("v{}", now_millis())` — millisecond precision. `CreateSecurityPolicy` followed immediately by `UpdateSecurityPolicy` frequently lands in the same millisecond on a fast runner, so both produce the identical version string and the `assert_ne!` fails. Normally the SDK round-trips are >1 ms apart, so it usually passes — a classic timing-dependent flake.
+
+Fix: append a process-wide monotonic `AtomicU64` counter so every generated version is distinct regardless of clock granularity ( `format!("v{}_{}", now_millis(), seq)` ). Real AOSS returns opaque, always-unique `policyVersion` tokens; the only contract callers ( and the optimistic-concurrency check ) rely on is that a fresh version differs from the previous one. The existing `test_update_security_policy` is the regression guard, now deterministic ( ran 3× + full suite: 19 integration tests pass ). Shipped as its own branch / PR ( `fix/opensearchserverless-policy-version-flake` ), kept separate from the issue #12 blob-payload work.
+
+**Reusable lesson**: any generated version/id derived from a bare `now_millis()` ( or coarser ) is collision-prone when two mutations of the same resource happen back-to-back in one test. Prefer a monotonic counter, a UUID, or `millis + counter`. Worth grepping other crates for `now_millis()`-only version/id generators feeding `assert_ne!`-style expectations.
