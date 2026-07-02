@@ -63,7 +63,7 @@ pub struct Configuration {
     #[serde(rename = "Content")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub content: Option<String>,
+    pub content: Option<bytes::Bytes>,
     #[serde(rename = "ContentType")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -376,7 +376,7 @@ pub struct CreateHostedConfigurationVersionRequest {
     pub configuration_profile_id: String,
     #[serde(rename = "Content")]
     #[serde(default)]
-    pub content: String,
+    pub content: bytes::Bytes,
     #[serde(rename = "ContentType")]
     #[serde(default)]
     pub content_type: String,
@@ -1022,7 +1022,7 @@ pub struct HostedConfigurationVersion {
     #[serde(rename = "Content")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub content: Option<String>,
+    pub content: Option<bytes::Bytes>,
     #[serde(rename = "ContentType")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]

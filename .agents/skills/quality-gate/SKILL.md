@@ -164,6 +164,16 @@ rg 'format!.*<.*Response>' crates/winterbaume-{service}/src/handlers.rs
 
 Report any remaining hand-written responses where generated `wire::serialize_*` functions should be used instead.
 
+- **Opaque `@httpPayload` blob check (QG §6 codegen-semantics assessment).** For every `@httpPayload` member, confirm the generated type matches its target-shape kind: **blob** → `bytes::Bytes` deserialised via `request.body.clone()` with **no** `std::str::from_utf8` / XML parse; **structure** → parsed; **string** → `String`. A blob payload run through UTF-8/XML validation `400`s any binary body (issue #12):
+
+```bash
+# a blob @httpPayload deserialiser must NOT UTF-8-validate the body
+rg -n 'from_utf8\(&request\.body\)' crates/winterbaume-{service}/src/wire.rs
+./.agents/bin/cargo.sh test -p smithy-codegen http_payload_blobs_are_not_utf8_validated
+```
+
+  Also confirm the handler treats the field as raw bytes and does not text-decode it as a gate, and that the dossier records the operation's true content contract (arbitrary binary vs format-constrained) per its "Opaque binary payloads" note.
+
 ### Step 10: Integration test coverage (QG §8)
 
 - Confirm `tests/integration_test.rs` exists and is non-empty.

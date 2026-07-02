@@ -1040,7 +1040,7 @@ tokio = { version = "1", features = ["full"] }
 
 # HTTP
 http = "1"
-bytes = "1"
+bytes = { version = "1", features = ["serde"] }
 
 # Serialization
 quick-xml = { version = "0.37", features = ["serialize"] }

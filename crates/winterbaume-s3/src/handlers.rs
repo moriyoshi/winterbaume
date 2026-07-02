@@ -1696,7 +1696,7 @@ impl S3Service {
             Ok(input) => input,
             Err(response) => return response,
         };
-        let body = Bytes::from(input.body.unwrap_or_default());
+        let body = input.body.unwrap_or_default();
         let content_length = body.len() as u64;
         let etag = compute_etag(&body);
         let blob_key = format!(

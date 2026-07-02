@@ -473,8 +473,7 @@ pub fn deserialize_create_hosted_configuration_version_request(
 ) -> Result<CreateHostedConfigurationVersionRequest, String> {
     let mut input = CreateHostedConfigurationVersionRequest::default();
     if !request.body.is_empty() {
-        let body = std::str::from_utf8(&request.body).map_err(|err| err.to_string())?;
-        input.content = body.to_string();
+        input.content = request.body.clone();
     }
     for (name, value) in labels {
         match *name {

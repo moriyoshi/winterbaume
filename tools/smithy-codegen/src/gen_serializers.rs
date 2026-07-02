@@ -838,6 +838,21 @@ fn generate_rest_json_request_deserializer(
                 }
                 out.push_str("    }\n");
             }
+            ResolvedType::Blob => {
+                // A `@httpPayload` blob is opaque octets: store the raw body
+                // bytes with no UTF-8 or XML validation. See issue #12.
+                out.push_str("    if !request.body.is_empty() {\n");
+                out.push_str(&format!(
+                    "        {};\n",
+                    assign_member_value(
+                        "input",
+                        &field_name,
+                        payload.required,
+                        "request.body.clone()"
+                    )
+                ));
+                out.push_str("    }\n");
+            }
             _ => {
                 let value_expr = binding_value_expr_for_member(payload, model, "body");
                 out.push_str("    if !request.body.is_empty() {\n");
@@ -1259,6 +1274,21 @@ fn generate_rest_xml_request_deserializer(
                 } else {
                     out.push_str(&format!("        input.{field_name} = Some(payload);\n"));
                 }
+                out.push_str("    }\n");
+            }
+            ResolvedType::Blob => {
+                // A `@httpPayload` blob is opaque octets: store the raw body
+                // bytes with no UTF-8 or XML validation. See issue #12.
+                out.push_str("    if !request.body.is_empty() {\n");
+                out.push_str(&format!(
+                    "        {};\n",
+                    assign_member_value(
+                        "input",
+                        &field_name,
+                        payload.required,
+                        "request.body.clone()"
+                    )
+                ));
                 out.push_str("    }\n");
             }
             _ => {
@@ -2014,10 +2044,22 @@ fn generate_struct_recursive(
             && epoch_seconds
             && matches!(resolved, ResolvedType::Timestamp);
 
+        // A blob bound to `@httpPayload` is the raw, opaque HTTP body (e.g. the
+        // object bytes of PutObject/UploadPart, or a Lambda Invoke payload). It
+        // must be stored as raw bytes — never UTF-8 decoded or base64 decoded —
+        // so that arbitrary binary payloads (e.g. gzip layers) round-trip
+        // losslessly. It is rendered as `bytes::Bytes` (not `Vec<u8>`) so the
+        // request deserialiser can hand off the already-`Bytes` `request.body`
+        // with a zero-copy clone rather than copying a potentially large body.
+        // Non-payload blobs stay `String` (base64 on the wire). See issue #12.
+        let is_blob_payload = m.http_payload && matches!(resolved, ResolvedType::Blob);
+
         // For XML non-flattened lists, use a member-wrapper container type instead of Vec<T>.
         // quick_xml serializes Vec items directly into the parent element without a wrapper tag;
         // a container struct with a field named "member" produces the required <member> elements.
-        let rust_type = if is_xml && !m.xml_flattened && model.is_list_shape(&m.target) {
+        let rust_type = if is_blob_payload {
+            "bytes::Bytes".to_string()
+        } else if is_xml && !m.xml_flattened && model.is_list_shape(&m.target) {
             escape_type_name(ServiceModel::short_name(&m.target))
         } else if is_xml && !m.xml_flattened {
             xml_aware_rust_type(&resolved, epoch_seconds)
@@ -2535,5 +2577,135 @@ fn resolved_type_to_rust_serde(resolved: &ResolvedType, epoch_seconds: bool) -> 
         ResolvedType::Structure(name) => escape_type_name(ServiceModel::short_name(name)),
         ResolvedType::Document => "serde_json::Value".to_string(),
         ResolvedType::Unknown(_) => "String".to_string(),
+    }
+}
+
+#[cfg(test)]
+mod payload_semantics_tests {
+    //! Backstop for issue #12: a member bound to `@httpPayload` whose target is
+    //! a blob is the raw, opaque HTTP body ( e.g. `UploadPart.Body`, a Lambda
+    //! `Invoke` payload ). Such a body must be stored as raw bytes and must
+    //! never be UTF-8 / XML validated, otherwise binary payloads ( gzip layers,
+    //! images, … ) are rejected. This test regenerates the request deserializer
+    //! for every service and asserts that no blob `@httpPayload` member is run
+    //! through `std::str::from_utf8` — so a future service regenerated into the
+    //! same trap fails here instead of in a downstream bug report.
+
+    use std::path::PathBuf;
+
+    use crate::discover;
+    use crate::model::{ResolvedType, ServiceModel};
+
+    /// Resolve the vendored Smithy models directory, or `None` if it is not
+    /// checked out ( e.g. a fresh worktree without the submodule ). Honours the
+    /// `WB_CODEGEN_MODELS_DIR` override so the test can run against the models
+    /// from another checkout.
+    fn resolve_models_dir() -> Option<PathBuf> {
+        if let Ok(dir) = std::env::var("WB_CODEGEN_MODELS_DIR") {
+            let p = PathBuf::from(dir);
+            return p.is_dir().then_some(p);
+        }
+        // Walk up from the crate manifest dir looking for the vendored models.
+        let mut dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        loop {
+            let candidate = dir.join("vendor/api-models-aws/models");
+            if candidate.is_dir() {
+                return Some(candidate);
+            }
+            if !dir.pop() {
+                return None;
+            }
+        }
+    }
+
+    /// Extract the body of the `deserialize_*_request` function that returns
+    /// `Result<{struct_name}, String>` from a generated wire module.
+    fn deserializer_body<'a>(wire: &'a str, struct_name: &str) -> Option<&'a str> {
+        let marker = format!("-> Result<{struct_name}, String> {{");
+        let start = wire.find(&marker)?;
+        let rest = &wire[start..];
+        // Functions are emitted separated by `\n}\n`; slice to the first one.
+        let end = rest.find("\n}\n").map(|e| start + e).unwrap_or(wire.len());
+        Some(&wire[start..end])
+    }
+
+    #[test]
+    fn http_payload_blobs_are_not_utf8_validated() {
+        let Some(models_dir) = resolve_models_dir() else {
+            eprintln!(
+                "skipping http_payload_blobs_are_not_utf8_validated: \
+                 vendored models not found ( set WB_CODEGEN_MODELS_DIR to run )"
+            );
+            return;
+        };
+
+        let mut violations: Vec<String> = Vec::new();
+        let mut checked = 0usize;
+
+        for (service, _model_dir) in discover::list_services() {
+            let Ok(model_path) = discover::find_model_file(service, &models_dir) else {
+                continue;
+            };
+            let Ok(model) = ServiceModel::from_file(&model_path) else {
+                continue;
+            };
+
+            // Collect input shapes that carry a blob `@httpPayload` member.
+            let blob_payload_ops: Vec<(&str, String)> = model
+                .operations
+                .iter()
+                .filter_map(|op| {
+                    let input_shape = op.input_shape.as_ref()?;
+                    let has_blob_payload = model.get_members(input_shape).iter().any(|m| {
+                        m.http_payload
+                            && matches!(model.resolve_type(&m.target), ResolvedType::Blob)
+                    });
+                    has_blob_payload.then(|| (op.name.as_str(), input_shape.clone()))
+                })
+                .collect();
+
+            if blob_payload_ops.is_empty() {
+                continue;
+            }
+
+            let wire = super::generate_wire_module_split(&model, service, None);
+
+            for (op_name, input_shape) in blob_payload_ops {
+                checked += 1;
+                let struct_name = super::escape_type_name(ServiceModel::short_name(&input_shape));
+                let Some(body) = deserializer_body(&wire, &struct_name) else {
+                    // No REST deserializer emitted ( e.g. non-REST protocol );
+                    // nothing to validate here.
+                    continue;
+                };
+                if body.contains("from_utf8") {
+                    violations.push(format!(
+                        "{service}::{op_name} ( {struct_name} ): blob @httpPayload body is \
+                         UTF-8 validated via std::str::from_utf8 — it must be stored as raw \
+                         bytes ( request.body.clone() )"
+                    ));
+                } else if !body.contains("request.body.clone()") {
+                    violations.push(format!(
+                        "{service}::{op_name} ( {struct_name} ): blob @httpPayload body is not \
+                         stored as raw bytes ( expected request.body.clone() )"
+                    ));
+                }
+            }
+        }
+
+        assert!(
+            violations.is_empty(),
+            "found {} @httpPayload-blob member(s) that are not treated as opaque bytes \
+             ( issue #12 regression ):\n  {}",
+            violations.len(),
+            violations.join("\n  ")
+        );
+        // Guard against the enumeration silently finding nothing ( e.g. an API
+        // change that stops surfacing payload members ): S3 alone has several.
+        assert!(
+            checked > 0,
+            "expected to check at least one @httpPayload-blob member but found none — \
+             the enumeration logic may be broken"
+        );
     }
 }

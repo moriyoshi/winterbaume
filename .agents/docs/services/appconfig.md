@@ -41,6 +41,14 @@ AppConfig feature flags and dynamic configurations help software builders quickl
 - 45 operations declare modelled service errors; parity work should map exact error names and retryability where documented.
 - Documentation and model terms indicate cross-service dependencies or identifiers: `S3`, `CloudWatch`, `SNS`, `Lambda`.
 
+### Opaque binary payloads (`@httpPayload` blobs)
+
+`CreateHostedConfigurationVersion` binds `Content` to `@httpPayload` with a **blob** target, and the `GetConfiguration` / `GetHostedConfigurationVersion` responses return `Content` the same way. At the wire and storage level the body is opaque octets — AppConfig base64-encodes it when handing it to a Lambda validator, which confirms it never assumes text. Parity rule for winterbaume: a blob `@httpPayload` member is modelled as raw bytes (`bytes::Bytes`) and **must never be run through `std::str::from_utf8`**. Before issue #12 the generated deserializer UTF-8-validated the body, so a non-UTF-8 config was rejected with a spurious `400` before the handler ran.
+
+Important nuance ( real AppConfig does **not** unconditionally accept arbitrary binary ): content validity is enforced at *create* time in two cases — a **feature-flag** profile ( `AWS.AppConfig.FeatureFlags`, auto-validated against a JSON Schema ) and a **freeform** profile that has a **JSON Schema** validator both require the content to be valid JSON, so binary or malformed content is rejected with `BadRequestException`. A **Lambda** validator does **not** run at create time — it runs at `StartDeployment` / `ValidateConfiguration` — so it never gates `CreateHostedConfigurationVersion`. Arbitrary bytes are therefore accepted at create only for a **freeform profile with no JSON Schema validator** ( the Lambda case is deferred to deployment ). winterbaume's stub implements no validators, so it is maximally permissive — equivalent to freeform-without-validator. The regression test `test_create_hosted_configuration_version_binary_content` accordingly uses a freeform profile with no validator and asserts the non-UTF-8 body is accepted; its real purpose is to prove the wire deserializer treats the body as opaque bytes, not to claim AppConfig accepts binary for every profile type. Implementing create-time JSON-Schema / feature-flag validation is a separate fidelity gap.
+
+Known gap ( separate from issue #12 ): the `GetConfiguration` / `GetHostedConfigurationVersion` handlers are stubs that do not yet emit the stored `Content` as the raw HTTP payload body, so the config content does not round-trip through Get today. See [GitHub issue #12](https://github.com/moriyoshi/winterbaume/issues/12) for the shared root cause.
+
 ## Official AWS Documentation Research
 
 Sources:

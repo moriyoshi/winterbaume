@@ -159,6 +159,12 @@ Gate checks:
   ```
 - [ ] Hand-written XML in handlers is limited to error envelopes, dynamic-root helpers, or payload-sensitive success responses where a generated serialiser cannot produce the required body shape.
 - [ ] Request parsing uses generated `wire::deserialize_*_request` helpers where available.
+- [ ] Generated payload types match the payload's *semantic class*, not just its binding: a `@httpPayload` member is assessed by its target-shape kind — **structure** → parsed (XML/JSON), **string** → `String`, **blob** → raw bytes (`bytes::Bytes`) with **no** `std::str::from_utf8` / XML parsing. A blob payload run through UTF-8 or XML validation rejects any non-UTF-8 body (gzip layer, image, protobuf, encrypted blob) with a spurious `400` before the handler runs (issue #12). This is a codegen invariant, not a per-handler one; the `smithy-codegen` unit test `payload_semantics_tests::http_payload_blobs_are_not_utf8_validated` enforces it across every service. Record the blob `@httpPayload` members and their round-trip contract in the service dossier's Behavioural Model Notes. Verify:
+  ```bash
+  # a blob @httpPayload deserializer must NOT UTF-8-validate the body
+  rg -n 'from_utf8\(&request\.body\)' crates/winterbaume-*/src/wire.rs
+  ./.agents/bin/cargo.sh test -p smithy-codegen http_payload_blobs_are_not_utf8_validated
+  ```
 - [ ] Manual extraction of model-described request fields is classified as generator debt, adoption debt, dispatch-only parsing, validation-only raw-body inspection, or a service-specific exception.
 - [ ] JSON-protocol services (`restJson1`, `awsJson1.0`, `awsJson1.1`) use generated request deserialisers for Smithy-described inputs; residual `body.get(...)` reads need a documented hybrid reason or migration plan.
 - [ ] Generated input fields are checked per exact shape before applying `.is_empty()`, `.as_deref()`, `Some(...)`, or bare-value patterns; sibling operations may differ in optionality for the same concept.

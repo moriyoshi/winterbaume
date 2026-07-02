@@ -38,6 +38,10 @@ Amazon Glacier (Glacier) is a storage solution for "cold data." Glacier is an ex
 - Documentation and model terms indicate cross-service dependencies or identifiers: `IAM`, `S3`, `SNS`.
 - Some responses appear to be derived from telemetry, managed inventories, recommendations, or findings; seedable mock state may be required because real AWS derives these from external systems.
 
+### Opaque binary payloads (`@httpPayload` blobs)
+
+`UploadArchive` and `UploadMultipartPart` bind the archive body to `@httpPayload` with a **blob** target. This is **genuinely arbitrary binary** — Glacier stores whatever bytes you send ( it is an archival object store ), so the request body must be treated as opaque octets and **never run through `std::str::from_utf8`**. The codegen renders such a member as `bytes::Bytes` and the deserialiser hands off `request.body.clone()` with no validation ( see the shared issue #12 root cause ). Real Glacier additionally requires a per-part / whole-archive **SHA-256 tree-hash** ( `x-amz-sha256-tree-hash` ) and enforces the fixed part size; content itself is unconstrained. See [GitHub issue #12](https://github.com/moriyoshi/winterbaume/issues/12).
+
 ## Official AWS Documentation Research
 
 Sources:

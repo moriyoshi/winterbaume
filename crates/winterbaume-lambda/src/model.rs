@@ -2990,7 +2990,7 @@ pub struct InvocationRequest {
     #[serde(rename = "Payload")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub payload: Option<String>,
+    pub payload: Option<bytes::Bytes>,
     #[serde(rename = "Qualifier")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -3022,7 +3022,7 @@ pub struct InvocationResponse {
     #[serde(rename = "Payload")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub payload: Option<String>,
+    pub payload: Option<bytes::Bytes>,
     #[serde(rename = "StatusCode")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -3036,7 +3036,7 @@ pub struct InvokeAsyncRequest {
     pub function_name: String,
     #[serde(rename = "InvokeArgs")]
     #[serde(default)]
-    pub invoke_args: String,
+    pub invoke_args: bytes::Bytes,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
@@ -3067,7 +3067,7 @@ pub struct InvokeWithResponseStreamRequest {
     #[serde(rename = "Payload")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub payload: Option<String>,
+    pub payload: Option<bytes::Bytes>,
     #[serde(rename = "Qualifier")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -4078,7 +4078,7 @@ pub struct SendDurableExecutionCallbackSuccessRequest {
     #[serde(rename = "Result")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub result: Option<String>,
+    pub result: Option<bytes::Bytes>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]

@@ -2081,3 +2081,138 @@ These three shapers consume three more of the `cloudcontrol-cfn-shapers-backfill
 Fix: append a process-wide monotonic `AtomicU64` counter so every generated version is distinct regardless of clock granularity ( `format!("v{}_{}", now_millis(), seq)` ). Real AOSS returns opaque, always-unique `policyVersion` tokens; the only contract callers ( and the optimistic-concurrency check ) rely on is that a fresh version differs from the previous one. The existing `test_update_security_policy` is the regression guard, now deterministic ( ran 3× + full suite: 19 integration tests pass ). Shipped as its own branch / PR ( `fix/opensearchserverless-policy-version-flake` ), kept separate from the issue #12 blob-payload work.
 
 **Reusable lesson**: any generated version/id derived from a bare `now_millis()` ( or coarser ) is collision-prone when two mutations of the same resource happen back-to-back in one test. Prefer a monotonic counter, a UUID, or `millis + counter`. Worth grepping other crates for `now_millis()`-only version/id generators feeding `assert_ne!`-style expectations.
+
+## 2026-07-02 — Issue #12: UploadPart (and other @httpPayload blobs) rejected non-UTF-8 bodies
+
+### Symptom
+
+`S3:UploadPart` returned `400 MalformedXML` ( "invalid utf-8 sequence of 1 bytes from index 1" ) for any part body that is not valid UTF-8 — e.g. a gzip OCI-layer blob starting with the magic `1f 8b`. Valid-UTF-8 parts ( JSON config blobs ) succeeded, so a multipart upload of any binary object could never complete. Reported against v0.2.4.
+
+### Root cause
+
+The bug was in the codegen, not the hand-written handler. For a `@httpPayload` member the restXml / restJson request-deserializer generator ( `tools/smithy-codegen/src/gen_serializers.rs` ) always emitted `let body = std::str::from_utf8(&request.body)?;` and then modelled the field as `Option<String>`. That is correct for a *structure* or *string* payload ( e.g. `PutBucketPolicy.Policy` ), but a `@httpPayload` whose target is a **blob** is opaque octets — S3 never validates it. `deserialize_upload_part_request` therefore rejected any non-UTF-8 body before the handler ran. `PutObject` escaped the bug only because its handler takes the raw `Bytes` directly and never calls the generated deserializer's body path.
+
+### Fix ( generator, then regenerate )
+
+`gen_serializers.rs`:
+- Model field type: a member with `http_payload && ResolvedType::Blob` now renders as `Vec<u8>` instead of `String` ( non-payload blobs stay `String` = base64 on the wire ).
+- restXml and restJson request deserializers: added a `ResolvedType::Blob` arm to the payload match that assigns `request.body.to_vec()` with **no** UTF-8/XML validation.
+
+Affected `@httpPayload`-blob members ( proven by an order-independent field-set diff of a full regen ):
+- s3 — `PutObjectRequest.body`, `UploadPartRequest.body`, `WriteGetObjectResponseRequest.body`, plus outputs `GetObjectOutput.body`, `GetObjectTorrentOutput.body`.
+- lambda — `InvocationRequest.payload`, `InvocationResponse.payload`, `InvokeWithResponseStreamRequest.payload`, `InvokeAsyncRequest.invoke_args`, `SendDurableExecutionCallbackSuccessRequest.result` ( latent same-class bug: binary `Invoke` payloads ).
+
+`UploadPart`'s handler already did `Bytes::from(input.body.unwrap_or_default())`, which accepts `Vec<u8>` unchanged; no other handler reads these fields as `String`.
+
+### Regeneration note ( deliberately minimal diff )
+
+A full `gen-serializers s3` regen also drags in unrelated pre-existing drift: the committed s3 `model.rs` predates the generator's struct-sort ( ~7 k lines of pure reordering ) and the vendored Smithy model has since gained new checksum headers ( md5 / sha512 / xxhash* ). To keep this a focused bug fix, the generator change is authoritative but the generated `model.rs`/`wire.rs` were patched with only the blob-body lines ( lambda `model.rs` regenerated cleanly since it was already sorted ). Syncing s3 against the updated Smithy model + re-sorting is a separate `smithy-model-update` task.
+
+### Tests / gate
+
+- New regression: `crates/winterbaume-s3/tests/integration_test.rs::test_multipart_upload_binary_non_utf8_part` — create → upload a `1f 8b … ff fe`  part → complete → get, asserting the bytes round-trip verbatim.
+- `winterbaume-lambda` invoke suite ( 17 tests ) still green.
+- Per-crate gate clean for `winterbaume-s3`, `winterbaume-lambda`, `smithy-codegen` ( `clippy --all-targets --all-features -D warnings` + `fmt --check` ).
+
+### Retrospective — why issue #12 escaped review for so long
+
+The UploadPart blob bug is not a one-off coding slip; it points at a structural gap in how codegen output is assessed. Recording the analysis so the process fix ( not just the code fix ) is durable.
+
+**Immediate reasons the defect stayed hidden:**
+
+- *Every test used UTF-8 bodies.* `test_multipart_upload_lifecycle` uploads `b"hello "` / `b"world"`; essentially all `ByteStream::from_static(b"...")` fixtures are ASCII text. A valid-UTF-8 part sails through `from_utf8`, so the validation was present the whole time and never once tripped. No non-UTF-8-part test existed until this fix.
+- *`PutObject` masked the whole bug class.* The obvious "does S3 store binary?" coverage exists via `PutObject`, which works because its handler consumes the raw `Bytes` and never touches the generated deserializer's body path. So "winterbaume stores binary objects" looked true and tested. `UploadPart` is a lower-traffic path, and the intersection *multipart x binary* was never in the matrix — it takes a real binary workload ( chimpose pushing gzip OCI layers ) to surface it.
+- *The tell is invisible in generated code.* `pub body: Option<String>` compiles, round-trips text, and reads as ordinary. At the generator level it also looked correct, because one uniform rule was applied to all `@httpPayload` members — and that rule genuinely is right for the majority ( `PutBucketPolicy.Policy`, XML config payloads ). The generator never modelled the distinction between "payload that is a text/XML document" and "payload that is opaque octets," so an entire class of blob payloads silently inherited the string codepath. Same latent bug sat in Lambda `Invoke` ( binary invoke payloads ) for the same reason.
+- *Ported-from-moto blind spots.* The test corpus largely mirrors moto's, which also leans on text fixtures; binary *fidelity* ( bytes-in == bytes-out ) was rarely asserted, only presence/status.
+
+**The structural gap ( the real lesson ):** codegen output was never assessed in terms of service semantics, and the service dossiers — which should hold that semantic contract — did not record it in a checkable form. Evidence in `.agents/docs/services/s3.md`:
+
+- The HTTP Bindings matrix ( line ~411 ) records `UploadPart … | Payload | Body` — it knew `Body` is the `@httpPayload`, but the `Payload` column carries only the member name, not the target shape's kind. A blob payload and an XML-structure payload are indistinguishable in the dossier.
+- The parity checklist ( line ~479 ) audits every `@httpHeader/@httpQuery/@httpPrefixHeaders/@httpPayload` member against *the hand-written handler* ( "handler must list each one, mark honoured / unsupported / ignored" ).
+
+Both artefacts audit the **handler layer against the binding**. Neither states the payload's **semantic type contract** ( "UploadPart.Body is a streaming blob = opaque octets; must not be UTF-8/XML validated; must round-trip byte-exact" ), and nothing in the gate ever diffs the **generated model/wire types** against that contract. Review altitude stopped at "does the handler wire up the binding," and the generated types were trusted as correct-by-construction — so the question "does `Option<String>` faithfully represent a blob?" was never asked, and the dossier could not have forced it because the semantics were never written down.
+
+**Proposed process fix ( cheapest-first, not yet applied ):**
+
+1. *Dossier — make payload semantics explicit and checkable.* In the HTTP Bindings section, split the `Payload` column into member + target-shape kind ( structure / string / blob(streaming) ), and add a short "Blob / opaque-body members" subsection listing each with its contract ( no UTF-8/XML validation, byte-exact round-trip, represented as raw bytes ).
+2. *Parity checklist / QUALITY_GATE — add a codegen-semantics assessment step.* Alongside "handler honours each binding," add "for each `@httpPayload` member, the *generated* type matches its semantic class: blob -> `Vec<u8>` with no `from_utf8`; structure -> parsed; string -> `String`."
+3. *Automated backstop.* A codegen test asserting no `@httpPayload`-blob member is deserialized via `from_utf8`, so a future regenerated service cannot silently fall back into the trap without a reviewer noticing.
+
+Items 1–2 close the assessment gap directly; item 3 enforces it without relying on reviewer diligence. Scope for the dossier edits starts with s3 and lambda ( the two proven-affected services ); a sweep of the remaining `@httpPayload`-blob services should precede writing their notes.
+
+### Process fix applied ( items 1–3 from the retrospective )
+
+Acted on the retrospective's proposed fix so the assessment gap is closed structurally, not just for this one member.
+
+1. *Dossier semantics.* Added an "Opaque binary payloads ( `@httpPayload` blobs )" subsection to `.agents/docs/services/s3.md` and `.agents/docs/services/lambda.md`, each listing the blob payload members, their direction, and the byte-exact round-trip contract, plus the parity rule ( model as `Vec<u8>`, never `from_utf8`/XML-parse ) and the issue-#12 reference.
+2. *Gate step.* Added a codegen-semantics assessment check to `QUALITY_GATE.md` §6 — for each `@httpPayload` member the *generated* type must match its target-shape kind ( structure → parsed, string → `String`, blob → `Vec<u8>` with no validation ), with an `rg` one-liner and the backstop test invocation.
+3. *Automated backstop.* `tools/smithy-codegen/src/gen_serializers.rs::payload_semantics_tests::http_payload_blobs_are_not_utf8_validated` regenerates every service's wire module and asserts no blob `@httpPayload` deserializer applies `from_utf8` ( and that it uses `request.body.to_vec()` ). Skips gracefully when the vendored models submodule is absent ( honours `WB_CODEGEN_MODELS_DIR` ). This test fails on the pre-fix generator and passes after.
+
+**Full enumeration of `@httpPayload`-blob members ( from the backstop's own sweep ):** apigateway ( `ImportApiKeys`, `ImportDocumentationParts`, `ImportRestApi`, `PutRestApi` ), appconfig ( `CreateHostedConfigurationVersion` ), cloudsearchdomain ( `UploadDocuments` ), glacier ( `UploadArchive`, `UploadMultipartPart` ), iotdataplane ( `Publish`, `UpdateThingShadow` ), lambda ( `Invoke`, `InvokeAsync`, `InvokeWithResponseStream`, `SendDurableExecutionCallbackSuccess` ), mediastoredata ( `PutObject` ), s3 ( `PutObject`, `UploadPart`, `WriteGetObjectResponse` ), sagemakerruntime ( `InvokeEndpoint`, `InvokeEndpointWithResponseStream` ).
+
+The generator fix covers all of them prospectively. Of the implemented crates, only **s3** and **lambda** are regenerated in this change. **apigateway** and **appconfig** still carry the buggy deserializer in committed files and invoke it from a handler ( appconfig's config content is the one that can genuinely be binary ) — tracked as TODO `httppayload-blob-regen-apigateway-appconfig`. The other five services read `request.body` raw in their handlers and never call a generated body deserializer, so they were never affected.
+
+### apigateway + appconfig regenerated ( completing the issue #12 blob sweep )
+
+Extended the issue #12 fix to the two remaining implemented crates whose committed files still routed a blob `@httpPayload` request body through `from_utf8` and invoked that deserializer from a handler.
+
+- **appconfig** ( real user-facing bug ): `CreateHostedConfigurationVersion.Content` is a blob payload and config content can be genuinely binary. `model.rs` regenerated cleanly ( 3 content fields → `Vec<u8>` : the required request field plus 2 optional output fields, no struct reorder ). `wire.rs` blob-deser line hand-patched to `request.body.to_vec()`. Handler `handle_create_hosted_configuration_version` updated: `input.content.clone().into_bytes()` → `input.content.clone()` ( already bytes ) and the stale "Vec<u8> -> String" comment corrected; `handle_get_configuration` stub `content: Some("".to_string())` → `Some(Vec::new())`. Regression test `test_create_hosted_configuration_version_binary_content` uploads a `1f 8b … ff fe` payload and asserts acceptance ( version 1 ). Dossier gained an "Opaque binary payloads" note.
+- **apigateway** ( low real-world impact — import bodies are usually UTF-8 API definitions ): 4 request blob payloads ( `ImportApiKeys`, `ImportDocumentationParts`, `ImportRestApi`, `PutRestApi` ) plus 2 optional output bodies ( `ExportResponse`, `SdkResponse` ) → `Vec<u8>`, `model.rs` clean regen, `wire.rs` blob-deser lines hand-patched. Handler fixes: `input.body.as_bytes()` → `&input.body` in ImportRestApi's name-sniff; the GetExport / GetSdk stubs wrap their `format!(...)` body in `.into_bytes()`. Regression test `test_import_rest_api_non_utf8_body_is_accepted`.
+
+Adopted the clean full-regen `model.rs` for both ( unlike s3, neither had struct-reorder drift ) and hand-patched only the `wire.rs` blob-deser lines to avoid the cosmetic import-reorder churn. Per-crate gate clean on both ( clippy `-D warnings` + fmt ); full suites green — appconfig 48 integration + 3 scenario, apigateway 33 integration ( each +1 vs prior ).
+
+**Discovered follow-up** ( now TODO `httppayload-blob-output-payload-emission` ): the blob `@httpPayload` *response* bodies for apigateway `GetExport`/`GetSdk` and appconfig `GetConfiguration`/`GetHostedConfigurationVersion` are not emitted as the raw HTTP payload ( the stubs JSON-envelope the struct or drop the field ), so content does not round-trip through Get. This predates issue #12 and is a generator enhancement ( blob-payload output serialiser should write `result.<field>` as the raw body, the way S3 `GetObject` does by hand ). Left out of scope.
+
+With this, all implemented crates carrying the request-side blob-payload bug are fixed ( s3, lambda, apigateway, appconfig ); the other five enumerated blob-payload services read `request.body` raw and were never affected; the generator + backstop test guard the whole class going forward.
+
+### Refinement — blob `@httpPayload` rendered as `bytes::Bytes`, not `Vec<u8>`
+
+Follow-up on the issue #12 work above: the generator now renders a blob `@httpPayload` member as `bytes::Bytes` rather than `Vec<u8>`, and the request deserialiser emits `request.body.clone()` instead of `request.body.to_vec()`. `winterbaume_core::MockRequest.body` is already `bytes::Bytes`, so `to_vec()` was copying the entire ( potentially multi-MB ) body on every request; `Bytes::clone()` is a zero-copy refcount bump. This supersedes the earlier `Vec<u8>` references in this file's issue-#12 entries.
+
+- Generator: `is_blob_payload` field type → `bytes::Bytes`; both the restXml and restJson blob deserialiser arms → `request.body.clone()`. The `payload_semantics_tests` backstop now asserts `request.body.clone()` ( still asserts no `from_utf8` ).
+- Workspace `Cargo.toml`: `bytes` gains `features = ["serde"]` so the derived `Serialize`/`Deserialize` on generated structs compile with a `bytes::Bytes` field. All four affected crates already depend on `bytes`.
+- Regenerated s3 / lambda / apigateway / appconfig blob fields to `bytes::Bytes` ( `Option<bytes::Bytes>` for optional, `bytes::Bytes` for required ) and their wire deserialisers to `.clone()`.
+- Handler adjustments: apigateway `GetSdk`/`GetExport` stubs build the body with `bytes::Bytes::from(format!(...))`; appconfig `handle_create_hosted_configuration_version` materialises the state's `Vec<u8>` via `input.content.to_vec()`, and the `GetConfiguration` stub uses `bytes::Bytes::new()`. s3 `UploadPart` and all lambda handlers needed no change ( s3 already wrapped into `Bytes`; lambda ignores the payload ).
+- Non-payload blobs are unaffected — they stay `String` ( base64 on the wire ), which is the correct JSON/XML body representation. A sweep confirmed the generator emits no other `Vec<u8>`.
+
+### Correction — AppConfig does not unconditionally accept arbitrary binary content
+
+Earlier entries framed appconfig's `CreateHostedConfigurationVersion` as a "real user-facing bug: config content can be genuinely binary". That overstates real AppConfig. Verified against the AppConfig user guide ( `appconfig-creating-configuration-and-profile-validators.html` ):
+
+- At the wire / storage level `Content` **is** opaque octets — AppConfig base64-encodes it when invoking a Lambda validator, confirming it never assumes text. So the issue #12 fix ( the deserializer must not `from_utf8` the body ) is correct and unaffected.
+- But content validity **is** enforced at *create* time in two cases: a feature-flag profile ( auto-validated against a JSON Schema ) and a freeform profile with a **JSON Schema** validator both require valid JSON, so binary is rejected with `BadRequestException`. A **Lambda** validator runs only at `StartDeployment` / `ValidateConfiguration`, never at create.
+- Arbitrary bytes are accepted at create only for a **freeform profile without a JSON Schema validator**. winterbaume's stub implements no validators, so it is permissive ( freeform-without-validator equivalent ).
+
+Corrected the appconfig dossier note accordingly, and reframed the regression test: it now creates an explicit `AWS.Freeform` profile with no validator, and its comment states its real purpose is to prove the wire deserializer treats the body as opaque bytes — not that AppConfig accepts binary for every profile type. Create-time JSON-Schema / feature-flag validation is unimplemented and tracked as a fidelity gap ( TODO `appconfig-create-time-content-validation` ).
+
+### Cross-service audit — which `@httpPayload` blobs actually accept arbitrary binary
+
+Prompted by the appconfig overgeneralization, examined every `@httpPayload`-blob operation ( enumerated by the `payload_semantics_tests` backstop ) against AWS docs to record each one's true content contract. The codegen invariant is universal — the wire deserialiser must never `from_utf8` a blob body, and renders it as `bytes::Bytes` — but whether the *service* accepts arbitrary binary at that operation is per-service, and winterbaume's stubs are uniformly more permissive than AWS for the format-constrained ones.
+
+**Genuinely arbitrary binary** ( opaque object store / pass-through — dossier note says "arbitrary binary" ):
+- s3 — `PutObject`, `UploadPart`, `WriteGetObjectResponse` ( object bytes )
+- glacier — `UploadArchive`, `UploadMultipartPart` ( archive bytes; SHA-256 tree-hash header + fixed part size, content unconstrained )
+- mediastoredata — `PutObject` ( media object bytes ) [ no dossier yet ]
+- lambda — `Invoke`, `InvokeAsync`, `InvokeWithResponseStream`, `SendDurableExecutionCallbackSuccess` ( payload passed through to the function )
+- iotdataplane — `Publish` ( raw MQTT message payload ) [ no dossier yet ]
+- sagemakerruntime — `InvokeEndpoint`, `InvokeEndpointWithResponseStream` ( model-defined body per `ContentType` )
+
+**Format-constrained** ( real AWS parses / validates → rejects binary; winterbaume is more permissive ):
+- apigateway — `ImportRestApi` / `PutRestApi` ( OpenAPI / Swagger, Info/Warning/Error validation ), `ImportApiKeys` ( CSV ), `ImportDocumentationParts` ( JSON/YAML )
+- cloudsearchdomain — `UploadDocuments` ( SDF document batch, JSON or XML ) → TODO `cloudsearchdomain-sdf-validation`
+- iotdataplane — `UpdateThingShadow` ( JSON state document ) → TODO `iotdataplane-shadow-json-validation` [ no dossier yet ]
+- appconfig — `CreateHostedConfigurationVersion` ( JSON for feature-flag / JSON-Schema profiles ) → TODO `appconfig-create-time-content-validation`
+
+Dossier "Opaque binary payloads" notes added / corrected for s3, lambda, appconfig, glacier, sagemaker-runtime, cloudsearch-domain. `mediastoredata` and `iotdataplane` have no dossier yet — the contract is recorded here and should be folded in when those dossiers are authored ( note in particular that iotdataplane splits: `Publish` is arbitrary, `UpdateThingShadow` is JSON ). Note the apigateway crate has no v1 REST dossier either; its binary regression test is already framed as a wire-opacity check.
+
+### Skills hardened to capture opaque-payload intrinsics
+
+Finding: none of the service-authoring skills encoded the `@httpPayload`-blob intrinsics, so the whole issue-#12 class could silently recur the next time someone implements a service, writes a dossier, or ports tests. The dossier / QUALITY_GATE docs alone are not enough — the skills drive the actual workflows. Enhanced five skills ( all under `.agents/skills/` ) so the intrinsic is captured at every entry point:
+
+- **add-service** ( `### 4d. Handler method` ) — new rule: a `@httpPayload` blob body is opaque bytes ( `bytes::Bytes` ), stored / streamed verbatim; handlers must never `from_utf8` / XML-parse / `serde_json::from_slice`-as-a-gate the raw body ( that `400`s binary ). Format validation, when the service demands it, happens on the *parsed* content inside the handler, not at the wire.
+- **service-dossier** ( `### 2. Extract Smithy Facts` ) — new bullet: resolve each `@httpPayload` member's target-shape kind and add an "Opaque binary payloads" note classifying every blob-payload op as *genuinely arbitrary binary* vs *format-constrained*, researched from AWS docs, flagging where winterbaume is more permissive than AWS.
+- **write-tests** ( `### 1c. Extract testable behaviors` ) — new mandatory table row "Binary `@httpPayload` body": send a non-UTF-8 body and assert acceptance ( wire-opacity ), round-trip verbatim for object stores; framed so it does not claim AWS accepts arbitrary binary for format-constrained ops.
+- **port-moto-tests** ( `### 3c. SDK type nuances` ) — parallel note: add a non-UTF-8 body test if moto only exercises text.
+- **quality-gate** ( `### Step 9` ) — the QG §6 codegen-semantics assessment ( blob → `Bytes`, no `from_utf8`; run the backstop test ) is now an explicit gate step.
+
+Canonical rule captured everywhere: blob `@httpPayload` → `bytes::Bytes` + `request.body.clone()`, never UTF-8/XML/base64-decoded at the wire; non-payload blobs stay `String` ( base64 ); the *service's* content contract ( arbitrary vs format-constrained ) is a separate, per-operation fact recorded in the dossier. All of the above, plus the cross-service audit and the issue-#12 codegen fix, are consolidated into PR #13 ( branch `fix/s3-upload-part-binary-body` ).

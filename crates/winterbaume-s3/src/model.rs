@@ -4695,7 +4695,7 @@ pub struct PutObjectRequest {
     #[serde(rename = "Body")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub body: Option<String>,
+    pub body: Option<bytes::Bytes>,
     #[serde(rename = "Bucket")]
     #[serde(default)]
     pub bucket: String,
@@ -5334,7 +5334,7 @@ pub struct GetObjectOutput {
     #[serde(rename = "Body")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub body: Option<String>,
+    pub body: Option<bytes::Bytes>,
     #[serde(rename = "Metadata")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -5559,7 +5559,7 @@ pub struct UploadPartRequest {
     #[serde(rename = "Body")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub body: Option<String>,
+    pub body: Option<bytes::Bytes>,
     #[serde(rename = "Bucket")]
     #[serde(default)]
     pub bucket: String,
@@ -6208,7 +6208,7 @@ pub struct WriteGetObjectResponseRequest {
     #[serde(rename = "Body")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub body: Option<String>,
+    pub body: Option<bytes::Bytes>,
     #[serde(rename = "BucketKeyEnabled")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -6728,7 +6728,7 @@ pub struct GetObjectTorrentOutput {
     #[serde(rename = "Body")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub body: Option<String>,
+    pub body: Option<bytes::Bytes>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]

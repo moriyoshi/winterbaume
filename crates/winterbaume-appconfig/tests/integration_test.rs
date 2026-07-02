@@ -1765,3 +1765,60 @@ async fn test_update_account_settings() {
     assert_eq!(dp.enabled(), Some(true));
     assert_eq!(dp.protection_period_in_minutes(), Some(60));
 }
+
+// Regression test for issue #12: CreateHostedConfigurationVersion binds `Content`
+// as a `@httpPayload` blob, so the wire deserializer must treat the request body
+// as opaque bytes and never UTF-8-validate it. Before the fix it ran the body
+// through `std::str::from_utf8` and rejected any non-UTF-8 content with a
+// spurious 400 before the handler ran.
+//
+// This uses a freeform profile with no validator — the one case where real
+// AppConfig also stores arbitrary bytes at create time. (Feature-flag profiles
+// and freeform profiles with a JSON Schema validator require valid JSON at
+// create time; a Lambda validator only runs at deployment.) winterbaume's stub
+// implements no validators, so it is permissive regardless; the point here is
+// purely that the blob body round-trips through the deserializer.
+#[tokio::test]
+async fn test_create_hosted_configuration_version_binary_content() {
+    let client = make_client().await;
+
+    let app = client
+        .create_application()
+        .name("binary-content-app")
+        .send()
+        .await
+        .expect("create_application should succeed");
+    let app_id = app.id().expect("app must have id").to_string();
+
+    let profile = client
+        .create_configuration_profile()
+        .application_id(&app_id)
+        .name("binary-profile")
+        .location_uri("hosted")
+        .r#type("AWS.Freeform")
+        .send()
+        .await
+        .expect("create_configuration_profile should succeed");
+    let profile_id = profile.id().expect("profile must have id").to_string();
+
+    // Gzip magic `1f 8b` plus 0xff/0xfe — not valid UTF-8, so the old
+    // deserializer would have rejected this body.
+    let binary: &[u8] = &[
+        0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xfe, 0x00, 0x42,
+    ];
+
+    let version = client
+        .create_hosted_configuration_version()
+        .application_id(&app_id)
+        .configuration_profile_id(&profile_id)
+        .content_type("application/octet-stream")
+        .content(Blob::new(binary))
+        .send()
+        .await
+        .expect("create_hosted_configuration_version with binary content should succeed");
+    assert_eq!(
+        version.version_number(),
+        1,
+        "first version should be 1 even for a binary payload"
+    );
+}

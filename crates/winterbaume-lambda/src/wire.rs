@@ -1579,8 +1579,7 @@ pub fn deserialize_invoke_request(
 ) -> Result<InvocationRequest, String> {
     let mut input = InvocationRequest::default();
     if !request.body.is_empty() {
-        let body = std::str::from_utf8(&request.body).map_err(|err| err.to_string())?;
-        input.payload = Some(body.to_string());
+        input.payload = Some(request.body.clone());
     }
     for (name, value) in labels {
         match *name {
@@ -1639,8 +1638,7 @@ pub fn deserialize_invoke_async_request(
 ) -> Result<InvokeAsyncRequest, String> {
     let mut input = InvokeAsyncRequest::default();
     if !request.body.is_empty() {
-        let body = std::str::from_utf8(&request.body).map_err(|err| err.to_string())?;
-        input.invoke_args = body.to_string();
+        input.invoke_args = request.body.clone();
     }
     for (name, value) in labels {
         match *name {
@@ -1661,8 +1659,7 @@ pub fn deserialize_invoke_with_response_stream_request(
 ) -> Result<InvokeWithResponseStreamRequest, String> {
     let mut input = InvokeWithResponseStreamRequest::default();
     if !request.body.is_empty() {
-        let body = std::str::from_utf8(&request.body).map_err(|err| err.to_string())?;
-        input.payload = Some(body.to_string());
+        input.payload = Some(request.body.clone());
     }
     for (name, value) in labels {
         match *name {
@@ -2482,8 +2479,7 @@ pub fn deserialize_send_durable_execution_callback_success_request(
 ) -> Result<SendDurableExecutionCallbackSuccessRequest, String> {
     let mut input = SendDurableExecutionCallbackSuccessRequest::default();
     if !request.body.is_empty() {
-        let body = std::str::from_utf8(&request.body).map_err(|err| err.to_string())?;
-        input.result = Some(body.to_string());
+        input.result = Some(request.body.clone());
     }
     for (name, value) in labels {
         match *name {

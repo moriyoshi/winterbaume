@@ -91,8 +91,9 @@ For each implemented operation, derive the following test scenarios:
 | **Lifecycle** | Full create → describe → update → delete → verify-gone cycle |
 | **Tags** | TagResource, ListTagsForResource, UntagResource if the service supports tagging |
 | **Pagination** | List with many items; verify pagination tokens work if pagination is implemented |
+| **Binary `@httpPayload` body** | For any operation that binds a **blob** to `@httpPayload` ( object/upload bodies, invocation payloads ), send a deliberately non-UTF-8 body ( e.g. gzip magic `&[0x1f, 0x8b, …, 0xff, 0xfe]` ) and assert it is accepted — a bare `.body(ByteStream::from_static(b"text"))` never exercises the bug. This guards against the wire deserialiser UTF-8-validating an opaque body ( issue #12 ). For object stores ( S3, Glacier, MediaStore data ), also assert the bytes round-trip verbatim via `Get`. Frame the test as a *wire-opacity* check: for format-constrained operations ( OpenAPI import, JSON shadow, SDF batch — see the dossier's "Opaque binary payloads" note ) real AWS would reject binary, so the assertion is only that winterbaume's deserialiser does not reject it, not that AWS accepts arbitrary binary. |
 
-The **Full-input round-trip** and **Per-call uniqueness** rows are mandatory whenever they apply to the operation; they cover per-handler completeness failures that scenario tests cannot catch ( the handler is wrong on its first call, not on a chain ).
+The **Full-input round-trip** and **Per-call uniqueness** rows are mandatory whenever they apply to the operation; they cover per-handler completeness failures that scenario tests cannot catch ( the handler is wrong on its first call, not on a chain ). The **Binary `@httpPayload` body** row is mandatory for every blob-payload operation.
 
 ### 1d. Invariant inventory ( cross-call invariants )
 

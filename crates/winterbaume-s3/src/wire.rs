@@ -4996,8 +4996,7 @@ pub fn deserialize_put_object_request(
 ) -> Result<PutObjectRequest, String> {
     let mut input = PutObjectRequest::default();
     if !request.body.is_empty() {
-        let body = std::str::from_utf8(&request.body).map_err(|err| err.to_string())?;
-        input.body = Some(body.to_string());
+        input.body = Some(request.body.clone());
     }
     for (name, value) in labels {
         match *name {
@@ -6027,8 +6026,7 @@ pub fn deserialize_upload_part_request(
 ) -> Result<UploadPartRequest, String> {
     let mut input = UploadPartRequest::default();
     if !request.body.is_empty() {
-        let body = std::str::from_utf8(&request.body).map_err(|err| err.to_string())?;
-        input.body = Some(body.to_string());
+        input.body = Some(request.body.clone());
     }
     for (name, value) in labels {
         match *name {
@@ -6289,8 +6287,7 @@ pub fn deserialize_write_get_object_response_request(
 ) -> Result<WriteGetObjectResponseRequest, String> {
     let mut input = WriteGetObjectResponseRequest::default();
     if !request.body.is_empty() {
-        let body = std::str::from_utf8(&request.body).map_err(|err| err.to_string())?;
-        input.body = Some(body.to_string());
+        input.body = Some(request.body.clone());
     }
     if let Some(value) = request
         .headers

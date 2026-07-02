@@ -2863,8 +2863,7 @@ pub fn deserialize_import_api_keys_request(
 ) -> Result<ImportApiKeysRequest, String> {
     let mut input = ImportApiKeysRequest::default();
     if !request.body.is_empty() {
-        let body = std::str::from_utf8(&request.body).map_err(|err| err.to_string())?;
-        input.body = body.to_string();
+        input.body = request.body.clone();
     }
     if let Some(value) = query.get("failonwarnings") {
         input.fail_on_warnings = Some(
@@ -2887,8 +2886,7 @@ pub fn deserialize_import_documentation_parts_request(
 ) -> Result<ImportDocumentationPartsRequest, String> {
     let mut input = ImportDocumentationPartsRequest::default();
     if !request.body.is_empty() {
-        let body = std::str::from_utf8(&request.body).map_err(|err| err.to_string())?;
-        input.body = body.to_string();
+        input.body = request.body.clone();
     }
     for (name, value) in labels {
         match *name {
@@ -2919,8 +2917,7 @@ pub fn deserialize_import_rest_api_request(
 ) -> Result<ImportRestApiRequest, String> {
     let mut input = ImportRestApiRequest::default();
     if !request.body.is_empty() {
-        let body = std::str::from_utf8(&request.body).map_err(|err| err.to_string())?;
-        input.body = body.to_string();
+        input.body = request.body.clone();
     }
     if let Some(value) = query.get("failonwarnings") {
         input.fail_on_warnings = Some(
@@ -3084,8 +3081,7 @@ pub fn deserialize_put_rest_api_request(
 ) -> Result<PutRestApiRequest, String> {
     let mut input = PutRestApiRequest::default();
     if !request.body.is_empty() {
-        let body = std::str::from_utf8(&request.body).map_err(|err| err.to_string())?;
-        input.body = body.to_string();
+        input.body = request.body.clone();
     }
     for (name, value) in labels {
         match *name {

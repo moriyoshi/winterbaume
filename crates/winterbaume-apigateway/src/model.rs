@@ -1225,7 +1225,7 @@ pub struct DomainNames {
 pub struct ExportResponse {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub body: Option<String>,
+    pub body: Option<bytes::Bytes>,
     #[serde(rename = "contentDisposition")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1893,7 +1893,7 @@ pub struct GetVpcLinksRequest {
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct ImportApiKeysRequest {
     #[serde(default)]
-    pub body: String,
+    pub body: bytes::Bytes,
     #[serde(rename = "failOnWarnings")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1905,7 +1905,7 @@ pub struct ImportApiKeysRequest {
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct ImportDocumentationPartsRequest {
     #[serde(default)]
-    pub body: String,
+    pub body: bytes::Bytes,
     #[serde(rename = "failOnWarnings")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1921,7 +1921,7 @@ pub struct ImportDocumentationPartsRequest {
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct ImportRestApiRequest {
     #[serde(default)]
-    pub body: String,
+    pub body: bytes::Bytes,
     #[serde(rename = "failOnWarnings")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -2324,7 +2324,7 @@ pub struct PutMethodResponseRequest {
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct PutRestApiRequest {
     #[serde(default)]
-    pub body: String,
+    pub body: bytes::Bytes,
     #[serde(rename = "failOnWarnings")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -2487,7 +2487,7 @@ pub struct RestApis {
 pub struct SdkResponse {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub body: Option<String>,
+    pub body: Option<bytes::Bytes>,
     #[serde(rename = "contentDisposition")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
