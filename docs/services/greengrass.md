@@ -14,7 +14,8 @@ AWS IoT Greengrass service implementation for winterbaume.
 | moto coverage | 55/92 operations (59.8%) |
 | floci coverage | 0/92 operations (0.0%) |
 | kumo coverage | 0/92 operations (0.0%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 0/92 operations (0.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 

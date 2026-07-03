@@ -14,7 +14,8 @@ ECR service implementation for winterbaume.
 | moto coverage | 29/58 operations (50.0%) |
 | floci coverage | 0/58 operations (0.0%) |
 | kumo coverage | 11/58 operations (19.0%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 58/58 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 

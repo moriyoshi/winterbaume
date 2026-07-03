@@ -19,8 +19,9 @@ Winterbäume is not affiliated with, endorsed by, or sponsored by Amazon Web Ser
 | stubs (routed, returns empty/default) | 0/103 operations (0.0%) |
 | moto coverage | 54/103 operations (52.4%) |
 | floci coverage | 0/103 operations (0.0%) |
-| kumo coverage | 0/103 operations (0.0%) |
-| Coverage report date | 2026-05-17 |
+| kumo coverage | 22/103 operations (21.4%) |
+| fakecloud coverage | 103/103 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 Coverage is generated from [`.agents/docs/API_COVERAGE.md`](../../.agents/docs/API_COVERAGE.md) by [`update_readme.py`](../../.agents/skills/update-readme/scripts/update_readme.py). The `winterbaume` row counts only operations with real, state-backed logic; `stubs` counts handlers that route the request and return an empty/default response without real behaviour. Operation-count coverage is a prioritisation signal, not a behavioural guarantee.
 
@@ -152,47 +153,47 @@ async fn main() {
 
 <details><summary>Not yet implemented APIs (41)</summary>
 
-- `CreatePortal`
-- `CreatePortalProduct`
-- `CreateProductPage`
-- `CreateProductRestEndpointPage`
-- `CreateRoutingRule`
-- `DeleteAccessLogSettings`
-- `DeletePortal`
-- `DeletePortalProduct`
-- `DeletePortalProductSharingPolicy`
-- `DeleteProductPage`
-- `DeleteProductRestEndpointPage`
-- `DeleteRouteSettings`
-- `DeleteRoutingRule`
-- `DisablePortal`
-- `ExportApi`
-- `GetModelTemplate`
-- `GetPortal`
-- `GetPortalProduct`
-- `GetPortalProductSharingPolicy`
-- `GetProductPage`
-- `GetProductRestEndpointPage`
-- `GetRoutingRule`
-- `ImportApi`
-- `ListPortalProducts`
-- `ListPortals`
-- `ListProductPages`
-- `ListProductRestEndpointPages`
-- `ListRoutingRules`
-- `PreviewPortal`
-- `PublishPortal`
-- `PutPortalProductSharingPolicy`
-- `PutRoutingRule`
-- `ResetAuthorizersCache`
-- `UpdateApiMapping`
-- `UpdateDeployment`
-- `UpdateDomainName`
-- `UpdatePortal`
-- `UpdatePortalProduct`
-- `UpdateProductPage`
-- `UpdateProductRestEndpointPage`
-- `UpdateRouteResponse`
+- `CreatePortal` (implemented by fakecloud)
+- `CreatePortalProduct` (implemented by fakecloud)
+- `CreateProductPage` (implemented by fakecloud)
+- `CreateProductRestEndpointPage` (implemented by fakecloud)
+- `CreateRoutingRule` (implemented by fakecloud)
+- `DeleteAccessLogSettings` (implemented by fakecloud)
+- `DeletePortal` (implemented by fakecloud)
+- `DeletePortalProduct` (implemented by fakecloud)
+- `DeletePortalProductSharingPolicy` (implemented by fakecloud)
+- `DeleteProductPage` (implemented by fakecloud)
+- `DeleteProductRestEndpointPage` (implemented by fakecloud)
+- `DeleteRouteSettings` (implemented by fakecloud)
+- `DeleteRoutingRule` (implemented by fakecloud)
+- `DisablePortal` (implemented by fakecloud)
+- `ExportApi` (implemented by fakecloud)
+- `GetModelTemplate` (implemented by fakecloud)
+- `GetPortal` (implemented by fakecloud)
+- `GetPortalProduct` (implemented by fakecloud)
+- `GetPortalProductSharingPolicy` (implemented by fakecloud)
+- `GetProductPage` (implemented by fakecloud)
+- `GetProductRestEndpointPage` (implemented by fakecloud)
+- `GetRoutingRule` (implemented by fakecloud)
+- `ImportApi` (implemented by fakecloud)
+- `ListPortalProducts` (implemented by fakecloud)
+- `ListPortals` (implemented by fakecloud)
+- `ListProductPages` (implemented by fakecloud)
+- `ListProductRestEndpointPages` (implemented by fakecloud)
+- `ListRoutingRules` (implemented by fakecloud)
+- `PreviewPortal` (implemented by fakecloud)
+- `PublishPortal` (implemented by fakecloud)
+- `PutPortalProductSharingPolicy` (implemented by fakecloud)
+- `PutRoutingRule` (implemented by fakecloud)
+- `ResetAuthorizersCache` (implemented by fakecloud)
+- `UpdateApiMapping` (implemented by fakecloud)
+- `UpdateDeployment` (implemented by fakecloud)
+- `UpdateDomainName` (implemented by fakecloud)
+- `UpdatePortal` (implemented by fakecloud)
+- `UpdatePortalProduct` (implemented by fakecloud)
+- `UpdateProductPage` (implemented by fakecloud)
+- `UpdateProductRestEndpointPage` (implemented by fakecloud)
+- `UpdateRouteResponse` (implemented by fakecloud)
 
 </details>
 

@@ -12,9 +12,10 @@ S3 Vectors service implementation for winterbaume.
 | winterbaume coverage | 19/19 operations (100.0%) |
 | stubs (routed, returns empty/default) | 0/19 operations (0.0%) |
 | moto coverage | 15/19 operations (78.9%) |
-| floci coverage | 0/19 operations (0.0%) |
+| floci coverage | 12/19 operations (63.2%) |
 | kumo coverage | 0/19 operations (0.0%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 0/19 operations (0.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 

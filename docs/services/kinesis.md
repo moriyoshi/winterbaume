@@ -13,8 +13,9 @@ Kinesis service implementation for winterbaume.
 | stubs (routed, returns empty/default) | 0/39 operations (0.0%) |
 | moto coverage | 31/39 operations (79.5%) |
 | floci coverage | 0/39 operations (0.0%) |
-| kumo coverage | 9/39 operations (23.1%) |
-| Coverage report date | 2026-05-17 |
+| kumo coverage | 10/39 operations (25.6%) |
+| fakecloud coverage | 39/39 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 
@@ -108,6 +109,6 @@ async fn main() {
 
 <details><summary>Not yet implemented APIs (1)</summary>
 
-- `SubscribeToShard`
+- `SubscribeToShard` (implemented by fakecloud)
 
 </details>

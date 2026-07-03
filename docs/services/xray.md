@@ -14,7 +14,8 @@ X-Ray service implementation for winterbaume.
 | moto coverage | 0/38 operations (0.0%) |
 | floci coverage | 0/38 operations (0.0%) |
 | kumo coverage | 6/38 operations (15.8%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 0/38 operations (0.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 

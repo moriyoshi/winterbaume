@@ -14,7 +14,8 @@ Macie2 service implementation for winterbaume.
 | moto coverage | 13/81 operations (16.0%) |
 | floci coverage | 0/81 operations (0.0%) |
 | kumo coverage | 24/81 operations (29.6%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 0/81 operations (0.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 

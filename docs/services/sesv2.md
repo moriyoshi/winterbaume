@@ -13,8 +13,9 @@ SES v2 service implementation for winterbaume.
 | stubs (routed, returns empty/default) | 4/110 operations (3.6%) |
 | moto coverage | 30/110 operations (27.3%) |
 | floci coverage | 0/110 operations (0.0%) |
-| kumo coverage | 9/110 operations (8.2%) |
-| Coverage report date | 2026-05-17 |
+| kumo coverage | 15/110 operations (13.6%) |
+| fakecloud coverage | 0/110 operations (0.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 

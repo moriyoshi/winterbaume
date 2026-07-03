@@ -13,8 +13,9 @@ SES v1 (Simple Email Service) mock implementation for winterbaume.
 | stubs (routed, returns empty/default) | 2/71 operations (2.8%) |
 | moto coverage | 38/71 operations (53.5%) |
 | floci coverage | 0/71 operations (0.0%) |
-| kumo coverage | 0/71 operations (0.0%) |
-| Coverage report date | 2026-05-17 |
+| kumo coverage | 6/71 operations (8.5%) |
+| fakecloud coverage | 14/71 operations (19.7%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 
@@ -202,35 +203,35 @@ async fn main() {
 <details><summary>Not yet implemented APIs (31)</summary>
 
 - `CreateConfigurationSetTrackingOptions`
-- `CreateCustomVerificationEmailTemplate`
+- `CreateCustomVerificationEmailTemplate` (implemented by fakecloud)
 - `CreateReceiptFilter`
-- `DeleteConfigurationSetEventDestination`
+- `DeleteConfigurationSetEventDestination` (implemented by fakecloud)
 - `DeleteConfigurationSetTrackingOptions`
-- `DeleteCustomVerificationEmailTemplate`
+- `DeleteCustomVerificationEmailTemplate` (implemented by fakecloud)
 - `DeleteIdentityPolicy`
 - `DeleteReceiptFilter`
 - `DeleteReceiptRule`
 - `DeleteVerifiedEmailAddress`
 - `GetAccountSendingEnabled`
-- `GetCustomVerificationEmailTemplate`
+- `GetCustomVerificationEmailTemplate` (implemented by fakecloud)
 - `GetIdentityPolicies`
-- `ListCustomVerificationEmailTemplates`
+- `ListCustomVerificationEmailTemplates` (implemented by fakecloud)
 - `ListIdentityPolicies`
 - `ListReceiptFilters`
-- `PutConfigurationSetDeliveryOptions`
+- `PutConfigurationSetDeliveryOptions` (implemented by fakecloud)
 - `PutIdentityPolicy`
 - `ReorderReceiptRuleSet`
 - `SendBounce`
-- `SendCustomVerificationEmail`
+- `SendCustomVerificationEmail` (implemented by fakecloud)
 - `SetIdentityDkimEnabled`
 - `SetIdentityHeadersInNotificationsEnabled`
 - `SetReceiptRulePosition`
 - `TestRenderTemplate`
 - `UpdateAccountSendingEnabled`
-- `UpdateConfigurationSetEventDestination`
+- `UpdateConfigurationSetEventDestination` (implemented by fakecloud)
 - `UpdateConfigurationSetSendingEnabled`
 - `UpdateConfigurationSetTrackingOptions`
-- `UpdateCustomVerificationEmailTemplate`
+- `UpdateCustomVerificationEmailTemplate` (implemented by fakecloud)
 - `VerifyDomainDkim`
 
 </details>

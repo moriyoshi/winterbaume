@@ -14,7 +14,8 @@ Amazon EMR on EKS (EMR Containers) service implementation for winterbaume.
 | moto coverage | 8/23 operations (34.8%) |
 | floci coverage | 0/23 operations (0.0%) |
 | kumo coverage | 0/23 operations (0.0%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 0/23 operations (0.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 

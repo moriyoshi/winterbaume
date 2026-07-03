@@ -14,7 +14,8 @@ ACM service implementation for winterbaume.
 | moto coverage | 11/17 operations (64.7%) |
 | floci coverage | 0/17 operations (0.0%) |
 | kumo coverage | 6/17 operations (35.3%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 17/17 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 
@@ -84,6 +85,6 @@ async fn main() {
 
 <details><summary>Not yet implemented APIs (1)</summary>
 
-- `SearchCertificates`
+- `SearchCertificates` (implemented by fakecloud)
 
 </details>

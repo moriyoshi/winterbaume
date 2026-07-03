@@ -14,7 +14,8 @@ Amazon Bedrock service implementation for winterbaume.
 | moto coverage | 13/101 operations (12.9%) |
 | floci coverage | 0/101 operations (0.0%) |
 | kumo coverage | 0/101 operations (0.0%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 101/101 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 
@@ -118,58 +119,58 @@ async fn main() {
 
 <details><summary>Not yet implemented APIs (53)</summary>
 
-- `BatchDeleteEvaluationJob`
-- `CancelAutomatedReasoningPolicyBuildWorkflow`
-- `CreateAutomatedReasoningPolicy`
-- `CreateAutomatedReasoningPolicyTestCase`
-- `CreateAutomatedReasoningPolicyVersion`
-- `CreateCustomModel`
-- `CreateCustomModelDeployment`
-- `CreateFoundationModelAgreement`
-- `CreateMarketplaceModelEndpoint`
-- `DeleteAutomatedReasoningPolicy`
-- `DeleteAutomatedReasoningPolicyBuildWorkflow`
-- `DeleteAutomatedReasoningPolicyTestCase`
-- `DeleteCustomModelDeployment`
-- `DeleteEnforcedGuardrailConfiguration`
-- `DeleteFoundationModelAgreement`
-- `DeleteImportedModel`
-- `DeleteMarketplaceModelEndpoint`
-- `DeleteResourcePolicy`
-- `DeregisterMarketplaceModelEndpoint`
-- `ExportAutomatedReasoningPolicyVersion`
-- `GetAutomatedReasoningPolicy`
-- `GetAutomatedReasoningPolicyAnnotations`
-- `GetAutomatedReasoningPolicyBuildWorkflow`
-- `GetAutomatedReasoningPolicyBuildWorkflowResultAssets`
-- `GetAutomatedReasoningPolicyNextScenario`
-- `GetAutomatedReasoningPolicyTestCase`
-- `GetAutomatedReasoningPolicyTestResult`
-- `GetCustomModelDeployment`
-- `GetFoundationModelAvailability`
-- `GetImportedModel`
-- `GetMarketplaceModelEndpoint`
-- `GetResourcePolicy`
-- `GetUseCaseForModelAccess`
-- `ListAutomatedReasoningPolicies`
-- `ListAutomatedReasoningPolicyBuildWorkflows`
-- `ListAutomatedReasoningPolicyTestCases`
-- `ListAutomatedReasoningPolicyTestResults`
-- `ListCustomModelDeployments`
-- `ListEnforcedGuardrailsConfiguration`
-- `ListFoundationModelAgreementOffers`
-- `ListImportedModels`
-- `ListMarketplaceModelEndpoints`
-- `PutEnforcedGuardrailConfiguration`
-- `PutResourcePolicy`
-- `PutUseCaseForModelAccess`
-- `RegisterMarketplaceModelEndpoint`
-- `StartAutomatedReasoningPolicyBuildWorkflow`
-- `StartAutomatedReasoningPolicyTestWorkflow`
-- `UpdateAutomatedReasoningPolicy`
-- `UpdateAutomatedReasoningPolicyAnnotations`
-- `UpdateAutomatedReasoningPolicyTestCase`
-- `UpdateCustomModelDeployment`
-- `UpdateMarketplaceModelEndpoint`
+- `BatchDeleteEvaluationJob` (implemented by fakecloud)
+- `CancelAutomatedReasoningPolicyBuildWorkflow` (implemented by fakecloud)
+- `CreateAutomatedReasoningPolicy` (implemented by fakecloud)
+- `CreateAutomatedReasoningPolicyTestCase` (implemented by fakecloud)
+- `CreateAutomatedReasoningPolicyVersion` (implemented by fakecloud)
+- `CreateCustomModel` (implemented by fakecloud)
+- `CreateCustomModelDeployment` (implemented by fakecloud)
+- `CreateFoundationModelAgreement` (implemented by fakecloud)
+- `CreateMarketplaceModelEndpoint` (implemented by fakecloud)
+- `DeleteAutomatedReasoningPolicy` (implemented by fakecloud)
+- `DeleteAutomatedReasoningPolicyBuildWorkflow` (implemented by fakecloud)
+- `DeleteAutomatedReasoningPolicyTestCase` (implemented by fakecloud)
+- `DeleteCustomModelDeployment` (implemented by fakecloud)
+- `DeleteEnforcedGuardrailConfiguration` (implemented by fakecloud)
+- `DeleteFoundationModelAgreement` (implemented by fakecloud)
+- `DeleteImportedModel` (implemented by fakecloud)
+- `DeleteMarketplaceModelEndpoint` (implemented by fakecloud)
+- `DeleteResourcePolicy` (implemented by fakecloud)
+- `DeregisterMarketplaceModelEndpoint` (implemented by fakecloud)
+- `ExportAutomatedReasoningPolicyVersion` (implemented by fakecloud)
+- `GetAutomatedReasoningPolicy` (implemented by fakecloud)
+- `GetAutomatedReasoningPolicyAnnotations` (implemented by fakecloud)
+- `GetAutomatedReasoningPolicyBuildWorkflow` (implemented by fakecloud)
+- `GetAutomatedReasoningPolicyBuildWorkflowResultAssets` (implemented by fakecloud)
+- `GetAutomatedReasoningPolicyNextScenario` (implemented by fakecloud)
+- `GetAutomatedReasoningPolicyTestCase` (implemented by fakecloud)
+- `GetAutomatedReasoningPolicyTestResult` (implemented by fakecloud)
+- `GetCustomModelDeployment` (implemented by fakecloud)
+- `GetFoundationModelAvailability` (implemented by fakecloud)
+- `GetImportedModel` (implemented by fakecloud)
+- `GetMarketplaceModelEndpoint` (implemented by fakecloud)
+- `GetResourcePolicy` (implemented by fakecloud)
+- `GetUseCaseForModelAccess` (implemented by fakecloud)
+- `ListAutomatedReasoningPolicies` (implemented by fakecloud)
+- `ListAutomatedReasoningPolicyBuildWorkflows` (implemented by fakecloud)
+- `ListAutomatedReasoningPolicyTestCases` (implemented by fakecloud)
+- `ListAutomatedReasoningPolicyTestResults` (implemented by fakecloud)
+- `ListCustomModelDeployments` (implemented by fakecloud)
+- `ListEnforcedGuardrailsConfiguration` (implemented by fakecloud)
+- `ListFoundationModelAgreementOffers` (implemented by fakecloud)
+- `ListImportedModels` (implemented by fakecloud)
+- `ListMarketplaceModelEndpoints` (implemented by fakecloud)
+- `PutEnforcedGuardrailConfiguration` (implemented by fakecloud)
+- `PutResourcePolicy` (implemented by fakecloud)
+- `PutUseCaseForModelAccess` (implemented by fakecloud)
+- `RegisterMarketplaceModelEndpoint` (implemented by fakecloud)
+- `StartAutomatedReasoningPolicyBuildWorkflow` (implemented by fakecloud)
+- `StartAutomatedReasoningPolicyTestWorkflow` (implemented by fakecloud)
+- `UpdateAutomatedReasoningPolicy` (implemented by fakecloud)
+- `UpdateAutomatedReasoningPolicyAnnotations` (implemented by fakecloud)
+- `UpdateAutomatedReasoningPolicyTestCase` (implemented by fakecloud)
+- `UpdateCustomModelDeployment` (implemented by fakecloud)
+- `UpdateMarketplaceModelEndpoint` (implemented by fakecloud)
 
 </details>

@@ -14,7 +14,8 @@ Amazon MQ service implementation for winterbaume.
 | moto coverage | 19/24 operations (79.2%) |
 | floci coverage | 0/24 operations (0.0%) |
 | kumo coverage | 6/24 operations (25.0%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 0/24 operations (0.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 

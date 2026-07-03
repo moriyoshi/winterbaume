@@ -20,7 +20,8 @@ Winterbäume is not affiliated with, endorsed by, or sponsored by Amazon Web Ser
 | moto coverage | 17/64 operations (26.6%) |
 | floci coverage | 0/64 operations (0.0%) |
 | kumo coverage | 8/64 operations (12.5%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 64/64 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 Coverage is generated from [`.agents/docs/API_COVERAGE.md`](../../.agents/docs/API_COVERAGE.md) by [`update_readme.py`](../../.agents/skills/update-readme/scripts/update_readme.py). The `winterbaume` row counts only operations with real, state-backed logic; `stubs` counts handlers that route the request and return an empty/default response without real behaviour. Operation-count coverage is a prioritisation signal, not a behavioural guarantee.
 
@@ -151,11 +152,11 @@ async fn main() {
 
 <details><summary>Not yet implemented APIs (5)</summary>
 
-- `CreateEksAnywhereSubscription`
-- `DeleteEksAnywhereSubscription`
-- `DescribeEksAnywhereSubscription`
-- `ListEksAnywhereSubscriptions`
-- `UpdateEksAnywhereSubscription`
+- `CreateEksAnywhereSubscription` (implemented by fakecloud)
+- `DeleteEksAnywhereSubscription` (implemented by fakecloud)
+- `DescribeEksAnywhereSubscription` (implemented by fakecloud)
+- `ListEksAnywhereSubscriptions` (implemented by fakecloud)
+- `UpdateEksAnywhereSubscription` (implemented by fakecloud)
 
 </details>
 

@@ -485,9 +485,10 @@ def parse_coverage_overview(
     """Parse the overview table from API_COVERAGE.md.
 
     Returns ``(rows, wb_summary, stub_summary, moto_summary, floci_summary,
-    kumo_summary, generated_on)`` where each row is a dict with keys:
-    crate, model, wb_impl, stub_impl, moto_impl, floci_impl, kumo_impl,
-    total, wb_pct, stub_pct, moto_pct, floci_pct, kumo_pct.
+    kumo_summary, fakecloud_summary, generated_on)`` where each row is a dict
+    with keys: crate, model, wb_impl, stub_impl, moto_impl, floci_impl,
+    kumo_impl, fakecloud_impl, total, wb_pct, stub_pct, moto_pct, floci_pct,
+    kumo_pct, fakecloud_pct.
     """
     if not coverage_path.exists():
         print(f"Error: {coverage_path} not found. Run api-coverage first.",
@@ -504,11 +505,12 @@ def parse_coverage_overview(
 
     rows = []
     # Parse table rows: | crate | model | wb | stubs | moto | floci | kumo
-    #     | total | wb% | stub% | moto% | floci% | kumo% |
+    #     | fakecloud | total | wb% | stub% | moto% | floci% | kumo%
+    #     | fakecloud% |
     new_format = re.compile(
         r'^\| (winterbaume-\S+) \| (\S+) '
-        r'\| (\d+) \| (\d+) \| (\d+) \| (\d+) \| (\d+) \| (\d+) '
-        r'\| ([\d.]+%) \| ([\d.]+%) \| ([\d.]+%) \| ([\d.]+%) \| ([\d.]+%) \|',
+        r'\| (\d+) \| (\d+) \| (\d+) \| (\d+) \| (\d+) \| (\d+) \| (\d+) '
+        r'\| ([\d.]+%) \| ([\d.]+%) \| ([\d.]+%) \| ([\d.]+%) \| ([\d.]+%) \| ([\d.]+%) \|',
         re.MULTILINE,
     )
     for m in new_format.finditer(content):
@@ -520,12 +522,14 @@ def parse_coverage_overview(
             "moto_impl": m.group(5),
             "floci_impl": m.group(6),
             "kumo_impl": m.group(7),
-            "total": m.group(8),
-            "wb_pct": m.group(9),
-            "stub_pct": m.group(10),
-            "moto_pct": m.group(11),
-            "floci_pct": m.group(12),
-            "kumo_pct": m.group(13),
+            "fakecloud_impl": m.group(8),
+            "total": m.group(9),
+            "wb_pct": m.group(10),
+            "stub_pct": m.group(11),
+            "moto_pct": m.group(12),
+            "floci_pct": m.group(13),
+            "kumo_pct": m.group(14),
+            "fakecloud_pct": m.group(15),
         })
 
     if not rows:
@@ -551,6 +555,8 @@ def parse_coverage_overview(
                 "moto_pct": m.group(9),
                 "floci_pct": m.group(10),
                 "kumo_pct": m.group(11),
+                "fakecloud_impl": "?",
+                "fakecloud_pct": "?",
             })
 
     # Parse summary lines
@@ -559,6 +565,7 @@ def parse_coverage_overview(
     moto_summary = ""
     floci_summary = ""
     kumo_summary = ""
+    fakecloud_summary = ""
     wb_match = re.search(
         r'\*\*winterbaume (?!stubs:)\S+: (.+?)\*\*', content
     ) or re.search(r'\*\*winterbaume: (.+?)\*\*', content)
@@ -568,6 +575,7 @@ def parse_coverage_overview(
     moto_match = re.search(r'\*\*moto [^:]+: (.+?)\*\*', content)
     floci_match = re.search(r'\*\*floci [^:]+: (.+?)\*\*', content)
     kumo_match = re.search(r'\*\*kumo [^:]+: (.+?)\*\*', content)
+    fakecloud_match = re.search(r'\*\*fakecloud [^:]+: (.+?)\*\*', content)
     if wb_match:
         wb_summary = wb_match.group(1)
     if stub_match:
@@ -578,8 +586,11 @@ def parse_coverage_overview(
         floci_summary = floci_match.group(1)
     if kumo_match:
         kumo_summary = kumo_match.group(1)
+    if fakecloud_match:
+        fakecloud_summary = fakecloud_match.group(1)
 
-    return rows, wb_summary, stub_summary, moto_summary, floci_summary, kumo_summary, generated_on
+    return (rows, wb_summary, stub_summary, moto_summary, floci_summary,
+            kumo_summary, fakecloud_summary, generated_on)
 
 
 def parse_detailed_coverage(
@@ -598,7 +609,7 @@ def parse_detailed_coverage(
         section_match = re.match(
             r"^### (winterbaume-\S+) \(\S+\) - W: \d+/\d+"
             r"(?:, S: \d+/\d+)?, M: \d+/\d+"
-            r"(?:, F: \d+/\d+)?(?:, K: \d+/\d+)?$",
+            r"(?:, F: \d+/\d+)?(?:, K: \d+/\d+)?(?:, C: \d+/\d+)?$",
             line,
         )
         if section_match:
@@ -609,13 +620,14 @@ def parse_detailed_coverage(
         if current_crate is None:
             continue
 
-        # Detail line, new format: ``- W[ ] S[ ] M[ ] F[ ] K[ ] OperationName``
+        # Detail line, current format:
+        #   ``- W[ ] S[ ] M[ ] F[ ] K[ ] C[ ] OperationName`` ( C = fakecloud ).
         new_op_match = re.match(
-            r"^- W\[(x| )\] S\[(x| )\] M\[(x| )\] F\[(x| )\] K\[(x| )\] (\w+)$",
+            r"^- W\[(x| )\] S\[(x| )\] M\[(x| )\] F\[(x| )\] K\[(x| )\] C\[(x| )\] (\w+)$",
             line,
         )
         if new_op_match:
-            wb, stub, moto, floci, kumo, name = new_op_match.groups()
+            wb, stub, moto, floci, kumo, fakecloud, name = new_op_match.groups()
             details[current_crate].append({
                 "name": name,
                 "winterbaume": wb == "x",
@@ -623,6 +635,26 @@ def parse_detailed_coverage(
                 "moto": moto == "x",
                 "floci": floci == "x",
                 "kumo": kumo == "x",
+                "fakecloud": fakecloud == "x",
+            })
+            continue
+
+        # Prior format ( no fakecloud column ):
+        #   ``- W[ ] S[ ] M[ ] F[ ] K[ ] OperationName``.
+        prior_op_match = re.match(
+            r"^- W\[(x| )\] S\[(x| )\] M\[(x| )\] F\[(x| )\] K\[(x| )\] (\w+)$",
+            line,
+        )
+        if prior_op_match:
+            wb, stub, moto, floci, kumo, name = prior_op_match.groups()
+            details[current_crate].append({
+                "name": name,
+                "winterbaume": wb == "x",
+                "stub": stub == "x",
+                "moto": moto == "x",
+                "floci": floci == "x",
+                "kumo": kumo == "x",
+                "fakecloud": False,
             })
             continue
 
@@ -645,6 +677,7 @@ def parse_detailed_coverage(
                 "moto": moto == "x",
                 "floci": floci == "x" if floci is not None else False,
                 "kumo": kumo == "x" if kumo is not None else False,
+                "fakecloud": False,
             })
 
     return details
@@ -656,6 +689,7 @@ def generate_services_section(
     moto_summary: str,
     floci_summary: str = "",
     kumo_summary: str = "",
+    fakecloud_summary: str = "",
     stub_summary: str = "",
 ) -> str:
     """Generate the Supported Services markdown section."""
@@ -674,9 +708,9 @@ def generate_services_section(
     )
     lines.append("")
     lines.append(
-        "| Service | Crate | Protocol | Operations | Stubs | moto | floci | kumo |"
+        "| Service | Crate | Protocol | Operations | Stubs | moto | floci | kumo | fakecloud |"
     )
-    lines.append("|---|---|---|---|---|---|---|---|")
+    lines.append("|---|---|---|---|---|---|---|---|---|")
 
     # Build a unified list of (sort_key, row_md) entries.
     table_entries: list[tuple[str, str]] = []
@@ -695,9 +729,13 @@ def generate_services_section(
         moto_ops = f"{row['moto_impl']}/{row['total']} ({row['moto_pct']})"
         floci_ops = f"{row['floci_impl']}/{row['total']} ({row['floci_pct']})"
         kumo_ops = f"{row['kumo_impl']}/{row['total']} ({row['kumo_pct']})"
+        fakecloud_ops = (
+            f"{row.get('fakecloud_impl', '?')}/{row['total']} "
+            f"({row.get('fakecloud_pct', '?')})"
+        )
         row_md = (
             f"| [{display_name}](crates/{crate}/README.md) | `{crate}` | {protocol} "
-            f"| {wb_ops} | {stub_ops} | {moto_ops} | {floci_ops} | {kumo_ops} |"
+            f"| {wb_ops} | {stub_ops} | {moto_ops} | {floci_ops} | {kumo_ops} | {fakecloud_ops} |"
         )
         table_entries.append((display_name.lower(), row_md))
 
@@ -717,6 +755,9 @@ def generate_services_section(
         lines.append("")
     if kumo_summary:
         lines.append(f"**kumo: {kumo_summary}**")
+        lines.append("")
+    if fakecloud_summary:
+        lines.append(f"**fakecloud: {fakecloud_summary}**")
         lines.append("")
 
     return "\n".join(lines)
@@ -856,6 +897,7 @@ def generate_service_readme(
         f"| moto coverage | {row['moto_impl']}/{row['total']} operations ({row['moto_pct']}) |",
         f"| floci coverage | {row.get('floci_impl', '?')}/{row['total']} operations ({row.get('floci_pct', '?')}) |",
         f"| kumo coverage | {row.get('kumo_impl', '?')}/{row['total']} operations ({row.get('kumo_pct', '?')}) |",
+        f"| fakecloud coverage | {row.get('fakecloud_impl', '?')}/{row['total']} operations ({row.get('fakecloud_pct', '?')}) |",
         f"| Coverage report date | {generated_on or 'unknown'} |",
         "",
         (
@@ -975,6 +1017,8 @@ def generate_service_readme(
                 notes.append("floci")
             if bool(operation.get("kumo")):
                 notes.append("kumo")
+            if bool(operation.get("fakecloud")):
+                notes.append("fakecloud")
             note_str = f" (implemented by {', '.join(notes)})" if notes else ""
             lines.append(f"- `{operation['name']}`{note_str}")
         lines.extend([
@@ -1069,6 +1113,7 @@ def update_readme(
     moto_summary: str,
     floci_summary: str = "",
     kumo_summary: str = "",
+    fakecloud_summary: str = "",
     stub_summary: str = "",
 ) -> None:
     """Update the Supported Services section in README.md."""
@@ -1081,6 +1126,7 @@ def update_readme(
         moto_summary,
         floci_summary,
         kumo_summary,
+        fakecloud_summary,
         stub_summary=stub_summary,
     )
 
@@ -1401,6 +1447,7 @@ def generate_docs_reference_content(
     moto_summary: str,
     floci_summary: str = "",
     kumo_summary: str = "",
+    fakecloud_summary: str = "",
     stub_summary: str = "",
     terraform_resource_count: int | None = None,
 ) -> str:
@@ -1419,8 +1466,8 @@ def generate_docs_reference_content(
             f" ( see the `Stubs` column )."
         ),
         "",
-        "| Service | Crate | Protocol | Operations | Stubs | moto | floci | kumo |",
-        "|---|---|---|---|---|---|---|---|",
+        "| Service | Crate | Protocol | Operations | Stubs | moto | floci | kumo | fakecloud |",
+        "|---|---|---|---|---|---|---|---|---|",
     ]
 
     table_entries: list[tuple[str, str]] = []
@@ -1439,10 +1486,14 @@ def generate_docs_reference_content(
         moto_ops = f"{row['moto_impl']}/{row['total']} ({row['moto_pct']})"
         floci_ops = f"{row.get('floci_impl', '?')}/{row['total']} ({row.get('floci_pct', '?')})"
         kumo_ops = f"{row.get('kumo_impl', '?')}/{row['total']} ({row.get('kumo_pct', '?')})"
+        fakecloud_ops = (
+            f"{row.get('fakecloud_impl', '?')}/{row['total']} "
+            f"({row.get('fakecloud_pct', '?')})"
+        )
         slug = crate.removeprefix("winterbaume-")
         row_md = (
             f"| [{display_name}](/services/{slug}) | `{crate}` | {protocol} "
-            f"| {wb_ops} | {stub_ops} | {moto_ops} | {floci_ops} | {kumo_ops} |"
+            f"| {wb_ops} | {stub_ops} | {moto_ops} | {floci_ops} | {kumo_ops} | {fakecloud_ops} |"
         )
         table_entries.append((display_name.lower(), row_md))
 
@@ -1464,6 +1515,8 @@ def generate_docs_reference_content(
         lines.extend([f"**floci: {floci_summary}**", ""])
     if kumo_summary:
         lines.extend([f"**kumo: {kumo_summary}**", ""])
+    if fakecloud_summary:
+        lines.extend([f"**fakecloud: {fakecloud_summary}**", ""])
 
     tf_count_str = (
         f"{terraform_resource_count:,}" if terraform_resource_count else "many"
@@ -1486,6 +1539,7 @@ def update_docs_reference(
     moto_summary: str,
     floci_summary: str = "",
     kumo_summary: str = "",
+    fakecloud_summary: str = "",
     stub_summary: str = "",
     terraform_resource_count: int | None = None,
 ) -> None:
@@ -1500,6 +1554,7 @@ def update_docs_reference(
         moto_summary,
         floci_summary,
         kumo_summary,
+        fakecloud_summary,
         stub_summary=stub_summary,
         terraform_resource_count=terraform_resource_count,
     )
@@ -1676,7 +1731,8 @@ def main() -> None:
     readme_path = args.readme or (root / "README.md")
     crates_dir = args.crates_dir or (root / "crates")
     docs_dir = args.docs_dir or (root / "docs")
-    rows, wb_summary, stub_summary, moto_summary, floci_summary, kumo_summary, generated_on = parse_coverage_overview(coverage_path)
+    (rows, wb_summary, stub_summary, moto_summary, floci_summary,
+     kumo_summary, fakecloud_summary, generated_on) = parse_coverage_overview(coverage_path)
     detailed_coverage = parse_detailed_coverage(coverage_path)
 
     if not rows:
@@ -1690,6 +1746,7 @@ def main() -> None:
         moto_summary,
         floci_summary,
         kumo_summary,
+        fakecloud_summary,
         stub_summary=stub_summary,
     )
     updated_service_readmes = update_service_readmes(
@@ -1725,6 +1782,7 @@ def main() -> None:
             moto_summary,
             floci_summary,
             kumo_summary,
+            fakecloud_summary,
             stub_summary=stub_summary,
             terraform_resource_count=terraform_resource_count,
         )

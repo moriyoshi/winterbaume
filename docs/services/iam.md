@@ -14,7 +14,8 @@ IAM service implementation for winterbaume.
 | moto coverage | 119/176 operations (67.6%) |
 | floci coverage | 0/176 operations (0.0%) |
 | kumo coverage | 39/176 operations (22.2%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 176/176 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 

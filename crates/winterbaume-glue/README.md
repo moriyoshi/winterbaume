@@ -20,7 +20,8 @@ Winterbäume is not affiliated with, endorsed by, or sponsored by Amazon Web Ser
 | moto coverage | 96/265 operations (36.2%) |
 | floci coverage | 0/265 operations (0.0%) |
 | kumo coverage | 14/265 operations (5.3%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 265/265 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 Coverage is generated from [`.agents/docs/API_COVERAGE.md`](../../.agents/docs/API_COVERAGE.md) by [`update_readme.py`](../../.agents/skills/update-readme/scripts/update_readme.py). The `winterbaume` row counts only operations with real, state-backed logic; `stubs` counts handlers that route the request and return an empty/default response without real behaviour. Operation-count coverage is a prioritisation signal, not a behavioural guarantee.
 
@@ -219,139 +220,139 @@ async fn main() {
 
 <details><summary>Not yet implemented APIs (133)</summary>
 
-- `BatchDeleteTableVersion`
-- `BatchGetBlueprints`
-- `BatchGetCustomEntityTypes`
-- `BatchGetDataQualityResult`
-- `BatchGetTableOptimizer`
-- `BatchPutDataQualityStatisticAnnotation`
-- `CancelDataQualityRuleRecommendationRun`
-- `CancelDataQualityRulesetEvaluationRun`
-- `CancelMLTaskRun`
-- `CancelStatement`
-- `CreateBlueprint`
-- `CreateCatalog`
-- `CreateClassifier`
-- `CreateColumnStatisticsTaskSettings`
-- `CreateCustomEntityType`
-- `CreateDataQualityRuleset`
-- `CreateGlueIdentityCenterConfiguration`
-- `CreateIntegration`
-- `CreateIntegrationResourceProperty`
-- `CreateIntegrationTableProperties`
-- `CreatePartitionIndex`
-- `CreateScript`
-- `CreateTableOptimizer`
-- `CreateUsageProfile`
-- `CreateUserDefinedFunction`
-- `DeleteBlueprint`
-- `DeleteCatalog`
-- `DeleteClassifier`
-- `DeleteColumnStatisticsForPartition`
-- `DeleteColumnStatisticsForTable`
-- `DeleteColumnStatisticsTaskSettings`
-- `DeleteConnectionType`
-- `DeleteCustomEntityType`
-- `DeleteDataQualityRuleset`
-- `DeleteGlueIdentityCenterConfiguration`
-- `DeleteIntegration`
-- `DeleteIntegrationResourceProperty`
-- `DeleteIntegrationTableProperties`
-- `DeletePartitionIndex`
-- `DeleteTableOptimizer`
-- `DeleteUsageProfile`
-- `DeleteUserDefinedFunction`
-- `DescribeConnectionType`
-- `DescribeEntity`
-- `DescribeInboundIntegrations`
-- `DescribeIntegrations`
-- `GetBlueprint`
-- `GetBlueprintRun`
-- `GetBlueprintRuns`
-- `GetCatalog`
-- `GetCatalogImportStatus`
-- `GetCatalogs`
-- `GetClassifier`
-- `GetClassifiers`
-- `GetColumnStatisticsForPartition`
-- `GetColumnStatisticsForTable`
-- `GetColumnStatisticsTaskRun`
-- `GetColumnStatisticsTaskRuns`
-- `GetColumnStatisticsTaskSettings`
-- `GetCustomEntityType`
-- `GetDataQualityModel`
-- `GetDataQualityModelResult`
-- `GetDataQualityResult`
-- `GetDataQualityRuleRecommendationRun`
-- `GetDataQualityRuleset`
-- `GetDataQualityRulesetEvaluationRun`
-- `GetDataflowGraph`
-- `GetEntityRecords`
-- `GetGlueIdentityCenterConfiguration`
-- `GetIntegrationResourceProperty`
-- `GetIntegrationTableProperties`
-- `GetMLTaskRun`
-- `GetMLTaskRuns`
-- `GetMapping`
-- `GetMaterializedViewRefreshTaskRun`
-- `GetPartitionIndexes`
-- `GetPlan`
-- `GetResourcePolicies`
-- `GetStatement`
-- `GetTableOptimizer`
-- `GetUnfilteredPartitionMetadata`
-- `GetUnfilteredPartitionsMetadata`
-- `GetUnfilteredTableMetadata`
-- `GetUsageProfile`
-- `GetUserDefinedFunction`
-- `GetUserDefinedFunctions`
-- `ListBlueprints`
-- `ListColumnStatisticsTaskRuns`
-- `ListConnectionTypes`
-- `ListCustomEntityTypes`
-- `ListDataQualityResults`
-- `ListDataQualityRuleRecommendationRuns`
-- `ListDataQualityRulesetEvaluationRuns`
-- `ListDataQualityRulesets`
-- `ListDataQualityStatisticAnnotations`
-- `ListDataQualityStatistics`
-- `ListEntities`
-- `ListIntegrationResourceProperties`
-- `ListMaterializedViewRefreshTaskRuns`
-- `ListStatements`
-- `ListTableOptimizerRuns`
-- `ListUsageProfiles`
-- `ModifyIntegration`
-- `PutDataQualityProfileAnnotation`
-- `RegisterConnectionType`
-- `RunStatement`
-- `StartBlueprintRun`
-- `StartColumnStatisticsTaskRun`
-- `StartColumnStatisticsTaskRunSchedule`
-- `StartDataQualityRuleRecommendationRun`
-- `StartDataQualityRulesetEvaluationRun`
-- `StartExportLabelsTaskRun`
-- `StartImportLabelsTaskRun`
-- `StartMLEvaluationTaskRun`
-- `StartMLLabelingSetGenerationTaskRun`
-- `StartMaterializedViewRefreshTaskRun`
-- `StopColumnStatisticsTaskRun`
-- `StopColumnStatisticsTaskRunSchedule`
-- `StopMaterializedViewRefreshTaskRun`
-- `TestConnection`
-- `UpdateBlueprint`
-- `UpdateCatalog`
-- `UpdateClassifier`
-- `UpdateColumnStatisticsForPartition`
-- `UpdateColumnStatisticsForTable`
-- `UpdateColumnStatisticsTaskSettings`
-- `UpdateDataQualityRuleset`
-- `UpdateGlueIdentityCenterConfiguration`
-- `UpdateIntegrationResourceProperty`
-- `UpdateIntegrationTableProperties`
-- `UpdateTableOptimizer`
-- `UpdateUsageProfile`
-- `UpdateUserDefinedFunction`
+- `BatchDeleteTableVersion` (implemented by fakecloud)
+- `BatchGetBlueprints` (implemented by fakecloud)
+- `BatchGetCustomEntityTypes` (implemented by fakecloud)
+- `BatchGetDataQualityResult` (implemented by fakecloud)
+- `BatchGetTableOptimizer` (implemented by fakecloud)
+- `BatchPutDataQualityStatisticAnnotation` (implemented by fakecloud)
+- `CancelDataQualityRuleRecommendationRun` (implemented by fakecloud)
+- `CancelDataQualityRulesetEvaluationRun` (implemented by fakecloud)
+- `CancelMLTaskRun` (implemented by fakecloud)
+- `CancelStatement` (implemented by fakecloud)
+- `CreateBlueprint` (implemented by fakecloud)
+- `CreateCatalog` (implemented by fakecloud)
+- `CreateClassifier` (implemented by fakecloud)
+- `CreateColumnStatisticsTaskSettings` (implemented by fakecloud)
+- `CreateCustomEntityType` (implemented by fakecloud)
+- `CreateDataQualityRuleset` (implemented by fakecloud)
+- `CreateGlueIdentityCenterConfiguration` (implemented by fakecloud)
+- `CreateIntegration` (implemented by fakecloud)
+- `CreateIntegrationResourceProperty` (implemented by fakecloud)
+- `CreateIntegrationTableProperties` (implemented by fakecloud)
+- `CreatePartitionIndex` (implemented by fakecloud)
+- `CreateScript` (implemented by fakecloud)
+- `CreateTableOptimizer` (implemented by fakecloud)
+- `CreateUsageProfile` (implemented by fakecloud)
+- `CreateUserDefinedFunction` (implemented by fakecloud)
+- `DeleteBlueprint` (implemented by fakecloud)
+- `DeleteCatalog` (implemented by fakecloud)
+- `DeleteClassifier` (implemented by fakecloud)
+- `DeleteColumnStatisticsForPartition` (implemented by fakecloud)
+- `DeleteColumnStatisticsForTable` (implemented by fakecloud)
+- `DeleteColumnStatisticsTaskSettings` (implemented by fakecloud)
+- `DeleteConnectionType` (implemented by fakecloud)
+- `DeleteCustomEntityType` (implemented by fakecloud)
+- `DeleteDataQualityRuleset` (implemented by fakecloud)
+- `DeleteGlueIdentityCenterConfiguration` (implemented by fakecloud)
+- `DeleteIntegration` (implemented by fakecloud)
+- `DeleteIntegrationResourceProperty` (implemented by fakecloud)
+- `DeleteIntegrationTableProperties` (implemented by fakecloud)
+- `DeletePartitionIndex` (implemented by fakecloud)
+- `DeleteTableOptimizer` (implemented by fakecloud)
+- `DeleteUsageProfile` (implemented by fakecloud)
+- `DeleteUserDefinedFunction` (implemented by fakecloud)
+- `DescribeConnectionType` (implemented by fakecloud)
+- `DescribeEntity` (implemented by fakecloud)
+- `DescribeInboundIntegrations` (implemented by fakecloud)
+- `DescribeIntegrations` (implemented by fakecloud)
+- `GetBlueprint` (implemented by fakecloud)
+- `GetBlueprintRun` (implemented by fakecloud)
+- `GetBlueprintRuns` (implemented by fakecloud)
+- `GetCatalog` (implemented by fakecloud)
+- `GetCatalogImportStatus` (implemented by fakecloud)
+- `GetCatalogs` (implemented by fakecloud)
+- `GetClassifier` (implemented by fakecloud)
+- `GetClassifiers` (implemented by fakecloud)
+- `GetColumnStatisticsForPartition` (implemented by fakecloud)
+- `GetColumnStatisticsForTable` (implemented by fakecloud)
+- `GetColumnStatisticsTaskRun` (implemented by fakecloud)
+- `GetColumnStatisticsTaskRuns` (implemented by fakecloud)
+- `GetColumnStatisticsTaskSettings` (implemented by fakecloud)
+- `GetCustomEntityType` (implemented by fakecloud)
+- `GetDataQualityModel` (implemented by fakecloud)
+- `GetDataQualityModelResult` (implemented by fakecloud)
+- `GetDataQualityResult` (implemented by fakecloud)
+- `GetDataQualityRuleRecommendationRun` (implemented by fakecloud)
+- `GetDataQualityRuleset` (implemented by fakecloud)
+- `GetDataQualityRulesetEvaluationRun` (implemented by fakecloud)
+- `GetDataflowGraph` (implemented by fakecloud)
+- `GetEntityRecords` (implemented by fakecloud)
+- `GetGlueIdentityCenterConfiguration` (implemented by fakecloud)
+- `GetIntegrationResourceProperty` (implemented by fakecloud)
+- `GetIntegrationTableProperties` (implemented by fakecloud)
+- `GetMLTaskRun` (implemented by fakecloud)
+- `GetMLTaskRuns` (implemented by fakecloud)
+- `GetMapping` (implemented by fakecloud)
+- `GetMaterializedViewRefreshTaskRun` (implemented by fakecloud)
+- `GetPartitionIndexes` (implemented by fakecloud)
+- `GetPlan` (implemented by fakecloud)
+- `GetResourcePolicies` (implemented by fakecloud)
+- `GetStatement` (implemented by fakecloud)
+- `GetTableOptimizer` (implemented by fakecloud)
+- `GetUnfilteredPartitionMetadata` (implemented by fakecloud)
+- `GetUnfilteredPartitionsMetadata` (implemented by fakecloud)
+- `GetUnfilteredTableMetadata` (implemented by fakecloud)
+- `GetUsageProfile` (implemented by fakecloud)
+- `GetUserDefinedFunction` (implemented by fakecloud)
+- `GetUserDefinedFunctions` (implemented by fakecloud)
+- `ListBlueprints` (implemented by fakecloud)
+- `ListColumnStatisticsTaskRuns` (implemented by fakecloud)
+- `ListConnectionTypes` (implemented by fakecloud)
+- `ListCustomEntityTypes` (implemented by fakecloud)
+- `ListDataQualityResults` (implemented by fakecloud)
+- `ListDataQualityRuleRecommendationRuns` (implemented by fakecloud)
+- `ListDataQualityRulesetEvaluationRuns` (implemented by fakecloud)
+- `ListDataQualityRulesets` (implemented by fakecloud)
+- `ListDataQualityStatisticAnnotations` (implemented by fakecloud)
+- `ListDataQualityStatistics` (implemented by fakecloud)
+- `ListEntities` (implemented by fakecloud)
+- `ListIntegrationResourceProperties` (implemented by fakecloud)
+- `ListMaterializedViewRefreshTaskRuns` (implemented by fakecloud)
+- `ListStatements` (implemented by fakecloud)
+- `ListTableOptimizerRuns` (implemented by fakecloud)
+- `ListUsageProfiles` (implemented by fakecloud)
+- `ModifyIntegration` (implemented by fakecloud)
+- `PutDataQualityProfileAnnotation` (implemented by fakecloud)
+- `RegisterConnectionType` (implemented by fakecloud)
+- `RunStatement` (implemented by fakecloud)
+- `StartBlueprintRun` (implemented by fakecloud)
+- `StartColumnStatisticsTaskRun` (implemented by fakecloud)
+- `StartColumnStatisticsTaskRunSchedule` (implemented by fakecloud)
+- `StartDataQualityRuleRecommendationRun` (implemented by fakecloud)
+- `StartDataQualityRulesetEvaluationRun` (implemented by fakecloud)
+- `StartExportLabelsTaskRun` (implemented by fakecloud)
+- `StartImportLabelsTaskRun` (implemented by fakecloud)
+- `StartMLEvaluationTaskRun` (implemented by fakecloud)
+- `StartMLLabelingSetGenerationTaskRun` (implemented by fakecloud)
+- `StartMaterializedViewRefreshTaskRun` (implemented by fakecloud)
+- `StopColumnStatisticsTaskRun` (implemented by fakecloud)
+- `StopColumnStatisticsTaskRunSchedule` (implemented by fakecloud)
+- `StopMaterializedViewRefreshTaskRun` (implemented by fakecloud)
+- `TestConnection` (implemented by fakecloud)
+- `UpdateBlueprint` (implemented by fakecloud)
+- `UpdateCatalog` (implemented by fakecloud)
+- `UpdateClassifier` (implemented by fakecloud)
+- `UpdateColumnStatisticsForPartition` (implemented by fakecloud)
+- `UpdateColumnStatisticsForTable` (implemented by fakecloud)
+- `UpdateColumnStatisticsTaskSettings` (implemented by fakecloud)
+- `UpdateDataQualityRuleset` (implemented by fakecloud)
+- `UpdateGlueIdentityCenterConfiguration` (implemented by fakecloud)
+- `UpdateIntegrationResourceProperty` (implemented by fakecloud)
+- `UpdateIntegrationTableProperties` (implemented by fakecloud)
+- `UpdateTableOptimizer` (implemented by fakecloud)
+- `UpdateUsageProfile` (implemented by fakecloud)
+- `UpdateUserDefinedFunction` (implemented by fakecloud)
 
 </details>
 

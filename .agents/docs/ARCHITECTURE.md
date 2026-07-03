@@ -243,7 +243,7 @@ Workspace-scale reporting is part of the repo architecture, not just a release a
 
 `API_COVERAGE.md` now combines two reporting layers:
 
-- implementation and emulator comparison coverage ( Winterbaume, moto, floci, kumo where available )
+- implementation and emulator comparison coverage ( Winterbaume, moto, floci, kumo, fakecloud where available )
 - validation coverage ( SDK integration tests and Terraform E2E coverage )
 
 That split matters architecturally because operation counts, emulator comparison, SDK compatibility, and provider compatibility drift in different ways. The reporting layer also contains repo-specific heuristics and mappings, so missing coverage rows can mean stale detection logic rather than missing handlers or tests. Local verification needs to match CI here: `./.agents/bin/cargo.sh clippy --workspace --all-targets` is the important workspace-wide lint surface because it catches example and test drift that library-only runs miss. Coverage maintenance is partly parser maintenance as well, because some services expose their operation surface through public HTTP handler methods rather than only `handle_*` helpers, cached operation maps can drift alongside the source tree, and supported-service reporting now derives from real workspace crates rather than from a fallback stub registry.

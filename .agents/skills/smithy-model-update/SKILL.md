@@ -56,7 +56,7 @@ If the audit reports drift, patch the affected files before regenerating derived
    python3 .agents/skills/update-readme/scripts/update_readme.py
    ```
 
-   If remote moto/floci/kumo refresh fails because of network restrictions, rerun with approval or use the existing cache if the task only needs local Smithy/crate alignment.
+   If remote moto/floci/kumo/fakecloud refresh fails because of network restrictions, rerun with approval or use the existing cache if the task only needs local Smithy/crate alignment.
 
 5. If generated `model.rs` or `wire.rs` is stale, do not edit it manually. Edit `tools/smithy-codegen/src/gen_serializers.rs` only for generator bugs, rebuild through `./.agents/bin/cargo.sh`, then regenerate the affected crate using the model directory from the service dossier or `smithy-codegen list-services`.
 

@@ -14,7 +14,8 @@ S3 Tables service implementation for winterbaume.
 | moto coverage | 14/49 operations (28.6%) |
 | floci coverage | 0/49 operations (0.0%) |
 | kumo coverage | 12/49 operations (24.5%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 0/49 operations (0.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 

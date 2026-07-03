@@ -11,10 +11,11 @@ AWS Panorama service implementation for winterbaume.
 | Protocol | restJson1 |
 | winterbaume coverage | 10/34 operations (29.4%) |
 | stubs (routed, returns empty/default) | 1/34 operations (2.9%) |
-| moto coverage | 11/34 operations (32.4%) |
+| moto coverage | 0/34 operations (0.0%) |
 | floci coverage | 0/34 operations (0.0%) |
 | kumo coverage | 0/34 operations (0.0%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 0/34 operations (0.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 

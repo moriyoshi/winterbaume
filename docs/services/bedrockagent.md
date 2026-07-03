@@ -14,7 +14,8 @@ Bedrock Agent service implementation for winterbaume.
 | moto coverage | 11/72 operations (15.3%) |
 | floci coverage | 0/72 operations (0.0%) |
 | kumo coverage | 0/72 operations (0.0%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 72/72 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 

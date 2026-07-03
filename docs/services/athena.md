@@ -14,7 +14,8 @@ Athena service implementation for winterbaume.
 | moto coverage | 27/70 operations (38.6%) |
 | floci coverage | 0/70 operations (0.0%) |
 | kumo coverage | 7/70 operations (10.0%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 70/70 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 
@@ -95,50 +96,50 @@ async fn main() {
 
 <details><summary>Not yet implemented APIs (45)</summary>
 
-- `BatchGetNamedQuery`
-- `BatchGetPreparedStatement`
-- `BatchGetQueryExecution`
-- `CancelCapacityReservation`
-- `CreateNotebook`
-- `CreatePresignedNotebookUrl`
-- `DeleteCapacityReservation`
-- `DeleteDataCatalog`
-- `DeleteNamedQuery`
-- `DeleteNotebook`
-- `DeletePreparedStatement`
-- `ExportNotebook`
-- `GetCalculationExecution`
-- `GetCalculationExecutionCode`
-- `GetCalculationExecutionStatus`
-- `GetCapacityAssignmentConfiguration`
-- `GetDatabase` (implemented by moto)
-- `GetNotebookMetadata`
-- `GetResourceDashboard`
-- `GetSession`
-- `GetSessionEndpoint`
-- `GetSessionStatus`
-- `GetTableMetadata`
-- `ImportNotebook`
-- `ListApplicationDPUSizes`
-- `ListCalculationExecutions`
-- `ListDatabases` (implemented by moto)
-- `ListEngineVersions`
-- `ListExecutors`
-- `ListNotebookMetadata`
-- `ListNotebookSessions`
-- `ListPreparedStatements`
-- `ListSessions`
-- `ListTableMetadata`
-- `PutCapacityAssignmentConfiguration`
-- `StartCalculationExecution`
-- `StartSession`
-- `StopCalculationExecution`
-- `TerminateSession`
-- `UpdateDataCatalog`
-- `UpdateNamedQuery`
-- `UpdateNotebook`
-- `UpdateNotebookMetadata`
-- `UpdatePreparedStatement`
-- `UpdateWorkGroup`
+- `BatchGetNamedQuery` (implemented by fakecloud)
+- `BatchGetPreparedStatement` (implemented by fakecloud)
+- `BatchGetQueryExecution` (implemented by fakecloud)
+- `CancelCapacityReservation` (implemented by fakecloud)
+- `CreateNotebook` (implemented by fakecloud)
+- `CreatePresignedNotebookUrl` (implemented by fakecloud)
+- `DeleteCapacityReservation` (implemented by fakecloud)
+- `DeleteDataCatalog` (implemented by fakecloud)
+- `DeleteNamedQuery` (implemented by fakecloud)
+- `DeleteNotebook` (implemented by fakecloud)
+- `DeletePreparedStatement` (implemented by fakecloud)
+- `ExportNotebook` (implemented by fakecloud)
+- `GetCalculationExecution` (implemented by fakecloud)
+- `GetCalculationExecutionCode` (implemented by fakecloud)
+- `GetCalculationExecutionStatus` (implemented by fakecloud)
+- `GetCapacityAssignmentConfiguration` (implemented by fakecloud)
+- `GetDatabase` (implemented by moto, fakecloud)
+- `GetNotebookMetadata` (implemented by fakecloud)
+- `GetResourceDashboard` (implemented by fakecloud)
+- `GetSession` (implemented by fakecloud)
+- `GetSessionEndpoint` (implemented by fakecloud)
+- `GetSessionStatus` (implemented by fakecloud)
+- `GetTableMetadata` (implemented by fakecloud)
+- `ImportNotebook` (implemented by fakecloud)
+- `ListApplicationDPUSizes` (implemented by fakecloud)
+- `ListCalculationExecutions` (implemented by fakecloud)
+- `ListDatabases` (implemented by moto, fakecloud)
+- `ListEngineVersions` (implemented by fakecloud)
+- `ListExecutors` (implemented by fakecloud)
+- `ListNotebookMetadata` (implemented by fakecloud)
+- `ListNotebookSessions` (implemented by fakecloud)
+- `ListPreparedStatements` (implemented by fakecloud)
+- `ListSessions` (implemented by fakecloud)
+- `ListTableMetadata` (implemented by fakecloud)
+- `PutCapacityAssignmentConfiguration` (implemented by fakecloud)
+- `StartCalculationExecution` (implemented by fakecloud)
+- `StartSession` (implemented by fakecloud)
+- `StopCalculationExecution` (implemented by fakecloud)
+- `TerminateSession` (implemented by fakecloud)
+- `UpdateDataCatalog` (implemented by fakecloud)
+- `UpdateNamedQuery` (implemented by fakecloud)
+- `UpdateNotebook` (implemented by fakecloud)
+- `UpdateNotebookMetadata` (implemented by fakecloud)
+- `UpdatePreparedStatement` (implemented by fakecloud)
+- `UpdateWorkGroup` (implemented by fakecloud)
 
 </details>

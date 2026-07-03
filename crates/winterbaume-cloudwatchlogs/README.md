@@ -17,10 +17,11 @@ Winterbäume is not affiliated with, endorsed by, or sponsored by Amazon Web Ser
 | Protocol | awsJson1.1 |
 | winterbaume coverage | 93/113 operations (82.3%) |
 | stubs (routed, returns empty/default) | 15/113 operations (13.3%) |
-| moto coverage | 51/113 operations (45.1%) |
+| moto coverage | 52/113 operations (46.0%) |
 | floci coverage | 0/113 operations (0.0%) |
 | kumo coverage | 11/113 operations (9.7%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 113/113 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 Coverage is generated from [`.agents/docs/API_COVERAGE.md`](../../.agents/docs/API_COVERAGE.md) by [`update_readme.py`](../../.agents/skills/update-readme/scripts/update_readme.py). The `winterbaume` row counts only operations with real, state-backed logic; `stubs` counts handlers that route the request and return an empty/default response without real behaviour. Operation-count coverage is a prioritisation signal, not a behavioural guarantee.
 
@@ -193,11 +194,11 @@ async fn main() {
 
 <details><summary>Not yet implemented APIs (5)</summary>
 
-- `CreateLookupTable`
-- `DeleteLookupTable`
-- `DescribeLookupTables`
-- `GetLookupTable`
-- `UpdateLookupTable`
+- `CreateLookupTable` (implemented by fakecloud)
+- `DeleteLookupTable` (implemented by fakecloud)
+- `DescribeLookupTables` (implemented by fakecloud)
+- `GetLookupTable` (implemented by fakecloud)
+- `UpdateLookupTable` (implemented by fakecloud)
 
 </details>
 

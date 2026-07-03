@@ -13,8 +13,9 @@ EventBridge service implementation for winterbaume.
 | stubs (routed, returns empty/default) | 0/57 operations (0.0%) |
 | moto coverage | 45/57 operations (78.9%) |
 | floci coverage | 0/57 operations (0.0%) |
-| kumo coverage | 15/57 operations (26.3%) |
-| Coverage report date | 2026-05-17 |
+| kumo coverage | 18/57 operations (31.6%) |
+| fakecloud coverage | 57/57 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 

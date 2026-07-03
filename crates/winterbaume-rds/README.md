@@ -20,7 +20,8 @@ Winterbäume is not affiliated with, endorsed by, or sponsored by Amazon Web Ser
 | moto coverage | 85/164 operations (51.8%) |
 | floci coverage | 0/164 operations (0.0%) |
 | kumo coverage | 12/164 operations (7.3%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 164/164 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 Coverage is generated from [`.agents/docs/API_COVERAGE.md`](../../.agents/docs/API_COVERAGE.md) by [`update_readme.py`](../../.agents/skills/update-readme/scripts/update_readme.py). The `winterbaume` row counts only operations with real, state-backed logic; `stubs` counts handlers that route the request and return an empty/default response without real behaviour. Operation-count coverage is a prioritisation signal, not a behavioural guarantee.
 
@@ -263,20 +264,20 @@ async fn main() {
 
 <details><summary>Not yet implemented APIs (14)</summary>
 
-- `CreateCustomDBEngineVersion`
-- `CreateIntegration`
-- `CreateTenantDatabase`
-- `DeleteCustomDBEngineVersion`
-- `DeleteIntegration`
-- `DeleteTenantDatabase`
-- `DescribeIntegrations`
-- `DescribeServerlessV2PlatformVersions`
-- `DescribeTenantDatabases`
-- `ModifyCustomDBEngineVersion`
-- `ModifyDBRecommendation`
-- `ModifyIntegration`
-- `ModifyTenantDatabase`
-- `PurchaseReservedDBInstancesOffering`
+- `CreateCustomDBEngineVersion` (implemented by fakecloud)
+- `CreateIntegration` (implemented by fakecloud)
+- `CreateTenantDatabase` (implemented by fakecloud)
+- `DeleteCustomDBEngineVersion` (implemented by fakecloud)
+- `DeleteIntegration` (implemented by fakecloud)
+- `DeleteTenantDatabase` (implemented by fakecloud)
+- `DescribeIntegrations` (implemented by fakecloud)
+- `DescribeServerlessV2PlatformVersions` (implemented by fakecloud)
+- `DescribeTenantDatabases` (implemented by fakecloud)
+- `ModifyCustomDBEngineVersion` (implemented by fakecloud)
+- `ModifyDBRecommendation` (implemented by fakecloud)
+- `ModifyIntegration` (implemented by fakecloud)
+- `ModifyTenantDatabase` (implemented by fakecloud)
+- `PurchaseReservedDBInstancesOffering` (implemented by fakecloud)
 
 </details>
 

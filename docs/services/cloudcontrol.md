@@ -13,8 +13,9 @@ Cloud Control API service implementation for winterbaume.
 | stubs (routed, returns empty/default) | 0/8 operations (0.0%) |
 | moto coverage | 0/8 operations (0.0%) |
 | floci coverage | 0/8 operations (0.0%) |
-| kumo coverage | 0/8 operations (0.0%) |
-| Coverage report date | 2026-05-17 |
+| kumo coverage | 6/8 operations (75.0%) |
+| fakecloud coverage | 8/8 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 

@@ -28,10 +28,10 @@ Update the "Supported Services" section in the workspace `README.md`, regenerate
 
 - Parses the overview table from `.agents/docs/API_COVERAGE.md`
 - Reads the workspace `README.md` and replaces the entire `## Supported Services` section (including the old `### Stub Services` subsection if present) up to the next `##` heading
-- Generates a single merged table with columns: Service, Crate, Protocol, Operations (winterbaume implemented / total), moto coverage, floci coverage, and kumo coverage
+- Generates a single merged table with columns: Service, Crate, Protocol, Operations (winterbaume implemented / total), moto coverage, floci coverage, kumo coverage, and fakecloud coverage
   - Fully-implemented services link their crate to its generated crate-local `README.md`
   - All rows are sorted alphabetically by service display name
-- Rewrites each service crate `README.md` with a generated coverage summary that includes the service name, AWS model, protocol, winterbaume coverage, moto coverage, floci coverage, kumo coverage, coverage report date, an explicit list of implemented APIs, and a collapsible list of APIs not yet implemented (with notes where moto, floci, or kumo implement the missing operation)
+- Rewrites each service crate `README.md` with a generated coverage summary that includes the service name, AWS model, protocol, winterbaume coverage, moto coverage, floci coverage, kumo coverage, fakecloud coverage, coverage report date, an explicit list of implemented APIs, and a collapsible list of APIs not yet implemented (with notes where moto, floci, kumo, or fakecloud implement the missing operation)
 - Transcribes selected service dossier sections into the matching service crate `README.md`; currently this includes `## Current Network Resource Stub Semantics` when present in `.agents/docs/services/<model-slug>.md`
 - Adds an overall coverage summary line
 - Preserves the rest of the README unchanged

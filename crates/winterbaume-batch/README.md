@@ -20,7 +20,8 @@ Winterbäume is not affiliated with, endorsed by, or sponsored by Amazon Web Ser
 | moto coverage | 24/45 operations (53.3%) |
 | floci coverage | 0/45 operations (0.0%) |
 | kumo coverage | 10/45 operations (22.2%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 45/45 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 Coverage is generated from [`.agents/docs/API_COVERAGE.md`](../../.agents/docs/API_COVERAGE.md) by [`update_readme.py`](../../.agents/skills/update-readme/scripts/update_readme.py). The `winterbaume` row counts only operations with real, state-backed logic; `stubs` counts handlers that route the request and return an empty/default response without real behaviour. Operation-count coverage is a prioritisation signal, not a behavioural guarantee.
 
@@ -117,12 +118,12 @@ async fn main() {
 
 <details><summary>Not yet implemented APIs (6)</summary>
 
-- `CreateQuotaShare`
-- `DeleteQuotaShare`
-- `DescribeQuotaShare`
-- `ListQuotaShares`
-- `UpdateQuotaShare`
-- `UpdateServiceJob`
+- `CreateQuotaShare` (implemented by fakecloud)
+- `DeleteQuotaShare` (implemented by fakecloud)
+- `DescribeQuotaShare` (implemented by fakecloud)
+- `ListQuotaShares` (implemented by fakecloud)
+- `UpdateQuotaShare` (implemented by fakecloud)
+- `UpdateServiceJob` (implemented by fakecloud)
 
 </details>
 

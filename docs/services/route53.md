@@ -14,7 +14,8 @@ Route 53 service implementation for winterbaume.
 | moto coverage | 30/71 operations (42.3%) |
 | floci coverage | 0/71 operations (0.0%) |
 | kumo coverage | 10/71 operations (14.1%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 71/71 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 

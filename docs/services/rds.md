@@ -14,7 +14,8 @@ RDS service implementation for winterbaume.
 | moto coverage | 85/164 operations (51.8%) |
 | floci coverage | 0/164 operations (0.0%) |
 | kumo coverage | 12/164 operations (7.3%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 164/164 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 
@@ -253,19 +254,19 @@ async fn main() {
 
 <details><summary>Not yet implemented APIs (14)</summary>
 
-- `CreateCustomDBEngineVersion`
-- `CreateIntegration`
-- `CreateTenantDatabase`
-- `DeleteCustomDBEngineVersion`
-- `DeleteIntegration`
-- `DeleteTenantDatabase`
-- `DescribeIntegrations`
-- `DescribeServerlessV2PlatformVersions`
-- `DescribeTenantDatabases`
-- `ModifyCustomDBEngineVersion`
-- `ModifyDBRecommendation`
-- `ModifyIntegration`
-- `ModifyTenantDatabase`
-- `PurchaseReservedDBInstancesOffering`
+- `CreateCustomDBEngineVersion` (implemented by fakecloud)
+- `CreateIntegration` (implemented by fakecloud)
+- `CreateTenantDatabase` (implemented by fakecloud)
+- `DeleteCustomDBEngineVersion` (implemented by fakecloud)
+- `DeleteIntegration` (implemented by fakecloud)
+- `DeleteTenantDatabase` (implemented by fakecloud)
+- `DescribeIntegrations` (implemented by fakecloud)
+- `DescribeServerlessV2PlatformVersions` (implemented by fakecloud)
+- `DescribeTenantDatabases` (implemented by fakecloud)
+- `ModifyCustomDBEngineVersion` (implemented by fakecloud)
+- `ModifyDBRecommendation` (implemented by fakecloud)
+- `ModifyIntegration` (implemented by fakecloud)
+- `ModifyTenantDatabase` (implemented by fakecloud)
+- `PurchaseReservedDBInstancesOffering` (implemented by fakecloud)
 
 </details>

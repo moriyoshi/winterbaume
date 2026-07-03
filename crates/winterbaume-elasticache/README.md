@@ -20,7 +20,8 @@ Winterbäume is not affiliated with, endorsed by, or sponsored by Amazon Web Ser
 | moto coverage | 17/75 operations (22.7%) |
 | floci coverage | 0/75 operations (0.0%) |
 | kumo coverage | 7/75 operations (9.3%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 75/75 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 Coverage is generated from [`.agents/docs/API_COVERAGE.md`](../../.agents/docs/API_COVERAGE.md) by [`update_readme.py`](../../.agents/skills/update-readme/scripts/update_readme.py). The `winterbaume` row counts only operations with real, state-backed logic; `stubs` counts handlers that route the request and return an empty/default response without real behaviour. Operation-count coverage is a prioritisation signal, not a behavioural guarantee.
 
@@ -123,57 +124,57 @@ async fn main() {
 
 <details><summary>Not yet implemented APIs (51)</summary>
 
-- `AuthorizeCacheSecurityGroupIngress`
-- `BatchApplyUpdateAction`
-- `BatchStopUpdateAction`
-- `CompleteMigration`
-- `CopyServerlessCacheSnapshot`
-- `CopySnapshot`
-- `CreateGlobalReplicationGroup`
-- `CreateServerlessCache`
-- `CreateServerlessCacheSnapshot`
-- `CreateUserGroup`
-- `DecreaseNodeGroupsInGlobalReplicationGroup`
-- `DecreaseReplicaCount`
-- `DeleteGlobalReplicationGroup`
-- `DeleteServerlessCache`
-- `DeleteServerlessCacheSnapshot`
-- `DeleteUserGroup`
-- `DescribeCacheEngineVersions`
-- `DescribeCacheParameters`
-- `DescribeEngineDefaultParameters`
-- `DescribeEvents`
-- `DescribeGlobalReplicationGroups`
-- `DescribeReservedCacheNodes`
-- `DescribeReservedCacheNodesOfferings`
-- `DescribeServerlessCacheSnapshots`
-- `DescribeServerlessCaches`
-- `DescribeServiceUpdates`
-- `DescribeUpdateActions`
-- `DescribeUserGroups`
-- `DisassociateGlobalReplicationGroup`
-- `ExportServerlessCacheSnapshot`
-- `FailoverGlobalReplicationGroup`
-- `IncreaseNodeGroupsInGlobalReplicationGroup`
-- `IncreaseReplicaCount`
-- `ListAllowedNodeTypeModifications`
-- `ModifyCacheCluster` (implemented by kumo)
-- `ModifyCacheParameterGroup`
-- `ModifyCacheSubnetGroup`
-- `ModifyGlobalReplicationGroup`
-- `ModifyReplicationGroup`
-- `ModifyReplicationGroupShardConfiguration`
-- `ModifyServerlessCache`
-- `ModifyUser`
-- `ModifyUserGroup`
-- `PurchaseReservedCacheNodesOffering`
-- `RebalanceSlotsInGlobalReplicationGroup`
-- `RebootCacheCluster`
-- `ResetCacheParameterGroup`
-- `RevokeCacheSecurityGroupIngress`
-- `StartMigration`
-- `TestFailover`
-- `TestMigration`
+- `AuthorizeCacheSecurityGroupIngress` (implemented by fakecloud)
+- `BatchApplyUpdateAction` (implemented by fakecloud)
+- `BatchStopUpdateAction` (implemented by fakecloud)
+- `CompleteMigration` (implemented by fakecloud)
+- `CopyServerlessCacheSnapshot` (implemented by fakecloud)
+- `CopySnapshot` (implemented by fakecloud)
+- `CreateGlobalReplicationGroup` (implemented by fakecloud)
+- `CreateServerlessCache` (implemented by fakecloud)
+- `CreateServerlessCacheSnapshot` (implemented by fakecloud)
+- `CreateUserGroup` (implemented by fakecloud)
+- `DecreaseNodeGroupsInGlobalReplicationGroup` (implemented by fakecloud)
+- `DecreaseReplicaCount` (implemented by fakecloud)
+- `DeleteGlobalReplicationGroup` (implemented by fakecloud)
+- `DeleteServerlessCache` (implemented by fakecloud)
+- `DeleteServerlessCacheSnapshot` (implemented by fakecloud)
+- `DeleteUserGroup` (implemented by fakecloud)
+- `DescribeCacheEngineVersions` (implemented by fakecloud)
+- `DescribeCacheParameters` (implemented by fakecloud)
+- `DescribeEngineDefaultParameters` (implemented by fakecloud)
+- `DescribeEvents` (implemented by fakecloud)
+- `DescribeGlobalReplicationGroups` (implemented by fakecloud)
+- `DescribeReservedCacheNodes` (implemented by fakecloud)
+- `DescribeReservedCacheNodesOfferings` (implemented by fakecloud)
+- `DescribeServerlessCacheSnapshots` (implemented by fakecloud)
+- `DescribeServerlessCaches` (implemented by fakecloud)
+- `DescribeServiceUpdates` (implemented by fakecloud)
+- `DescribeUpdateActions` (implemented by fakecloud)
+- `DescribeUserGroups` (implemented by fakecloud)
+- `DisassociateGlobalReplicationGroup` (implemented by fakecloud)
+- `ExportServerlessCacheSnapshot` (implemented by fakecloud)
+- `FailoverGlobalReplicationGroup` (implemented by fakecloud)
+- `IncreaseNodeGroupsInGlobalReplicationGroup` (implemented by fakecloud)
+- `IncreaseReplicaCount` (implemented by fakecloud)
+- `ListAllowedNodeTypeModifications` (implemented by fakecloud)
+- `ModifyCacheCluster` (implemented by kumo, fakecloud)
+- `ModifyCacheParameterGroup` (implemented by fakecloud)
+- `ModifyCacheSubnetGroup` (implemented by fakecloud)
+- `ModifyGlobalReplicationGroup` (implemented by fakecloud)
+- `ModifyReplicationGroup` (implemented by fakecloud)
+- `ModifyReplicationGroupShardConfiguration` (implemented by fakecloud)
+- `ModifyServerlessCache` (implemented by fakecloud)
+- `ModifyUser` (implemented by fakecloud)
+- `ModifyUserGroup` (implemented by fakecloud)
+- `PurchaseReservedCacheNodesOffering` (implemented by fakecloud)
+- `RebalanceSlotsInGlobalReplicationGroup` (implemented by fakecloud)
+- `RebootCacheCluster` (implemented by fakecloud)
+- `ResetCacheParameterGroup` (implemented by fakecloud)
+- `RevokeCacheSecurityGroupIngress` (implemented by fakecloud)
+- `StartMigration` (implemented by fakecloud)
+- `TestFailover` (implemented by fakecloud)
+- `TestMigration` (implemented by fakecloud)
 
 </details>
 
