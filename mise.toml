@@ -122,29 +122,29 @@ usage = '''
 arg "[options]" var=#true
 '''
 depends = ["build-release-harness"]
-run = "${RELEASE_HARNESS} plan ${usage_options[@]}"
-run_windows = "& $env:RELEASE_HARNESS plan ${usage_options[@]}"
+run = "${RELEASE_HARNESS} plan ${usage_options}"
+run_windows = "& $env:RELEASE_HARNESS plan ${usage_options}"
 
 [tasks.release-changelog]
 usage = '''
 arg "[options]" var=#true
 '''
 depends = ["build-release-harness"]
-run = "${RELEASE_HARNESS} changelog ${usage_options[@]}"
-run_windows = "& $env:RELEASE_HARNESS changelog ${usage_options[@]}"
+run = "${RELEASE_HARNESS} changelog ${usage_options}"
+run_windows = "& $env:RELEASE_HARNESS changelog ${usage_options}"
 
 [tasks.release]
 usage = '''
 arg "[options]" var=#true
 '''
 depends = ["build-release-harness"]
-run = "${RELEASE_HARNESS} publish --sign ${usage_options[@]}"
-run_windows = "& $env:RELEASE_HARNESS publish --sign ${usage_options[@]}"
+run = "${RELEASE_HARNESS} publish --sign ${usage_options}"
+run_windows = "& $env:RELEASE_HARNESS publish --sign ${usage_options}"
 
 [tasks.release-all]
 usage = '''
 arg "[options]" var=#true
 '''
 depends = ["build-release-harness"]
-run = "${RELEASE_HARNESS} batch --sign ${usage_options[@]}"
-run_windows = "& $env:RELEASE_HARNESS batch --sign ${usage_options[@]}"
+run = "${RELEASE_HARNESS} batch --sign ${usage_options}"
+run_windows = "& $env:RELEASE_HARNESS batch --sign ${usage_options}"
