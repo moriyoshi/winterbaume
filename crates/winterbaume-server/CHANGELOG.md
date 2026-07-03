@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.5 - 2026-07-03
+
+### Internal
+
+- Bumped dependency versions to track patch releases of `winterbaume-apigateway`, `winterbaume-appconfig`, `winterbaume-lambda`, `winterbaume-opensearchserverless`, and `winterbaume-s3`. No behavioural changes in this crate.
+
 ## v0.2.4 - 2026-06-04
 
 ### Internal

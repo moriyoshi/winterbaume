@@ -10704,7 +10704,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-apigateway"
-version = "0.2.0"
+version = "1.0.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -10766,7 +10766,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-appconfig"
-version = "1.0.0"
+version = "2.0.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13336,7 +13336,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-lambda"
-version = "1.0.0"
+version = "2.0.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -14354,7 +14354,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-s3"
-version = "0.2.1"
+version = "1.0.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",

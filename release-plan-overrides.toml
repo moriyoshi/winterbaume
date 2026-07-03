@@ -1,2 +1,10 @@
 [bumps]
 winterbaume = "minor"
+# Breaking @httpPayload blob change (commit 3410c5ca): public model struct
+# fields changed type from String to bytes::Bytes. The additions-only heuristic
+# is blind to field-type changes, so force the breaking classification here.
+# (cargo-semver-checks not installed; would otherwise detect these automatically.)
+winterbaume-apigateway = "major"
+winterbaume-s3 = "major"
+winterbaume-appconfig = "major"
+winterbaume-lambda = "major"

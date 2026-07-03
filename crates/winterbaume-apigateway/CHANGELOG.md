@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.3.0 - 2026-07-03
+
+### Internal
+- Maintenance release; no user-visible changes to this crate in this cycle.
+
 ## v0.2.0 - 2026-05-13
 
 ### Internal

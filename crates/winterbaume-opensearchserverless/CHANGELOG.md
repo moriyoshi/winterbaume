@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.2.1 - 2026-07-03
+
+### Fixed
+- Policy version generation is now collision-proof, eliminating a race-prone flake where concurrent policy creation could produce duplicate version identifiers.
+
 ## v0.2.0 - 2026-05-14
 
 ### Internal

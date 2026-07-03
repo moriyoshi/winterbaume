@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.0 - 2026-07-03
+
+### Fixed
+
+- `UploadPart` request bodies are now treated as opaque bytes rather than UTF-8 strings, fixing uploads of binary objects that contain invalid UTF-8 sequences. (PR #13)
+
 ## v0.2.1 - 2026-05-25
 
 ### Fixed
