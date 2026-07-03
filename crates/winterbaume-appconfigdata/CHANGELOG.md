@@ -4,6 +4,12 @@
 
 ### Internal
 
+- Bumped workspace dependency on `winterbaume-appconfig` to pick up its latest release; no user-visible behaviour changes in this crate.
+
+## v0.3.1 - 2026-07-03
+
+### Internal
+
 - Patch release to maintain compatibility with the updated `winterbaume-appconfig` dependency; no changes to this crate's own code.
 
 ## v0.3.0 - 2026-05-18

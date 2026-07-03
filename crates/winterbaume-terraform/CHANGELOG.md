@@ -3,6 +3,11 @@
 ## v0.2.3 - 2026-07-03
 
 ### Internal
+- Bumped workspace dependencies (`winterbaume-apigateway`, `winterbaume-appconfig`, `winterbaume-lambda`, `winterbaume-s3`) to pick up their latest releases; no behaviour changes in this crate.
+
+## v0.2.3 - 2026-07-03
+
+### Internal
 - Transitive patch release to pick up updated dependency versions for `winterbaume-apigateway`, `winterbaume-appconfig`, `winterbaume-lambda`, `winterbaume-opensearchserverless`, and `winterbaume-s3`; no changes to this crate's own code.
 
 ## v0.2.2 - 2026-05-25

@@ -3,6 +3,25 @@
 ## 2026-07-03
 
 - `winterbaume` v0.7.0: see [`crates/winterbaume/CHANGELOG.md`](crates/winterbaume/CHANGELOG.md).
+- `winterbaume-appconfigdata` v0.3.1: see [`crates/winterbaume-appconfigdata/CHANGELOG.md`](crates/winterbaume-appconfigdata/CHANGELOG.md).
+- `winterbaume-opensearchserverless` v0.2.1: see [`crates/winterbaume-opensearchserverless/CHANGELOG.md`](crates/winterbaume-opensearchserverless/CHANGELOG.md).
+- `winterbaume-server` v0.2.5: see [`crates/winterbaume-server/CHANGELOG.md`](crates/winterbaume-server/CHANGELOG.md).
+- `winterbaume-terraform` v0.2.3: see [`crates/winterbaume-terraform/CHANGELOG.md`](crates/winterbaume-terraform/CHANGELOG.md).
+
+## v0.7.0 - 2026-07-03
+
+### Fixed
+
+- S3 `UploadPart` and similar streaming operations now correctly handle binary request bodies; `@httpPayload` blob members are treated as opaque bytes rather than UTF-8 strings, preventing corruption of non-text payloads.
+- OpenSearch Serverless policy-version assignments no longer produce intermittent ordering failures under concurrent test runs.
+
+### Internal
+
+- Corrected `usage_options` interpolation in mise release tasks.
+
+## 2026-07-03
+
+- `winterbaume` v0.7.0: see [`crates/winterbaume/CHANGELOG.md`](crates/winterbaume/CHANGELOG.md).
 - `winterbaume-apigateway` v0.3.0: see [`crates/winterbaume-apigateway/CHANGELOG.md`](crates/winterbaume-apigateway/CHANGELOG.md).
 - `winterbaume-appconfig` v2.0.0: see [`crates/winterbaume-appconfig/CHANGELOG.md`](crates/winterbaume-appconfig/CHANGELOG.md).
 - `winterbaume-appconfigdata` v0.3.1: see [`crates/winterbaume-appconfigdata/CHANGELOG.md`](crates/winterbaume-appconfigdata/CHANGELOG.md).
