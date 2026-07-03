@@ -13,8 +13,9 @@ KMS service implementation for winterbaume.
 | stubs (routed, returns empty/default) | 0/54 operations (0.0%) |
 | moto coverage | 40/54 operations (74.1%) |
 | floci coverage | 0/54 operations (0.0%) |
-| kumo coverage | 19/54 operations (35.2%) |
-| Coverage report date | 2026-05-17 |
+| kumo coverage | 22/54 operations (40.7%) |
+| fakecloud coverage | 54/54 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 
@@ -121,6 +122,6 @@ async fn main() {
 
 <details><summary>Not yet implemented APIs (1)</summary>
 
-- `GetKeyLastUsage`
+- `GetKeyLastUsage` (implemented by fakecloud)
 
 </details>

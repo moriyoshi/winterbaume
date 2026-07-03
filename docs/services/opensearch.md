@@ -14,7 +14,8 @@ Amazon OpenSearch service implementation for winterbaume.
 | moto coverage | 11/88 operations (12.5%) |
 | floci coverage | 0/88 operations (0.0%) |
 | kumo coverage | 0/88 operations (0.0%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 0/88 operations (0.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 

@@ -11,10 +11,11 @@ Amazon SWF service implementation for winterbaume.
 | Protocol | awsJson1.0 |
 | winterbaume coverage | 30/39 operations (76.9%) |
 | stubs (routed, returns empty/default) | 0/39 operations (0.0%) |
-| moto coverage | 19/39 operations (48.7%) |
+| moto coverage | 21/39 operations (53.8%) |
 | floci coverage | 0/39 operations (0.0%) |
 | kumo coverage | 0/39 operations (0.0%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 0/39 operations (0.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 
@@ -105,9 +106,9 @@ async fn main() {
 - `ListTagsForResource`
 - `RequestCancelWorkflowExecution`
 - `RespondActivityTaskCanceled`
-- `TagResource`
+- `TagResource` (implemented by moto)
 - `UndeprecateActivityType`
 - `UndeprecateWorkflowType`
-- `UntagResource`
+- `UntagResource` (implemented by moto)
 
 </details>

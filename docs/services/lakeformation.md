@@ -14,7 +14,8 @@ AWS Lake Formation service implementation for winterbaume.
 | moto coverage | 20/61 operations (32.8%) |
 | floci coverage | 0/61 operations (0.0%) |
 | kumo coverage | 0/61 operations (0.0%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 0/61 operations (0.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 

@@ -101,6 +101,7 @@ It now tracks:
 - moto coverage
 - floci coverage
 - kumo coverage
+- fakecloud coverage
 - SDK integration-test coverage
 - Terraform E2E coverage
 
@@ -108,11 +109,14 @@ That matters because different gaps now mean different things:
 
 - Winterbaume below moto is a service-implementation gap
 - Winterbaume above moto but below Terraform coverage targets is a validation gap
-- floci and kumo provide cross-emulator context rather than the main parity target
+- floci, kumo, and fakecloud provide cross-emulator context rather than the main parity target
 
-### floci and kumo Integration
+### floci, kumo, and fakecloud Integration
 
-The 2026-04-12 coverage work added floci and kumo as comparison columns.
+The 2026-04-12 coverage work added floci and kumo as comparison columns. The
+2026-07-03 work added fakecloud ( https://github.com/faiscadev/fakecloud ) as a
+fifth comparison column, rendered as `C` in the per-operation `W/S/M/F/K/C`
+markers.
 
 Durable implementation rules:
 
@@ -120,13 +124,23 @@ Durable implementation rules:
 - otherwise the skill can use cached remote fetch results
 - remote cache entries should record both fetch date and upstream version
 - service-name mapping tables are part of the coverage system, not incidental script detail
+- fakecloud is fetched as a single repo tarball rather than per-file, because its operation surface lives across ~880 crate source files
 
-This means coverage maintenance now includes four mapping surfaces:
+fakecloud is a Rust AWS emulator whose operation surface is not exposed as a
+coverage document ( unlike moto/floci ) or clean per-service Go files ( kumo ).
+Instead each service implements the `AwsService` trait, and the parser pairs
+`fn service_name(&self) -> &str` ( the AWS endpoint prefix ) with the
+`fn supported_actions(&self) -> &[&str]` that follows it in the same file. Keying
+on the endpoint prefix ( not the crate name ) keeps services that share a crate
+in their own columns -- iam vs sts, cognito-idp vs cognito-identity.
+
+This means coverage maintenance now includes five mapping surfaces:
 
 - Winterbaume crate-to-model mapping
 - moto model mapping
 - floci stem-to-model mapping
 - kumo directory-to-model mapping
+- fakecloud service-name-to-model mapping ( `FAKECLOUD_SERVICE_TO_MODEL` )
 
 ### Retired Stub-Crate Logic
 

@@ -14,7 +14,8 @@ Amazon MemoryDB service implementation for winterbaume.
 | moto coverage | 13/45 operations (28.9%) |
 | floci coverage | 0/45 operations (0.0%) |
 | kumo coverage | 10/45 operations (22.2%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 45/45 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 
@@ -92,37 +93,37 @@ async fn main() {
 
 <details><summary>Not yet implemented APIs (32)</summary>
 
-- `BatchUpdateCluster`
-- `CopySnapshot`
-- `CreateACL` (implemented by kumo)
-- `CreateMultiRegionCluster`
-- `CreateParameterGroup`
-- `CreateUser` (implemented by kumo)
-- `DeleteACL` (implemented by kumo)
-- `DeleteMultiRegionCluster`
-- `DeleteParameterGroup`
-- `DeleteUser` (implemented by kumo)
-- `DescribeACLs` (implemented by kumo)
-- `DescribeEngineVersions`
-- `DescribeEvents`
-- `DescribeMultiRegionClusters`
-- `DescribeMultiRegionParameterGroups`
-- `DescribeMultiRegionParameters`
-- `DescribeParameterGroups`
-- `DescribeParameters`
-- `DescribeReservedNodes`
-- `DescribeReservedNodesOfferings`
-- `DescribeServiceUpdates`
-- `DescribeUsers` (implemented by kumo)
-- `FailoverShard`
-- `ListAllowedMultiRegionClusterUpdates`
-- `ListAllowedNodeTypeUpdates`
-- `PurchaseReservedNodesOffering`
-- `ResetParameterGroup`
-- `UpdateACL`
-- `UpdateMultiRegionCluster`
-- `UpdateParameterGroup`
-- `UpdateSubnetGroup`
-- `UpdateUser`
+- `BatchUpdateCluster` (implemented by fakecloud)
+- `CopySnapshot` (implemented by fakecloud)
+- `CreateACL` (implemented by kumo, fakecloud)
+- `CreateMultiRegionCluster` (implemented by fakecloud)
+- `CreateParameterGroup` (implemented by fakecloud)
+- `CreateUser` (implemented by kumo, fakecloud)
+- `DeleteACL` (implemented by kumo, fakecloud)
+- `DeleteMultiRegionCluster` (implemented by fakecloud)
+- `DeleteParameterGroup` (implemented by fakecloud)
+- `DeleteUser` (implemented by kumo, fakecloud)
+- `DescribeACLs` (implemented by kumo, fakecloud)
+- `DescribeEngineVersions` (implemented by fakecloud)
+- `DescribeEvents` (implemented by fakecloud)
+- `DescribeMultiRegionClusters` (implemented by fakecloud)
+- `DescribeMultiRegionParameterGroups` (implemented by fakecloud)
+- `DescribeMultiRegionParameters` (implemented by fakecloud)
+- `DescribeParameterGroups` (implemented by fakecloud)
+- `DescribeParameters` (implemented by fakecloud)
+- `DescribeReservedNodes` (implemented by fakecloud)
+- `DescribeReservedNodesOfferings` (implemented by fakecloud)
+- `DescribeServiceUpdates` (implemented by fakecloud)
+- `DescribeUsers` (implemented by kumo, fakecloud)
+- `FailoverShard` (implemented by fakecloud)
+- `ListAllowedMultiRegionClusterUpdates` (implemented by fakecloud)
+- `ListAllowedNodeTypeUpdates` (implemented by fakecloud)
+- `PurchaseReservedNodesOffering` (implemented by fakecloud)
+- `ResetParameterGroup` (implemented by fakecloud)
+- `UpdateACL` (implemented by fakecloud)
+- `UpdateMultiRegionCluster` (implemented by fakecloud)
+- `UpdateParameterGroup` (implemented by fakecloud)
+- `UpdateSubnetGroup` (implemented by fakecloud)
+- `UpdateUser` (implemented by fakecloud)
 
 </details>

@@ -13,8 +13,9 @@ CloudWatch service implementation for winterbaume.
 | stubs (routed, returns empty/default) | 5/46 operations (10.9%) |
 | moto coverage | 20/46 operations (43.5%) |
 | floci coverage | 0/46 operations (0.0%) |
-| kumo coverage | 10/46 operations (21.7%) |
-| Coverage report date | 2026-05-17 |
+| kumo coverage | 11/46 operations (23.9%) |
+| fakecloud coverage | 46/46 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 
@@ -118,8 +119,8 @@ async fn main() {
 
 <details><summary>Not yet implemented APIs (3)</summary>
 
-- `GetOTelEnrichment`
-- `StartOTelEnrichment`
-- `StopOTelEnrichment`
+- `GetOTelEnrichment` (implemented by fakecloud)
+- `StartOTelEnrichment` (implemented by fakecloud)
+- `StopOTelEnrichment` (implemented by fakecloud)
 
 </details>

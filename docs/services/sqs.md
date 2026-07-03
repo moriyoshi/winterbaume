@@ -13,8 +13,9 @@ SQS service implementation for winterbaume.
 | stubs (routed, returns empty/default) | 0/23 operations (0.0%) |
 | moto coverage | 20/23 operations (87.0%) |
 | floci coverage | 0/23 operations (0.0%) |
-| kumo coverage | 14/23 operations (60.9%) |
-| Coverage report date | 2026-05-17 |
+| kumo coverage | 16/23 operations (69.6%) |
+| fakecloud coverage | 23/23 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 

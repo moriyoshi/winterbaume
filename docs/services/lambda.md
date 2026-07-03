@@ -13,8 +13,9 @@ Lambda service implementation for winterbaume.
 | stubs (routed, returns empty/default) | 0/85 operations (0.0%) |
 | moto coverage | 46/85 operations (54.1%) |
 | floci coverage | 0/85 operations (0.0%) |
-| kumo coverage | 17/85 operations (20.0%) |
-| Coverage report date | 2026-05-17 |
+| kumo coverage | 23/85 operations (27.1%) |
+| fakecloud coverage | 85/85 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 

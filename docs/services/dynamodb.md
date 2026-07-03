@@ -13,8 +13,9 @@ DynamoDB service implementation for winterbaume.
 | stubs (routed, returns empty/default) | 0/57 operations (0.0%) |
 | moto coverage | 39/57 operations (68.4%) |
 | floci coverage | 0/57 operations (0.0%) |
-| kumo coverage | 20/57 operations (35.1%) |
-| Coverage report date | 2026-05-17 |
+| kumo coverage | 21/57 operations (36.8%) |
+| fakecloud coverage | 57/57 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 

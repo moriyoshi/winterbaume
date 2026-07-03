@@ -13,8 +13,9 @@ SSM service implementation for winterbaume.
 | stubs (routed, returns empty/default) | 19/146 operations (13.0%) |
 | moto coverage | 41/146 operations (28.1%) |
 | floci coverage | 0/146 operations (0.0%) |
-| kumo coverage | 7/146 operations (4.8%) |
-| Coverage report date | 2026-05-17 |
+| kumo coverage | 10/146 operations (6.8%) |
+| fakecloud coverage | 146/146 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 

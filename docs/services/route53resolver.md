@@ -14,7 +14,8 @@ Route 53 Resolver service implementation for winterbaume.
 | moto coverage | 28/68 operations (41.2%) |
 | floci coverage | 0/68 operations (0.0%) |
 | kumo coverage | 11/68 operations (16.2%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 0/68 operations (0.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 

@@ -14,7 +14,8 @@ CloudTrail service implementation for winterbaume.
 | moto coverage | 16/60 operations (26.7%) |
 | floci coverage | 0/60 operations (0.0%) |
 | kumo coverage | 8/60 operations (13.3%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 0/60 operations (0.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 

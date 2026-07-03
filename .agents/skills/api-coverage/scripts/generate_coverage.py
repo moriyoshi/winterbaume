@@ -3,9 +3,9 @@
 
 Compares implemented operations in winterbaume handler crates against
 the official AWS Smithy API models in vendor/api-models-aws/, with
-moto, floci, and kumo coverage shown alongside for reference.
-Moto coverage is fetched from GitHub and cached locally (like floci
-and kumo) unless vendor/moto is present on disk.
+moto, floci, kumo, and fakecloud coverage shown alongside for reference.
+Moto coverage is fetched from GitHub and cached locally (like floci,
+kumo, and fakecloud) unless vendor/moto is present on disk.
 
 Usage:
     python3 .agents/skills/api-coverage/scripts/generate_coverage.py [--output PATH]
@@ -14,11 +14,13 @@ Default output: .agents/docs/API_COVERAGE.md
 """
 
 import argparse
+import io
 import json
 import os
 import re
 import subprocess
 import sys
+import tarfile
 import urllib.error
 import urllib.request
 from datetime import date
@@ -406,6 +408,41 @@ KUMO_DIR_TO_MODEL: dict[str, str] = {
     "s3control": "s3-control",
     "secretsmanager": "secrets-manager",
     "servicequotas": "service-quotas",
+}
+
+# Mapping from fakecloud's AWS service id (the string returned by each
+# service impl's `fn service_name(&self) -> &str`, i.e. the AWS endpoint
+# prefix) to the api-models-aws model directory name. Only entries where the
+# service id differs from the model dir name need to be listed. fakecloud
+# hosts several AWS services per crate, so keying on service_name (rather than
+# the crate name) keeps paired services -- e.g. iam vs sts, cognito-idp vs
+# cognito-identity -- in their own columns.
+FAKECLOUD_SERVICE_TO_MODEL: dict[str, str] = {
+    "apigateway": "apigatewayv2",   # fakecloud's ApiGatewayV2Service reports "apigateway"
+    "apigatewayv1": "api-gateway",
+    "application-autoscaling": "application-auto-scaling",
+    "autoscaling": "auto-scaling",
+    "cloudcontrolapi": "cloudcontrol",
+    "cognito-idp": "cognito-identity-provider",
+    "dynamodbstreams": "dynamodb-streams",
+    "elasticloadbalancing": "elastic-load-balancing-v2",
+    "events": "eventbridge",
+    "logs": "cloudwatch-logs",
+    "monitoring": "cloudwatch",
+    "route53": "route-53",
+    "secretsmanager": "secrets-manager",
+    "sso": "sso-admin",
+    "states": "sfn",
+    "tagging": "resource-groups-tagging-api",
+}
+
+# fakecloud crates that expose the AwsService trait but are framework/tooling
+# rather than a modelled AWS service; their `supported_actions` are empty test
+# doubles.
+FAKECLOUD_SKIP_CRATES = {
+    "fakecloud-core",
+    "fakecloud-conformance",
+    "fakecloud-conformance-macros",
 }
 
 # Mapping from terraform AWS resource types exercised in
@@ -1184,6 +1221,7 @@ _MOTO_RAW = "https://raw.githubusercontent.com/getmoto/moto/master/"
 _FLOCI_API = "https://api.github.com/repos/floci-io/floci/contents/docs/services"
 _KUMO_TREE_API = "https://api.github.com/repos/sivchari/kumo/git/trees/main?recursive=1"
 _KUMO_RAW = "https://raw.githubusercontent.com/sivchari/kumo/main/"
+_FAKECLOUD_TARBALL = "https://codeload.github.com/faiscadev/fakecloud/tar.gz/refs/heads/main"
 
 
 def _github_get(url: str) -> str | None:
@@ -1512,6 +1550,192 @@ def parse_kumo_coverage(
     return cov, version
 
 
+# --- fakecloud ---------------------------------------------------------------
+#
+# fakecloud (https://github.com/faiscadev/fakecloud) is a Rust AWS emulator.
+# Each modelled service implements the `AwsService` trait, exposing both
+# `fn service_name(&self) -> &str` (the AWS endpoint prefix) and
+# `fn supported_actions(&self) -> &[&str]` (the operation names it dispatches).
+# We pair those two methods per impl block to build service -> {operations}.
+# The operation set is intersected against the api-models-aws model later, so
+# over-collection is harmless; the risk is only in missing real operations.
+
+# Operation names are PascalCase alphanumerics; service ids may contain hyphens.
+_FC_OP_LIT = re.compile(r'"([A-Za-z][A-Za-z0-9]+)"')
+_FC_SVC_LIT = re.compile(r'"([a-z][a-z0-9-]*)"')
+# Optional lifetime, e.g. `'static`, in `&'static str` / `&[&'static str]`.
+_FC_LT = r"(?:'[a-z_]+\s+)?"
+_FC_SN_RE = re.compile(
+    r'fn\s+service_name\s*\(\s*&self\s*\)\s*->\s*&\s*' + _FC_LT + r'str\s*\{(.*?)\}',
+    re.DOTALL,
+)
+_FC_SA_RE = re.compile(
+    r'fn\s+supported_actions\s*\(\s*&self\s*\)\s*->\s*&\s*\[\s*&\s*'
+    + _FC_LT + r'str\s*\]\s*\{(.*?)\n\s*\}',
+    re.DOTALL,
+)
+
+
+def _fc_bracket_slice(text: str, open_idx: int) -> str:
+    """Return the bracket-balanced content starting at ``text[open_idx] == '['``."""
+    depth = 0
+    for i in range(open_idx, len(text)):
+        if text[i] == '[':
+            depth += 1
+        elif text[i] == ']':
+            depth -= 1
+            if depth == 0:
+                return text[open_idx + 1:i]
+    return ""
+
+
+def _fc_const_ops(crate_text: str, name: str) -> set[str] | None:
+    """Resolve a `const/static NAME: &[&str] = &[ ... ]` slice to its literals."""
+    m = re.search(
+        r'\b(?:const|static)\s+' + re.escape(name)
+        + r'\s*:\s*&\s*' + _FC_LT + r'\[\s*&\s*' + _FC_LT + r'str\s*\]\s*=\s*&\s*\[',
+        crate_text,
+    )
+    if not m:
+        return None
+    body = _fc_bracket_slice(crate_text, m.end() - 1)
+    return {lit.group(1) for lit in _FC_OP_LIT.finditer(body)}
+
+
+def _fc_ops_from_supported_body(body: str, crate_text: str) -> set[str] | None:
+    """Extract operation names from a `supported_actions` method body.
+
+    Handles inline slices (`&[ "Op", ... ]`) and named constants
+    (`SUPPORTED_ACTIONS`). Returns None for dynamic bodies (e.g. `&self.actions`)
+    that cannot be resolved statically.
+    """
+    b = body.strip()
+    if '[' in b:
+        return {lit.group(1) for lit in _FC_OP_LIT.finditer(
+            _fc_bracket_slice(b, b.index('[')))}
+    ident = b.replace('&', '').strip().rstrip(',').split()[0] if b else ''
+    if not ident or ident.startswith('self.'):
+        return None
+    return _fc_const_ops(crate_text, ident)
+
+
+def _parse_fakecloud_sources(files: dict[str, str]) -> dict[str, set[str]]:
+    """Build model-dir -> {operations} from fakecloud crate sources.
+
+    ``files`` maps a source path (used only to group per crate) to file text.
+    Each AwsService impl is discovered by pairing its `service_name` literal
+    with the first `supported_actions` body that follows it in the same file.
+    """
+    # Group file texts by crate directory (crates/fakecloud-<name>/...).
+    crate_files: dict[str, list[str]] = {}
+    for path, text in files.items():
+        m = re.search(r'crates/(fakecloud-[^/]+)/', path)
+        if not m or m.group(1) in FAKECLOUD_SKIP_CRATES:
+            continue
+        crate_files.setdefault(m.group(1), []).append(text)
+
+    result: dict[str, set[str]] = {}
+    for texts in crate_files.values():
+        crate_text = "\n".join(texts)
+        for text in texts:
+            sns = list(_FC_SN_RE.finditer(text))
+            sas = list(_FC_SA_RE.finditer(text))
+            for i, sn in enumerate(sns):
+                svc_m = _FC_SVC_LIT.search(sn.group(1))
+                if not svc_m:
+                    continue
+                svc = svc_m.group(1)
+                nxt = sns[i + 1].start() if i + 1 < len(sns) else len(text)
+                sa = next(
+                    (s for s in sas if sn.end() <= s.start() < nxt), None
+                )
+                if sa is None:
+                    continue
+                ops = _fc_ops_from_supported_body(sa.group(1), crate_text)
+                if not ops:
+                    continue
+                model = FAKECLOUD_SERVICE_TO_MODEL.get(svc, svc)
+                result.setdefault(model, set()).update(ops)
+    return result
+
+
+def _fetch_fakecloud_remote() -> tuple[dict[str, set[str]], str]:
+    """Fetch fakecloud coverage and version from GitHub.
+
+    Downloads the repo tarball in a single request (far cheaper than fetching
+    each of the ~880 crate source files individually), parses every
+    `crates/fakecloud-*/src/**/*.rs` member in memory.
+    """
+    headers = {"User-Agent": "winterbaume-coverage/1.0"}
+    token = os.environ.get("GITHUB_TOKEN")
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    req = urllib.request.Request(_FAKECLOUD_TARBALL, headers=headers)
+    try:
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            raw = resp.read()
+    except Exception as exc:
+        print(f"Warning: fetch {_FAKECLOUD_TARBALL} failed: {exc}",
+              file=sys.stderr)
+        return {}, "unknown"
+
+    files: dict[str, str] = {}
+    src_re = re.compile(r'crates/fakecloud-[^/]+/src/.*\.rs$')
+    try:
+        with tarfile.open(fileobj=io.BytesIO(raw), mode="r:gz") as tar:
+            for member in tar:
+                if not member.isfile() or not src_re.search(member.name):
+                    continue
+                fobj = tar.extractfile(member)
+                if fobj is None:
+                    continue
+                # Strip the leading `fakecloud-<sha>/` tarball prefix so paths
+                # start at `crates/...` for crate grouping.
+                rel = member.name.split("/", 1)[1] if "/" in member.name else member.name
+                files[rel] = fobj.read().decode(errors="replace")
+    except Exception as exc:
+        print(f"Warning: parsing fakecloud tarball failed: {exc}",
+              file=sys.stderr)
+        return {}, "unknown"
+
+    coverage = _parse_fakecloud_sources(files)
+    version = _github_release_tag("faiscadev", "fakecloud")
+    return coverage, version
+
+
+def parse_fakecloud_coverage(
+    fakecloud_dir: Path, cache_file: Path
+) -> tuple[dict[str, set[str]], str]:
+    """Return (coverage, version) for fakecloud.
+
+    Priority: vendor/fakecloud on disk -> local cache -> GitHub fetch + cache.
+    """
+    if (fakecloud_dir / "crates").exists():
+        files = {
+            str(rs.relative_to(fakecloud_dir)).replace("\\", "/"):
+                rs.read_text(errors="replace")
+            for rs in sorted((fakecloud_dir / "crates").glob("fakecloud-*/src/**/*.rs"))
+        }
+        return _parse_fakecloud_sources(files), _git_describe(fakecloud_dir)
+
+    cached = _load_coverage_cache(cache_file)
+    if cached is not None:
+        cov, version = cached
+        if version == "unknown":
+            version = _github_release_tag("faiscadev", "fakecloud")
+            if version != "unknown":
+                _save_coverage_cache(cache_file, cov, version)
+        return cov, version
+
+    print("fakecloud: vendor/fakecloud not found — fetching from GitHub...",
+          file=sys.stderr)
+    cov, version = _fetch_fakecloud_remote()
+    if cov:
+        _save_coverage_cache(cache_file, cov, version)
+        print(f"fakecloud: cached to {cache_file}", file=sys.stderr)
+    return cov, version
+
+
 def get_all_model_dirs(models_dir: Path) -> list[str]:
     """Get all service model directory names."""
     if not models_dir.exists():
@@ -1529,6 +1753,7 @@ def generate_report(root: Path, output: Path) -> None:
     moto_dir = root / "vendor" / "moto"
     floci_dir = root / "vendor" / "floci"
     kumo_dir = root / "vendor" / "kumo"
+    fakecloud_dir = root / "vendor" / "fakecloud"
     cache_dir = root / ".agents" / "skills" / "api-coverage" / "cache"
 
     if not models_dir.exists():
@@ -1553,6 +1778,9 @@ def generate_report(root: Path, output: Path) -> None:
     kumo_coverage, kumo_version = parse_kumo_coverage(
         kumo_dir, cache_dir / "kumo_coverage.json"
     )
+    fakecloud_coverage, fakecloud_version = parse_fakecloud_coverage(
+        fakecloud_dir, cache_dir / "fakecloud_coverage.json"
+    )
 
     terraform_e2e = parse_terraform_e2e_coverage(root)
 
@@ -1563,6 +1791,7 @@ def generate_report(root: Path, output: Path) -> None:
     total_moto_impl = 0
     total_floci_impl = 0
     total_kumo_impl = 0
+    total_fakecloud_impl = 0
     total_ops = 0
     total_it_tested = 0
     total_it_implemented = 0
@@ -1597,9 +1826,13 @@ def generate_report(root: Path, output: Path) -> None:
 
         moto_valid = sorted(moto_impl_pascal & model_ops_set)
 
-        # floci and kumo report PascalCase names directly — just intersect with model
+        # floci, kumo and fakecloud report PascalCase names directly — just
+        # intersect with the model operations.
         floci_valid = sorted(floci_coverage.get(model_name, set()) & model_ops_set)
         kumo_valid = sorted(kumo_coverage.get(model_name, set()) & model_ops_set)
+        fakecloud_valid = sorted(
+            fakecloud_coverage.get(model_name, set()) & model_ops_set
+        )
 
         integration_test_coverage = analyse_service_test_coverage(
             root,
@@ -1617,6 +1850,7 @@ def generate_report(root: Path, output: Path) -> None:
             "moto_implemented": moto_valid,
             "floci_implemented": floci_valid,
             "kumo_implemented": kumo_valid,
+            "fakecloud_implemented": fakecloud_valid,
             "missing": missing,
             "total": len(model_ops),
             "all_ops": model_ops,
@@ -1634,6 +1868,7 @@ def generate_report(root: Path, output: Path) -> None:
         total_moto_impl += len(moto_valid)
         total_floci_impl += len(floci_valid)
         total_kumo_impl += len(kumo_valid)
+        total_fakecloud_impl += len(fakecloud_valid)
         total_ops += len(model_ops)
         if integration_test_coverage:
             total_it_tested += len(integration_test_coverage["tested"])
@@ -1677,6 +1912,7 @@ def generate_report(root: Path, output: Path) -> None:
     lines.append(f"| moto | {moto_version} |")
     lines.append(f"| floci | {floci_version} |")
     lines.append(f"| kumo | {kumo_version} |")
+    lines.append(f"| fakecloud | {fakecloud_version} |")
     lines.append("")
     lines.append("## Overview")
     lines.append("")
@@ -1688,8 +1924,8 @@ def generate_report(root: Path, output: Path) -> None:
         "disjoint -- stubs are excluded from the winterbaume count."
     )
     lines.append("")
-    lines.append("| Service | Model | winterbaume | stubs | moto | floci | kumo | Total | wb% | stub% | moto% | floci% | kumo% |")
-    lines.append("|---------|-------|-------------|-------|------|-------|------|-------|-----|-------|-------|--------|------|")
+    lines.append("| Service | Model | winterbaume | stubs | moto | floci | kumo | fakecloud | Total | wb% | stub% | moto% | floci% | kumo% | fakecloud% |")
+    lines.append("|---------|-------|-------------|-------|------|-------|------|-----------|-------|-----|-------|-------|--------|------|------------|")
 
     for svc in services:
         wb_count = len(svc["implemented"])
@@ -1697,16 +1933,18 @@ def generate_report(root: Path, output: Path) -> None:
         moto_count = len(svc["moto_implemented"])
         floci_count = len(svc["floci_implemented"])
         kumo_count = len(svc["kumo_implemented"])
+        fakecloud_count = len(svc["fakecloud_implemented"])
         total = svc["total"]
         wb_pct = (wb_count / total * 100) if total > 0 else 0.0
         stub_pct = (stub_count / total * 100) if total > 0 else 0.0
         moto_pct = (moto_count / total * 100) if total > 0 else 0.0
         floci_pct = (floci_count / total * 100) if total > 0 else 0.0
         kumo_pct = (kumo_count / total * 100) if total > 0 else 0.0
+        fakecloud_pct = (fakecloud_count / total * 100) if total > 0 else 0.0
         lines.append(
             f"| {svc['crate']} | {svc['model']} "
-            f"| {wb_count} | {stub_count} | {moto_count} | {floci_count} | {kumo_count} | {total} "
-            f"| {wb_pct:.1f}% | {stub_pct:.1f}% | {moto_pct:.1f}% | {floci_pct:.1f}% | {kumo_pct:.1f}% |"
+            f"| {wb_count} | {stub_count} | {moto_count} | {floci_count} | {kumo_count} | {fakecloud_count} | {total} "
+            f"| {wb_pct:.1f}% | {stub_pct:.1f}% | {moto_pct:.1f}% | {floci_pct:.1f}% | {kumo_pct:.1f}% | {fakecloud_pct:.1f}% |"
         )
 
     lines.append("")
@@ -1715,6 +1953,9 @@ def generate_report(root: Path, output: Path) -> None:
     moto_overall_pct = (total_moto_impl / total_ops * 100) if total_ops > 0 else 0.0
     floci_overall_pct = (total_floci_impl / total_ops * 100) if total_ops > 0 else 0.0
     kumo_overall_pct = (total_kumo_impl / total_ops * 100) if total_ops > 0 else 0.0
+    fakecloud_overall_pct = (
+        total_fakecloud_impl / total_ops * 100
+    ) if total_ops > 0 else 0.0
     lines.append(
         f"**winterbaume {wb_version}: {total_wb_impl} / {total_ops} operations "
         f"across {len(services)} services ({wb_overall_pct:.1f}%)**"
@@ -1739,6 +1980,12 @@ def generate_report(root: Path, output: Path) -> None:
     lines.append(
         f"**kumo {kumo_version}: {total_kumo_impl} / {total_ops} operations "
         f"across {len(services)} services ({kumo_overall_pct:.1f}%)**"
+    )
+    lines.append("")
+    lines.append(
+        f"**fakecloud {fakecloud_version}: {total_fakecloud_impl} / {total_ops} "
+        f"operations across {len(services)} services "
+        f"({fakecloud_overall_pct:.1f}%)**"
     )
     lines.append("")
     total_it_pct = (
@@ -1881,7 +2128,7 @@ def generate_report(root: Path, output: Path) -> None:
     lines.append(
         "Legend: `W` = winterbaume (real implementation), `S` = stub "
         "(routed but returns empty/default), `M` = moto, `F` = floci, "
-        "`K` = kumo"
+        "`K` = kumo, `C` = fakecloud"
     )
 
     for svc in services:
@@ -1890,11 +2137,13 @@ def generate_report(root: Path, output: Path) -> None:
         moto_set = set(svc["moto_implemented"])
         floci_set = set(svc["floci_implemented"])
         kumo_set = set(svc["kumo_implemented"])
+        fakecloud_set = set(svc["fakecloud_implemented"])
         wb_count = len(wb_set)
         stub_count = len(stub_set)
         moto_count = len(moto_set)
         floci_count = len(floci_set)
         kumo_count = len(kumo_set)
+        fakecloud_count = len(fakecloud_set)
         total = svc["total"]
 
         lines.append("")
@@ -1902,7 +2151,8 @@ def generate_report(root: Path, output: Path) -> None:
             f"### {svc['crate']} ({svc['model']}) "
             f"- W: {wb_count}/{total}, S: {stub_count}/{total}, "
             f"M: {moto_count}/{total}, "
-            f"F: {floci_count}/{total}, K: {kumo_count}/{total}"
+            f"F: {floci_count}/{total}, K: {kumo_count}/{total}, "
+            f"C: {fakecloud_count}/{total}"
         )
         lines.append("")
         e2e_tests = len(svc["e2e_success_tests"])
@@ -1930,7 +2180,8 @@ def generate_report(root: Path, output: Path) -> None:
             m = "x" if op in moto_set else " "
             f = "x" if op in floci_set else " "
             k = "x" if op in kumo_set else " "
-            lines.append(f"- W[{w}] S[{s}] M[{m}] F[{f}] K[{k}] {op}")
+            c = "x" if op in fakecloud_set else " "
+            lines.append(f"- W[{w}] S[{s}] M[{m}] F[{f}] K[{k}] C[{c}] {op}")
 
         lines.append("")
         implemented_count = len(svc["it_implemented"])
@@ -1980,6 +2231,10 @@ def generate_report(root: Path, output: Path) -> None:
         f"kumo {kumo_version}: {total_kumo_impl} / {total_ops} across "
         f"{len(services)} services ({kumo_overall_pct:.1f}%)"
     )
+    print(
+        f"fakecloud {fakecloud_version}: {total_fakecloud_impl} / {total_ops} "
+        f"across {len(services)} services ({fakecloud_overall_pct:.1f}%)"
+    )
 
 
 def main() -> None:
@@ -1993,7 +2248,7 @@ def main() -> None:
     parser.add_argument(
         "--refresh-remote",
         action="store_true",
-        help="Delete cached floci/kumo data and re-fetch from GitHub",
+        help="Delete cached moto/floci/kumo/fakecloud data and re-fetch from GitHub",
     )
     args = parser.parse_args()
 
@@ -2006,6 +2261,7 @@ def main() -> None:
             cache_dir / "moto_coverage.json",
             cache_dir / "floci_coverage.json",
             cache_dir / "kumo_coverage.json",
+            cache_dir / "fakecloud_coverage.json",
         ):
             if cache_file.exists():
                 cache_file.unlink()

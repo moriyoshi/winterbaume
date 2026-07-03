@@ -14,7 +14,8 @@ Identity Store service implementation for winterbaume.
 | moto coverage | 14/19 operations (73.7%) |
 | floci coverage | 0/19 operations (0.0%) |
 | kumo coverage | 0/19 operations (0.0%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 19/19 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 
@@ -88,7 +89,7 @@ async fn main() {
 
 <details><summary>Not yet implemented APIs (2)</summary>
 
-- `GetGroupMembershipId`
-- `IsMemberInGroups`
+- `GetGroupMembershipId` (implemented by fakecloud)
+- `IsMemberInGroups` (implemented by fakecloud)
 
 </details>

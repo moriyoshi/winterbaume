@@ -14,7 +14,8 @@ Amazon MSK service implementation for winterbaume.
 | moto coverage | 13/59 operations (22.0%) |
 | floci coverage | 0/59 operations (0.0%) |
 | kumo coverage | 6/59 operations (10.2%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 0/59 operations (0.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 

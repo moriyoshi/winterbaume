@@ -14,7 +14,8 @@ AWS Config service implementation for winterbaume.
 | moto coverage | 38/97 operations (39.2%) |
 | floci coverage | 0/97 operations (0.0%) |
 | kumo coverage | 9/97 operations (9.3%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 0/97 operations (0.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 

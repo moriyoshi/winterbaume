@@ -14,7 +14,8 @@ Application Auto Scaling service implementation for winterbaume.
 | moto coverage | 9/14 operations (64.3%) |
 | floci coverage | 0/14 operations (0.0%) |
 | kumo coverage | 0/14 operations (0.0%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 14/14 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 

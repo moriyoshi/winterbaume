@@ -20,7 +20,8 @@ Winterbäume is not affiliated with, endorsed by, or sponsored by Amazon Web Ser
 | moto coverage | 29/55 operations (52.7%) |
 | floci coverage | 0/55 operations (0.0%) |
 | kumo coverage | 0/55 operations (0.0%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 55/55 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 Coverage is generated from [`.agents/docs/API_COVERAGE.md`](../../.agents/docs/API_COVERAGE.md) by [`update_readme.py`](../../.agents/skills/update-readme/scripts/update_readme.py). The `winterbaume` row counts only operations with real, state-backed logic; `stubs` counts handlers that route the request and return an empty/default response without real behaviour. Operation-count coverage is a prioritisation signal, not a behavioural guarantee.
 
@@ -118,23 +119,23 @@ async fn main() {
 
 <details><summary>Not yet implemented APIs (17)</summary>
 
-- `DeleteFirewallManagerRuleGroups`
-- `DescribeAllManagedProducts`
-- `DescribeManagedProductsByVendor`
-- `DescribeManagedRuleGroup`
-- `GenerateMobileSdkReleaseUrl`
-- `GetDecryptedAPIKey`
-- `GetManagedRuleSet`
-- `GetMobileSdkRelease`
-- `GetRateBasedStatementManagedKeys`
-- `GetSampledRequests`
-- `GetTopPathStatisticsByTraffic`
-- `ListAvailableManagedRuleGroupVersions`
-- `ListAvailableManagedRuleGroups`
-- `ListManagedRuleSets`
-- `ListMobileSdkReleases`
-- `PutManagedRuleSetVersions`
-- `UpdateManagedRuleSetVersionExpiryDate`
+- `DeleteFirewallManagerRuleGroups` (implemented by fakecloud)
+- `DescribeAllManagedProducts` (implemented by fakecloud)
+- `DescribeManagedProductsByVendor` (implemented by fakecloud)
+- `DescribeManagedRuleGroup` (implemented by fakecloud)
+- `GenerateMobileSdkReleaseUrl` (implemented by fakecloud)
+- `GetDecryptedAPIKey` (implemented by fakecloud)
+- `GetManagedRuleSet` (implemented by fakecloud)
+- `GetMobileSdkRelease` (implemented by fakecloud)
+- `GetRateBasedStatementManagedKeys` (implemented by fakecloud)
+- `GetSampledRequests` (implemented by fakecloud)
+- `GetTopPathStatisticsByTraffic` (implemented by fakecloud)
+- `ListAvailableManagedRuleGroupVersions` (implemented by fakecloud)
+- `ListAvailableManagedRuleGroups` (implemented by fakecloud)
+- `ListManagedRuleSets` (implemented by fakecloud)
+- `ListMobileSdkReleases` (implemented by fakecloud)
+- `PutManagedRuleSetVersions` (implemented by fakecloud)
+- `UpdateManagedRuleSetVersionExpiryDate` (implemented by fakecloud)
 
 </details>
 

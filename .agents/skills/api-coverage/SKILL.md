@@ -12,7 +12,8 @@ Three complementary reports live in this skill, each answering a different
 1. **AWS API operation coverage** — `generate_coverage.py` writes
    `.agents/docs/API_COVERAGE.md`. Compares winterbaume's implemented
    operations against the official Smithy models under
-   `vendor/api-models-aws/`, with moto / floci / kumo numbers alongside.
+   `vendor/api-models-aws/`, with moto / floci / kumo / fakecloud numbers
+   alongside.
 2. **Terraform resource-type coverage** — `generate_terraform_resource_coverage.py`
    writes `.agents/docs/TERRAFORM_RESOURCE_COVERAGE.md`. For each
    winterbaume service, lists how many Terraform `aws_*` resource types
@@ -54,9 +55,9 @@ Each writes to `.agents/docs/<NAME>.md` by default; use `--output PATH` to redir
 git submodule update --init vendor/api-models-aws
 ```
 
-**moto, floci, and kumo do not require submodules.** When `vendor/moto`, `vendor/floci`, or `vendor/kumo` are absent the script fetches the necessary source files directly from GitHub and caches the parsed results under `.agents/skills/api-coverage/cache/` for 7 days. A `GITHUB_TOKEN` environment variable is optional but raises the unauthenticated rate limit (60 req/hr) to 5 000 req/hr.
+**moto, floci, kumo, and fakecloud do not require submodules.** When `vendor/moto`, `vendor/floci`, `vendor/kumo`, or `vendor/fakecloud` are absent the script fetches the necessary source files directly from GitHub and caches the parsed results under `.agents/skills/api-coverage/cache/` for 7 days. fakecloud is fetched as a single repo tarball ( far cheaper than fetching its ~880 crate source files individually ) and parsed in memory. A `GITHUB_TOKEN` environment variable is optional but raises the unauthenticated rate limit (60 req/hr) to 5 000 req/hr.
 
-To force a cache refresh (e.g. after a new moto/floci/kumo release):
+To force a cache refresh (e.g. after a new moto/floci/kumo/fakecloud release):
 
 ```bash
 python3 .agents/skills/api-coverage/scripts/generate_coverage.py --refresh-remote
@@ -65,9 +66,10 @@ python3 .agents/skills/api-coverage/scripts/generate_coverage.py --refresh-remot
 If you prefer local clones (faster, works offline):
 
 ```bash
-git submodule add https://github.com/getmoto/moto     vendor/moto
-git submodule add https://github.com/floci-io/floci   vendor/floci
-git submodule add https://github.com/sivchari/kumo     vendor/kumo
+git submodule add https://github.com/getmoto/moto        vendor/moto
+git submodule add https://github.com/floci-io/floci      vendor/floci
+git submodule add https://github.com/sivchari/kumo       vendor/kumo
+git submodule add https://github.com/faiscadev/fakecloud vendor/fakecloud
 ```
 
 The script prefers a local clone over the cache or a remote fetch when the vendor directory is present.
@@ -82,27 +84,29 @@ The script prefers a local clone over the cache or a remote fetch when the vendo
 3. **Parses moto coverage** from moto's `IMPLEMENTATION_COVERAGE.md` (fetched from GitHub and cached when `vendor/moto` is absent), mapping snake_case operation names back to PascalCase Smithy names
 4. **Parses floci coverage** from per-service Markdown docs (`docs/services/*.md`), reading `Category | Operations` tables where operations are comma- or middle-dot-separated PascalCase names. Source: `vendor/floci` if present, otherwise fetched from GitHub and cached for 7 days.
 5. **Parses kumo coverage** from Go source files (`internal/service/<name>/*.go`): string literals in `Actions() []string` return values (Query/JSON services) and `handle<Op>` receiver method names (REST services). Source: `vendor/kumo` if present, otherwise fetched from GitHub and cached for 7 days.
-6. **Parses integration-test coverage** from `crates/winterbaume-*/tests/integration_test.rs`, detecting AWS SDK client method calls and mapping them back to implemented Smithy operations
-7. **Parses Terraform E2E coverage** from `crates/winterbaume-e2e-tests/tests/terraform/*.rs`, counting success-oriented terraform tests and distinct terraform resource types per service
-8. **Generates the report** with a side-by-side overview table (winterbaume / moto / floci / kumo), integration-test and Terraform E2E summary tables, unimplemented services list, and detailed per-service checklists with `W[x] M[x] F[x] K[x]` markers
+6. **Parses fakecloud coverage** from Rust service crates (`crates/fakecloud-*/src/**/*.rs`). Each service impls the `AwsService` trait; the parser pairs each `fn service_name(&self) -> &str` ( the AWS endpoint prefix ) with the `fn supported_actions(&self) -> &[&str]` that follows it in the same file, resolving named `const <NAME>_ACTIONS: &[&str]` slices as needed. Keying on `service_name` rather than the crate name keeps services that share a crate in their own columns ( e.g. iam vs sts, cognito-idp vs cognito-identity ). Source: `vendor/fakecloud` if present, otherwise fetched from GitHub as a single tarball and cached for 7 days.
+7. **Parses integration-test coverage** from `crates/winterbaume-*/tests/integration_test.rs`, detecting AWS SDK client method calls and mapping them back to implemented Smithy operations
+8. **Parses Terraform E2E coverage** from `crates/winterbaume-e2e-tests/tests/terraform/*.rs`, counting success-oriented terraform tests and distinct terraform resource types per service
+9. **Generates the report** with a side-by-side overview table (winterbaume / moto / floci / kumo / fakecloud), integration-test and Terraform E2E summary tables, unimplemented services list, and detailed per-service checklists with `W[x] M[x] F[x] K[x] C[x]` markers ( `C` = fakecloud )
 
 ### Maintaining the service mappings
 
-Four mappings are defined in `.agents/skills/api-coverage/scripts/generate_coverage.py`:
+Five mappings are defined in `.agents/skills/api-coverage/scripts/generate_coverage.py`:
 - `CRATE_TO_MODEL`: Maps winterbaume crate directory names to api-models-aws model directory names. Add an entry when creating a new service crate.
 - `MODEL_TO_MOTO`: Maps api-models-aws model directory names to moto service names as they appear in moto's `IMPLEMENTATION_COVERAGE.md` (only where they differ, e.g., `"config-service": "config"`).
 - `FLOCI_STEM_TO_MODEL`: Maps floci service document filename stems to api-models-aws model directory names (only where they differ, e.g., `"cognito": "cognito-identity-provider"`). Add an entry when floci adds a service whose doc filename does not match the model dir name.
 - `KUMO_DIR_TO_MODEL`: Maps kumo `internal/service/<name>` directory names to api-models-aws model directory names (only where they differ, e.g., `"elbv2": "elastic-load-balancing-v2"`). Add an entry when kumo adds a service whose directory name does not match the model dir name.
+- `FAKECLOUD_SERVICE_TO_MODEL`: Maps fakecloud's `service_name` values ( the AWS endpoint prefix each service impl returns, e.g. `"monitoring"`, `"events"`, `"states"` ) to api-models-aws model directory names (only where they differ, e.g., `"states": "sfn"`, `"logs": "cloudwatch-logs"`). Add an entry when fakecloud adds a service whose endpoint prefix does not match the model dir name. `FAKECLOUD_SKIP_CRATES` lists framework crates ( `fakecloud-core`, `fakecloud-conformance`, ... ) whose `AwsService` impls are empty test doubles and must be ignored.
 
 ### Output format
 
 The report is written as Markdown with:
-- Overview table: service, model, winterbaume count, moto count, floci count, kumo count, total, wb%, moto%, floci%, kumo%
-- Overall aggregate stats for winterbaume, moto, floci, and kumo
+- Overview table: service, model, winterbaume count, moto count, floci count, kumo count, fakecloud count, total, wb%, moto%, floci%, kumo%, fakecloud%
+- Overall aggregate stats for winterbaume, moto, floci, kumo, and fakecloud
 - Integration-test summary lines plus a per-service integration-test table
 - Terraform E2E summary lines plus a per-service Terraform E2E table
 - List of AWS services not yet implemented
-- Detailed per-service sections with `W[x] M[x] F[x] K[x]` side-by-side checklists for every operation, plus integration-test and Terraform E2E notes
+- Detailed per-service sections with `W[x] M[x] F[x] K[x] C[x]` side-by-side checklists for every operation ( `C` = fakecloud ), plus integration-test and Terraform E2E notes
 
 ## Terraform resource-type coverage
 

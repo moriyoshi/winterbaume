@@ -14,7 +14,8 @@ AWS Glue DataBrew service implementation for winterbaume.
 | moto coverage | 24/44 operations (54.5%) |
 | floci coverage | 0/44 operations (0.0%) |
 | kumo coverage | 0/44 operations (0.0%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 0/44 operations (0.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 

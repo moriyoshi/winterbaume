@@ -18,9 +18,10 @@ Winterbäume is not affiliated with, endorsed by, or sponsored by Amazon Web Ser
 | winterbaume coverage | 117/124 operations (94.4%) |
 | stubs (routed, returns empty/default) | 2/124 operations (1.6%) |
 | moto coverage | 78/124 operations (62.9%) |
-| floci coverage | 70/124 operations (56.5%) |
+| floci coverage | 72/124 operations (58.1%) |
 | kumo coverage | 17/124 operations (13.7%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 124/124 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 Coverage is generated from [`.agents/docs/API_COVERAGE.md`](../../.agents/docs/API_COVERAGE.md) by [`update_readme.py`](../../.agents/skills/update-readme/scripts/update_readme.py). The `winterbaume` row counts only operations with real, state-backed logic; `stubs` counts handlers that route the request and return an empty/default response without real behaviour. Operation-count coverage is a prioritisation signal, not a behavioural guarantee.
 
@@ -228,11 +229,11 @@ async fn main() {
 
 <details><summary>Not yet implemented APIs (5)</summary>
 
-- `GetSdk`
-- `GetSdkType`
-- `GetSdkTypes`
-- `ImportApiKeys`
-- `UpdateVpcLink`
+- `GetSdk` (implemented by fakecloud)
+- `GetSdkType` (implemented by fakecloud)
+- `GetSdkTypes` (implemented by fakecloud)
+- `ImportApiKeys` (implemented by fakecloud)
+- `UpdateVpcLink` (implemented by fakecloud)
 
 </details>
 

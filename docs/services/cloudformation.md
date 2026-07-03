@@ -14,7 +14,8 @@ CloudFormation service implementation for winterbaume.
 | moto coverage | 33/90 operations (36.7%) |
 | floci coverage | 0/90 operations (0.0%) |
 | kumo coverage | 8/90 operations (8.9%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 90/90 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 
@@ -118,52 +119,52 @@ async fn main() {
 
 <details><summary>Not yet implemented APIs (47)</summary>
 
-- `ActivateOrganizationsAccess`
-- `ActivateType`
-- `BatchDescribeTypeConfigurations`
-- `CreateGeneratedTemplate`
-- `CreateStackRefactor`
-- `DeactivateOrganizationsAccess`
-- `DeactivateType`
-- `DeleteGeneratedTemplate`
-- `DeregisterType`
-- `DescribeChangeSetHooks`
-- `DescribeEvents`
-- `DescribeGeneratedTemplate`
-- `DescribeOrganizationsAccess`
-- `DescribePublisher`
-- `DescribeResourceScan`
-- `DescribeStackDriftDetectionStatus`
-- `DescribeStackRefactor`
-- `DescribeStackResourceDrifts`
-- `DescribeType`
-- `DescribeTypeRegistration`
-- `DetectStackDrift`
-- `DetectStackResourceDrift`
-- `DetectStackSetDrift`
-- `ExecuteStackRefactor`
-- `GetGeneratedTemplate`
-- `GetHookResult`
-- `ImportStacksToStackSet`
-- `ListGeneratedTemplates`
-- `ListHookResults`
-- `ListResourceScanRelatedResources`
-- `ListResourceScanResources`
-- `ListResourceScans`
-- `ListStackInstanceResourceDrifts`
-- `ListStackRefactorActions`
-- `ListStackRefactors`
-- `ListStackSetAutoDeploymentTargets`
-- `ListTypeRegistrations`
-- `ListTypeVersions`
-- `PublishType`
-- `RecordHandlerProgress`
-- `RegisterPublisher`
-- `RegisterType`
-- `SetTypeConfiguration`
-- `SetTypeDefaultVersion`
-- `StartResourceScan`
-- `TestType`
-- `UpdateGeneratedTemplate`
+- `ActivateOrganizationsAccess` (implemented by fakecloud)
+- `ActivateType` (implemented by fakecloud)
+- `BatchDescribeTypeConfigurations` (implemented by fakecloud)
+- `CreateGeneratedTemplate` (implemented by fakecloud)
+- `CreateStackRefactor` (implemented by fakecloud)
+- `DeactivateOrganizationsAccess` (implemented by fakecloud)
+- `DeactivateType` (implemented by fakecloud)
+- `DeleteGeneratedTemplate` (implemented by fakecloud)
+- `DeregisterType` (implemented by fakecloud)
+- `DescribeChangeSetHooks` (implemented by fakecloud)
+- `DescribeEvents` (implemented by fakecloud)
+- `DescribeGeneratedTemplate` (implemented by fakecloud)
+- `DescribeOrganizationsAccess` (implemented by fakecloud)
+- `DescribePublisher` (implemented by fakecloud)
+- `DescribeResourceScan` (implemented by fakecloud)
+- `DescribeStackDriftDetectionStatus` (implemented by fakecloud)
+- `DescribeStackRefactor` (implemented by fakecloud)
+- `DescribeStackResourceDrifts` (implemented by fakecloud)
+- `DescribeType` (implemented by fakecloud)
+- `DescribeTypeRegistration` (implemented by fakecloud)
+- `DetectStackDrift` (implemented by fakecloud)
+- `DetectStackResourceDrift` (implemented by fakecloud)
+- `DetectStackSetDrift` (implemented by fakecloud)
+- `ExecuteStackRefactor` (implemented by fakecloud)
+- `GetGeneratedTemplate` (implemented by fakecloud)
+- `GetHookResult` (implemented by fakecloud)
+- `ImportStacksToStackSet` (implemented by fakecloud)
+- `ListGeneratedTemplates` (implemented by fakecloud)
+- `ListHookResults` (implemented by fakecloud)
+- `ListResourceScanRelatedResources` (implemented by fakecloud)
+- `ListResourceScanResources` (implemented by fakecloud)
+- `ListResourceScans` (implemented by fakecloud)
+- `ListStackInstanceResourceDrifts` (implemented by fakecloud)
+- `ListStackRefactorActions` (implemented by fakecloud)
+- `ListStackRefactors` (implemented by fakecloud)
+- `ListStackSetAutoDeploymentTargets` (implemented by fakecloud)
+- `ListTypeRegistrations` (implemented by fakecloud)
+- `ListTypeVersions` (implemented by fakecloud)
+- `PublishType` (implemented by fakecloud)
+- `RecordHandlerProgress` (implemented by fakecloud)
+- `RegisterPublisher` (implemented by fakecloud)
+- `RegisterType` (implemented by fakecloud)
+- `SetTypeConfiguration` (implemented by fakecloud)
+- `SetTypeDefaultVersion` (implemented by fakecloud)
+- `StartResourceScan` (implemented by fakecloud)
+- `TestType` (implemented by fakecloud)
+- `UpdateGeneratedTemplate` (implemented by fakecloud)
 
 </details>

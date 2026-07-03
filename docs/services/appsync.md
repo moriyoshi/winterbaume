@@ -14,7 +14,8 @@ AWS AppSync service implementation for winterbaume.
 | moto coverage | 27/74 operations (36.5%) |
 | floci coverage | 0/74 operations (0.0%) |
 | kumo coverage | 3/74 operations (4.1%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 0/74 operations (0.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 

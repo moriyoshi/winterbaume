@@ -14,7 +14,8 @@ Account Management service implementation for winterbaume.
 | moto coverage | 3/15 operations (20.0%) |
 | floci coverage | 0/15 operations (0.0%) |
 | kumo coverage | 0/15 operations (0.0%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 15/15 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 

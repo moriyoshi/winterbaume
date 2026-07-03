@@ -17,10 +17,11 @@ Winterbäume is not affiliated with, endorsed by, or sponsored by Amazon Web Ser
 | Protocol | restJson1 |
 | winterbaume coverage | 10/34 operations (29.4%) |
 | stubs (routed, returns empty/default) | 1/34 operations (2.9%) |
-| moto coverage | 11/34 operations (32.4%) |
+| moto coverage | 0/34 operations (0.0%) |
 | floci coverage | 0/34 operations (0.0%) |
 | kumo coverage | 0/34 operations (0.0%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 0/34 operations (0.0%) |
+| Coverage report date | 2026-07-03 |
 
 Coverage is generated from [`.agents/docs/API_COVERAGE.md`](../../.agents/docs/API_COVERAGE.md) by [`update_readme.py`](../../.agents/skills/update-readme/scripts/update_readme.py). The `winterbaume` row counts only operations with real, state-backed logic; `stubs` counts handlers that route the request and return an empty/default response without real behaviour. Operation-count coverage is a prioritisation signal, not a behavioural guarantee.
 

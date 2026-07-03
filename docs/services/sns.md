@@ -13,8 +13,9 @@ SNS service implementation for winterbaume.
 | stubs (routed, returns empty/default) | 1/42 operations (2.4%) |
 | moto coverage | 33/42 operations (78.6%) |
 | floci coverage | 0/42 operations (0.0%) |
-| kumo coverage | 13/42 operations (31.0%) |
-| Coverage report date | 2026-05-17 |
+| kumo coverage | 15/42 operations (35.7%) |
+| fakecloud coverage | 42/42 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 ## Server-mode usage
 

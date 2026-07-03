@@ -20,7 +20,8 @@ Winterbäume is not affiliated with, endorsed by, or sponsored by Amazon Web Ser
 | moto coverage | 25/79 operations (31.6%) |
 | floci coverage | 0/79 operations (0.0%) |
 | kumo coverage | 0/79 operations (0.0%) |
-| Coverage report date | 2026-05-17 |
+| fakecloud coverage | 79/79 operations (100.0%) |
+| Coverage report date | 2026-07-03 |
 
 Coverage is generated from [`.agents/docs/API_COVERAGE.md`](../../.agents/docs/API_COVERAGE.md) by [`update_readme.py`](../../.agents/skills/update-readme/scripts/update_readme.py). The `winterbaume` row counts only operations with real, state-backed logic; `stubs` counts handlers that route the request and return an empty/default response without real behaviour. Operation-count coverage is a prioritisation signal, not a behavioural guarantee.
 
@@ -137,57 +138,57 @@ async fn main() {
 
 <details><summary>Not yet implemented APIs (51)</summary>
 
-- `AddRegion`
-- `CreateApplication`
-- `CreateApplicationAssignment`
-- `CreateInstance`
-- `CreateInstanceAccessControlAttributeConfiguration`
-- `CreateTrustedTokenIssuer`
-- `DeleteApplication`
-- `DeleteApplicationAccessScope`
-- `DeleteApplicationAssignment`
-- `DeleteApplicationAuthenticationMethod`
-- `DeleteApplicationGrant`
-- `DeleteInstance`
-- `DeleteInstanceAccessControlAttributeConfiguration`
-- `DeletePermissionsBoundaryFromPermissionSet`
-- `DeleteTrustedTokenIssuer`
-- `DescribeApplication`
-- `DescribeApplicationAssignment`
-- `DescribeApplicationProvider`
-- `DescribeInstance`
-- `DescribeInstanceAccessControlAttributeConfiguration`
-- `DescribePermissionSetProvisioningStatus`
-- `DescribeRegion`
-- `DescribeTrustedTokenIssuer`
-- `GetApplicationAccessScope`
-- `GetApplicationAssignmentConfiguration`
-- `GetApplicationAuthenticationMethod`
-- `GetApplicationGrant`
-- `GetApplicationSessionConfiguration`
-- `GetPermissionsBoundaryForPermissionSet`
-- `ListAccountAssignmentCreationStatus`
-- `ListAccountAssignmentDeletionStatus`
-- `ListApplicationAccessScopes`
-- `ListApplicationAssignments`
-- `ListApplicationAssignmentsForPrincipal`
-- `ListApplicationAuthenticationMethods`
-- `ListApplicationGrants`
-- `ListApplicationProviders`
-- `ListApplications`
-- `ListPermissionSetProvisioningStatus`
-- `ListRegions`
-- `ListTrustedTokenIssuers`
-- `PutApplicationAccessScope`
-- `PutApplicationAssignmentConfiguration`
-- `PutApplicationAuthenticationMethod`
-- `PutApplicationGrant`
-- `PutApplicationSessionConfiguration`
-- `PutPermissionsBoundaryToPermissionSet`
-- `RemoveRegion`
-- `UpdateApplication`
-- `UpdateInstanceAccessControlAttributeConfiguration`
-- `UpdateTrustedTokenIssuer`
+- `AddRegion` (implemented by fakecloud)
+- `CreateApplication` (implemented by fakecloud)
+- `CreateApplicationAssignment` (implemented by fakecloud)
+- `CreateInstance` (implemented by fakecloud)
+- `CreateInstanceAccessControlAttributeConfiguration` (implemented by fakecloud)
+- `CreateTrustedTokenIssuer` (implemented by fakecloud)
+- `DeleteApplication` (implemented by fakecloud)
+- `DeleteApplicationAccessScope` (implemented by fakecloud)
+- `DeleteApplicationAssignment` (implemented by fakecloud)
+- `DeleteApplicationAuthenticationMethod` (implemented by fakecloud)
+- `DeleteApplicationGrant` (implemented by fakecloud)
+- `DeleteInstance` (implemented by fakecloud)
+- `DeleteInstanceAccessControlAttributeConfiguration` (implemented by fakecloud)
+- `DeletePermissionsBoundaryFromPermissionSet` (implemented by fakecloud)
+- `DeleteTrustedTokenIssuer` (implemented by fakecloud)
+- `DescribeApplication` (implemented by fakecloud)
+- `DescribeApplicationAssignment` (implemented by fakecloud)
+- `DescribeApplicationProvider` (implemented by fakecloud)
+- `DescribeInstance` (implemented by fakecloud)
+- `DescribeInstanceAccessControlAttributeConfiguration` (implemented by fakecloud)
+- `DescribePermissionSetProvisioningStatus` (implemented by fakecloud)
+- `DescribeRegion` (implemented by fakecloud)
+- `DescribeTrustedTokenIssuer` (implemented by fakecloud)
+- `GetApplicationAccessScope` (implemented by fakecloud)
+- `GetApplicationAssignmentConfiguration` (implemented by fakecloud)
+- `GetApplicationAuthenticationMethod` (implemented by fakecloud)
+- `GetApplicationGrant` (implemented by fakecloud)
+- `GetApplicationSessionConfiguration` (implemented by fakecloud)
+- `GetPermissionsBoundaryForPermissionSet` (implemented by fakecloud)
+- `ListAccountAssignmentCreationStatus` (implemented by fakecloud)
+- `ListAccountAssignmentDeletionStatus` (implemented by fakecloud)
+- `ListApplicationAccessScopes` (implemented by fakecloud)
+- `ListApplicationAssignments` (implemented by fakecloud)
+- `ListApplicationAssignmentsForPrincipal` (implemented by fakecloud)
+- `ListApplicationAuthenticationMethods` (implemented by fakecloud)
+- `ListApplicationGrants` (implemented by fakecloud)
+- `ListApplicationProviders` (implemented by fakecloud)
+- `ListApplications` (implemented by fakecloud)
+- `ListPermissionSetProvisioningStatus` (implemented by fakecloud)
+- `ListRegions` (implemented by fakecloud)
+- `ListTrustedTokenIssuers` (implemented by fakecloud)
+- `PutApplicationAccessScope` (implemented by fakecloud)
+- `PutApplicationAssignmentConfiguration` (implemented by fakecloud)
+- `PutApplicationAuthenticationMethod` (implemented by fakecloud)
+- `PutApplicationGrant` (implemented by fakecloud)
+- `PutApplicationSessionConfiguration` (implemented by fakecloud)
+- `PutPermissionsBoundaryToPermissionSet` (implemented by fakecloud)
+- `RemoveRegion` (implemented by fakecloud)
+- `UpdateApplication` (implemented by fakecloud)
+- `UpdateInstanceAccessControlAttributeConfiguration` (implemented by fakecloud)
+- `UpdateTrustedTokenIssuer` (implemented by fakecloud)
 
 </details>
 
