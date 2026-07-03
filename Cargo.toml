@@ -563,7 +563,7 @@ winterbaume-accessanalyzer = { version = "0.2.0", path = "crates/winterbaume-acc
 winterbaume-aiops = { version = "0.2.0", path = "crates/winterbaume-aiops" }
 winterbaume-amplifybackend = { version = "0.2.0", path = "crates/winterbaume-amplifybackend" }
 winterbaume-amplifyuibuilder = { version = "0.2.0", path = "crates/winterbaume-amplifyuibuilder" }
-winterbaume-appconfigdata = { version = "0.3.0", path = "crates/winterbaume-appconfigdata" }
+winterbaume-appconfigdata = { version = "0.3.1", path = "crates/winterbaume-appconfigdata" }
 winterbaume-appfabric = { version = "0.2.0", path = "crates/winterbaume-appfabric" }
 winterbaume-appflow = { version = "0.2.0", path = "crates/winterbaume-appflow" }
 winterbaume-appintegrations = { version = "0.2.0", path = "crates/winterbaume-appintegrations" }
@@ -720,7 +720,7 @@ winterbaume-lexmodelsv2 = { version = "0.2.0", path = "crates/winterbaume-lexmod
 winterbaume-lakeformation = { version = "0.2.0", path = "crates/winterbaume-lakeformation" }
 winterbaume-amp = { version = "0.2.0", path = "crates/winterbaume-amp" }
 winterbaume-opensearch = { version = "1.0.0", path = "crates/winterbaume-opensearch" }
-winterbaume-opensearchserverless = { version = "0.2.0", path = "crates/winterbaume-opensearchserverless" }
+winterbaume-opensearchserverless = { version = "0.2.1", path = "crates/winterbaume-opensearchserverless" }
 winterbaume-elasticbeanstalk = { version = "0.2.0", path = "crates/winterbaume-elasticbeanstalk" }
 winterbaume-apprunner = { version = "0.2.0", path = "crates/winterbaume-apprunner" }
 winterbaume-amplify = { version = "0.2.0", path = "crates/winterbaume-amplify" }
@@ -802,7 +802,7 @@ winterbaume-sqlengine-duckdb = { version = "0.2.0", path = "crates/winterbaume-s
 winterbaume-sqs-redis = { version = "0.2.1", path = "crates/winterbaume-sqs-redis" }
 winterbaume-tfstate = { version = "0.2.0", path = "crates/winterbaume-tfstate" }
 winterbaume-tfstate-resource-models = { version = "0.2.0", path = "crates/winterbaume-tfstate-resource-models" }
-winterbaume-terraform = { version = "0.2.2", path = "crates/winterbaume-terraform" }
+winterbaume-terraform = { version = "0.2.3", path = "crates/winterbaume-terraform" }
 
 # AWS SDK
 aws-sdk-accessanalyzer = "1"

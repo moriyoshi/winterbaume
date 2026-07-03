@@ -10785,7 +10785,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-appconfigdata"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13700,7 +13700,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-opensearchserverless"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -14633,7 +14633,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-server"
-version = "0.2.4"
+version = "0.2.5"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -15432,7 +15432,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-terraform"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "aws-config",
  "aws-credential-types",
