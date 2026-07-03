@@ -30,6 +30,10 @@ The Amazon SageMaker AI runtime API.
 - Operation surface is concentrated in these families: `Invoke` (3).
 - 3 operations declare modelled service errors; parity work should map exact error names and retryability where documented.
 
+### Opaque binary payloads (`@httpPayload` blobs)
+
+`InvokeEndpoint` and `InvokeEndpointWithResponseStream` bind the inference input `Body` to `@httpPayload` with a **blob** target. This is **genuinely arbitrary binary** — the payload's meaning is defined by the caller-supplied `ContentType` ( e.g. `application/json`, `text/csv`, `application/x-image`, `application/x-npy`, arbitrary tensor bytes ) and interpreted by the model container, not by SageMaker. The request body must be treated as opaque octets and **never run through `std::str::from_utf8`**; the codegen renders it as `bytes::Bytes` with a zero-copy `request.body.clone()` ( shared issue #12 root cause ). See [GitHub issue #12](https://github.com/moriyoshi/winterbaume/issues/12).
+
 ## Control-Plane / Data-Plane Coherence
 
 - **Paired with `sagemaker` ( same SDK slug `sagemaker` ).** `InvokeEndpoint`, `InvokeEndpointAsync`, and `InvokeEndpointWithResponseStream` target endpoints that the SageMaker control plane ( `winterbaume-sagemaker` ) creates via `CreateEndpoint`. In real AWS, invoking a non-existent endpoint fails with `ValidationError` ( "Endpoint <name> of account <id> not found" ).

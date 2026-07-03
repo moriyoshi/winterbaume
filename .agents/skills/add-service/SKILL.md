@@ -518,6 +518,8 @@ If replacing a 501 stub, remove the old stub arm.
 >
 > Error responses may still use `error_response()` / `json!()` because they have a fixed two-field shape (`__type` + `message`) that is not generated.
 
+> **Rule: `@httpPayload` blob bodies are opaque bytes — never text-decode them.** When an operation binds a **blob** member to `@httpPayload` (object bodies, invocation payloads, upload bodies), the codegen renders it as `bytes::Bytes` and the deserialiser stores `request.body.clone()` with no validation. Handlers must treat that field as raw bytes: store / stream it verbatim, and **never** call `std::str::from_utf8`, `serde_json::from_slice` (as a gate), or an XML parser on it as a precondition — doing so `400`s any binary body (issue #12). Store into the blob store or a `Vec<u8>`/`Bytes` state field. If the *service* genuinely constrains the format (e.g. an OpenAPI import, a JSON shadow document, an SDF batch — see the dossier's "Opaque binary payloads" note), validate the *parsed* content inside the handler and return the service's real error, but do not let the wire deserialiser reject bytes up front. Non-payload blobs are a different case — they arrive base64-encoded as `String`.
+
 ```rust
 fn handle_operation_name(
     &self,

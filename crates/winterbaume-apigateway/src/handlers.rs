@@ -2569,7 +2569,7 @@ impl ApiGatewayService {
         };
         // Extract the API name from the OpenAPI spec body (`info.title`), falling back
         // to "imported-api" if the body is absent or unparseable.
-        let name = serde_json::from_slice::<serde_json::Value>(input.body.as_bytes())
+        let name = serde_json::from_slice::<serde_json::Value>(&input.body)
             .ok()
             .and_then(|v| v.get("info")?.get("title")?.as_str().map(|s| s.to_string()))
             .unwrap_or_else(|| "imported-api".to_string());
@@ -4092,10 +4092,10 @@ impl ApiGatewayService {
         let s = state.read().await;
         match s.get_stage(&input.rest_api_id, &input.stage_name) {
             Ok(_) => wire::serialize_get_sdk_response(&model::SdkResponse {
-                body: Some(format!(
+                body: Some(bytes::Bytes::from(format!(
                     "// SDK stub for api={} stage={} type={}",
                     input.rest_api_id, input.stage_name, input.sdk_type
-                )),
+                ))),
                 content_type: Some("application/octet-stream".to_string()),
                 content_disposition: Some(format!(
                     "attachment; filename=\"{}-{}-{}.zip\"",
@@ -4125,10 +4125,10 @@ impl ApiGatewayService {
         let s = state.read().await;
         match s.get_stage(&input.rest_api_id, &input.stage_name) {
             Ok(_) => wire::serialize_get_export_response(&model::ExportResponse {
-                body: Some(format!(
+                body: Some(bytes::Bytes::from(format!(
                     "{{\"openapi\":\"3.0.0\",\"info\":{{\"title\":\"{}\",\"version\":\"{}\"}}}}",
                     input.rest_api_id, input.stage_name
-                )),
+                ))),
                 content_type: Some("application/json".to_string()),
                 content_disposition: Some(format!(
                     "attachment; filename=\"{}-{}.{}.json\"",

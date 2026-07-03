@@ -200,7 +200,8 @@ async fn test_function_name() {
 - **Optional string fields**: `response.name()` returns `Option<&str>` — compare with `assert_eq!(r.name(), Some("expected"))`
 - **Enum fields**: Use `aws_sdk_xxx::types::EnumType::Variant` — e.g., `assert_eq!(status, &aws_sdk_ecs::types::ClusterStatus::Active)` . Tip: it's often easier to compare the string form, since winterbaume may return raw strings
 - **Integer fields**: Usually `i32` or `i64`, not `Option` — `assert_eq!(r.count(), 5)`
-- **Blob/Bytes fields**: `r.data().unwrap().as_ref()` to get `&[u8]`
+- **Blob/Bytes fields**: `r.data().unwrap().as_ref()` to get `&[u8]`. Input blob bodies use `ByteStream::from_static(...)` ( or `Blob::new(...)` for non-streaming blobs ).
+- **`@httpPayload` blob bodies are opaque bytes**: if the service has a blob `@httpPayload` operation ( upload / invoke / put-object body ) and the moto suite only exercises it with text, add a targeted test that sends a **non-UTF-8** body ( e.g. gzip magic `&[0x1f, 0x8b, …, 0xff, 0xfe]` ) and asserts acceptance — this guards the wire deserialiser against UTF-8-validating an opaque body ( issue #12 ). See the write-tests skill's "Binary `@httpPayload` body" row for framing ( wire-opacity, not "AWS accepts arbitrary binary" for format-constrained ops ).
 - **Nested builders**: Use `.builder()...build().unwrap()` for complex input types
 
 ### 3d. Error assertions

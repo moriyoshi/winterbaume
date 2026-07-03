@@ -2618,6 +2618,85 @@ async fn test_multipart_upload_lifecycle() {
     assert_eq!(body.as_ref(), b"hello world");
 }
 
+// Regression test for issue #12: UploadPart must treat the request body as
+// opaque octets. A part whose bytes are not valid UTF-8 (e.g. a gzip layer)
+// previously failed with `400 MalformedXML` because the generated deserializer
+// UTF-8-validated the raw body. It must now be accepted and stored verbatim.
+#[tokio::test]
+async fn test_multipart_upload_binary_non_utf8_part() {
+    let client = make_s3_client().await;
+
+    client
+        .create_bucket()
+        .bucket("binary-multipart-bucket")
+        .send()
+        .await
+        .expect("create_bucket should succeed");
+
+    let multipart = client
+        .create_multipart_upload()
+        .bucket("binary-multipart-bucket")
+        .key("layer.tar.gz")
+        .send()
+        .await
+        .expect("create_multipart_upload should succeed");
+    let upload_id = multipart
+        .upload_id()
+        .expect("upload id should be returned")
+        .to_string();
+
+    // Gzip magic bytes `1f 8b` followed by more bytes that are invalid UTF-8
+    // (0x8b at index 1, plus 0xff/0xfe which never appear in valid UTF-8), so
+    // `std::str::from_utf8` on this slice would error — which is exactly what
+    // the old UploadPart deserializer did before issue #12 was fixed.
+    let binary: &[u8] = &[
+        0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xfe, b'h', b'i',
+    ];
+
+    let part1 = client
+        .upload_part()
+        .bucket("binary-multipart-bucket")
+        .key("layer.tar.gz")
+        .upload_id(&upload_id)
+        .part_number(1)
+        .body(ByteStream::from_static(binary))
+        .send()
+        .await
+        .expect("upload_part with binary (non-UTF-8) body should succeed");
+
+    let completed_upload = aws_sdk_s3::types::CompletedMultipartUpload::builder()
+        .set_parts(Some(vec![
+            aws_sdk_s3::types::CompletedPart::builder()
+                .part_number(1)
+                .e_tag(part1.e_tag().unwrap_or_default())
+                .build(),
+        ]))
+        .build();
+    client
+        .complete_multipart_upload()
+        .bucket("binary-multipart-bucket")
+        .key("layer.tar.gz")
+        .upload_id(&upload_id)
+        .multipart_upload(completed_upload)
+        .send()
+        .await
+        .expect("complete_multipart_upload should succeed");
+
+    let object = client
+        .get_object()
+        .bucket("binary-multipart-bucket")
+        .key("layer.tar.gz")
+        .send()
+        .await
+        .expect("get_object should succeed after binary multipart completion");
+    let body = object.body.collect().await.unwrap().into_bytes();
+    assert_eq!(
+        body.as_ref(),
+        binary,
+        "binary part bytes must round-trip verbatim"
+    );
+}
+
 #[tokio::test]
 async fn test_abort_multipart_upload_removes_upload() {
     let client = make_s3_client().await;

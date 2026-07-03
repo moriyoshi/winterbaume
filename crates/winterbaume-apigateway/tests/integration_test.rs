@@ -1390,3 +1390,33 @@ async fn test_get_usage() {
 
     assert_eq!(usage_resp.usage_plan_id().unwrap_or_default(), plan_id);
 }
+
+// Regression test for issue #12: ImportRestApi binds `body` as a `@httpPayload`
+// blob, so the request body must be accepted as opaque bytes. Before the fix the
+// generated deserializer UTF-8-validated the body and would reject any non-UTF-8
+// payload with a spurious 400 before the handler ran. (Import bodies are usually
+// UTF-8 API definitions, so this was low-impact but the same defect class as the
+// S3 UploadPart report.)
+#[tokio::test]
+async fn test_import_rest_api_non_utf8_body_is_accepted() {
+    let client = make_client().await;
+
+    // Not valid UTF-8 (0x8b at index 1, plus 0xff/0xfe). The handler parses the
+    // body as an OpenAPI spec for the API name and falls back gracefully when it
+    // cannot, so the operation still succeeds — the point is the deserializer no
+    // longer rejects the body outright.
+    let binary: &[u8] = &[
+        0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xfe, 0x00, 0x7b,
+    ];
+
+    let imported = client
+        .import_rest_api()
+        .body(aws_sdk_apigateway::primitives::Blob::new(binary))
+        .send()
+        .await
+        .expect("import_rest_api with a non-UTF-8 body should succeed");
+    assert!(
+        imported.id().is_some(),
+        "imported REST API should have an id"
+    );
+}

@@ -41,6 +41,21 @@ Lambda Overview Lambda is a compute service that lets you run code without provi
 - Documentation and model terms indicate cross-service dependencies or identifiers: `IAM`, `S3`, `KMS`, `CloudWatch`, `CloudWatch Logs`, `EventBridge`, `SNS`, `SQS`, `Lambda`, `Glue`, `EC2/VPC`, `ECR`, `ECS`.
 - Some responses appear to be derived from telemetry, managed inventories, recommendations, or findings; seedable mock state may be required because real AWS derives these from external systems.
 
+### Opaque binary payloads (`@httpPayload` blobs)
+
+Several Lambda operations bind a **blob** shape to `@httpPayload`. The body is then raw, opaque bytes that Lambda passes through verbatim — it must never be UTF-8 decoded or parsed. In the `HTTP Bindings` matrix a blob payload is indistinguishable from a structure payload by binding name alone, so the target-shape kind is tracked separately.
+
+Blob `@httpPayload` members in Lambda:
+
+| Operation | Member | Direction | Contract |
+|---|---|---|---|
+| `Invoke` | `Payload` | request/response | opaque octets — the invocation event, may be arbitrary binary |
+| `InvokeWithResponseStream` | `Payload` | request | opaque octets |
+| `InvokeAsync` | `InvokeArgs` | request | opaque octets ( legacy API ) |
+| `SendDurableExecutionCallbackSuccess` | `Result` | request | opaque octets |
+
+Parity rule for winterbaume: a blob `@httpPayload` member must be modelled as raw bytes (`bytes::Bytes`) and **must never be run through `std::str::from_utf8`**. UTF-8-validating the body rejects any non-UTF-8 invocation payload (protobuf, msgpack, gzip, an image, …) with a spurious `400` before the handler runs — the same defect class as S3 `UploadPart`. The fix is in the shared generator (`tools/smithy-codegen/src/gen_serializers.rs`), guarded by the `payload_semantics_tests::http_payload_blobs_are_not_utf8_validated` backstop. Winterbaume's `Invoke` handler currently ignores the payload, so this was latent rather than reported, but the contract still holds. See [GitHub issue #12](https://github.com/moriyoshi/winterbaume/issues/12) for the S3 report that surfaced the shared root cause.
+
 
 ## Resource Model
 

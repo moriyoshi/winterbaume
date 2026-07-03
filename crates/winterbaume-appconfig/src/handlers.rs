@@ -890,13 +890,12 @@ impl AppConfigService {
             input.content_type.clone()
         };
         let description = input.description.unwrap_or_default();
-        // The Smithy `Content` member is a blob; the wire deserialiser
-        // delivers it as a `String` because the model uses
-        // `Vec<u8> -> String` for blob fields. Treat the string bytes as
-        // the raw content payload -- correct for text-based configs
-        // ( JSON, YAML, TEXT ) and for base64-decoded binary that callers
-        // pass through unchanged.
-        let content = input.content.clone().into_bytes();
+        // The Smithy `Content` member is a `@httpPayload` blob; the wire
+        // deserialiser now delivers it as raw `bytes::Bytes` ( issue #12 ), so
+        // the request body is stored verbatim -- text configs ( JSON, YAML,
+        // TEXT ) and arbitrary binary payloads round-trip byte-exact. The state
+        // layer holds content as `Vec<u8>`, so materialise it here.
+        let content = input.content.to_vec();
         let mut state = state.write().await;
         match state.create_hosted_configuration_version(
             &input.application_id,
@@ -1828,7 +1827,7 @@ impl AppConfigService {
         // Deprecated API - return empty configuration
         let mut resp = wire::serialize_get_configuration_response(&wire::Configuration {
             configuration_version: Some("1".to_string()),
-            content: Some("".to_string()),
+            content: Some(bytes::Bytes::new()),
             content_type: Some("application/json".to_string()),
         });
         resp.headers.insert(

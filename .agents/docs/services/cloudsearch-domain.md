@@ -31,6 +31,10 @@ You use the AmazonCloudSearch2013 API to upload documents to a search domain and
 - Read/list operations should define not-found behaviour, filtering, ordering, and empty-result shapes: `Search`.
 - 3 operations declare modelled service errors; parity work should map exact error names and retryability where documented.
 
+### Opaque binary payloads (`@httpPayload` blobs)
+
+`UploadDocuments` binds the batch `documents` body to `@httpPayload` with a **blob** target, so at the wire level the request body is opaque octets and the deserialiser must **never run it through `std::str::from_utf8`** ( codegen renders it as `bytes::Bytes` + `request.body.clone()`, shared issue #12 root cause ). **But this is not arbitrary binary**: real CloudSearch requires the body to be a valid **SDF ( Search Data Format ) document batch** — a collection of add / delete operations formatted as **JSON or XML** matching the declared `Content-Type` ( `application/json` or `application/xml` ) — and rejects malformed batches with a `DocumentServiceException` / `400`. winterbaume's handler does not parse or validate the SDF batch, so it is **more permissive than real CloudSearch**: any bytes are accepted. Treat a binary round-trip test here purely as a wire-opacity check, not as evidence that CloudSearch accepts arbitrary binary. Implementing SDF batch validation is a fidelity gap ( see TODO `cloudsearchdomain-sdf-validation` ). See [GitHub issue #12](https://github.com/moriyoshi/winterbaume/issues/12).
+
 ## Official AWS Documentation Research
 
 Sources:
