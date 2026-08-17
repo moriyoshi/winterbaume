@@ -2371,3 +2371,57 @@ failing:
 The §5.1 grep would have caught none of these three: nobody had written a
 comment about any of them. That is the caveat already recorded in the gate,
 now with three more data points behind it.
+
+## 2026-08-17 — DynamoDB pre-update evaluation semantics, and a correction to the post-mortem above
+
+Prompted by a question rather than a failing test: asked what the dossier and the related AWS document actually said about the update grammar, I fetched `Expressions.UpdateExpressions.html` for the first time in this project's history and found a live bug in code merged an hour earlier as PR #20.
+
+### Actions were applied left to right; AWS says they are not
+
+The page is explicit: "DynamoDB evaluates every action against the item's attribute values *as they were before the update*. The actions aren't applied one after another from left to right, so an action's right-hand operand always refers to the pre-update value of an attribute." `apply_update_actions` did exactly what that sentence rules out — it evaluated each right-hand side against the item as mutated so far — and its doc comment asserted that behaviour as if intended ( "against the item as updated so far" ), which is worse than inheriting it silently: it presented a divergence as a decision, the same failure mode as the original issue-#19 comment.
+
+Two of AWS's own worked examples were therefore wrong, both verified by probe before being written down:
+
+| Expression | AWS documents | winterbaume returned |
+|---|---|---|
+| `REMOVE a SET b = a, c = b` on `{a:1,b:2,c:3}` | `{b:1,c:2}` | `400` "refers to an attribute that does not exist in the item" |
+| `REMOVE l[1], l[2]` on `[Chisel,Hammer,Nails,Screwdriver,Hacksaw]` | `[Chisel,Screwdriver,Hacksaw]` | `[Chisel,Nails,Hacksaw]` |
+
+The fix snapshots the pre-update image, evaluates every `SET` right-hand side against it before applying any of them, and reads `ADD` / `DELETE` current values from it too. Removals are applied last, with list-element removals ordered by **descending index**: the indexes name positions in the pre-update list, and deleting a higher index never shifts a lower one. The second example is the tell that ordering matters — a naive sequential removal silently deletes the wrong element and returns 200.
+
+The same reading turned up a narrower gap: `function ::= if_not_exists (path, value)` takes a full `value`, not an operand, so arithmetic nests inside the fallback. `SET p = if_not_exists(p, :a + :b)` was a syntax error and now evaluates.
+
+### Correction to the "why did we miss it" analysis above
+
+The `### Findings` section earlier in today's entries argues that the project's specification pipeline is operation-shaped and that the missing artefact was the grammar. That is half right, and the wrong half matters more.
+
+The dossier's `## Official AWS Documentation Research` section **already contained**, verbatim before any of today's work:
+
+- "TransactWriteItems is synchronous, idempotent when a client token is supplied, and all-or-nothing across up to 100 actions..."
+- "Transaction actions cannot target the same item more than once in the same request."
+- "Strongly consistent reads are available for tables and local secondary indexes through ConsistentRead, but not for global secondary indexes or streams."
+
+and under `Parity implications`: "Keep transaction state changes atomic and **validate same-item duplication before mutation**."
+
+So for two of the four follow-up items the knowledge was present, correct, specific, and phrased as an instruction — and the implementation diverged anyway. That is a **conformance** failure, not a knowledge failure, and no amount of additional research would have prevented it. Nothing in the project verifies code against its own dossier: the dossier is advisory prose that helps whoever happens to open it.
+
+The operation-level diagnosis holds only for the expression work. The three sources cited were `transaction-apis`, `HowItWorks.ReadConsistency`, and `Query` — no `Expressions.*` page, and no expression grammar recorded anywhere in the repository.
+
+Two different failure modes were conflated, and they need different remedies:
+
+1. **Never written down** ( expression grammars ). Remedy is a dossier-authoring rule: when a parameter carries a sublanguage, record its grammar, because Smithy types it as `String` and no generated artefact can reveal it exists.
+2. **Written down and not done** ( transaction duplicate-item validation, GSI consistent reads ). Remedy is verification: `Parity implications` bullets are testable claims, and nothing checks them. A gate step that walks a dossier's parity implications and asks "is there a test for this?" would have caught both, years before a bug report.
+
+### Dossier now carries the grammars, and one item upgraded
+
+`.agents/docs/services/dynamodb.md` gains the four `Expressions.*` pages as sources and an `### Expression sublanguages` section with the `UpdateExpression` grammar quoted verbatim, plus the consequences that are easy to get wrong: a function is a valid operand of `+` / `-` ( which is what makes issue #19's expression legal ), `if_not_exists` takes a full value, one arithmetic operator per value, one occurrence per clause keyword, pre-update evaluation, append-past-end, `REMOVE` shifting, and parent-must-exist. The section opens by stating why it has to exist at all.
+
+`dynamodb-set-auto-creates-missing-map` moves from "decide whether parity is worth the change" to a confirmed divergence, with the citation: AWS returns `ValidationException` with the message winterbaume already emits for the list case. The judgement call was only a judgement call while nobody had read the page.
+
+### Operational note
+
+`gh issue view` and `gh pr edit` both fail against this repository with `GraphQL: Projects (classic) is being deprecated ... (repository.issue.projectCards)`. `gh pr edit` fails **silently** — non-zero exit, no output — so a body update appears to succeed and does not. Use the REST API for both: `gh api repos/<owner>/<repo>/issues/<n>` and `gh api -X PATCH repos/<owner>/<repo>/pulls/<n> --input <json>`, and verify the result rather than trusting the exit status.
+
+### The transferable bit
+
+This bug existed because the implementation was read and the specification was not. For a parity emulator that is the whole ballgame: reading the code tells you what it does, and only the primary source tells you what it should do. Nothing in the session's own tooling — the tests, the gate, the §5.1 grep — could have found it, because all of them are derived from the implementation. The user asking "what does the AWS document say?" was the only step that could.
