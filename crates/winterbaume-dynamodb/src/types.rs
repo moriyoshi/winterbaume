@@ -283,6 +283,50 @@ pub enum UpdateAction {
     Delete(String, AttributeValue),
 }
 
+/// One write action inside a `TransactWriteItems` request.
+///
+/// The actions are carried as a single ordered list rather than as separate
+/// put / delete / update batches, because DynamoDB applies a transaction in
+/// the order the caller supplied: `[Delete(k), Put(k)]` must leave the item
+/// present, not deleted. `ConditionCheck` is evaluated in the handler and
+/// never reaches a backend, so it has no variant here.
+#[derive(Debug, Clone, PartialEq)]
+pub enum TransactOp {
+    Put {
+        table_name: String,
+        item: Item,
+    },
+    Delete {
+        table_name: String,
+        key: Item,
+    },
+    Update {
+        table_name: String,
+        key: Item,
+        actions: Vec<UpdateAction>,
+    },
+}
+
+impl TransactOp {
+    pub fn table_name(&self) -> &str {
+        match self {
+            TransactOp::Put { table_name, .. }
+            | TransactOp::Delete { table_name, .. }
+            | TransactOp::Update { table_name, .. } => table_name,
+        }
+    }
+
+    /// The item or key this action targets. For a `Put` it is the full item,
+    /// which still carries the primary-key attributes, so callers can derive
+    /// the targeted item's identity uniformly across the variants.
+    pub fn target(&self) -> &Item {
+        match self {
+            TransactOp::Put { item, .. } => item,
+            TransactOp::Delete { key, .. } | TransactOp::Update { key, .. } => key,
+        }
+    }
+}
+
 /// A captured stream change record from a DynamoDB write operation.
 #[derive(Debug, Clone)]
 pub struct StreamChangeRecord {

@@ -185,13 +185,14 @@ pub trait DynamoDbBackend: Send + Sync {
         keys: Vec<(String, Item)>,
     ) -> Pin<Box<dyn Future<Output = Result<Vec<Option<Item>>, DynamoDbError>> + Send>>;
 
+    /// Apply a transaction's actions in the caller's order. Implementations
+    /// must reject two actions targeting the same item before writing
+    /// anything.
     fn transact_write_items(
         &self,
         account_id: String,
         region: String,
-        puts: Vec<(String, Item)>,
-        deletes: Vec<(String, Item)>,
-        updates: Vec<(String, Item, Vec<UpdateAction>)>,
+        ops: Vec<TransactOp>,
     ) -> Pin<Box<dyn Future<Output = Result<(), DynamoDbError>> + Send>>;
 
     // --- Backup operations ---
@@ -840,15 +841,13 @@ impl DynamoDbBackend for InMemoryDynamoDbBackend {
         &self,
         account_id: String,
         region: String,
-        puts: Vec<(String, Item)>,
-        deletes: Vec<(String, Item)>,
-        updates: Vec<(String, Item, Vec<UpdateAction>)>,
+        ops: Vec<TransactOp>,
     ) -> Pin<Box<dyn Future<Output = Result<(), DynamoDbError>> + Send>> {
         let state = Arc::clone(&self.state);
         Box::pin(async move {
             let lock = state.get(&account_id, &region);
             let mut s = lock.write().await;
-            s.transact_write_items(puts, deletes, updates)
+            s.transact_write_items(ops)
         })
     }
 

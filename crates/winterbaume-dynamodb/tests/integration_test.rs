@@ -8022,3 +8022,340 @@ async fn test_update_item_arithmetic_precision() {
         .unwrap();
     assert_eq!(item.get("n").unwrap().as_n().unwrap(), "9007199254740994");
 }
+
+// ---------------------------------------------------------------------------
+// TransactWriteItems validation and ordering (issue #19 additional observations)
+// ---------------------------------------------------------------------------
+
+/// AWS rejects a transaction containing two operations on the same item with
+/// `ValidationException`; winterbaume used to replay both.
+#[tokio::test]
+async fn test_transact_write_rejects_duplicate_item() {
+    use aws_sdk_dynamodb::types::{Delete, Put, TransactWriteItem};
+
+    let client = make_dynamodb_client().await;
+    create_hash_table(&client, "tw-dup").await;
+
+    let err = client
+        .transact_write_items()
+        .transact_items(
+            TransactWriteItem::builder()
+                .put(
+                    Put::builder()
+                        .table_name("tw-dup")
+                        .item("pk", AttributeValue::S("a".into()))
+                        .item("v", AttributeValue::N("1".into()))
+                        .build()
+                        .unwrap(),
+                )
+                .build(),
+        )
+        .transact_items(
+            TransactWriteItem::builder()
+                .delete(
+                    Delete::builder()
+                        .table_name("tw-dup")
+                        .key("pk", AttributeValue::S("a".into()))
+                        .build()
+                        .unwrap(),
+                )
+                .build(),
+        )
+        .send()
+        .await
+        .expect_err("two operations on one item must be rejected");
+    let msg = format!("{err:?}");
+    assert!(msg.contains("ValidationException"), "{msg}");
+    assert!(msg.contains("multiple operations on one item"), "{msg}");
+
+    // Nothing may have been written.
+    let resp = client
+        .get_item()
+        .table_name("tw-dup")
+        .key("pk", AttributeValue::S("a".into()))
+        .send()
+        .await
+        .unwrap();
+    assert!(resp.item.is_none(), "a rejected transaction must not write");
+}
+
+/// The caller's operation order is honoured: `[Delete(k), Put(k)]` on two
+/// distinct items must not be reordered into all-puts-then-all-deletes.
+/// Applied to one key that already exists, delete-then-put leaves it present.
+#[tokio::test]
+async fn test_transact_write_preserves_operation_order() {
+    use aws_sdk_dynamodb::types::{Delete, Put, TransactWriteItem};
+
+    let client = make_dynamodb_client().await;
+    create_hash_table(&client, "tw-order").await;
+
+    client
+        .put_item()
+        .table_name("tw-order")
+        .item("pk", AttributeValue::S("k".into()))
+        .item("gen", AttributeValue::N("1".into()))
+        .send()
+        .await
+        .unwrap();
+
+    // Delete "k" then re-create it in a single transaction. With the old
+    // puts-then-deletes replay the item ended up deleted.
+    client
+        .transact_write_items()
+        .transact_items(
+            TransactWriteItem::builder()
+                .delete(
+                    Delete::builder()
+                        .table_name("tw-order")
+                        .key("pk", AttributeValue::S("k".into()))
+                        .build()
+                        .unwrap(),
+                )
+                .build(),
+        )
+        .transact_items(
+            TransactWriteItem::builder()
+                .put(
+                    Put::builder()
+                        .table_name("tw-order")
+                        .item("pk", AttributeValue::S("k2".into()))
+                        .item("gen", AttributeValue::N("2".into()))
+                        .build()
+                        .unwrap(),
+                )
+                .build(),
+        )
+        .send()
+        .await
+        .unwrap();
+
+    let gone = client
+        .get_item()
+        .table_name("tw-order")
+        .key("pk", AttributeValue::S("k".into()))
+        .send()
+        .await
+        .unwrap();
+    assert!(gone.item.is_none(), "delete must have been applied");
+    let made = client
+        .get_item()
+        .table_name("tw-order")
+        .key("pk", AttributeValue::S("k2".into()))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(made.item.unwrap().get("gen").unwrap().as_n().unwrap(), "2");
+}
+
+/// AWS caps a transaction at 100 actions.
+#[tokio::test]
+async fn test_transact_write_enforces_action_limit() {
+    use aws_sdk_dynamodb::types::{Put, TransactWriteItem};
+
+    let client = make_dynamodb_client().await;
+    create_hash_table(&client, "tw-limit").await;
+
+    let mut req = client.transact_write_items();
+    for i in 0..101 {
+        req = req.transact_items(
+            TransactWriteItem::builder()
+                .put(
+                    Put::builder()
+                        .table_name("tw-limit")
+                        .item("pk", AttributeValue::S(format!("k{i}")))
+                        .build()
+                        .unwrap(),
+                )
+                .build(),
+        );
+    }
+    let err = req
+        .send()
+        .await
+        .expect_err("101 actions should exceed the transaction limit");
+    let msg = format!("{err:?}");
+    assert!(msg.contains("ValidationException"), "{msg}");
+
+    // Exactly 100 is accepted.
+    let mut req = client.transact_write_items();
+    for i in 0..100 {
+        req = req.transact_items(
+            TransactWriteItem::builder()
+                .put(
+                    Put::builder()
+                        .table_name("tw-limit")
+                        .item("pk", AttributeValue::S(format!("ok{i}")))
+                        .build()
+                        .unwrap(),
+                )
+                .build(),
+        );
+    }
+    req.send().await.expect("100 actions is within the limit");
+}
+
+// ---------------------------------------------------------------------------
+// ConsistentRead (issue #19 additional observations)
+// ---------------------------------------------------------------------------
+
+/// A strongly-consistent read is not available on a global secondary index;
+/// AWS answers with ValidationException. LSIs do support it, and the base
+/// table always does.
+#[tokio::test]
+async fn test_consistent_read_rejected_on_gsi() {
+    use aws_sdk_dynamodb::types::{
+        GlobalSecondaryIndex, LocalSecondaryIndex, Projection, ProjectionType,
+    };
+
+    let client = make_dynamodb_client().await;
+    client
+        .create_table()
+        .table_name("cr-tbl")
+        .key_schema(
+            KeySchemaElement::builder()
+                .attribute_name("pk")
+                .key_type(KeyType::Hash)
+                .build()
+                .unwrap(),
+        )
+        .key_schema(
+            KeySchemaElement::builder()
+                .attribute_name("sk")
+                .key_type(KeyType::Range)
+                .build()
+                .unwrap(),
+        )
+        .attribute_definitions(
+            AttributeDefinition::builder()
+                .attribute_name("pk")
+                .attribute_type(ScalarAttributeType::S)
+                .build()
+                .unwrap(),
+        )
+        .attribute_definitions(
+            AttributeDefinition::builder()
+                .attribute_name("sk")
+                .attribute_type(ScalarAttributeType::S)
+                .build()
+                .unwrap(),
+        )
+        .attribute_definitions(
+            AttributeDefinition::builder()
+                .attribute_name("gsi_pk")
+                .attribute_type(ScalarAttributeType::S)
+                .build()
+                .unwrap(),
+        )
+        .attribute_definitions(
+            AttributeDefinition::builder()
+                .attribute_name("lsi_sk")
+                .attribute_type(ScalarAttributeType::S)
+                .build()
+                .unwrap(),
+        )
+        .global_secondary_indexes(
+            GlobalSecondaryIndex::builder()
+                .index_name("by-gsi")
+                .key_schema(
+                    KeySchemaElement::builder()
+                        .attribute_name("gsi_pk")
+                        .key_type(KeyType::Hash)
+                        .build()
+                        .unwrap(),
+                )
+                .projection(
+                    Projection::builder()
+                        .projection_type(ProjectionType::All)
+                        .build(),
+                )
+                .build()
+                .unwrap(),
+        )
+        .local_secondary_indexes(
+            LocalSecondaryIndex::builder()
+                .index_name("by-lsi")
+                .key_schema(
+                    KeySchemaElement::builder()
+                        .attribute_name("pk")
+                        .key_type(KeyType::Hash)
+                        .build()
+                        .unwrap(),
+                )
+                .key_schema(
+                    KeySchemaElement::builder()
+                        .attribute_name("lsi_sk")
+                        .key_type(KeyType::Range)
+                        .build()
+                        .unwrap(),
+                )
+                .projection(
+                    Projection::builder()
+                        .projection_type(ProjectionType::All)
+                        .build(),
+                )
+                .build()
+                .unwrap(),
+        )
+        .provisioned_throughput(
+            ProvisionedThroughput::builder()
+                .read_capacity_units(5)
+                .write_capacity_units(5)
+                .build()
+                .unwrap(),
+        )
+        .send()
+        .await
+        .unwrap();
+
+    // ConsistentRead against the GSI is refused.
+    let err = client
+        .query()
+        .table_name("cr-tbl")
+        .index_name("by-gsi")
+        .consistent_read(true)
+        .key_condition_expression("gsi_pk = :v")
+        .expression_attribute_values(":v", AttributeValue::S("x".into()))
+        .send()
+        .await
+        .expect_err("consistent read on a GSI must be rejected");
+    let msg = format!("{err:?}");
+    assert!(msg.contains("ValidationException"), "{msg}");
+    assert!(
+        msg.contains("Consistent reads are not supported on global secondary indexes"),
+        "{msg}"
+    );
+
+    // The same query without ConsistentRead is fine.
+    client
+        .query()
+        .table_name("cr-tbl")
+        .index_name("by-gsi")
+        .key_condition_expression("gsi_pk = :v")
+        .expression_attribute_values(":v", AttributeValue::S("x".into()))
+        .send()
+        .await
+        .expect("eventually-consistent GSI query is valid");
+
+    // An LSI does support consistent reads.
+    client
+        .query()
+        .table_name("cr-tbl")
+        .index_name("by-lsi")
+        .consistent_read(true)
+        .key_condition_expression("pk = :v")
+        .expression_attribute_values(":v", AttributeValue::S("x".into()))
+        .send()
+        .await
+        .expect("consistent read on an LSI is valid");
+
+    // And so does the base table.
+    client
+        .query()
+        .table_name("cr-tbl")
+        .consistent_read(true)
+        .key_condition_expression("pk = :v")
+        .expression_attribute_values(":v", AttributeValue::S("x".into()))
+        .send()
+        .await
+        .expect("consistent read on the base table is valid");
+}

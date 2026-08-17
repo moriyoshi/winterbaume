@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use chrono::Utc;
 use uuid::Uuid;
@@ -104,6 +104,9 @@ pub enum DynamoDbError {
 
     #[error("The conditional request failed")]
     ConditionalCheckFailed,
+
+    #[error("Transaction request cannot include multiple operations on one item")]
+    TransactionConflict,
 
     #[error("Internal error: {0}")]
     InternalError(String),
@@ -1482,37 +1485,43 @@ impl DynamoDbState {
         Ok(results)
     }
 
-    pub fn transact_write_items(
-        &mut self,
-        puts: Vec<(String, Item)>,
-        deletes: Vec<(String, Item)>,
-        updates: Vec<(String, Item, Vec<UpdateAction>)>,
-    ) -> Result<(), DynamoDbError> {
-        // Verify all tables exist first
-        for (table_name, _) in &puts {
-            if !self.tables.contains_key(table_name.as_str()) {
-                return Err(resource_not_found(table_name));
-            }
-        }
-        for (table_name, _) in &deletes {
-            if !self.tables.contains_key(table_name.as_str()) {
-                return Err(resource_not_found(table_name));
-            }
-        }
-        for (table_name, _, _) in &updates {
-            if !self.tables.contains_key(table_name.as_str()) {
-                return Err(resource_not_found(table_name));
+    /// Apply a transaction's actions in the order the caller supplied them.
+    ///
+    /// All tables are verified to exist, and no two actions may target the
+    /// same item, before anything is written.
+    pub fn transact_write_items(&mut self, ops: Vec<TransactOp>) -> Result<(), DynamoDbError> {
+        let mut seen: HashSet<(String, String)> = HashSet::new();
+        for op in &ops {
+            let table = &self
+                .tables
+                .get(op.table_name())
+                .ok_or_else(|| resource_not_found(op.table_name()))?
+                .table;
+            let identity = (
+                op.table_name().to_string(),
+                item_identity(op.target(), table)?,
+            );
+            if !seen.insert(identity) {
+                return Err(DynamoDbError::TransactionConflict);
             }
         }
 
-        for (table_name, item) in puts {
-            self.put_item(&table_name, item)?;
-        }
-        for (table_name, key) in &deletes {
-            self.delete_item(table_name, key)?;
-        }
-        for (table_name, key, actions) in &updates {
-            self.update_item(table_name, key, actions)?;
+        for op in ops {
+            match op {
+                TransactOp::Put { table_name, item } => {
+                    self.put_item(&table_name, item)?;
+                }
+                TransactOp::Delete { table_name, key } => {
+                    self.delete_item(&table_name, &key)?;
+                }
+                TransactOp::Update {
+                    table_name,
+                    key,
+                    actions,
+                } => {
+                    self.update_item(&table_name, &key, &actions)?;
+                }
+            }
         }
         Ok(())
     }
@@ -1570,6 +1579,23 @@ fn extract_key_item(item: &Item, table: &Table) -> Item {
         }
     }
     keys
+}
+
+/// Build a comparable identity for the item an operation targets, so a
+/// transaction can detect two actions aimed at the same item.
+fn item_identity(target: &Item, table: &Table) -> Result<String, DynamoDbError> {
+    let hash = target
+        .get(&table.hash_key_attr)
+        .ok_or_else(|| DynamoDbError::MissingKey(table.hash_key_attr.clone()))?;
+    let mut identity = serialize_key_value(hash);
+    if let Some(ref rk_attr) = table.range_key_attr {
+        let range = target
+            .get(rk_attr)
+            .ok_or_else(|| DynamoDbError::MissingKey(rk_attr.clone()))?;
+        identity.push('\u{1}');
+        identity.push_str(&serialize_key_value(range));
+    }
+    Ok(identity)
 }
 
 /// Serialize a DynamoDB-typed AttributeValue to a string key for HashMap storage.
