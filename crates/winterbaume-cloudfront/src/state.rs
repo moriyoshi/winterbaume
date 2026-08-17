@@ -120,7 +120,7 @@ impl CloudFrontState {
 
         let id = format!(
             "E{}",
-            &uuid::Uuid::new_v4().to_string()[..13]
+            uuid::Uuid::new_v4().to_string()[..13]
                 .to_uppercase()
                 .replace('-', "")
         );
@@ -229,7 +229,7 @@ impl CloudFrontState {
 
         let id = format!(
             "I{}",
-            &uuid::Uuid::new_v4().to_string()[..13]
+            uuid::Uuid::new_v4().to_string()[..13]
                 .to_uppercase()
                 .replace('-', "")
         );
@@ -370,7 +370,7 @@ impl CloudFrontState {
     ) -> Result<&OriginAccessControlData, CloudFrontError> {
         let id = format!(
             "E{}",
-            &uuid::Uuid::new_v4().to_string()[..13]
+            uuid::Uuid::new_v4().to_string()[..13]
                 .to_uppercase()
                 .replace('-', "")
         );
@@ -464,7 +464,7 @@ impl CloudFrontState {
     ) -> Result<&PublicKeyData, CloudFrontError> {
         let id = format!(
             "K{}",
-            &uuid::Uuid::new_v4().to_string()[..13]
+            uuid::Uuid::new_v4().to_string()[..13]
                 .to_uppercase()
                 .replace('-', "")
         );
@@ -594,7 +594,7 @@ impl CloudFrontState {
     pub fn create_cache_policy(&mut self, config: CachePolicyConfig) -> &CachePolicyData {
         let id = format!(
             "CP{}",
-            &uuid::Uuid::new_v4().to_string()[..11]
+            uuid::Uuid::new_v4().to_string()[..11]
                 .to_uppercase()
                 .replace('-', "")
         );
@@ -928,7 +928,7 @@ impl CloudFrontState {
         }
         let id = format!(
             "E{}",
-            &uuid::Uuid::new_v4().to_string()[..13]
+            uuid::Uuid::new_v4().to_string()[..13]
                 .to_uppercase()
                 .replace('-', "")
         );
@@ -1005,7 +1005,7 @@ impl CloudFrontState {
         }
         let id = format!(
             "E{}",
-            &uuid::Uuid::new_v4().to_string()[..13]
+            uuid::Uuid::new_v4().to_string()[..13]
                 .to_uppercase()
                 .replace('-', "")
         );
@@ -1177,7 +1177,7 @@ impl CloudFrontState {
         }
         let id = format!(
             "E{}",
-            &uuid::Uuid::new_v4().to_string()[..13]
+            uuid::Uuid::new_v4().to_string()[..13]
                 .to_uppercase()
                 .replace('-', "")
         );
@@ -1257,7 +1257,7 @@ impl CloudFrontState {
     ) -> &VpcOriginData {
         let id = format!(
             "vo{}",
-            &uuid::Uuid::new_v4().to_string()[..12]
+            uuid::Uuid::new_v4().to_string()[..12]
                 .to_uppercase()
                 .replace('-', "")
         );
@@ -1341,7 +1341,7 @@ impl CloudFrontState {
     ) -> &AnycastIpListData {
         let id = format!(
             "al{}",
-            &uuid::Uuid::new_v4().to_string()[..12]
+            uuid::Uuid::new_v4().to_string()[..12]
                 .to_uppercase()
                 .replace('-', "")
         );
@@ -1527,7 +1527,7 @@ impl CloudFrontState {
     ) -> &FieldLevelEncryptionData {
         let id = format!(
             "E{}",
-            &uuid::Uuid::new_v4().to_string()[..13]
+            uuid::Uuid::new_v4().to_string()[..13]
                 .to_uppercase()
                 .replace('-', "")
         );
@@ -1603,7 +1603,7 @@ impl CloudFrontState {
     ) -> &FieldLevelEncryptionProfileData {
         let id = format!(
             "E{}",
-            &uuid::Uuid::new_v4().to_string()[..13]
+            uuid::Uuid::new_v4().to_string()[..13]
                 .to_uppercase()
                 .replace('-', "")
         );
@@ -1683,7 +1683,7 @@ impl CloudFrontState {
     ) -> &ConnectionFunctionData {
         let id = format!(
             "cf{}",
-            &uuid::Uuid::new_v4().to_string()[..12]
+            uuid::Uuid::new_v4().to_string()[..12]
                 .to_uppercase()
                 .replace('-', "")
         );
@@ -1785,7 +1785,7 @@ impl CloudFrontState {
     ) -> &ConnectionGroupData {
         let id = format!(
             "cg{}",
-            &uuid::Uuid::new_v4().to_string()[..12]
+            uuid::Uuid::new_v4().to_string()[..12]
                 .to_uppercase()
                 .replace('-', "")
         );
@@ -1887,7 +1887,7 @@ impl CloudFrontState {
     ) -> &ContinuousDeploymentPolicyData {
         let id = format!(
             "E{}",
-            &uuid::Uuid::new_v4().to_string()[..13]
+            uuid::Uuid::new_v4().to_string()[..13]
                 .to_uppercase()
                 .replace('-', "")
         );
@@ -1971,7 +1971,7 @@ impl CloudFrontState {
     ) -> &DistributionTenantData {
         let id = format!(
             "dt{}",
-            &uuid::Uuid::new_v4().to_string()[..12]
+            uuid::Uuid::new_v4().to_string()[..12]
                 .to_uppercase()
                 .replace('-', "")
         );
@@ -2217,7 +2217,7 @@ impl CloudFrontState {
         }
         let id = format!(
             "I{}",
-            &uuid::Uuid::new_v4().to_string()[..13]
+            uuid::Uuid::new_v4().to_string()[..13]
                 .to_uppercase()
                 .replace('-', "")
         );

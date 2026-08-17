@@ -145,7 +145,7 @@ impl AutoScalingState {
             group_name: name.clone(),
             cause: format!(
                 "At {} a user request created an AutoScalingGroup",
-                &created_time
+                created_time
             ),
             start_time: created_time.clone(),
             end_time: Some(created_time.clone()),
@@ -921,7 +921,7 @@ impl AutoScalingState {
             group_name: group_name.clone(),
             cause: format!(
                 "At {} instance {instance_id} was taken out of service in response to a user request.",
-                &now
+                now
             ),
             start_time: now.clone(),
             end_time: Some(now),

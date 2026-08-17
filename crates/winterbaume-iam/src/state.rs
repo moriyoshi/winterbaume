@@ -2069,7 +2069,7 @@ impl IamState {
         }
 
         let key_id = format!("APKA{}", random_alphanumeric(16));
-        let fingerprint = format!("{}:{}", &random_alphanumeric(2), &random_alphanumeric(47));
+        let fingerprint = format!("{}:{}", random_alphanumeric(2), random_alphanumeric(47));
 
         let entry = SSHPublicKeyEntry {
             user_name: user_name.to_string(),
@@ -2764,7 +2764,7 @@ impl IamState {
 
         let id = generate_resource_id("APKA");
         let service_user_name = format!("{user_name}+{}-{}", service_name, &id[4..12]);
-        let service_password = format!("{}{}", &id, random_alphanumeric(20));
+        let service_password = format!("{}{}", id, random_alphanumeric(20));
 
         let cred = ServiceSpecificCredential {
             service_specific_credential_id: id.clone(),

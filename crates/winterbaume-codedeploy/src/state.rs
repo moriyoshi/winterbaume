@@ -211,7 +211,7 @@ impl CodeDeployState {
         })?;
         let deployment_config_name = dg.deployment_config_name.clone();
 
-        let deployment_id = format!("d-{}", &Uuid::new_v4().to_string()[..9].to_uppercase());
+        let deployment_id = format!("d-{}", Uuid::new_v4().to_string()[..9].to_uppercase());
         let deployment = Deployment {
             deployment_id: deployment_id.clone(),
             application_name: application_name.to_string(),

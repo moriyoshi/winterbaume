@@ -125,13 +125,7 @@ impl ManagedBlockchainState {
         }
         self.members
             .get(member_id)
-            .and_then(|m| {
-                if m.network_id == network_id {
-                    Some(m)
-                } else {
-                    None
-                }
-            })
+            .filter(|&m| m.network_id == network_id)
             .ok_or_else(|| ManagedBlockchainError::MemberNotFound {
                 member_id: member_id.to_string(),
             })
@@ -274,13 +268,7 @@ impl ManagedBlockchainState {
         let member = self
             .members
             .get_mut(member_id)
-            .and_then(|m| {
-                if m.network_id == network_id {
-                    Some(m)
-                } else {
-                    None
-                }
-            })
+            .filter(|m| m.network_id == network_id)
             .ok_or_else(|| ManagedBlockchainError::MemberNotFound {
                 member_id: member_id.to_string(),
             })?;
@@ -451,13 +439,7 @@ impl ManagedBlockchainState {
         }
         self.proposals
             .get(proposal_id)
-            .and_then(|p| {
-                if p.network_id == network_id {
-                    Some(p)
-                } else {
-                    None
-                }
-            })
+            .filter(|&p| p.network_id == network_id)
             .ok_or_else(|| ManagedBlockchainError::ProposalNotFound {
                 proposal_id: proposal_id.to_string(),
             })
@@ -683,13 +665,7 @@ impl ManagedBlockchainState {
         let member = self
             .members
             .get(member_id)
-            .and_then(|m| {
-                if m.network_id == network_id {
-                    Some(m)
-                } else {
-                    None
-                }
-            })
+            .filter(|&m| m.network_id == network_id)
             .ok_or_else(|| ManagedBlockchainError::MemberNotFound {
                 member_id: member_id.to_string(),
             })?;
