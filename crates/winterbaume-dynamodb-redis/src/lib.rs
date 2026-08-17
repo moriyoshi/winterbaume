@@ -1112,7 +1112,8 @@ impl DynamoDbBackend for RedisDynamoDbBackend {
                 Some(s) => serde_json::from_str(&s).map_err(json_err)?,
             };
 
-            winterbaume_dynamodb::expr::apply_update_actions(&mut item, &actions);
+            winterbaume_dynamodb::expr::apply_update_actions(&mut item, &actions)
+                .map_err(DynamoDbError::ValidationError)?;
 
             let json = serde_json::to_string(&item).map_err(json_err)?;
             conn.hset::<_, _, _, ()>(k_items(acct, rgn, &table_name), &field, json)
@@ -1442,7 +1443,8 @@ impl DynamoDbBackend for RedisDynamoDbBackend {
                     None => key.clone(),
                     Some(s) => serde_json::from_str(&s).map_err(json_err)?,
                 };
-                winterbaume_dynamodb::expr::apply_update_actions(&mut item, actions);
+                winterbaume_dynamodb::expr::apply_update_actions(&mut item, actions)
+                    .map_err(DynamoDbError::ValidationError)?;
                 let json = serde_json::to_string(&item).map_err(json_err)?;
                 conn.hset::<_, _, _, ()>(k_items(acct, rgn, table_name), &field, json)
                     .await

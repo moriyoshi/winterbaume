@@ -349,9 +349,9 @@ pub async fn execute_partiql_via_backend(
 
             let mut actions: Vec<crate::types::UpdateAction> = Vec::new();
             for (attr, value) in updates {
-                actions.push(crate::types::UpdateAction::SetValue {
+                actions.push(crate::types::UpdateAction::Set {
                     path: vec![attr],
-                    value,
+                    value: crate::types::SetOperand::Value(value),
                 });
             }
             for attr in removes {
@@ -557,9 +557,9 @@ fn execute_update(
         if let SetValue::Expr(expr) = sv
             && let Some(v) = expr.as_literal()
         {
-            actions.push(crate::types::UpdateAction::SetValue {
+            actions.push(crate::types::UpdateAction::Set {
                 path: vec![attr.clone()],
-                value: json_to_attr(v),
+                value: crate::types::SetOperand::Value(json_to_attr(v)),
             });
         }
     }

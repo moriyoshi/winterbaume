@@ -319,7 +319,11 @@ Mode: full distillation.
 - `EXISTS(SELECT ...)` is a top-level `DdbOperation::Exists(Box<SelectOp>)`, not a `Condition` variant. AWS rejects EXISTS in SELECT projection and WHERE positions.
 - `EXISTS` is accepted only in `ExecuteTransaction` write requests. `ExecuteStatement` and `BatchExecuteStatement` reject it with `ValidationException`; the inner SELECT must specify the full primary key by equality plus at least one non-key predicate.
 - AWS rejects arithmetic in WHERE operands and rejects unary `-path`. Keep the parser expressive, but ensure DynamoDB runtime validation rejects those shapes with AWS-compatible errors.
-- AWS accepts more SET arithmetic than the docs imply, including `path + path`, `literal + path`, chained arithmetic, parenthesised arithmetic, and negative literal operands. Preserve those SET RHS paths.
+- AWS accepts more SET arithmetic than the docs imply, including `path + path`, `literal + path`, chained arithmetic, parenthesised arithmetic, and negative literal operands. Preserve those SET RHS paths. This applies to **PartiQL** `UPDATE ... SET`; the `UpdateExpression` grammar is stricter and permits exactly one `+` / `-` per assignment with no parentheses.
+- `UpdateExpression` parsing lives in `expr.rs` and is a tokeniser plus recursive-descent parser over `SET` / `REMOVE` / `ADD` / `DELETE`. The `SET` right-hand side is an operand tree ( `types::SetOperand`: `Path`, `Value`, `IfNotExists`, `ListAppend`, `Plus`, `Minus` ) evaluated against the item at apply time, so `if_not_exists` and `list_append` nest freely — `SET p = if_not_exists(p, :zero) + :v` is the atomic-counter idiom and must keep working. Never reintroduce shape matching on the raw string.
+- An `UpdateExpression` the emulator cannot parse or evaluate must be **rejected** with `ValidationException`, never accepted as a no-op ( issue #19 ). Both `parse_update_expression` and `apply_update_actions` return `Result`; `apply_update_actions` mutates a clone so a rejected expression leaves the item untouched. This is the DynamoDB instance of a workspace-wide invariant — see `QUALITY_GATE.md` §5.1, "winterbaume may under-implement, but never quietly".
+- Apply-time fidelity rules AWS enforces and winterbaume now matches: arithmetic on an attribute missing from the item is a `ValidationException` ( not an implicit zero ); `+` / `-` / `list_append` operands must have the right type; `ADD` / `DELETE` must match the stored attribute's type.
+- `N` arithmetic goes through `i128` when both operands are integers, covering DynamoDB's 38 significant digits; only fractional operands fall back to `f64`. Do not reintroduce a blanket `f64` path.
 - `IS NULL` and `IS MISSING` are distinct: NULL matches `{"NULL": true}` attributes only, while MISSING matches absent attributes.
 - `contains(path, val)` is overloaded for string substring matching, string/number/binary set membership, and list element equality.
 - `attribute_type(path, 'TYPE')` accepts exactly DynamoDB's documented type names: `S`, `N`, `B`, `BOOL`, `NULL`, `SS`, `NS`, `BS`, `L`, and `M`.
@@ -333,7 +337,7 @@ Mode: full distillation.
 
 ### Files and Tests
 
-- Core files: `crates/winterbaume-dynamodb/src/types.rs`, `backend.rs`, `partiql_exec.rs`, `views.rs`, and `state.rs`.
+- Core files: `crates/winterbaume-dynamodb/src/types.rs`, `backend.rs`, `expr.rs` ( condition, filter, update, and projection expressions ), `partiql_exec.rs`, `views.rs`, and `state.rs`.
 - PartiQL files: `crates/winterbaume-partiql/src/operation.rs`, `parser/lexer.rs`, `parser/expr.rs`, `parser/stmt.rs`, `parser/mod.rs`, and parser tests.
 - Related services/backends: `crates/winterbaume-dynamodb-redis/src/lib.rs` and `crates/winterbaume-dynamodbstreams/src/handlers.rs`.
 - Focused checks for DynamoDB LTM-sensitive work:

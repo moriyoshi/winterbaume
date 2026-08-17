@@ -66,6 +66,12 @@ pub enum DynamoDbError {
     #[error("Query condition missed key schema element")]
     QueryConditionMissedKey,
 
+    /// A request was syntactically well-formed but semantically invalid —
+    /// e.g. an `UpdateExpression` operand of the wrong type. Carries the
+    /// message verbatim into the `ValidationException` body.
+    #[error("{0}")]
+    ValidationError(String),
+
     #[error("Requested resource not found: Table: {0} not found")]
     ResourceNotFound(String),
 
@@ -715,29 +721,34 @@ impl DynamoDbState {
 
         let hash_map = ts.items.entry(hash_key_value).or_default();
 
-        // If item doesn't exist, create one with just the keys
-        let is_new = !hash_map.contains_key(&range_key_value);
-        if is_new {
-            let mut new_item = Item::new();
-            for (k, v) in key {
-                new_item.insert(k.clone(), v.clone());
+        // If the item doesn't exist, start from one holding just the keys.
+        let existing = hash_map.get(&range_key_value);
+        let is_new = existing.is_none();
+        let mut candidate = match existing {
+            Some(item) => item.clone(),
+            None => {
+                let mut new_item = Item::new();
+                for (k, v) in key {
+                    new_item.insert(k.clone(), v.clone());
+                }
+                new_item
             }
-            hash_map.insert(range_key_value.clone(), new_item);
-        }
+        };
 
         // Snapshot old image before mutations (for stream records)
         let old_image = if ts.table.stream_enabled {
-            Some(hash_map.get(&range_key_value).unwrap().clone())
+            Some(candidate.clone())
         } else {
             None
         };
 
-        {
-            let item = hash_map.get_mut(&range_key_value).unwrap();
-            crate::expr::apply_update_actions(item, actions);
-        }
+        // Applied to the candidate first, so a rejected expression leaves
+        // the stored item — and, for a new key, the table — untouched.
+        crate::expr::apply_update_actions(&mut candidate, actions)
+            .map_err(DynamoDbError::ValidationError)?;
 
-        let result = hash_map.get(&range_key_value).unwrap().clone();
+        let result = candidate.clone();
+        hash_map.insert(range_key_value.clone(), candidate);
         ts.table.item_count = ts
             .items
             .values()

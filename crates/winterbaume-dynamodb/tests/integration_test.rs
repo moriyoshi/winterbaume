@@ -7848,3 +7848,177 @@ async fn test_get_item_projection_expression_nested() {
         "siblings inside the nested map must be excluded by projection"
     );
 }
+
+// ---------------------------------------------------------------------------
+// UpdateExpression parsing (issue #19)
+// ---------------------------------------------------------------------------
+
+/// Regression for issue #19: `SET p = if_not_exists(p, :zero) + :v` — the
+/// atomic-counter-with-default idiom — used to be dropped silently, leaving
+/// the item unmodified behind a `200 OK`.
+#[tokio::test]
+async fn test_update_item_if_not_exists_inside_arithmetic() {
+    let client = make_dynamodb_client().await;
+    create_hash_table(&client, "counters").await;
+
+    for expected in ["1", "2", "3"] {
+        client
+            .update_item()
+            .table_name("counters")
+            .key("pk", AttributeValue::S("hits".into()))
+            .update_expression("SET p = if_not_exists(p, :zero) + :v")
+            .expression_attribute_values(":zero", AttributeValue::N("0".into()))
+            .expression_attribute_values(":v", AttributeValue::N("1".into()))
+            .send()
+            .await
+            .unwrap();
+
+        let item = client
+            .get_item()
+            .table_name("counters")
+            .key("pk", AttributeValue::S("hits".into()))
+            .send()
+            .await
+            .unwrap()
+            .item
+            .unwrap();
+        assert_eq!(item.get("p").unwrap().as_n().unwrap(), expected);
+    }
+}
+
+/// `list_append` nested inside `if_not_exists` — the list equivalent of the
+/// counter idiom — appends to a list that does not exist yet.
+#[tokio::test]
+async fn test_update_item_list_append_over_if_not_exists() {
+    let client = make_dynamodb_client().await;
+    create_hash_table(&client, "append-default").await;
+
+    client
+        .update_item()
+        .table_name("append-default")
+        .key("pk", AttributeValue::S("p1".into()))
+        .update_expression("SET #l = list_append(if_not_exists(#l, :empty), :extra)")
+        .expression_attribute_names("#l", "items")
+        .expression_attribute_values(":empty", AttributeValue::L(vec![]))
+        .expression_attribute_values(
+            ":extra",
+            AttributeValue::L(vec![AttributeValue::S("a".into())]),
+        )
+        .send()
+        .await
+        .unwrap();
+
+    let item = client
+        .get_item()
+        .table_name("append-default")
+        .key("pk", AttributeValue::S("p1".into()))
+        .send()
+        .await
+        .unwrap()
+        .item
+        .unwrap();
+    let list = item.get("items").unwrap().as_l().unwrap();
+    assert_eq!(list.len(), 1);
+    assert_eq!(list[0].as_s().unwrap(), "a");
+}
+
+/// An `UpdateExpression` the emulator cannot evaluate must come back as a
+/// `ValidationException`, not as a successful no-op (issue #19).
+#[tokio::test]
+async fn test_update_item_rejects_unparseable_expression() {
+    let client = make_dynamodb_client().await;
+    create_hash_table(&client, "reject-tbl").await;
+
+    for expr in ["SET p", "SET p = :v + :v + :v", "SET p = nope(:v)"] {
+        let err = client
+            .update_item()
+            .table_name("reject-tbl")
+            .key("pk", AttributeValue::S("p1".into()))
+            .update_expression(expr)
+            .expression_attribute_values(":v", AttributeValue::N("1".into()))
+            .send()
+            .await
+            .expect_err(&format!("`{expr}` should be rejected"));
+        let msg = format!("{err:?}");
+        assert!(
+            msg.contains("ValidationException"),
+            "`{expr}` should raise ValidationException, got: {msg}"
+        );
+    }
+
+    // The rejected updates must not have created the item.
+    let resp = client
+        .get_item()
+        .table_name("reject-tbl")
+        .key("pk", AttributeValue::S("p1".into()))
+        .send()
+        .await
+        .unwrap();
+    assert!(resp.item.is_none(), "a rejected update must not write");
+}
+
+/// Arithmetic on an attribute that does not exist is a `ValidationException`
+/// on the real service — the reason `if_not_exists` is needed in the first
+/// place — rather than an implicit zero.
+#[tokio::test]
+async fn test_update_item_arithmetic_on_missing_attribute_is_rejected() {
+    let client = make_dynamodb_client().await;
+    create_hash_table(&client, "missing-attr-tbl").await;
+
+    client
+        .put_item()
+        .table_name("missing-attr-tbl")
+        .item("pk", AttributeValue::S("p1".into()))
+        .send()
+        .await
+        .unwrap();
+
+    let err = client
+        .update_item()
+        .table_name("missing-attr-tbl")
+        .key("pk", AttributeValue::S("p1".into()))
+        .update_expression("SET p = p + :v")
+        .expression_attribute_values(":v", AttributeValue::N("1".into()))
+        .send()
+        .await
+        .expect_err("arithmetic on a missing attribute should be rejected");
+    let msg = format!("{err:?}");
+    assert!(msg.contains("ValidationException"), "{msg}");
+}
+
+/// Integer arithmetic stays exact past `f64`'s 2^53 integer limit.
+#[tokio::test]
+async fn test_update_item_arithmetic_precision() {
+    let client = make_dynamodb_client().await;
+    create_hash_table(&client, "precision-tbl").await;
+
+    client
+        .put_item()
+        .table_name("precision-tbl")
+        .item("pk", AttributeValue::S("p1".into()))
+        .item("n", AttributeValue::N("9007199254740993".into()))
+        .send()
+        .await
+        .unwrap();
+
+    client
+        .update_item()
+        .table_name("precision-tbl")
+        .key("pk", AttributeValue::S("p1".into()))
+        .update_expression("SET n = n + :one")
+        .expression_attribute_values(":one", AttributeValue::N("1".into()))
+        .send()
+        .await
+        .unwrap();
+
+    let item = client
+        .get_item()
+        .table_name("precision-tbl")
+        .key("pk", AttributeValue::S("p1".into()))
+        .send()
+        .await
+        .unwrap()
+        .item
+        .unwrap();
+    assert_eq!(item.get("n").unwrap().as_n().unwrap(), "9007199254740994");
+}
