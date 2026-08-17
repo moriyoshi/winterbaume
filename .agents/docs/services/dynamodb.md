@@ -372,6 +372,13 @@ Mode: full distillation.
 - `contains(path, val)` is overloaded for string substring matching, string/number/binary set membership, and list element equality.
 - `attribute_type(path, 'TYPE')` accepts exactly DynamoDB's documented type names: `S`, `N`, `B`, `BOOL`, `NULL`, `SS`, `NS`, `BS`, `L`, and `M`.
 
+### Intentional Divergences
+
+Recorded per `QUALITY_GATE.md` §5.2: dossier claims that are deliberately not implemented, with the reason, so they are not mistaken for oversights.
+
+- **`TransactionConflictException` is never raised.** AWS distinguishes a single-item write conflict ( `TransactionConflictException` ) from transaction-level cancellation ( `TransactionCanceledException` ). Winterbaume serialises all access to a table's state behind a lock, so two transactions cannot interleave and that conflict cannot arise. `TransactionCanceledException` *is* raised for condition failures, with positional `CancellationReasons`. Revisit only if concurrent-write simulation is ever added.
+- **`BatchWriteItem` never returns `UnprocessedItems`.** AWS returns them when a batch exceeds throughput or payload limits; there is no capacity or throttling model here, so every request is processed in full and the field is always the empty map. The behavioural distinction from `TransactWriteItems` still holds — a batch is not atomic, it simply never partially fails for capacity reasons.
+
 ### Streams and Cross-Service Boundaries
 
 - DynamoDB write paths append stream change records for `PutItem`, `UpdateItem`, and `DeleteItem` when table streams are enabled. Records carry event name, sequence number, keys, old image, and new image.
