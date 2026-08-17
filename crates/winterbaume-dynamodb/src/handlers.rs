@@ -1084,9 +1084,19 @@ impl DynamoDbService {
         let expr_names = input.expression_attribute_names.unwrap_or_default();
         let expr_values = attr_map_from_wire(input.expression_attribute_values);
 
-        let update_expression = input.update_expression.unwrap_or_default();
-        let actions =
-            crate::expr::parse_update_expression(&update_expression, &expr_names, &expr_values);
+        let actions = match input.update_expression.as_deref() {
+            Some(s) => match crate::expr::parse_update_expression(s, &expr_names, &expr_values) {
+                Ok(actions) => actions,
+                Err(msg) => {
+                    return json_error_response(
+                        400,
+                        "com.amazonaws.dynamodb.v20120810#ValidationException",
+                        &msg,
+                    );
+                }
+            },
+            None => Vec::new(),
+        };
 
         // --- ConditionExpression ---
         let cond = match input.condition_expression.as_deref() {
@@ -2335,11 +2345,20 @@ impl DynamoDbService {
                         let upd = update_for_action.expect("Update branch sets update_for_action");
                         let upd_expr_names = upd.expression_attribute_names.unwrap_or_default();
                         let upd_expr_values = attr_map_from_wire(upd.expression_attribute_values);
-                        let actions = crate::expr::parse_update_expression(
+                        let actions = match crate::expr::parse_update_expression(
                             &upd.update_expression,
                             &upd_expr_names,
                             &upd_expr_values,
-                        );
+                        ) {
+                            Ok(actions) => actions,
+                            Err(msg) => {
+                                return json_error_response(
+                                    400,
+                                    "com.amazonaws.dynamodb.v20120810#ValidationException",
+                                    &msg,
+                                );
+                            }
+                        };
                         updates.push((sub.table_name, sub.key_or_item, actions));
                     }
                     _ => {} // ConditionCheck — no mutation
@@ -4164,6 +4183,7 @@ fn dynamodb_error_type(err: &DynamoDbError) -> &'static str {
         }
         DynamoDbError::NoHashKey => "com.amazonaws.dynamodb.v20120810#ValidationException",
         DynamoDbError::MissingKey(_) => "com.amazonaws.dynamodb.v20120810#ValidationException",
+        DynamoDbError::ValidationError(_) => "com.amazonaws.dynamodb.v20120810#ValidationException",
         DynamoDbError::QueryConditionMissedKey => {
             "com.amazonaws.dynamodb.v20120810#ValidationException"
         }
@@ -4221,6 +4241,9 @@ fn dynamodb_error_response(err: &DynamoDbError) -> MockResponse {
             (400, "com.amazonaws.dynamodb.v20120810#ValidationException")
         }
         DynamoDbError::QueryConditionMissedKey => {
+            (400, "com.amazonaws.dynamodb.v20120810#ValidationException")
+        }
+        DynamoDbError::ValidationError(_) => {
             (400, "com.amazonaws.dynamodb.v20120810#ValidationException")
         }
         DynamoDbError::ResourceNotFound(_) => (

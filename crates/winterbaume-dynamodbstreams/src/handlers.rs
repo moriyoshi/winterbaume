@@ -418,6 +418,9 @@ fn dynamodbstreams_error_response(err: &DynamoDbStreamsError) -> MockResponse {
             DynamoDbError::QueryConditionMissedKey => {
                 (400, "com.amazonaws.dynamodb.v20120810#ValidationException")
             }
+            DynamoDbError::ValidationError(_) => {
+                (400, "com.amazonaws.dynamodb.v20120810#ValidationException")
+            }
             DynamoDbError::ResourceNotFound(_) => (
                 400,
                 "com.amazonaws.dynamodb.v20120810#ResourceNotFoundException",

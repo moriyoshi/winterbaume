@@ -1,9 +1,15 @@
 //! DynamoDB expression parser and evaluator.
 //!
-//! Supports ConditionExpression (PutItem, UpdateItem, DeleteItem) and
-//! FilterExpression (Query, Scan).  All `#name` and `:value` placeholders
-//! are resolved at parse time so the resulting AST contains only concrete
-//! attribute names and DynamoDB-typed JSON values.
+//! Supports ConditionExpression (PutItem, UpdateItem, DeleteItem),
+//! FilterExpression (Query, Scan), UpdateExpression (UpdateItem,
+//! TransactWriteItems), and ProjectionExpression.  All `#name` and `:value`
+//! placeholders are resolved at parse time so the resulting AST contains only
+//! concrete attribute names and DynamoDB-typed JSON values.
+//!
+//! Condition/filter expressions and update expressions have separate
+//! tokenisers and parsers: they share placeholder syntax but not their
+//! grammars (`+`/`-` and dotted paths on one side, comparison operators and
+//! boolean connectives on the other).
 
 use std::borrow::Cow;
 use std::collections::HashMap;
@@ -654,294 +660,413 @@ pub fn evaluate(expr: &Expr, item: &Item) -> bool {
 // Update-expression parsing and application
 // ---------------------------------------------------------------------------
 
-use crate::types::UpdateAction;
+use crate::types::{SetOperand, UpdateAction};
+
+// ---------------------------------------------------------------------------
+// Update-expression tokeniser
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Clone, PartialEq)]
+enum UpdToken {
+    Ident(String),     // bare word: clause keyword, function name, or attribute
+    AttrName(String),  // #foo  (kept as-is for lookup)
+    AttrValue(String), // :foo  (kept as-is for lookup)
+    LParen,
+    RParen,
+    Comma,
+    Dot,
+    Eq,
+    Plus,
+    Minus,
+}
+
+impl UpdToken {
+    /// Render the token the way it appeared in the source, for error messages.
+    fn text(&self) -> String {
+        match self {
+            UpdToken::Ident(s) | UpdToken::AttrName(s) | UpdToken::AttrValue(s) => s.clone(),
+            UpdToken::LParen => "(".to_string(),
+            UpdToken::RParen => ")".to_string(),
+            UpdToken::Comma => ",".to_string(),
+            UpdToken::Dot => ".".to_string(),
+            UpdToken::Eq => "=".to_string(),
+            UpdToken::Plus => "+".to_string(),
+            UpdToken::Minus => "-".to_string(),
+        }
+    }
+}
+
+fn tokenize_update(expr: &str) -> Result<Vec<UpdToken>, String> {
+    let mut tokens = Vec::new();
+    let chars: Vec<char> = expr.chars().collect();
+    let mut i = 0;
+    while i < chars.len() {
+        match chars[i] {
+            ' ' | '\t' | '\n' | '\r' => i += 1,
+            '(' => {
+                tokens.push(UpdToken::LParen);
+                i += 1;
+            }
+            ')' => {
+                tokens.push(UpdToken::RParen);
+                i += 1;
+            }
+            ',' => {
+                tokens.push(UpdToken::Comma);
+                i += 1;
+            }
+            '.' => {
+                tokens.push(UpdToken::Dot);
+                i += 1;
+            }
+            '=' => {
+                tokens.push(UpdToken::Eq);
+                i += 1;
+            }
+            '+' => {
+                tokens.push(UpdToken::Plus);
+                i += 1;
+            }
+            '-' => {
+                tokens.push(UpdToken::Minus);
+                i += 1;
+            }
+            '[' => {
+                // List-element dereferences would need an indexed path
+                // representation; say so rather than mis-parsing the path.
+                return Err(invalid_update_expr(
+                    "list element dereferences ('[n]') in update expressions are not supported by winterbaume",
+                ));
+            }
+            '#' | ':' => {
+                let sigil = chars[i];
+                let start = i;
+                i += 1;
+                while i < chars.len() && (chars[i].is_alphanumeric() || chars[i] == '_') {
+                    i += 1;
+                }
+                let s: String = chars[start..i].iter().collect();
+                if s.len() == 1 {
+                    return Err(invalid_update_expr(&format!(
+                        "Syntax error; token: \"{sigil}\""
+                    )));
+                }
+                if sigil == '#' {
+                    tokens.push(UpdToken::AttrName(s));
+                } else {
+                    tokens.push(UpdToken::AttrValue(s));
+                }
+            }
+            c if c.is_alphanumeric() || c == '_' => {
+                let start = i;
+                while i < chars.len() && (chars[i].is_alphanumeric() || chars[i] == '_') {
+                    i += 1;
+                }
+                tokens.push(UpdToken::Ident(chars[start..i].iter().collect()));
+            }
+            other => {
+                return Err(invalid_update_expr(&format!(
+                    "Syntax error; token: \"{other}\""
+                )));
+            }
+        }
+    }
+    Ok(tokens)
+}
+
+fn invalid_update_expr(detail: &str) -> String {
+    format!("Invalid UpdateExpression: {detail}")
+}
+
+fn syntax_error(tok: Option<&UpdToken>) -> String {
+    match tok {
+        Some(t) => invalid_update_expr(&format!("Syntax error; token: \"{}\"", t.text())),
+        None => invalid_update_expr("Syntax error; unexpected end of expression"),
+    }
+}
+
+/// Map a bare word to the clause keyword it introduces, if any.
+fn clause_keyword(word: &str) -> Option<&'static str> {
+    ["SET", "REMOVE", "ADD", "DELETE"]
+        .into_iter()
+        .find(|kw| word.eq_ignore_ascii_case(kw))
+}
+
+// ---------------------------------------------------------------------------
+// Update-expression parser
+// ---------------------------------------------------------------------------
+
+struct UpdateParser<'a> {
+    tokens: Vec<UpdToken>,
+    pos: usize,
+    expr_names: &'a HashMap<String, String>,
+    expr_values: &'a HashMap<String, AttributeValue>,
+}
+
+impl UpdateParser<'_> {
+    fn peek(&self) -> Option<&UpdToken> {
+        self.tokens.get(self.pos)
+    }
+
+    fn peek2(&self) -> Option<&UpdToken> {
+        self.tokens.get(self.pos + 1)
+    }
+
+    fn consume(&mut self) -> Option<UpdToken> {
+        let t = self.tokens.get(self.pos).cloned();
+        if t.is_some() {
+            self.pos += 1;
+        }
+        t
+    }
+
+    fn expect(&mut self, want: &UpdToken) -> Result<(), String> {
+        if self.peek() == Some(want) {
+            self.pos += 1;
+            Ok(())
+        } else {
+            Err(syntax_error(self.peek()))
+        }
+    }
+
+    fn resolve_name(&self, placeholder: &str) -> Result<String, String> {
+        self.expr_names.get(placeholder).cloned().ok_or_else(|| {
+            invalid_update_expr(&format!(
+                "An expression attribute name used in the document path is not defined; attribute name: {placeholder}"
+            ))
+        })
+    }
+
+    fn resolve_value(&self, placeholder: &str) -> Result<AttributeValue, String> {
+        self.expr_values.get(placeholder).cloned().ok_or_else(|| {
+            invalid_update_expr(&format!(
+                "An expression attribute value used in expression is not defined; attribute value: {placeholder}"
+            ))
+        })
+    }
+
+    fn parse(&mut self) -> Result<Vec<UpdateAction>, String> {
+        if self.tokens.is_empty() {
+            return Err(invalid_update_expr("The expression can not be empty"));
+        }
+        let mut actions: Vec<UpdateAction> = Vec::new();
+        let mut seen: Vec<&'static str> = Vec::new();
+        while self.pos < self.tokens.len() {
+            let keyword = match self.peek() {
+                Some(UpdToken::Ident(word)) => clause_keyword(word),
+                _ => None,
+            };
+            let Some(keyword) = keyword else {
+                return Err(syntax_error(self.peek()));
+            };
+            self.pos += 1;
+            if seen.contains(&keyword) {
+                return Err(invalid_update_expr(&format!(
+                    "The \"{keyword}\" section can only be used once in an update expression"
+                )));
+            }
+            seen.push(keyword);
+            let parse_action: fn(&mut Self) -> Result<UpdateAction, String> = match keyword {
+                "SET" => Self::parse_set_action,
+                "REMOVE" => Self::parse_remove_action,
+                "ADD" => Self::parse_add_action,
+                _ => Self::parse_delete_action,
+            };
+            loop {
+                actions.push(parse_action(self)?);
+                if self.peek() == Some(&UpdToken::Comma) {
+                    self.pos += 1;
+                    continue;
+                }
+                break;
+            }
+        }
+        Ok(actions)
+    }
+
+    /// `<path> = <operand> [(+|-) <operand>]`
+    fn parse_set_action(&mut self) -> Result<UpdateAction, String> {
+        let path = self.parse_path()?;
+        self.expect(&UpdToken::Eq)?;
+        let value = self.parse_set_value()?;
+        Ok(UpdateAction::Set { path, value })
+    }
+
+    fn parse_remove_action(&mut self) -> Result<UpdateAction, String> {
+        Ok(UpdateAction::Remove(self.parse_path()?))
+    }
+
+    fn parse_add_action(&mut self) -> Result<UpdateAction, String> {
+        let (attr, value) = self.parse_attr_value_pair("ADD")?;
+        Ok(UpdateAction::Add(attr, value))
+    }
+
+    fn parse_delete_action(&mut self) -> Result<UpdateAction, String> {
+        let (attr, value) = self.parse_attr_value_pair("DELETE")?;
+        Ok(UpdateAction::Delete(attr, value))
+    }
+
+    /// `ADD` / `DELETE` take a top-level attribute followed by a value
+    /// placeholder — nested paths are rejected by the real service too.
+    fn parse_attr_value_pair(&mut self, clause: &str) -> Result<(String, AttributeValue), String> {
+        let path = self.parse_path()?;
+        if path.len() != 1 {
+            return Err(invalid_update_expr(&format!(
+                "The document path provided in the update expression is invalid for update; clause: {clause}"
+            )));
+        }
+        match self.consume() {
+            Some(UpdToken::AttrValue(placeholder)) => {
+                let value = self.resolve_value(&placeholder)?;
+                Ok((path.into_iter().next().unwrap(), value))
+            }
+            other => Err(syntax_error(other.as_ref())),
+        }
+    }
+
+    /// The right-hand side of a `SET`: a single operand, optionally one
+    /// `+` or `-` applied to a second operand. DynamoDB permits at most one
+    /// arithmetic operator, so a chained `a + b + c` is a syntax error.
+    fn parse_set_value(&mut self) -> Result<SetOperand, String> {
+        let left = self.parse_operand()?;
+        match self.peek() {
+            Some(UpdToken::Plus) => {
+                self.pos += 1;
+                let right = self.parse_operand()?;
+                Ok(SetOperand::Plus(Box::new(left), Box::new(right)))
+            }
+            Some(UpdToken::Minus) => {
+                self.pos += 1;
+                let right = self.parse_operand()?;
+                Ok(SetOperand::Minus(Box::new(left), Box::new(right)))
+            }
+            _ => Ok(left),
+        }
+    }
+
+    /// `:value`, a document path, `if_not_exists(<path>, <operand>)`, or
+    /// `list_append(<operand>, <operand>)`.
+    fn parse_operand(&mut self) -> Result<SetOperand, String> {
+        match self.peek().cloned() {
+            Some(UpdToken::AttrValue(placeholder)) => {
+                self.pos += 1;
+                Ok(SetOperand::Value(self.resolve_value(&placeholder)?))
+            }
+            Some(UpdToken::Ident(name)) if self.peek2() == Some(&UpdToken::LParen) => {
+                self.pos += 2; // name, (
+                let operand = match name.as_str() {
+                    "if_not_exists" => {
+                        let path = self.parse_path()?;
+                        self.expect(&UpdToken::Comma)?;
+                        let fallback = self.parse_operand()?;
+                        SetOperand::IfNotExists(path, Box::new(fallback))
+                    }
+                    "list_append" => {
+                        let head = self.parse_operand()?;
+                        self.expect(&UpdToken::Comma)?;
+                        let tail = self.parse_operand()?;
+                        SetOperand::ListAppend(Box::new(head), Box::new(tail))
+                    }
+                    _ => {
+                        return Err(invalid_update_expr(&format!(
+                            "Invalid function name; function: {name}"
+                        )));
+                    }
+                };
+                self.expect(&UpdToken::RParen)?;
+                Ok(operand)
+            }
+            Some(UpdToken::Ident(_)) | Some(UpdToken::AttrName(_)) => {
+                Ok(SetOperand::Path(self.parse_path()?))
+            }
+            other => Err(syntax_error(other.as_ref())),
+        }
+    }
+
+    /// A dotted document path like `info.city` or `#i.#c.foo`, with `#`
+    /// segments resolved through `ExpressionAttributeNames`.
+    fn parse_path(&mut self) -> Result<Vec<String>, String> {
+        let mut segments = vec![self.parse_path_segment()?];
+        while self.peek() == Some(&UpdToken::Dot) {
+            self.pos += 1;
+            segments.push(self.parse_path_segment()?);
+        }
+        Ok(segments)
+    }
+
+    fn parse_path_segment(&mut self) -> Result<String, String> {
+        match self.consume() {
+            Some(UpdToken::AttrName(placeholder)) => self.resolve_name(&placeholder),
+            Some(UpdToken::Ident(name)) => Ok(name),
+            other => Err(syntax_error(other.as_ref())),
+        }
+    }
+}
 
 /// Parse an `UpdateExpression` plus its `ExpressionAttributeNames` /
 /// `ExpressionAttributeValues` into a list of [`UpdateAction`]s.
 ///
-/// Recognises:
-/// - `SET p = :v`, `SET p = p + :delta`, `SET p = p - :delta`
-/// - `SET p = list_append(p, :v)` and `SET p = if_not_exists(p, :v)`
-///   (same-path forms only)
+/// Recognises the full DynamoDB update grammar apart from list-element
+/// dereferences (`a[0]`):
+/// - `SET p = <operand> [+|- <operand>]`, where an operand is a value
+///   placeholder, a document path, `if_not_exists(<path>, <operand>)`, or
+///   `list_append(<operand>, <operand>)` — nested arbitrarily, so the
+///   atomic-counter idiom `SET p = if_not_exists(p, :zero) + :v` works
 /// - `SET nested.path = :v` (dotted paths, with each segment optionally
 ///   resolved through `ExpressionAttributeNames`)
 /// - `REMOVE p, q.r`
 /// - `ADD attr :v` (numeric or set, polymorphic at apply time)
 /// - `DELETE attr :v` (set difference)
 ///
-/// Unrecognised fragments are silently dropped — matching the previous
-/// implementation's behaviour and keeping malformed inputs from breaking
-/// the request.
+/// Anything else is an error: an expression this emulator cannot evaluate is
+/// rejected the way the real service rejects it, rather than being dropped
+/// and reported as a successful no-op. Callers should surface the returned
+/// message as a `ValidationException`.
 pub fn parse_update_expression(
     expr: &str,
     expr_names: &HashMap<String, String>,
     expr_values: &HashMap<String, AttributeValue>,
-) -> Vec<UpdateAction> {
-    let mut actions: Vec<UpdateAction> = Vec::new();
-
-    let upper = expr.to_uppercase();
-    let mut sections: Vec<(&str, usize)> = Vec::new();
-    for keyword in &["SET ", "REMOVE ", "ADD ", "DELETE "] {
-        let mut search_from = 0;
-        while let Some(pos) = upper[search_from..].find(keyword) {
-            let abs_pos = search_from + pos;
-            if abs_pos == 0
-                || expr.as_bytes()[abs_pos - 1] == b' '
-                || expr.as_bytes()[abs_pos - 1] == b','
-            {
-                sections.push((keyword.trim(), abs_pos));
-            }
-            search_from = abs_pos + keyword.len();
-        }
+) -> Result<Vec<UpdateAction>, String> {
+    let tokens = tokenize_update(expr)?;
+    UpdateParser {
+        tokens,
+        pos: 0,
+        expr_names,
+        expr_values,
     }
-    sections.sort_by_key(|&(_, pos)| pos);
-
-    for (i, &(keyword, start)) in sections.iter().enumerate() {
-        let content_start = start + keyword.len() + 1;
-        let content_end = if i + 1 < sections.len() {
-            sections[i + 1].1
-        } else {
-            expr.len()
-        };
-        let content = expr[content_start..content_end].trim();
-
-        match keyword {
-            "SET" => {
-                for assignment in split_top_level(content) {
-                    if let Some(action) = parse_set_assignment(&assignment, expr_names, expr_values)
-                    {
-                        actions.push(action);
-                    }
-                }
-            }
-            "REMOVE" => {
-                for attr in content.split(',') {
-                    let attr = attr.trim();
-                    if attr.is_empty() {
-                        continue;
-                    }
-                    let path = resolve_path(attr, expr_names);
-                    if !path.is_empty() {
-                        actions.push(UpdateAction::Remove(path));
-                    }
-                }
-            }
-            "ADD" => {
-                for term in content.split(',') {
-                    let term = term.trim();
-                    if let Some((lhs, rhs)) = term.split_once(' ') {
-                        let path = resolve_path(lhs.trim(), expr_names);
-                        if path.len() != 1 {
-                            continue; // ADD only supports top-level attributes
-                        }
-                        let rhs = rhs.trim();
-                        if rhs.starts_with(':')
-                            && let Some(val) = expr_values.get(rhs)
-                        {
-                            actions.push(UpdateAction::Add(
-                                path.into_iter().next().unwrap(),
-                                val.clone(),
-                            ));
-                        }
-                    }
-                }
-            }
-            "DELETE" => {
-                for term in content.split(',') {
-                    let term = term.trim();
-                    if let Some((lhs, rhs)) = term.split_once(' ') {
-                        let path = resolve_path(lhs.trim(), expr_names);
-                        if path.len() != 1 {
-                            continue;
-                        }
-                        let rhs = rhs.trim();
-                        if rhs.starts_with(':')
-                            && let Some(val) = expr_values.get(rhs)
-                        {
-                            actions.push(UpdateAction::Delete(
-                                path.into_iter().next().unwrap(),
-                                val.clone(),
-                            ));
-                        }
-                    }
-                }
-            }
-            _ => {}
-        }
-    }
-
-    actions
-}
-
-/// Split `content` on commas that are *not* nested inside parentheses, so
-/// `list_append(a, :b), c = :d` splits into two assignments rather than
-/// breaking the function call.
-fn split_top_level(content: &str) -> Vec<String> {
-    let mut out: Vec<String> = Vec::new();
-    let mut buf = String::new();
-    let mut depth: i32 = 0;
-    for ch in content.chars() {
-        match ch {
-            '(' => {
-                depth += 1;
-                buf.push(ch);
-            }
-            ')' => {
-                depth -= 1;
-                buf.push(ch);
-            }
-            ',' if depth == 0 => {
-                if !buf.trim().is_empty() {
-                    out.push(buf.trim().to_string());
-                }
-                buf.clear();
-            }
-            _ => buf.push(ch),
-        }
-    }
-    if !buf.trim().is_empty() {
-        out.push(buf.trim().to_string());
-    }
-    out
-}
-
-fn parse_set_assignment(
-    assignment: &str,
-    expr_names: &HashMap<String, String>,
-    expr_values: &HashMap<String, AttributeValue>,
-) -> Option<UpdateAction> {
-    let (lhs, rhs) = assignment.split_once('=')?;
-    let lhs = lhs.trim();
-    let rhs = rhs.trim();
-    let path = resolve_path(lhs, expr_names);
-    if path.is_empty() {
-        return None;
-    }
-
-    // list_append(path, :v)
-    if let Some(args) = rhs
-        .strip_prefix("list_append(")
-        .and_then(|s| s.strip_suffix(')'))
-    {
-        let parts: Vec<&str> = args.splitn(2, ',').collect();
-        if parts.len() == 2 {
-            // Same-path form: list_append(<path>, :v).
-            let src_path = resolve_path(parts[0].trim(), expr_names);
-            let v_ref = parts[1].trim();
-            if src_path == path
-                && v_ref.starts_with(':')
-                && let Some(val) = expr_values.get(v_ref)
-            {
-                return Some(UpdateAction::SetListAppend {
-                    path,
-                    value: val.clone(),
-                });
-            }
-        }
-        return None;
-    }
-
-    // if_not_exists(path, :v)
-    if let Some(args) = rhs
-        .strip_prefix("if_not_exists(")
-        .and_then(|s| s.strip_suffix(')'))
-    {
-        let parts: Vec<&str> = args.splitn(2, ',').collect();
-        if parts.len() == 2 {
-            let src_path = resolve_path(parts[0].trim(), expr_names);
-            let v_ref = parts[1].trim();
-            if src_path == path
-                && v_ref.starts_with(':')
-                && let Some(val) = expr_values.get(v_ref)
-            {
-                return Some(UpdateAction::SetIfNotExists {
-                    path,
-                    value: val.clone(),
-                });
-            }
-        }
-        return None;
-    }
-
-    // Arithmetic: <path> + :delta or <path> - :delta. Look for the operator
-    // that splits a `<path-on-left>` from a `<value-on-right>`; only `+`/`-`
-    // between the same path and a placeholder constitute atomic ADD.
-    if let Some(pos) = find_arith_op(rhs) {
-        let op = rhs.as_bytes()[pos] as char;
-        let left = rhs[..pos].trim();
-        let right = rhs[pos + 1..].trim();
-        let left_path = resolve_path(left, expr_names);
-        if left_path == path
-            && right.starts_with(':')
-            && let Some(val) = expr_values.get(right)
-        {
-            let mut delta = val.clone();
-            if op == '-'
-                && let AttributeValue::N(ref s) = delta
-            {
-                let n: f64 = s.parse().unwrap_or(0.0);
-                delta = AttributeValue::N(format_number(-n));
-            }
-            return Some(UpdateAction::SetArithmetic { path, delta });
-        }
-    }
-
-    // Plain value: SET <path> = :v
-    if rhs.starts_with(':')
-        && let Some(val) = expr_values.get(rhs)
-    {
-        return Some(UpdateAction::SetValue {
-            path,
-            value: val.clone(),
-        });
-    }
-
-    None
-}
-
-/// Find the byte offset of an arithmetic operator (`+` or `-`) at the top
-/// level of `rhs`, returning `None` when the right-hand side is not an
-/// arithmetic expression. Operators inside parentheses are skipped.
-fn find_arith_op(rhs: &str) -> Option<usize> {
-    let mut depth: i32 = 0;
-    for (i, b) in rhs.bytes().enumerate() {
-        match b {
-            b'(' => depth += 1,
-            b')' => depth -= 1,
-            b'+' | b'-' if depth == 0 && i > 0 => return Some(i),
-            _ => {}
-        }
-    }
-    None
-}
-
-/// Resolve a possibly dotted path like `info.city` or `#i.#c.foo`,
-/// substituting `ExpressionAttributeNames` aliases for any segment that
-/// starts with `#`. Empty segments (e.g. from a stray dot) are dropped.
-fn resolve_path(raw: &str, expr_names: &HashMap<String, String>) -> Vec<String> {
-    raw.split('.')
-        .map(|seg| seg.trim())
-        .filter(|seg| !seg.is_empty())
-        .map(|seg| {
-            if let Some(alias) = seg.strip_prefix('#')
-                && let Some(target) = expr_names.get(&format!("#{alias}"))
-            {
-                target.clone()
-            } else {
-                seg.to_string()
-            }
-        })
-        .collect()
+    .parse()
 }
 
 /// Format a number the way DynamoDB does: integer-valued numbers as
 /// integers, others via the default `f64` formatter.
 fn format_number(n: f64) -> String {
-    if n.fract() == 0.0 && n.abs() < 1e15 {
-        format!("{}", n as i64)
+    // DynamoDB's `N` tops out at 38 significant digits; `{:.0}` keeps
+    // integral values in positional notation instead of `f64`'s `1e16`.
+    if n.fract() == 0.0 && n.abs() < 1e38 {
+        format!("{n:.0}")
     } else {
         format!("{n}")
     }
+}
+
+/// Add or subtract two DynamoDB `N` literals.
+///
+/// Integers are added exactly through `i128`, which spans DynamoDB's 38
+/// significant digits; anything with a fractional part falls back to `f64`.
+fn arith_number(op: char, a: &str, b: &str) -> Option<String> {
+    if let (Ok(x), Ok(y)) = (a.parse::<i128>(), b.parse::<i128>()) {
+        let sum = if op == '-' {
+            x.checked_sub(y)
+        } else {
+            x.checked_add(y)
+        };
+        if let Some(v) = sum {
+            return Some(v.to_string());
+        }
+    }
+    let x: f64 = a.parse().ok()?;
+    let y: f64 = b.parse().ok()?;
+    Some(format_number(if op == '-' { x - y } else { x + y }))
 }
 
 /// Apply a list of [`UpdateAction`]s to `item` in order.
@@ -951,55 +1076,92 @@ fn format_number(n: f64) -> String {
 /// DELETE on `SS`/`NS`/`BS`, `list_append`, and `if_not_exists` — so
 /// callers get the same result regardless of which backend they go
 /// through.
-pub fn apply_update_actions(item: &mut Item, actions: &[UpdateAction]) {
+///
+/// Returns the `ValidationException` message the real service would produce
+/// when an operand has the wrong type or refers to a missing attribute. The
+/// actions are applied to a working copy, so `item` is left untouched when
+/// any of them fails.
+pub fn apply_update_actions(item: &mut Item, actions: &[UpdateAction]) -> Result<(), String> {
+    let mut working = item.clone();
     for action in actions {
         match action {
-            UpdateAction::SetValue { path, value } => {
-                set_at_path(item, path, value.clone());
-            }
-            UpdateAction::SetArithmetic { path, delta } => {
-                let current = get_at_path(item, path);
-                let cur_n = match current {
-                    Some(AttributeValue::N(s)) => s.parse::<f64>().unwrap_or(0.0),
-                    _ => 0.0,
-                };
-                let delta_n = match delta {
-                    AttributeValue::N(s) => s.parse::<f64>().unwrap_or(0.0),
-                    _ => 0.0,
-                };
-                set_at_path(
-                    item,
-                    path,
-                    AttributeValue::N(format_number(cur_n + delta_n)),
-                );
-            }
-            UpdateAction::SetListAppend { path, value } => {
-                let mut list = match get_at_path(item, path).cloned() {
-                    Some(AttributeValue::L(l)) => l,
-                    _ => Vec::new(),
-                };
-                match value {
-                    AttributeValue::L(extra) => list.extend(extra.iter().cloned()),
-                    other => list.push(other.clone()),
-                }
-                set_at_path(item, path, AttributeValue::L(list));
-            }
-            UpdateAction::SetIfNotExists { path, value } => {
-                if get_at_path(item, path).is_none() {
-                    set_at_path(item, path, value.clone());
-                }
+            UpdateAction::Set { path, value } => {
+                let value = eval_set_operand(&working, value)?;
+                set_at_path(&mut working, path, value);
             }
             UpdateAction::Remove(path) => {
-                remove_at_path(item, path);
+                remove_at_path(&mut working, path);
             }
             UpdateAction::Add(attr, delta) => {
-                apply_add(item, attr, delta);
+                apply_add(&mut working, attr, delta)?;
             }
             UpdateAction::Delete(attr, members) => {
-                apply_set_delete(item, attr, members);
+                apply_set_delete(&mut working, attr, members)?;
             }
         }
     }
+    *item = working;
+    Ok(())
+}
+
+/// The `ValidationException` message AWS returns when an operand's type does
+/// not suit the operator or function applied to it.
+fn operand_type_error(operator: &str, value: &AttributeValue) -> String {
+    format!(
+        "Invalid UpdateExpression: Incorrect operand type for operator or function; operator or function: {operator}, operand type: {}",
+        ddb_type(value).unwrap_or("NULL")
+    )
+}
+
+/// Evaluate the right-hand side of a `SET` against the item as updated so far.
+fn eval_set_operand(item: &Item, operand: &SetOperand) -> Result<AttributeValue, String> {
+    match operand {
+        SetOperand::Value(value) => Ok(value.clone()),
+        SetOperand::Path(path) => get_at_path(item, path).cloned().ok_or_else(|| {
+            "The provided expression refers to an attribute that does not exist in the item"
+                .to_string()
+        }),
+        SetOperand::IfNotExists(path, fallback) => match get_at_path(item, path) {
+            Some(value) => Ok(value.clone()),
+            None => eval_set_operand(item, fallback),
+        },
+        SetOperand::ListAppend(head, tail) => {
+            let head = eval_set_operand(item, head)?;
+            let tail = eval_set_operand(item, tail)?;
+            match (head, tail) {
+                (AttributeValue::L(mut first), AttributeValue::L(second)) => {
+                    first.extend(second);
+                    Ok(AttributeValue::L(first))
+                }
+                (AttributeValue::L(_), other) | (other, _) => {
+                    Err(operand_type_error("list_append", &other))
+                }
+            }
+        }
+        SetOperand::Plus(left, right) => eval_arith('+', item, left, right),
+        SetOperand::Minus(left, right) => eval_arith('-', item, left, right),
+    }
+}
+
+fn eval_arith(
+    op: char,
+    item: &Item,
+    left: &SetOperand,
+    right: &SetOperand,
+) -> Result<AttributeValue, String> {
+    let left = eval_set_operand(item, left)?;
+    let right = eval_set_operand(item, right)?;
+    let (AttributeValue::N(a), AttributeValue::N(b)) = (&left, &right) else {
+        let offender = if matches!(left, AttributeValue::N(_)) {
+            &right
+        } else {
+            &left
+        };
+        return Err(operand_type_error(&op.to_string(), offender));
+    };
+    arith_number(op, a, b)
+        .map(AttributeValue::N)
+        .ok_or_else(|| operand_type_error(&op.to_string(), &left))
 }
 
 fn get_at_path<'a>(item: &'a Item, path: &[String]) -> Option<&'a AttributeValue> {
@@ -1071,7 +1233,7 @@ fn remove_in_map(map: &mut std::collections::HashMap<String, AttributeValue>, pa
     }
 }
 
-fn apply_add(item: &mut Item, attr: &str, delta: &AttributeValue) {
+fn apply_add(item: &mut Item, attr: &str, delta: &AttributeValue) -> Result<(), String> {
     match (item.get(attr), delta) {
         (Some(AttributeValue::SS(cur)), AttributeValue::SS(extra)) => {
             let mut merged: Vec<String> = cur.clone();
@@ -1127,26 +1289,34 @@ fn apply_add(item: &mut Item, attr: &str, delta: &AttributeValue) {
             }
             item.insert(attr.to_string(), AttributeValue::BS(merged));
         }
-        // Otherwise treat as numeric (matches the prior behaviour for `N`
-        // and the `numeric ADD on missing attr` case).
-        _ => {
-            let cur_n = match item.get(attr) {
-                Some(AttributeValue::N(s)) => s.parse::<f64>().unwrap_or(0.0),
-                _ => 0.0,
-            };
-            let delta_n = match delta {
-                AttributeValue::N(s) => s.parse::<f64>().unwrap_or(0.0),
-                _ => 0.0,
-            };
-            item.insert(
-                attr.to_string(),
-                AttributeValue::N(format_number(cur_n + delta_n)),
-            );
+        // Numeric ADD: on a missing attribute the delta becomes the value.
+        (None, AttributeValue::N(delta)) => {
+            item.insert(attr.to_string(), AttributeValue::N(delta.clone()));
+        }
+        (Some(AttributeValue::N(cur)), AttributeValue::N(delta)) => {
+            let sum = arith_number('+', cur, delta)
+                .ok_or_else(|| operand_type_error("ADD", &AttributeValue::N(cur.clone())))?;
+            item.insert(attr.to_string(), AttributeValue::N(sum));
+        }
+        // Any other combination — a numeric delta against a string
+        // attribute, mismatched set types, and so on — is the same
+        // ValidationException the real service raises.
+        (current, delta) => {
+            return Err(format!(
+                "An operand in the update expression has an incorrect data type: ADD on attribute '{attr}' of type {} with a value of type {}",
+                current.and_then(ddb_type).unwrap_or("NULL"),
+                ddb_type(delta).unwrap_or("NULL"),
+            ));
         }
     }
+    Ok(())
 }
 
-fn apply_set_delete(item: &mut Item, attr: &str, members: &AttributeValue) {
+fn apply_set_delete(item: &mut Item, attr: &str, members: &AttributeValue) -> Result<(), String> {
+    // DELETE against a missing attribute is a no-op, as on the real service.
+    if !item.contains_key(attr) {
+        return Ok(());
+    }
     let new_value = match (item.get(attr), members) {
         (Some(AttributeValue::SS(cur)), AttributeValue::SS(rm)) => {
             let kept: Vec<String> = cur.iter().filter(|v| !rm.contains(v)).cloned().collect();
@@ -1172,7 +1342,13 @@ fn apply_set_delete(item: &mut Item, attr: &str, members: &AttributeValue) {
                 Some(AttributeValue::BS(kept))
             }
         }
-        _ => return,
+        (current, members) => {
+            return Err(format!(
+                "An operand in the update expression has an incorrect data type: DELETE on attribute '{attr}' of type {} with a value of type {}",
+                current.and_then(ddb_type).unwrap_or("NULL"),
+                ddb_type(members).unwrap_or("NULL"),
+            ));
+        }
     };
     match new_value {
         Some(v) => {
@@ -1182,11 +1358,31 @@ fn apply_set_delete(item: &mut Item, attr: &str, members: &AttributeValue) {
             item.remove(attr);
         }
     }
+    Ok(())
 }
 
 // ---------------------------------------------------------------------------
 // ProjectionExpression
 // ---------------------------------------------------------------------------
+
+/// Resolve a possibly dotted path like `info.city` or `#i.#c.foo`,
+/// substituting `ExpressionAttributeNames` aliases for any segment that
+/// starts with `#`. Empty segments (e.g. from a stray dot) are dropped.
+fn resolve_path(raw: &str, expr_names: &HashMap<String, String>) -> Vec<String> {
+    raw.split('.')
+        .map(|seg| seg.trim())
+        .filter(|seg| !seg.is_empty())
+        .map(|seg| {
+            if let Some(alias) = seg.strip_prefix('#')
+                && let Some(target) = expr_names.get(&format!("#{alias}"))
+            {
+                target.clone()
+            } else {
+                seg.to_string()
+            }
+        })
+        .collect()
+}
 
 /// Parse a `ProjectionExpression` like `"tags, info.city, #a.#b"` plus its
 /// `ExpressionAttributeNames` map into a list of attribute paths. Empty
@@ -1421,5 +1617,194 @@ mod tests {
         )
         .unwrap();
         assert!(!evaluate(&expr, &item(&[("version", json!({"N": "1"}))])));
+    }
+
+    // -----------------------------------------------------------------
+    // UpdateExpression parsing / application
+    // -----------------------------------------------------------------
+
+    /// Parse and apply in one step, the way a backend does.
+    fn update(
+        start: &[(&str, Value)],
+        expr: &str,
+        names_pairs: &[(&str, &str)],
+        values_pairs: &[(&str, Value)],
+    ) -> Result<Item, String> {
+        let actions = parse_update_expression(expr, &names(names_pairs), &values(values_pairs))?;
+        let mut it = item(start);
+        apply_update_actions(&mut it, &actions)?;
+        Ok(it)
+    }
+
+    /// Regression for issue #19: `if_not_exists` nested inside arithmetic —
+    /// the atomic-counter-with-default idiom — used to be dropped silently.
+    #[test]
+    fn test_set_if_not_exists_inside_arithmetic() {
+        // First call: `p` is absent, so the default feeds the addition.
+        let out = update(
+            &[],
+            "SET p = if_not_exists(p, :zero) + :v",
+            &[],
+            &[(":zero", json!({"N": "0"})), (":v", json!({"N": "1"}))],
+        )
+        .unwrap();
+        assert_eq!(out.get("p"), Some(&av(json!({"N": "1"}))));
+
+        // Second call: the stored value is used instead of the default.
+        let out = update(
+            &[("p", json!({"N": "1"}))],
+            "SET p = if_not_exists(p, :zero) + :v",
+            &[],
+            &[(":zero", json!({"N": "0"})), (":v", json!({"N": "1"}))],
+        )
+        .unwrap();
+        assert_eq!(out.get("p"), Some(&av(json!({"N": "2"}))));
+    }
+
+    #[test]
+    fn test_set_nested_list_append_and_if_not_exists() {
+        let out = update(
+            &[],
+            "SET #l = list_append(if_not_exists(#l, :empty), :extra)",
+            &[("#l", "items")],
+            &[
+                (":empty", json!({"L": []})),
+                (":extra", json!({"L": [{"S": "a"}]})),
+            ],
+        )
+        .unwrap();
+        assert_eq!(out.get("items"), Some(&av(json!({"L": [{"S": "a"}]}))));
+    }
+
+    #[test]
+    fn test_set_arithmetic_between_two_paths() {
+        let out = update(
+            &[("a", json!({"N": "10"})), ("b", json!({"N": "4"}))],
+            "SET c = a - b",
+            &[],
+            &[],
+        )
+        .unwrap();
+        assert_eq!(out.get("c"), Some(&av(json!({"N": "6"}))));
+    }
+
+    #[test]
+    fn test_set_arithmetic_is_exact_beyond_f64_integers() {
+        let out = update(
+            &[("n", json!({"N": "9007199254740993"}))],
+            "SET n = n + :one",
+            &[],
+            &[(":one", json!({"N": "1"}))],
+        )
+        .unwrap();
+        assert_eq!(out.get("n"), Some(&av(json!({"N": "9007199254740994"}))));
+    }
+
+    #[test]
+    fn test_multiple_clauses_and_dotted_paths() {
+        let out = update(
+            &[
+                ("gone", json!({"S": "x"})),
+                ("tags", json!({"SS": ["a", "b"]})),
+            ],
+            "SET info.city = :c REMOVE gone ADD hits :one DELETE tags :rm",
+            &[],
+            &[
+                (":c", json!({"S": "berlin"})),
+                (":one", json!({"N": "1"})),
+                (":rm", json!({"SS": ["a"]})),
+            ],
+        )
+        .unwrap();
+        assert_eq!(
+            out.get("info"),
+            Some(&av(json!({"M": {"city": {"S": "berlin"}}})))
+        );
+        assert!(!out.contains_key("gone"));
+        assert_eq!(out.get("hits"), Some(&av(json!({"N": "1"}))));
+        assert_eq!(out.get("tags"), Some(&av(json!({"SS": ["b"]}))));
+    }
+
+    /// An expression the emulator cannot evaluate must be rejected, not
+    /// dropped: issue #19's central complaint.
+    #[test]
+    fn test_unparseable_assignments_are_rejected() {
+        for expr in [
+            "SET p = ",
+            "SET p",
+            "SET p = :a + :b + :c",
+            "SET p = bogus_fn(p, :a)",
+            "SET p = :a SET q = :a",
+            "SET p = :a, p[0] = :a",
+            "GIVE p :a",
+            "",
+        ] {
+            let err = parse_update_expression(
+                expr,
+                &HashMap::new(),
+                &values(&[
+                    (":a", json!({"N": "1"})),
+                    (":b", json!({"N": "2"})),
+                    (":c", json!({"N": "3"})),
+                ]),
+            )
+            .expect_err(&format!("expected `{expr}` to be rejected"));
+            assert!(
+                err.starts_with("Invalid UpdateExpression:"),
+                "unexpected message for `{expr}`: {err}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_undefined_placeholders_are_rejected() {
+        assert!(
+            parse_update_expression("SET p = :missing", &HashMap::new(), &HashMap::new()).is_err()
+        );
+        assert!(
+            parse_update_expression(
+                "SET #missing = :v",
+                &HashMap::new(),
+                &values(&[(":v", json!({"N": "1"}))])
+            )
+            .is_err()
+        );
+    }
+
+    /// Operand type errors surface at apply time, and leave the item alone.
+    #[test]
+    fn test_operand_type_errors() {
+        let err = update(
+            &[("s", json!({"S": "text"}))],
+            "SET s = s + :one",
+            &[],
+            &[(":one", json!({"N": "1"}))],
+        )
+        .unwrap_err();
+        assert!(err.contains("Incorrect operand type"), "{err}");
+
+        // Arithmetic on an attribute that isn't there is a ValidationException
+        // on the real service — that is what if_not_exists is for.
+        let err = update(
+            &[],
+            "SET missing = missing + :one",
+            &[],
+            &[(":one", json!({"N": "1"}))],
+        )
+        .unwrap_err();
+        assert!(err.contains("does not exist in the item"), "{err}");
+    }
+
+    #[test]
+    fn test_failed_action_leaves_item_untouched() {
+        let actions = parse_update_expression(
+            "SET a = :one, b = missing",
+            &HashMap::new(),
+            &values(&[(":one", json!({"N": "1"}))]),
+        )
+        .unwrap();
+        let mut it = item(&[("keep", json!({"S": "yes"}))]);
+        assert!(apply_update_actions(&mut it, &actions).is_err());
+        assert_eq!(it, item(&[("keep", json!({"S": "yes"}))]));
     }
 }

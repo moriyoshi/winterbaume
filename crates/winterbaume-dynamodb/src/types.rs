@@ -231,6 +231,31 @@ fn attr_cmp(a: &AttributeValue, b: &AttributeValue) -> Option<std::cmp::Ordering
     }
 }
 
+/// The right-hand side of a `SET` assignment, as an operand tree.
+///
+/// DynamoDB lets `if_not_exists` and `list_append` nest inside each other
+/// and inside the `+` / `-` operators — `SET p = if_not_exists(p, :zero) + :v`
+/// is the canonical atomic-counter idiom — so the right-hand side is kept as
+/// a tree and evaluated against the item at apply time rather than being
+/// flattened into a fixed set of recognised shapes.
+#[derive(Debug, Clone, PartialEq)]
+pub enum SetOperand {
+    /// A document path, read from the item being updated.
+    Path(Vec<String>),
+    /// A literal resolved from `ExpressionAttributeValues`.
+    Value(AttributeValue),
+    /// `if_not_exists(<path>, <operand>)` — the path's current value, or the
+    /// operand when the path is absent.
+    IfNotExists(Vec<String>, Box<SetOperand>),
+    /// `list_append(<operand>, <operand>)` — both operands must evaluate to
+    /// lists.
+    ListAppend(Box<SetOperand>, Box<SetOperand>),
+    /// `<operand> + <operand>` — both operands must evaluate to numbers.
+    Plus(Box<SetOperand>, Box<SetOperand>),
+    /// `<operand> - <operand>` — both operands must evaluate to numbers.
+    Minus(Box<SetOperand>, Box<SetOperand>),
+}
+
 /// A single action within an `UpdateExpression`.
 ///
 /// Captures the four DynamoDB update clauses (`SET`, `REMOVE`, `ADD`,
@@ -242,30 +267,10 @@ fn attr_cmp(a: &AttributeValue, b: &AttributeValue) -> Option<std::cmp::Ordering
 /// is a top-level attribute; longer paths address nested map fields.
 #[derive(Debug, Clone, PartialEq)]
 pub enum UpdateAction {
-    /// `SET <path> = <value>`.
-    SetValue {
+    /// `SET <path> = <operand>`.
+    Set {
         path: Vec<String>,
-        value: AttributeValue,
-    },
-    /// `SET <path> = <path> + :delta` or `... - :delta` (delta pre-negated
-    /// for subtraction). The current value is read at apply time and treated
-    /// as 0 if missing.
-    SetArithmetic {
-        path: Vec<String>,
-        delta: AttributeValue,
-    },
-    /// `SET <path> = list_append(<path>, :value)`. Only same-path appends
-    /// are supported; if the existing attribute is absent, an empty list is
-    /// used as the source.
-    SetListAppend {
-        path: Vec<String>,
-        value: AttributeValue,
-    },
-    /// `SET <path> = if_not_exists(<path>, :value)`. Only same-path
-    /// short-circuits are supported.
-    SetIfNotExists {
-        path: Vec<String>,
-        value: AttributeValue,
+        value: SetOperand,
     },
     /// `REMOVE <path>`.
     Remove(Vec<String>),
