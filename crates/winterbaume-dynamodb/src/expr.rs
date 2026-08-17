@@ -1013,16 +1013,19 @@ impl UpdateParser<'_> {
             Some(UpdToken::Ident(name)) if self.peek2() == Some(&UpdToken::LParen) => {
                 self.pos += 2; // name, (
                 let operand = match name.as_str() {
+                    // `function ::= if_not_exists (path, value)` — the
+                    // second argument is a full value, so arithmetic nests
+                    // inside it.
                     "if_not_exists" => {
                         let path = self.parse_path()?;
                         self.expect(&UpdToken::Comma)?;
-                        let fallback = self.parse_operand()?;
+                        let fallback = self.parse_set_value()?;
                         SetOperand::IfNotExists(path, Box::new(fallback))
                     }
                     "list_append" => {
-                        let head = self.parse_operand()?;
+                        let head = self.parse_set_value()?;
                         self.expect(&UpdToken::Comma)?;
-                        let tail = self.parse_operand()?;
+                        let tail = self.parse_set_value()?;
                         SetOperand::ListAppend(Box::new(head), Box::new(tail))
                     }
                     _ => {
@@ -1148,24 +1151,59 @@ fn arith_number(op: char, a: &str, b: &str) -> Option<String> {
 /// actions are applied to a working copy, so `item` is left untouched when
 /// any of them fails.
 pub fn apply_update_actions(item: &mut Item, actions: &[UpdateAction]) -> Result<(), String> {
+    // Every operand reads from the pre-update image, never from the partially
+    // updated item: "DynamoDB evaluates every action against the item's
+    // attribute values as they were before the update. The actions aren't
+    // applied one after another from left to right". So `REMOVE a SET b = a,
+    // c = b` on {a:1,b:2,c:3} yields {b:1,c:2}.
+    let original = item.clone();
     let mut working = item.clone();
+
+    // Evaluate every right-hand side first, so no assignment can observe
+    // another's result.
+    let mut assignments: Vec<(&[PathSegment], AttributeValue)> = Vec::new();
+    for action in actions {
+        if let UpdateAction::Set { path, value } = action {
+            assignments.push((path, eval_set_operand(&original, value)?));
+        }
+    }
+    for (path, value) in assignments {
+        set_at_path(&mut working, path, value)?;
+    }
+
     for action in actions {
         match action {
-            UpdateAction::Set { path, value } => {
-                let value = eval_set_operand(&working, value)?;
-                set_at_path(&mut working, path, value)?;
-            }
-            UpdateAction::Remove(path) => {
-                remove_at_path(&mut working, path)?;
-            }
+            // Already applied above.
+            UpdateAction::Set { .. } | UpdateAction::Remove(_) => {}
             UpdateAction::Add(attr, delta) => {
-                apply_add(&mut working, attr, delta)?;
+                apply_add(&mut working, &original, attr, delta)?;
             }
             UpdateAction::Delete(attr, members) => {
-                apply_set_delete(&mut working, attr, members)?;
+                apply_set_delete(&mut working, &original, attr, members)?;
             }
         }
     }
+
+    // Removals last, and list-element removals in descending index order:
+    // the indexes name positions in the pre-update list, and deleting a
+    // higher index never shifts a lower one. `REMOVE l[1], l[2]` therefore
+    // drops the original second and third elements, not the second and the
+    // one that slid into third place.
+    let mut removals: Vec<&[PathSegment]> = actions
+        .iter()
+        .filter_map(|a| match a {
+            UpdateAction::Remove(path) => Some(path.as_slice()),
+            _ => None,
+        })
+        .collect();
+    removals.sort_by_key(|path| match path.last() {
+        Some(PathSegment::Index(i)) => std::cmp::Reverse(*i as i64),
+        _ => std::cmp::Reverse(i64::MAX),
+    });
+    for path in removals {
+        remove_at_path(&mut working, path)?;
+    }
+
     *item = working;
     Ok(())
 }
@@ -1369,8 +1407,13 @@ fn remove_in_value(container: &mut AttributeValue, rest: &[PathSegment]) -> Resu
     }
 }
 
-fn apply_add(item: &mut Item, attr: &str, delta: &AttributeValue) -> Result<(), String> {
-    match (item.get(attr), delta) {
+fn apply_add(
+    item: &mut Item,
+    original: &Item,
+    attr: &str,
+    delta: &AttributeValue,
+) -> Result<(), String> {
+    match (original.get(attr), delta) {
         (Some(AttributeValue::SS(cur)), AttributeValue::SS(extra)) => {
             let mut merged: Vec<String> = cur.clone();
             for v in extra {
@@ -1448,12 +1491,17 @@ fn apply_add(item: &mut Item, attr: &str, delta: &AttributeValue) -> Result<(), 
     Ok(())
 }
 
-fn apply_set_delete(item: &mut Item, attr: &str, members: &AttributeValue) -> Result<(), String> {
+fn apply_set_delete(
+    item: &mut Item,
+    original: &Item,
+    attr: &str,
+    members: &AttributeValue,
+) -> Result<(), String> {
     // DELETE against a missing attribute is a no-op, as on the real service.
-    if !item.contains_key(attr) {
+    if !original.contains_key(attr) {
         return Ok(());
     }
-    let new_value = match (item.get(attr), members) {
+    let new_value = match (original.get(attr), members) {
         (Some(AttributeValue::SS(cur)), AttributeValue::SS(rm)) => {
             let kept: Vec<String> = cur.iter().filter(|v| !rm.contains(v)).cloned().collect();
             if kept.is_empty() {
@@ -2084,6 +2132,65 @@ mod tests {
         )
         .unwrap();
         assert!(evaluate(&expr, &it));
+    }
+
+    /// Every action reads the pre-update image, per the AWS update-expression
+    /// documentation: "The actions aren't applied one after another from left
+    /// to right". Both examples below are taken verbatim from that page.
+    #[test]
+    fn test_actions_evaluate_against_the_pre_update_image() {
+        let out = update(
+            &[
+                ("id", json!({"S": "1"})),
+                ("a", json!({"N": "1"})),
+                ("b", json!({"N": "2"})),
+                ("c", json!({"N": "3"})),
+            ],
+            "REMOVE a SET b = a, c = b",
+            &[],
+            &[],
+        )
+        .unwrap();
+        assert!(!out.contains_key("a"));
+        assert_eq!(out.get("b"), Some(&av(json!({"N": "1"}))));
+        assert_eq!(out.get("c"), Some(&av(json!({"N": "2"}))));
+    }
+
+    #[test]
+    fn test_multiple_list_removals_use_pre_update_indexes() {
+        let out = update(
+            &[(
+                "l",
+                json!({"L": [
+                    {"S": "Chisel"}, {"S": "Hammer"}, {"S": "Nails"},
+                    {"S": "Screwdriver"}, {"S": "Hacksaw"}
+                ]}),
+            )],
+            "REMOVE l[1], l[2]",
+            &[],
+            &[],
+        )
+        .unwrap();
+        assert_eq!(
+            out.get("l"),
+            Some(&av(
+                json!({"L": [{"S": "Chisel"}, {"S": "Screwdriver"}, {"S": "Hacksaw"}]})
+            ))
+        );
+    }
+
+    /// `function ::= if_not_exists (path, value)`, and `value` admits one
+    /// arithmetic operator — so arithmetic nests inside the fallback.
+    #[test]
+    fn test_arithmetic_inside_if_not_exists_fallback() {
+        let out = update(
+            &[],
+            "SET p = if_not_exists(p, :a + :b)",
+            &[],
+            &[(":a", json!({"N": "1"})), (":b", json!({"N": "2"}))],
+        )
+        .unwrap();
+        assert_eq!(out.get("p"), Some(&av(json!({"N": "3"}))));
     }
 
     #[test]

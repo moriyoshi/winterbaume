@@ -8555,3 +8555,89 @@ async fn test_projection_expression_list_index_is_rejected() {
     let msg = format!("{err:?}");
     assert!(msg.contains("ValidationException"), "{msg}");
 }
+
+/// Verbatim from the AWS update-expression documentation: every action reads
+/// the item as it was *before* the update, so `REMOVE a SET b = a, c = b` on
+/// `{a:1, b:2, c:3}` yields `{b:1, c:2}`. winterbaume used to apply actions
+/// left to right against the partially updated item, which made `b = a` fail
+/// with "refers to an attribute that does not exist".
+#[tokio::test]
+async fn test_update_item_actions_see_pre_update_values() {
+    let client = make_dynamodb_client().await;
+    create_hash_table(&client, "pre-update").await;
+
+    client
+        .put_item()
+        .table_name("pre-update")
+        .item("pk", AttributeValue::S("1".into()))
+        .item("a", AttributeValue::N("1".into()))
+        .item("b", AttributeValue::N("2".into()))
+        .item("c", AttributeValue::N("3".into()))
+        .send()
+        .await
+        .unwrap();
+
+    let out = client
+        .update_item()
+        .table_name("pre-update")
+        .key("pk", AttributeValue::S("1".into()))
+        .update_expression("REMOVE a SET b = a, c = b")
+        .return_values(aws_sdk_dynamodb::types::ReturnValue::AllNew)
+        .send()
+        .await
+        .expect("multi-action expression must be accepted");
+
+    let item = out.attributes.unwrap();
+    assert!(!item.contains_key("a"), "a should have been removed");
+    assert_eq!(item.get("b").unwrap().as_n().unwrap(), "1");
+    assert_eq!(item.get("c").unwrap().as_n().unwrap(), "2");
+}
+
+/// Also verbatim from that page: `REMOVE RelatedItems[1], RelatedItems[2]`
+/// removes the original second and third elements, not the second and
+/// whichever slid into third place.
+#[tokio::test]
+async fn test_update_item_multiple_list_removals() {
+    let client = make_dynamodb_client().await;
+    create_hash_table(&client, "pre-update-list").await;
+
+    client
+        .put_item()
+        .table_name("pre-update-list")
+        .item("pk", AttributeValue::S("1".into()))
+        .item(
+            "RelatedItems",
+            AttributeValue::L(vec![
+                AttributeValue::S("Chisel".into()),
+                AttributeValue::S("Hammer".into()),
+                AttributeValue::S("Nails".into()),
+                AttributeValue::S("Screwdriver".into()),
+                AttributeValue::S("Hacksaw".into()),
+            ]),
+        )
+        .send()
+        .await
+        .unwrap();
+
+    client
+        .update_item()
+        .table_name("pre-update-list")
+        .key("pk", AttributeValue::S("1".into()))
+        .update_expression("REMOVE RelatedItems[1], RelatedItems[2]")
+        .send()
+        .await
+        .unwrap();
+
+    let item = client
+        .get_item()
+        .table_name("pre-update-list")
+        .key("pk", AttributeValue::S("1".into()))
+        .send()
+        .await
+        .unwrap()
+        .item
+        .unwrap();
+    let list = item.get("RelatedItems").unwrap().as_l().unwrap();
+    let strs: Vec<&str> = list.iter().map(|v| v.as_s().unwrap().as_str()).collect();
+    assert_eq!(strs, vec!["Chisel", "Screwdriver", "Hacksaw"]);
+}
