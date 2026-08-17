@@ -628,10 +628,19 @@ impl DynamoDbService {
         let key: Item = item_from_wire(input.key);
 
         let expr_names = input.expression_attribute_names.unwrap_or_default();
-        let projection = crate::expr::parse_projection_expression(
+        let projection = match crate::expr::parse_projection_expression(
             input.projection_expression.as_deref(),
             &expr_names,
-        );
+        ) {
+            Ok(p) => p,
+            Err(msg) => {
+                return json_error_response(
+                    400,
+                    "com.amazonaws.dynamodb.v20120810#ValidationException",
+                    &msg,
+                );
+            }
+        };
 
         match self
             .backend
@@ -876,10 +885,19 @@ impl DynamoDbService {
             None => None,
         };
 
-        let projection = crate::expr::parse_projection_expression(
+        let projection = match crate::expr::parse_projection_expression(
             input.projection_expression.as_deref(),
             &expr_names,
-        );
+        ) {
+            Ok(p) => p,
+            Err(msg) => {
+                return json_error_response(
+                    400,
+                    "com.amazonaws.dynamodb.v20120810#ValidationException",
+                    &msg,
+                );
+            }
+        };
 
         match self
             .backend
@@ -969,10 +987,19 @@ impl DynamoDbService {
             None => None,
         };
 
-        let projection = crate::expr::parse_projection_expression(
+        let projection = match crate::expr::parse_projection_expression(
             input.projection_expression.as_deref(),
             &expr_names,
-        );
+        ) {
+            Ok(p) => p,
+            Err(msg) => {
+                return json_error_response(
+                    400,
+                    "com.amazonaws.dynamodb.v20120810#ValidationException",
+                    &msg,
+                );
+            }
+        };
 
         match self
             .backend
@@ -4182,9 +4209,13 @@ fn walk_key_condition(
             walk_key_condition(*lhs, equalities, sort_condition);
             walk_key_condition(*rhs, equalities, sort_condition);
         }
-        Expr::Comparison(Operand::Path(name), op, Operand::Value(val)) => match op {
+        // Key attributes are always top-level, so only a single-segment path
+        // can name one; a nested or indexed path is not a key condition.
+        Expr::Comparison(Operand::Path(path), op, Operand::Value(val)) => match op {
             CompOp::Eq => {
-                equalities.insert(name, val);
+                if let [crate::types::PathSegment::Attr(name)] = path.as_slice() {
+                    equalities.insert(name.clone(), val);
+                }
             }
             CompOp::Lt => *sort_condition = Some(SortKeyCondition::LessThan(val)),
             CompOp::Le => *sort_condition = Some(SortKeyCondition::LessThanOrEqual(val)),

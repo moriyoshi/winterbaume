@@ -231,6 +231,57 @@ fn attr_cmp(a: &AttributeValue, b: &AttributeValue) -> Option<std::cmp::Ordering
     }
 }
 
+/// One segment of a DynamoDB document path.
+///
+/// `a.b[2].c` resolves to `[Attr("a"), Attr("b"), Index(2), Attr("c")]`. The
+/// same representation serves update expressions, condition and filter
+/// expressions, and projections, so every surface dereferences nested maps
+/// and lists through one code path.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum PathSegment {
+    /// A map key: a top-level attribute name, or a field of a nested map.
+    Attr(String),
+    /// A list element index, as in `a[0]`.
+    Index(usize),
+}
+
+impl PathSegment {
+    /// The attribute name, when this segment is a map key.
+    pub fn as_attr(&self) -> Option<&str> {
+        match self {
+            PathSegment::Attr(name) => Some(name),
+            PathSegment::Index(_) => None,
+        }
+    }
+}
+
+impl std::fmt::Display for PathSegment {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            PathSegment::Attr(name) => write!(f, "{name}"),
+            PathSegment::Index(i) => write!(f, "[{i}]"),
+        }
+    }
+}
+
+/// Render a document path the way it appeared in the expression, for error
+/// messages: `["a", 0, "b"]` becomes `a[0].b`.
+pub fn render_path(path: &[PathSegment]) -> String {
+    let mut out = String::new();
+    for seg in path {
+        match seg {
+            PathSegment::Attr(name) => {
+                if !out.is_empty() {
+                    out.push('.');
+                }
+                out.push_str(name);
+            }
+            PathSegment::Index(i) => out.push_str(&format!("[{i}]")),
+        }
+    }
+    out
+}
+
 /// The right-hand side of a `SET` assignment, as an operand tree.
 ///
 /// DynamoDB lets `if_not_exists` and `list_append` nest inside each other
@@ -241,12 +292,12 @@ fn attr_cmp(a: &AttributeValue, b: &AttributeValue) -> Option<std::cmp::Ordering
 #[derive(Debug, Clone, PartialEq)]
 pub enum SetOperand {
     /// A document path, read from the item being updated.
-    Path(Vec<String>),
+    Path(Vec<PathSegment>),
     /// A literal resolved from `ExpressionAttributeValues`.
     Value(AttributeValue),
     /// `if_not_exists(<path>, <operand>)` — the path's current value, or the
     /// operand when the path is absent.
-    IfNotExists(Vec<String>, Box<SetOperand>),
+    IfNotExists(Vec<PathSegment>, Box<SetOperand>),
     /// `list_append(<operand>, <operand>)` — both operands must evaluate to
     /// lists.
     ListAppend(Box<SetOperand>, Box<SetOperand>),
@@ -269,11 +320,11 @@ pub enum SetOperand {
 pub enum UpdateAction {
     /// `SET <path> = <operand>`.
     Set {
-        path: Vec<String>,
+        path: Vec<PathSegment>,
         value: SetOperand,
     },
     /// `REMOVE <path>`.
-    Remove(Vec<String>),
+    Remove(Vec<PathSegment>),
     /// `ADD <attr> :v`. The action is polymorphic at apply time:
     /// - numeric `N` value with missing/`N` current → numeric increment
     /// - `SS` / `NS` / `BS` value with missing/matching current → set union

@@ -8359,3 +8359,199 @@ async fn test_consistent_read_rejected_on_gsi() {
         .await
         .expect("consistent read on the base table is valid");
 }
+
+// ---------------------------------------------------------------------------
+// Document paths: list elements and nested condition paths (issue #19)
+// ---------------------------------------------------------------------------
+
+/// `SET`/`REMOVE` on a list element. Previously `a[0]` parsed as an attribute
+/// literally named "a[0]", so the assignment was silently dropped.
+#[tokio::test]
+async fn test_update_item_list_element_paths() {
+    let client = make_dynamodb_client().await;
+    create_hash_table(&client, "path-list").await;
+
+    client
+        .put_item()
+        .table_name("path-list")
+        .item("pk", AttributeValue::S("p1".into()))
+        .item(
+            "items",
+            AttributeValue::L(vec![
+                AttributeValue::S("a".into()),
+                AttributeValue::S("b".into()),
+                AttributeValue::S("c".into()),
+            ]),
+        )
+        .send()
+        .await
+        .unwrap();
+
+    client
+        .update_item()
+        .table_name("path-list")
+        .key("pk", AttributeValue::S("p1".into()))
+        .update_expression("SET items[1] = :v REMOVE items[2]")
+        .expression_attribute_values(":v", AttributeValue::S("B".into()))
+        .send()
+        .await
+        .unwrap();
+
+    let item = client
+        .get_item()
+        .table_name("path-list")
+        .key("pk", AttributeValue::S("p1".into()))
+        .send()
+        .await
+        .unwrap()
+        .item
+        .unwrap();
+    let list = item.get("items").unwrap().as_l().unwrap();
+    let strs: Vec<&str> = list.iter().map(|v| v.as_s().unwrap().as_str()).collect();
+    assert_eq!(strs, vec!["a", "B"]);
+}
+
+/// A path that mixes map fields and list indexes, used as an arithmetic
+/// operand.
+#[tokio::test]
+async fn test_update_item_mixed_map_and_list_path() {
+    let client = make_dynamodb_client().await;
+    create_hash_table(&client, "path-mixed").await;
+
+    let mut inner = std::collections::HashMap::new();
+    inner.insert("n".to_string(), AttributeValue::N("1".into()));
+    let mut outer = std::collections::HashMap::new();
+    outer.insert(
+        "rows".to_string(),
+        AttributeValue::L(vec![AttributeValue::M(inner)]),
+    );
+
+    client
+        .put_item()
+        .table_name("path-mixed")
+        .item("pk", AttributeValue::S("p1".into()))
+        .item("doc", AttributeValue::M(outer))
+        .send()
+        .await
+        .unwrap();
+
+    client
+        .update_item()
+        .table_name("path-mixed")
+        .key("pk", AttributeValue::S("p1".into()))
+        .update_expression("SET doc.rows[0].n = doc.rows[0].n + :inc")
+        .expression_attribute_values(":inc", AttributeValue::N("41".into()))
+        .send()
+        .await
+        .unwrap();
+
+    let item = client
+        .get_item()
+        .table_name("path-mixed")
+        .key("pk", AttributeValue::S("p1".into()))
+        .send()
+        .await
+        .unwrap()
+        .item
+        .unwrap();
+    let rows = item
+        .get("doc")
+        .unwrap()
+        .as_m()
+        .unwrap()
+        .get("rows")
+        .unwrap();
+    let n = rows.as_l().unwrap()[0].as_m().unwrap().get("n").unwrap();
+    assert_eq!(n.as_n().unwrap(), "42");
+}
+
+/// Dotted paths in a ConditionExpression used to fail tokenisation and return
+/// a spurious ValidationException.
+#[tokio::test]
+async fn test_condition_expression_dotted_path() {
+    let client = make_dynamodb_client().await;
+    create_hash_table(&client, "cond-path").await;
+
+    let mut info = std::collections::HashMap::new();
+    info.insert("city".to_string(), AttributeValue::S("berlin".into()));
+    client
+        .put_item()
+        .table_name("cond-path")
+        .item("pk", AttributeValue::S("p1".into()))
+        .item("info", AttributeValue::M(info))
+        .send()
+        .await
+        .unwrap();
+
+    // A satisfied nested condition allows the write.
+    client
+        .update_item()
+        .table_name("cond-path")
+        .key("pk", AttributeValue::S("p1".into()))
+        .update_expression("SET ok = :one")
+        .condition_expression("info.city = :c")
+        .expression_attribute_values(":one", AttributeValue::N("1".into()))
+        .expression_attribute_values(":c", AttributeValue::S("berlin".into()))
+        .send()
+        .await
+        .expect("dotted path in a ConditionExpression must be accepted");
+
+    // An unsatisfied one fails the condition rather than the parse.
+    let err = client
+        .update_item()
+        .table_name("cond-path")
+        .key("pk", AttributeValue::S("p1".into()))
+        .update_expression("SET nope = :one")
+        .condition_expression("info.city = :c")
+        .expression_attribute_values(":one", AttributeValue::N("1".into()))
+        .expression_attribute_values(":c", AttributeValue::S("paris".into()))
+        .send()
+        .await
+        .expect_err("condition should not match");
+    let msg = format!("{err:?}");
+    assert!(
+        msg.contains("ConditionalCheckFailed"),
+        "expected a conditional failure, not a parse error: {msg}"
+    );
+
+    // attribute_exists over a nested path, as a filter this time.
+    let out = client
+        .scan()
+        .table_name("cond-path")
+        .filter_expression("attribute_exists(info.city)")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(out.count, 1);
+}
+
+/// A ProjectionExpression naming a list element is refused rather than
+/// silently omitting the attribute.
+#[tokio::test]
+async fn test_projection_expression_list_index_is_rejected() {
+    let client = make_dynamodb_client().await;
+    create_hash_table(&client, "proj-idx").await;
+
+    client
+        .put_item()
+        .table_name("proj-idx")
+        .item("pk", AttributeValue::S("p1".into()))
+        .item(
+            "items",
+            AttributeValue::L(vec![AttributeValue::S("a".into())]),
+        )
+        .send()
+        .await
+        .unwrap();
+
+    let err = client
+        .get_item()
+        .table_name("proj-idx")
+        .key("pk", AttributeValue::S("p1".into()))
+        .projection_expression("items[0]")
+        .send()
+        .await
+        .expect_err("unsupported projection path should be rejected, not dropped");
+    let msg = format!("{err:?}");
+    assert!(msg.contains("ValidationException"), "{msg}");
+}

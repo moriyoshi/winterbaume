@@ -28,11 +28,11 @@ pub enum Expr {
     Comparison(Operand, CompOp, Operand),
     Between(Operand, Operand, Operand), // val BETWEEN lo AND hi
     In(Operand, Vec<Operand>),          // val IN (a, b, ...)
-    AttributeExists(String),
-    AttributeNotExists(String),
-    AttributeType(String, Operand),
-    Contains(String, Operand),
-    BeginsWith(String, Operand),
+    AttributeExists(Vec<PathSegment>),
+    AttributeNotExists(Vec<PathSegment>),
+    AttributeType(Vec<PathSegment>, Operand),
+    Contains(Vec<PathSegment>, Operand),
+    BeginsWith(Vec<PathSegment>, Operand),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -47,9 +47,9 @@ pub enum CompOp {
 
 #[derive(Debug)]
 pub enum Operand {
-    Path(String),
+    Path(Vec<PathSegment>),
     Value(AttributeValue),
-    Size(String),
+    Size(Vec<PathSegment>),
 }
 
 // ---------------------------------------------------------------------------
@@ -64,6 +64,9 @@ enum Token {
     LParen,
     RParen,
     Comma,
+    Dot,
+    /// `[3]` — a list element index.
+    Index(usize),
     Eq,
     Ne,
     Lt,
@@ -92,6 +95,29 @@ fn tokenize(expr: &str) -> Result<Vec<Token>, String> {
             ',' => {
                 tokens.push(Token::Comma);
                 i += 1;
+            }
+            '.' => {
+                tokens.push(Token::Dot);
+                i += 1;
+            }
+            '[' => {
+                i += 1;
+                let start = i;
+                while i < chars.len() && chars[i].is_ascii_digit() {
+                    i += 1;
+                }
+                let digits: String = chars[start..i].iter().collect();
+                if digits.is_empty() || i >= chars.len() || chars[i] != ']' {
+                    return Err(
+                        "Invalid expression: a list index must be '[' followed by digits and ']'"
+                            .to_string(),
+                    );
+                }
+                i += 1; // ]
+                let idx: usize = digits.parse().map_err(|_| {
+                    format!("Invalid expression: list index out of range: [{digits}]")
+                })?;
+                tokens.push(Token::Index(idx));
             }
             '=' => {
                 tokens.push(Token::Eq);
@@ -394,8 +420,26 @@ impl<'a> Parser<'a> {
         }
     }
 
-    /// Parse an attribute path (may be `#name` or bare `Ident`).
-    fn parse_attr_path(&mut self) -> Result<String, String> {
+    /// Parse a document path: `#name`, a bare `Ident`, dotted segments, and
+    /// list-element dereferences — `info.city`, `#i.#c`, `tags[0].name`.
+    fn parse_attr_path(&mut self) -> Result<Vec<PathSegment>, String> {
+        let mut segments = vec![PathSegment::Attr(self.parse_path_name()?)];
+        loop {
+            match self.peek() {
+                Some(Token::Dot) => {
+                    self.consume();
+                    segments.push(PathSegment::Attr(self.parse_path_name()?));
+                }
+                Some(&Token::Index(i)) => {
+                    self.consume();
+                    segments.push(PathSegment::Index(i));
+                }
+                _ => return Ok(segments),
+            }
+        }
+    }
+
+    fn parse_path_name(&mut self) -> Result<String, String> {
         match self.consume() {
             Some(Token::AttrName(placeholder)) => self.resolve_name(&placeholder),
             Some(Token::Ident(name)) => Ok(name),
@@ -415,23 +459,16 @@ impl<'a> Parser<'a> {
                     self.expect_rparen()?;
                     return Ok(Operand::Size(attr));
                 }
-                // Otherwise treat as a bare attribute name
-                self.consume();
-                Ok(Operand::Path(name.clone()))
+                // Otherwise treat it as an ordinary attribute path.
+                Ok(Operand::Path(self.parse_attr_path()?))
             }
-            Some(Token::AttrName(placeholder)) => {
-                self.consume();
-                let name = self.resolve_name(&placeholder)?;
-                Ok(Operand::Path(name))
+            Some(Token::AttrName(_)) | Some(Token::Ident(_)) => {
+                Ok(Operand::Path(self.parse_attr_path()?))
             }
             Some(Token::AttrValue(placeholder)) => {
                 self.consume();
                 let val = self.resolve_value(&placeholder)?;
                 Ok(Operand::Value(val))
-            }
-            Some(Token::Ident(name)) => {
-                self.consume();
-                Ok(Operand::Path(name))
             }
             other => Err(format!("Expected operand, got {other:?}")),
         }
@@ -463,8 +500,11 @@ pub fn parse_expression(
 // Evaluator
 // ---------------------------------------------------------------------------
 
-fn get_attr<'a>(item: &'a Item, name: &str) -> Option<&'a AttributeValue> {
-    item.get(name)
+/// Resolve a document path against an item for condition and filter
+/// evaluation. Delegates to the same traversal the update path uses, so
+/// dotted paths and list indexes behave identically on both surfaces.
+fn get_attr<'a>(item: &'a Item, path: &[PathSegment]) -> Option<&'a AttributeValue> {
+    get_at_path(item, path)
 }
 
 fn compute_size(val: &AttributeValue) -> Option<usize> {
@@ -660,7 +700,7 @@ pub fn evaluate(expr: &Expr, item: &Item) -> bool {
 // Update-expression parsing and application
 // ---------------------------------------------------------------------------
 
-use crate::types::{SetOperand, UpdateAction};
+use crate::types::{PathSegment, SetOperand, UpdateAction};
 
 // ---------------------------------------------------------------------------
 // Update-expression tokeniser
@@ -678,6 +718,8 @@ enum UpdToken {
     Eq,
     Plus,
     Minus,
+    /// `[3]` — a list element index.
+    Index(usize),
 }
 
 impl UpdToken {
@@ -692,6 +734,7 @@ impl UpdToken {
             UpdToken::Eq => "=".to_string(),
             UpdToken::Plus => "+".to_string(),
             UpdToken::Minus => "-".to_string(),
+            UpdToken::Index(i) => format!("[{i}]"),
         }
     }
 }
@@ -732,11 +775,24 @@ fn tokenize_update(expr: &str) -> Result<Vec<UpdToken>, String> {
                 i += 1;
             }
             '[' => {
-                // List-element dereferences would need an indexed path
-                // representation; say so rather than mis-parsing the path.
-                return Err(invalid_update_expr(
-                    "list element dereferences ('[n]') in update expressions are not supported by winterbaume",
-                ));
+                i += 1;
+                let start = i;
+                while i < chars.len() && chars[i].is_ascii_digit() {
+                    i += 1;
+                }
+                let digits: String = chars[start..i].iter().collect();
+                if digits.is_empty() || i >= chars.len() || chars[i] != ']' {
+                    return Err(invalid_update_expr(
+                        "Syntax error; a list index must be '[' followed by digits and ']'",
+                    ));
+                }
+                i += 1; // ]
+                let idx: usize = digits.parse().map_err(|_| {
+                    invalid_update_expr(&format!(
+                        "Syntax error; list index out of range: [{digits}]"
+                    ))
+                })?;
+                tokens.push(UpdToken::Index(idx));
             }
             '#' | ':' => {
                 let sigil = chars[i];
@@ -910,15 +966,17 @@ impl UpdateParser<'_> {
     /// placeholder — nested paths are rejected by the real service too.
     fn parse_attr_value_pair(&mut self, clause: &str) -> Result<(String, AttributeValue), String> {
         let path = self.parse_path()?;
-        if path.len() != 1 {
+        let [PathSegment::Attr(attr)] = path.as_slice() else {
             return Err(invalid_update_expr(&format!(
-                "The document path provided in the update expression is invalid for update; clause: {clause}"
+                "The document path provided in the update expression is invalid for update; clause: {clause}, path: {}",
+                crate::types::render_path(&path)
             )));
-        }
+        };
+        let attr = attr.clone();
         match self.consume() {
             Some(UpdToken::AttrValue(placeholder)) => {
                 let value = self.resolve_value(&placeholder)?;
-                Ok((path.into_iter().next().unwrap(), value))
+                Ok((attr, value))
             }
             other => Err(syntax_error(other.as_ref())),
         }
@@ -983,18 +1041,26 @@ impl UpdateParser<'_> {
         }
     }
 
-    /// A dotted document path like `info.city` or `#i.#c.foo`, with `#`
-    /// segments resolved through `ExpressionAttributeNames`.
-    fn parse_path(&mut self) -> Result<Vec<String>, String> {
-        let mut segments = vec![self.parse_path_segment()?];
-        while self.peek() == Some(&UpdToken::Dot) {
-            self.pos += 1;
-            segments.push(self.parse_path_segment()?);
+    /// A document path like `info.city`, `#i.#c.foo`, or `tags[0].name`, with
+    /// `#` segments resolved through `ExpressionAttributeNames`.
+    fn parse_path(&mut self) -> Result<Vec<PathSegment>, String> {
+        let mut segments = vec![PathSegment::Attr(self.parse_path_name()?)];
+        loop {
+            match self.peek() {
+                Some(UpdToken::Dot) => {
+                    self.pos += 1;
+                    segments.push(PathSegment::Attr(self.parse_path_name()?));
+                }
+                Some(&UpdToken::Index(i)) => {
+                    self.pos += 1;
+                    segments.push(PathSegment::Index(i));
+                }
+                _ => return Ok(segments),
+            }
         }
-        Ok(segments)
     }
 
-    fn parse_path_segment(&mut self) -> Result<String, String> {
+    fn parse_path_name(&mut self) -> Result<String, String> {
         match self.consume() {
             Some(UpdToken::AttrName(placeholder)) => self.resolve_name(&placeholder),
             Some(UpdToken::Ident(name)) => Ok(name),
@@ -1006,14 +1072,14 @@ impl UpdateParser<'_> {
 /// Parse an `UpdateExpression` plus its `ExpressionAttributeNames` /
 /// `ExpressionAttributeValues` into a list of [`UpdateAction`]s.
 ///
-/// Recognises the full DynamoDB update grammar apart from list-element
-/// dereferences (`a[0]`):
+/// Recognises the full DynamoDB update grammar:
 /// - `SET p = <operand> [+|- <operand>]`, where an operand is a value
 ///   placeholder, a document path, `if_not_exists(<path>, <operand>)`, or
 ///   `list_append(<operand>, <operand>)` — nested arbitrarily, so the
 ///   atomic-counter idiom `SET p = if_not_exists(p, :zero) + :v` works
-/// - `SET nested.path = :v` (dotted paths, with each segment optionally
-///   resolved through `ExpressionAttributeNames`)
+/// - `SET nested.path = :v` and `SET tags[0].name = :v` (dotted paths and
+///   list-element dereferences, with each name segment optionally resolved
+///   through `ExpressionAttributeNames`)
 /// - `REMOVE p, q.r`
 /// - `ADD attr :v` (numeric or set, polymorphic at apply time)
 /// - `DELETE attr :v` (set difference)
@@ -1087,10 +1153,10 @@ pub fn apply_update_actions(item: &mut Item, actions: &[UpdateAction]) -> Result
         match action {
             UpdateAction::Set { path, value } => {
                 let value = eval_set_operand(&working, value)?;
-                set_at_path(&mut working, path, value);
+                set_at_path(&mut working, path, value)?;
             }
             UpdateAction::Remove(path) => {
-                remove_at_path(&mut working, path);
+                remove_at_path(&mut working, path)?;
             }
             UpdateAction::Add(attr, delta) => {
                 apply_add(&mut working, attr, delta)?;
@@ -1164,72 +1230,142 @@ fn eval_arith(
         .ok_or_else(|| operand_type_error(&op.to_string(), &left))
 }
 
-fn get_at_path<'a>(item: &'a Item, path: &[String]) -> Option<&'a AttributeValue> {
-    let mut cur = item.get(&path[0])?;
-    for seg in &path[1..] {
-        match cur {
-            AttributeValue::M(map) => cur = map.get(seg)?,
+/// Resolve `path` against `item`, following map keys and list indexes.
+fn get_at_path<'a>(item: &'a Item, path: &[PathSegment]) -> Option<&'a AttributeValue> {
+    let (first, rest) = path.split_first()?;
+    // The item itself is a map, so a leading index cannot resolve.
+    let mut cur = item.get(first.as_attr()?)?;
+    for seg in rest {
+        cur = match (cur, seg) {
+            (AttributeValue::M(map), PathSegment::Attr(name)) => map.get(name)?,
+            (AttributeValue::L(list), PathSegment::Index(i)) => list.get(*i)?,
             _ => return None,
-        }
+        };
     }
     Some(cur)
 }
 
-fn set_at_path(item: &mut Item, path: &[String], value: AttributeValue) {
-    if path.len() == 1 {
-        item.insert(path[0].clone(), value);
-        return;
+/// The `ValidationException` AWS raises when a document path cannot be
+/// followed for a write — a missing or wrongly-typed parent container.
+fn invalid_document_path(path: &[PathSegment]) -> String {
+    format!(
+        "The document path provided in the update expression is invalid for update; path: {}",
+        crate::types::render_path(path)
+    )
+}
+
+fn set_at_path(item: &mut Item, path: &[PathSegment], value: AttributeValue) -> Result<(), String> {
+    let (first, rest) = path
+        .split_first()
+        .ok_or_else(|| invalid_document_path(path))?;
+    let head = first.as_attr().ok_or_else(|| invalid_document_path(path))?;
+    if rest.is_empty() {
+        item.insert(head.to_string(), value);
+        return Ok(());
     }
-    let head = &path[0];
+    // A nested map is created on demand, matching the pre-existing lenient
+    // behaviour for dotted paths; a list is never invented, since there is no
+    // way to know how long it should be.
     let entry = item
-        .entry(head.clone())
+        .entry(head.to_string())
         .or_insert_with(|| AttributeValue::M(std::collections::HashMap::new()));
-    if !matches!(entry, AttributeValue::M(_)) {
+    if matches!(rest[0], PathSegment::Attr(_)) && !matches!(entry, AttributeValue::M(_)) {
         *entry = AttributeValue::M(std::collections::HashMap::new());
     }
-    if let AttributeValue::M(map) = entry {
-        set_in_map(map, &path[1..], value);
-    }
+    set_in_value(entry, rest, path, value)
 }
 
-fn set_in_map(
-    map: &mut std::collections::HashMap<String, AttributeValue>,
-    path: &[String],
+/// Walk `rest` from `container`, creating intermediate maps as needed, and
+/// write `value` at the leaf. `full` is carried only for error messages.
+fn set_in_value(
+    container: &mut AttributeValue,
+    rest: &[PathSegment],
+    full: &[PathSegment],
     value: AttributeValue,
-) {
-    if path.len() == 1 {
-        map.insert(path[0].clone(), value);
-        return;
-    }
-    let head = &path[0];
-    let entry = map
-        .entry(head.clone())
-        .or_insert_with(|| AttributeValue::M(std::collections::HashMap::new()));
-    if !matches!(entry, AttributeValue::M(_)) {
-        *entry = AttributeValue::M(std::collections::HashMap::new());
-    }
-    if let AttributeValue::M(inner) = entry {
-        set_in_map(inner, &path[1..], value);
+) -> Result<(), String> {
+    let (seg, tail) = match rest.split_first() {
+        Some(v) => v,
+        None => return Err(invalid_document_path(full)),
+    };
+    match (container, seg) {
+        (AttributeValue::M(map), PathSegment::Attr(name)) => {
+            if tail.is_empty() {
+                map.insert(name.clone(), value);
+                return Ok(());
+            }
+            let entry = map
+                .entry(name.clone())
+                .or_insert_with(|| AttributeValue::M(std::collections::HashMap::new()));
+            if matches!(tail[0], PathSegment::Attr(_)) && !matches!(entry, AttributeValue::M(_)) {
+                *entry = AttributeValue::M(std::collections::HashMap::new());
+            }
+            set_in_value(entry, tail, full, value)
+        }
+        (AttributeValue::L(list), PathSegment::Index(i)) => {
+            if tail.is_empty() {
+                // DynamoDB appends when the index is past the end of the list.
+                if *i < list.len() {
+                    list[*i] = value;
+                } else {
+                    list.push(value);
+                }
+                return Ok(());
+            }
+            let entry = list
+                .get_mut(*i)
+                .ok_or_else(|| invalid_document_path(full))?;
+            set_in_value(entry, tail, full, value)
+        }
+        _ => Err(invalid_document_path(full)),
     }
 }
 
-fn remove_at_path(item: &mut Item, path: &[String]) {
-    if path.len() == 1 {
-        item.remove(&path[0]);
-        return;
+fn remove_at_path(item: &mut Item, path: &[PathSegment]) -> Result<(), String> {
+    let (first, rest) = path
+        .split_first()
+        .ok_or_else(|| invalid_document_path(path))?;
+    let head = first.as_attr().ok_or_else(|| invalid_document_path(path))?;
+    if rest.is_empty() {
+        item.remove(head);
+        return Ok(());
     }
-    if let Some(AttributeValue::M(map)) = item.get_mut(&path[0]) {
-        remove_in_map(map, &path[1..]);
+    match item.get_mut(head) {
+        Some(container) => remove_in_value(container, rest),
+        // REMOVE of something that is not there is a no-op, as on AWS.
+        None => Ok(()),
     }
 }
 
-fn remove_in_map(map: &mut std::collections::HashMap<String, AttributeValue>, path: &[String]) {
-    if path.len() == 1 {
-        map.remove(&path[0]);
-        return;
-    }
-    if let Some(AttributeValue::M(inner)) = map.get_mut(&path[0]) {
-        remove_in_map(inner, &path[1..]);
+fn remove_in_value(container: &mut AttributeValue, rest: &[PathSegment]) -> Result<(), String> {
+    let (seg, tail) = match rest.split_first() {
+        Some(v) => v,
+        None => return Ok(()),
+    };
+    match (container, seg) {
+        (AttributeValue::M(map), PathSegment::Attr(name)) => {
+            if tail.is_empty() {
+                map.remove(name);
+                return Ok(());
+            }
+            match map.get_mut(name) {
+                Some(inner) => remove_in_value(inner, tail),
+                None => Ok(()),
+            }
+        }
+        (AttributeValue::L(list), PathSegment::Index(i)) => {
+            if tail.is_empty() {
+                // Removing a list element shifts the remainder down.
+                if *i < list.len() {
+                    list.remove(*i);
+                }
+                return Ok(());
+            }
+            match list.get_mut(*i) {
+                Some(inner) => remove_in_value(inner, tail),
+                None => Ok(()),
+            }
+        }
+        _ => Ok(()),
     }
 }
 
@@ -1386,20 +1522,34 @@ fn resolve_path(raw: &str, expr_names: &HashMap<String, String>) -> Vec<String> 
 
 /// Parse a `ProjectionExpression` like `"tags, info.city, #a.#b"` plus its
 /// `ExpressionAttributeNames` map into a list of attribute paths. Empty
-/// segments are dropped. Returns `None` when no projection was supplied.
+/// segments are dropped. `Ok(None)` means no projection was supplied.
+///
+/// List-element dereferences (`tags[0]`) are valid on AWS but not supported
+/// here: [`apply_projection`] builds map sub-trees only, and projecting a list
+/// element means emitting a sparse list. They are rejected rather than
+/// dropped, so the gap surfaces in the response instead of silently omitting
+/// the attribute. Tracked as `dynamodb-projection-expression-list-index`.
 pub fn parse_projection_expression(
     raw: Option<&str>,
     expr_names: &std::collections::HashMap<String, String>,
-) -> Option<Vec<Vec<String>>> {
-    let raw = raw?;
+) -> Result<Option<Vec<Vec<String>>>, String> {
+    let Some(raw) = raw else {
+        return Ok(None);
+    };
     let mut paths: Vec<Vec<String>> = Vec::new();
     for piece in raw.split(',') {
-        let path = resolve_path(piece.trim(), expr_names);
+        let piece = piece.trim();
+        if piece.contains('[') {
+            return Err(format!(
+                "Invalid ProjectionExpression: list element dereferences are not supported by winterbaume; path: {piece}"
+            ));
+        }
+        let path = resolve_path(piece, expr_names);
         if !path.is_empty() {
             paths.push(path);
         }
     }
-    if paths.is_empty() { None } else { Some(paths) }
+    Ok(if paths.is_empty() { None } else { Some(paths) })
 }
 
 /// Return a new [`Item`] containing only the attributes selected by
@@ -1735,7 +1885,8 @@ mod tests {
             "SET p = :a + :b + :c",
             "SET p = bogus_fn(p, :a)",
             "SET p = :a SET q = :a",
-            "SET p = :a, p[0] = :a",
+            "SET p = :a, q[ = :a",
+            "SET p = :a, q[] = :a",
             "GIVE p :a",
             "",
         ] {
@@ -1793,6 +1944,146 @@ mod tests {
         )
         .unwrap_err();
         assert!(err.contains("does not exist in the item"), "{err}");
+    }
+
+    #[test]
+    fn test_set_and_remove_list_elements() {
+        // Replace an existing element.
+        let out = update(
+            &[("l", json!({"L": [{"S": "a"}, {"S": "b"}]}))],
+            "SET l[1] = :v",
+            &[],
+            &[(":v", json!({"S": "B"}))],
+        )
+        .unwrap();
+        assert_eq!(
+            out.get("l"),
+            Some(&av(json!({"L": [{"S": "a"}, {"S": "B"}]})))
+        );
+
+        // An index past the end appends, as on AWS.
+        let out = update(
+            &[("l", json!({"L": [{"S": "a"}]}))],
+            "SET l[7] = :v",
+            &[],
+            &[(":v", json!({"S": "z"}))],
+        )
+        .unwrap();
+        assert_eq!(
+            out.get("l"),
+            Some(&av(json!({"L": [{"S": "a"}, {"S": "z"}]})))
+        );
+
+        // REMOVE shifts the remaining elements down.
+        let out = update(
+            &[("l", json!({"L": [{"S": "a"}, {"S": "b"}, {"S": "c"}]}))],
+            "REMOVE l[1]",
+            &[],
+            &[],
+        )
+        .unwrap();
+        assert_eq!(
+            out.get("l"),
+            Some(&av(json!({"L": [{"S": "a"}, {"S": "c"}]})))
+        );
+    }
+
+    #[test]
+    fn test_paths_mixing_maps_and_lists() {
+        let start = &[(
+            "m",
+            json!({"M": {"list": {"L": [{"M": {"n": {"N": "1"}}}]}}}),
+        )];
+        let out = update(
+            start,
+            "SET m.list[0].n = m.list[0].n + :one",
+            &[],
+            &[(":one", json!({"N": "41"}))],
+        )
+        .unwrap();
+        assert_eq!(
+            out.get("m"),
+            Some(&av(
+                json!({"M": {"list": {"L": [{"M": {"n": {"N": "42"}}}]}}})
+            ))
+        );
+    }
+
+    #[test]
+    fn test_set_through_a_missing_list_is_rejected() {
+        // A map is created on demand, but a list cannot be invented.
+        let err = update(&[], "SET a[0] = :v", &[], &[(":v", json!({"N": "1"}))]).unwrap_err();
+        assert!(err.contains("invalid for update"), "{err}");
+
+        // Nor can a list index be applied to a non-list.
+        let err = update(
+            &[("s", json!({"S": "text"}))],
+            "SET s[0] = :v",
+            &[],
+            &[(":v", json!({"N": "1"}))],
+        )
+        .unwrap_err();
+        assert!(err.contains("invalid for update"), "{err}");
+    }
+
+    /// Dotted and indexed paths in condition/filter expressions used to fail
+    /// tokenisation outright with "Unexpected character in expression: '.'".
+    #[test]
+    fn test_condition_expression_nested_paths() {
+        let it = item(&[
+            ("info", json!({"M": {"city": {"S": "berlin"}}})),
+            ("tags", json!({"L": [{"S": "x"}, {"S": "y"}]})),
+        ]);
+
+        let expr = parse_expression(
+            "info.city = :c",
+            &HashMap::new(),
+            &values(&[(":c", json!({"S": "berlin"}))]),
+        )
+        .unwrap();
+        assert!(evaluate(&expr, &it));
+
+        let expr = parse_expression(
+            "attribute_exists(info.city)",
+            &HashMap::new(),
+            &HashMap::new(),
+        )
+        .unwrap();
+        assert!(evaluate(&expr, &it));
+
+        let expr = parse_expression(
+            "attribute_not_exists(info.zip)",
+            &HashMap::new(),
+            &HashMap::new(),
+        )
+        .unwrap();
+        assert!(evaluate(&expr, &it));
+
+        let expr = parse_expression(
+            "tags[1] = :v",
+            &HashMap::new(),
+            &values(&[(":v", json!({"S": "y"}))]),
+        )
+        .unwrap();
+        assert!(evaluate(&expr, &it));
+
+        // Through ExpressionAttributeNames on every segment.
+        let expr = parse_expression(
+            "#i.#c = :c",
+            &names(&[("#i", "info"), ("#c", "city")]),
+            &values(&[(":c", json!({"S": "berlin"}))]),
+        )
+        .unwrap();
+        assert!(evaluate(&expr, &it));
+
+        // size() of a nested path.
+        let expr = parse_expression(
+            "size(tags) = :n",
+            &HashMap::new(),
+            &values(&[(":n", json!({"N": "2"}))]),
+        )
+        .unwrap();
+        assert!(evaluate(&expr, &it));
     }
 
     #[test]
