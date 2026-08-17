@@ -2292,3 +2292,82 @@ parse_projection_expression("info.city") => Some([["info", "city"]])
 So within a single file, dotted paths work in `ProjectionExpression` and ( since today ) in `UpdateExpression`, and are a hard `400 ValidationException` in every `ConditionExpression` and `FilterExpression`. Real DynamoDB accepts them in all four. This is a parity gap, not an instance of the issue-#19 class — it fails loudly, which is the acceptable direction under §5.1 — but a caller doing `ConditionExpression: attribute_not_exists(info.city)` gets a spurious rejection today. It is also structurally harder than it looks: `Expr` stores paths as a flat `String` ( `AttributeExists(String)`, `Operand::Path(String)` ) and `get_attr` does a single top-level map lookup, so supporting dotted paths means threading segmented paths through the condition AST and evaluator. Filed as `dynamodb-condition-expression-dotted-paths`.
 
 Worth stating plainly: this gap was visible to me for most of the session and I carried it as a stray observation rather than a filed item until prompted. The habit that failed is the one §5.1 now asks for — a divergence noticed is a divergence recorded, at the moment it is noticed.
+
+## 2026-08-17 — DynamoDB: the four remaining issue-#19 observations
+
+Follow-up to the parser rewrite recorded above, on branch
+`fix/dynamodb-issue19-followups` ( stacked on the #20 branch, since the
+list-index work builds directly on the new `SetOperand` tree ). Two commits,
+because the four filed items turned out to be two pairs.
+
+### TransactWriteItems and ConsistentRead
+
+`TransactWriteItems` had three defects with one cause: the handler sorted
+actions into `puts` / `deletes` / `updates` and every backend replayed the
+batches in that order, so the caller's sequence was lost. `types::TransactOp`
+now carries one ordered list through the backend trait, and `[Delete(k),
+Put(k)]` leaves the item present. Both backends resolve each action's target
+identity *before* writing anything and reject a repeat with
+`TransactionConflict` → `ValidationException: Transaction request cannot
+include multiple operations on one item`; the Redis path gets identity for
+free because it already computes a storage field per item. The handler caps
+the request at 100 actions.
+
+`ConsistentRead` needed a decision rather than an implementation. The store is
+strongly consistent, so *both* consistency levels are satisfied by
+construction — returning current data is a legal answer for an eventually-
+consistent read too. The single case AWS treats differently is a strongly-
+consistent read of a **global** secondary index, which it refuses ( LSIs and
+the base table allow it ). `Query` now rejects that combination, which turns
+the field from inert into honoured in the only case where it changes
+observable behaviour, and the strong-consistency stance is written into the
+dossier so the remaining no-op is documented rather than accidental. No
+backend-trait change was needed: `describe_table` already exposes the index
+lists.
+
+### One path representation for every expression surface
+
+The other two items looked unrelated and were the same bug. Update paths and
+condition paths were both `Vec<String>` built by splitting on `.`, which
+cannot express a list index, and the two parsers had drifted: the projection
+parser split on `.` and worked, the update parser split on `.` and dropped
+`a[0]` silently, and the condition tokeniser had no `.` arm at all so
+`attribute_exists(info.city)` was a spurious 400.
+
+`types::PathSegment { Attr(String), Index(usize) }` now backs both surfaces,
+and `expr::get_at_path` is the single traversal — the condition evaluator's
+`get_attr` is a one-line delegation to it. That is the durable part: the two
+grammars are legitimately separate, but the *path semantics* now cannot
+diverge again without changing shared code.
+
+AWS write semantics that fell out of doing it properly: `SET l[i]` past the
+end of a list appends; `REMOVE l[i]` shifts the remainder down; writing
+through a missing or non-list parent is a `ValidationException`. A missing
+intermediate *map* is still auto-created — pre-existing lenient behaviour with
+existing test coverage, and a list length cannot be invented the way an empty
+map can, so the two cases are deliberately asymmetric. Filed as
+`dynamodb-set-auto-creates-missing-map` rather than changed under cover of
+this work.
+
+### Three new gaps found, all filed
+
+Worth recording that finishing four items surfaced three more, each found by
+reading the surrounding code against its AWS contract rather than by a test
+failing:
+
+- **`dynamodb-projection-expression-list-index`** — `parse_projection_expression`
+  returned `Option` with no error channel and resolved `items[0]` to an
+  attribute of that literal name, silently omitting it from the response.
+  Exactly the issue-#19 anti-pattern, in the same file, one function away. It
+  now returns `Result` and rejects the path; full support needs
+  `apply_projection` to emit the sparse list AWS returns.
+- **`dynamodb-scan-ignores-index-name`** — `handle_scan` never reads
+  `input.index_name`, so a `Scan` against a secondary index silently scans the
+  base table and returns plausible results from the wrong source. Found while
+  deciding where the `ConsistentRead` validation belonged, which is why that
+  validation covers `Query` only.
+- **`dynamodb-set-auto-creates-missing-map`** — as above.
+
+The §5.1 grep would have caught none of these three: nobody had written a
+comment about any of them. That is the caveat already recorded in the gate,
+now with three more data points behind it.
