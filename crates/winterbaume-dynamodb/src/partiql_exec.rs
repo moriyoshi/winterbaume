@@ -350,12 +350,14 @@ pub async fn execute_partiql_via_backend(
             let mut actions: Vec<crate::types::UpdateAction> = Vec::new();
             for (attr, value) in updates {
                 actions.push(crate::types::UpdateAction::Set {
-                    path: vec![attr],
+                    path: vec![crate::types::PathSegment::Attr(attr)],
                     value: crate::types::SetOperand::Value(value),
                 });
             }
             for attr in removes {
-                actions.push(crate::types::UpdateAction::Remove(vec![attr]));
+                actions.push(crate::types::UpdateAction::Remove(vec![
+                    crate::types::PathSegment::Attr(attr),
+                ]));
             }
             for (attr, delta) in adds {
                 actions.push(crate::types::UpdateAction::Add(attr, delta));
@@ -558,13 +560,15 @@ fn execute_update(
             && let Some(v) = expr.as_literal()
         {
             actions.push(crate::types::UpdateAction::Set {
-                path: vec![attr.clone()],
+                path: vec![crate::types::PathSegment::Attr(attr.clone())],
                 value: crate::types::SetOperand::Value(json_to_attr(v)),
             });
         }
     }
     for attr in &op.removes {
-        actions.push(crate::types::UpdateAction::Remove(vec![attr.clone()]));
+        actions.push(crate::types::UpdateAction::Remove(vec![
+            crate::types::PathSegment::Attr(attr.clone()),
+        ]));
     }
 
     state.update_item(table_name, &key, &actions)?;

@@ -2292,3 +2292,136 @@ parse_projection_expression("info.city") => Some([["info", "city"]])
 So within a single file, dotted paths work in `ProjectionExpression` and ( since today ) in `UpdateExpression`, and are a hard `400 ValidationException` in every `ConditionExpression` and `FilterExpression`. Real DynamoDB accepts them in all four. This is a parity gap, not an instance of the issue-#19 class — it fails loudly, which is the acceptable direction under §5.1 — but a caller doing `ConditionExpression: attribute_not_exists(info.city)` gets a spurious rejection today. It is also structurally harder than it looks: `Expr` stores paths as a flat `String` ( `AttributeExists(String)`, `Operand::Path(String)` ) and `get_attr` does a single top-level map lookup, so supporting dotted paths means threading segmented paths through the condition AST and evaluator. Filed as `dynamodb-condition-expression-dotted-paths`.
 
 Worth stating plainly: this gap was visible to me for most of the session and I carried it as a stray observation rather than a filed item until prompted. The habit that failed is the one §5.1 now asks for — a divergence noticed is a divergence recorded, at the moment it is noticed.
+
+## 2026-08-17 — DynamoDB: the four remaining issue-#19 observations
+
+Follow-up to the parser rewrite recorded above, on branch
+`fix/dynamodb-issue19-followups` ( stacked on the #20 branch, since the
+list-index work builds directly on the new `SetOperand` tree ). Two commits,
+because the four filed items turned out to be two pairs.
+
+### TransactWriteItems and ConsistentRead
+
+`TransactWriteItems` had three defects with one cause: the handler sorted
+actions into `puts` / `deletes` / `updates` and every backend replayed the
+batches in that order, so the caller's sequence was lost. `types::TransactOp`
+now carries one ordered list through the backend trait, and `[Delete(k),
+Put(k)]` leaves the item present. Both backends resolve each action's target
+identity *before* writing anything and reject a repeat with
+`TransactionConflict` → `ValidationException: Transaction request cannot
+include multiple operations on one item`; the Redis path gets identity for
+free because it already computes a storage field per item. The handler caps
+the request at 100 actions.
+
+`ConsistentRead` needed a decision rather than an implementation. The store is
+strongly consistent, so *both* consistency levels are satisfied by
+construction — returning current data is a legal answer for an eventually-
+consistent read too. The single case AWS treats differently is a strongly-
+consistent read of a **global** secondary index, which it refuses ( LSIs and
+the base table allow it ). `Query` now rejects that combination, which turns
+the field from inert into honoured in the only case where it changes
+observable behaviour, and the strong-consistency stance is written into the
+dossier so the remaining no-op is documented rather than accidental. No
+backend-trait change was needed: `describe_table` already exposes the index
+lists.
+
+### One path representation for every expression surface
+
+The other two items looked unrelated and were the same bug. Update paths and
+condition paths were both `Vec<String>` built by splitting on `.`, which
+cannot express a list index, and the two parsers had drifted: the projection
+parser split on `.` and worked, the update parser split on `.` and dropped
+`a[0]` silently, and the condition tokeniser had no `.` arm at all so
+`attribute_exists(info.city)` was a spurious 400.
+
+`types::PathSegment { Attr(String), Index(usize) }` now backs both surfaces,
+and `expr::get_at_path` is the single traversal — the condition evaluator's
+`get_attr` is a one-line delegation to it. That is the durable part: the two
+grammars are legitimately separate, but the *path semantics* now cannot
+diverge again without changing shared code.
+
+AWS write semantics that fell out of doing it properly: `SET l[i]` past the
+end of a list appends; `REMOVE l[i]` shifts the remainder down; writing
+through a missing or non-list parent is a `ValidationException`. A missing
+intermediate *map* is still auto-created — pre-existing lenient behaviour with
+existing test coverage, and a list length cannot be invented the way an empty
+map can, so the two cases are deliberately asymmetric. Filed as
+`dynamodb-set-auto-creates-missing-map` rather than changed under cover of
+this work.
+
+### Three new gaps found, all filed
+
+Worth recording that finishing four items surfaced three more, each found by
+reading the surrounding code against its AWS contract rather than by a test
+failing:
+
+- **`dynamodb-projection-expression-list-index`** — `parse_projection_expression`
+  returned `Option` with no error channel and resolved `items[0]` to an
+  attribute of that literal name, silently omitting it from the response.
+  Exactly the issue-#19 anti-pattern, in the same file, one function away. It
+  now returns `Result` and rejects the path; full support needs
+  `apply_projection` to emit the sparse list AWS returns.
+- **`dynamodb-scan-ignores-index-name`** — `handle_scan` never reads
+  `input.index_name`, so a `Scan` against a secondary index silently scans the
+  base table and returns plausible results from the wrong source. Found while
+  deciding where the `ConsistentRead` validation belonged, which is why that
+  validation covers `Query` only.
+- **`dynamodb-set-auto-creates-missing-map`** — as above.
+
+The §5.1 grep would have caught none of these three: nobody had written a
+comment about any of them. That is the caveat already recorded in the gate,
+now with three more data points behind it.
+
+## 2026-08-17 — DynamoDB pre-update evaluation semantics, and a correction to the post-mortem above
+
+Prompted by a question rather than a failing test: asked what the dossier and the related AWS document actually said about the update grammar, I fetched `Expressions.UpdateExpressions.html` for the first time in this project's history and found a live bug in code merged an hour earlier as PR #20.
+
+### Actions were applied left to right; AWS says they are not
+
+The page is explicit: "DynamoDB evaluates every action against the item's attribute values *as they were before the update*. The actions aren't applied one after another from left to right, so an action's right-hand operand always refers to the pre-update value of an attribute." `apply_update_actions` did exactly what that sentence rules out — it evaluated each right-hand side against the item as mutated so far — and its doc comment asserted that behaviour as if intended ( "against the item as updated so far" ), which is worse than inheriting it silently: it presented a divergence as a decision, the same failure mode as the original issue-#19 comment.
+
+Two of AWS's own worked examples were therefore wrong, both verified by probe before being written down:
+
+| Expression | AWS documents | winterbaume returned |
+|---|---|---|
+| `REMOVE a SET b = a, c = b` on `{a:1,b:2,c:3}` | `{b:1,c:2}` | `400` "refers to an attribute that does not exist in the item" |
+| `REMOVE l[1], l[2]` on `[Chisel,Hammer,Nails,Screwdriver,Hacksaw]` | `[Chisel,Screwdriver,Hacksaw]` | `[Chisel,Nails,Hacksaw]` |
+
+The fix snapshots the pre-update image, evaluates every `SET` right-hand side against it before applying any of them, and reads `ADD` / `DELETE` current values from it too. Removals are applied last, with list-element removals ordered by **descending index**: the indexes name positions in the pre-update list, and deleting a higher index never shifts a lower one. The second example is the tell that ordering matters — a naive sequential removal silently deletes the wrong element and returns 200.
+
+The same reading turned up a narrower gap: `function ::= if_not_exists (path, value)` takes a full `value`, not an operand, so arithmetic nests inside the fallback. `SET p = if_not_exists(p, :a + :b)` was a syntax error and now evaluates.
+
+### Correction to the "why did we miss it" analysis above
+
+The `### Findings` section earlier in today's entries argues that the project's specification pipeline is operation-shaped and that the missing artefact was the grammar. That is half right, and the wrong half matters more.
+
+The dossier's `## Official AWS Documentation Research` section **already contained**, verbatim before any of today's work:
+
+- "TransactWriteItems is synchronous, idempotent when a client token is supplied, and all-or-nothing across up to 100 actions..."
+- "Transaction actions cannot target the same item more than once in the same request."
+- "Strongly consistent reads are available for tables and local secondary indexes through ConsistentRead, but not for global secondary indexes or streams."
+
+and under `Parity implications`: "Keep transaction state changes atomic and **validate same-item duplication before mutation**."
+
+So for two of the four follow-up items the knowledge was present, correct, specific, and phrased as an instruction — and the implementation diverged anyway. That is a **conformance** failure, not a knowledge failure, and no amount of additional research would have prevented it. Nothing in the project verifies code against its own dossier: the dossier is advisory prose that helps whoever happens to open it.
+
+The operation-level diagnosis holds only for the expression work. The three sources cited were `transaction-apis`, `HowItWorks.ReadConsistency`, and `Query` — no `Expressions.*` page, and no expression grammar recorded anywhere in the repository.
+
+Two different failure modes were conflated, and they need different remedies:
+
+1. **Never written down** ( expression grammars ). Remedy is a dossier-authoring rule: when a parameter carries a sublanguage, record its grammar, because Smithy types it as `String` and no generated artefact can reveal it exists.
+2. **Written down and not done** ( transaction duplicate-item validation, GSI consistent reads ). Remedy is verification: `Parity implications` bullets are testable claims, and nothing checks them. A gate step that walks a dossier's parity implications and asks "is there a test for this?" would have caught both, years before a bug report.
+
+### Dossier now carries the grammars, and one item upgraded
+
+`.agents/docs/services/dynamodb.md` gains the four `Expressions.*` pages as sources and an `### Expression sublanguages` section with the `UpdateExpression` grammar quoted verbatim, plus the consequences that are easy to get wrong: a function is a valid operand of `+` / `-` ( which is what makes issue #19's expression legal ), `if_not_exists` takes a full value, one arithmetic operator per value, one occurrence per clause keyword, pre-update evaluation, append-past-end, `REMOVE` shifting, and parent-must-exist. The section opens by stating why it has to exist at all.
+
+`dynamodb-set-auto-creates-missing-map` moves from "decide whether parity is worth the change" to a confirmed divergence, with the citation: AWS returns `ValidationException` with the message winterbaume already emits for the list case. The judgement call was only a judgement call while nobody had read the page.
+
+### Operational note
+
+`gh issue view` and `gh pr edit` both fail against this repository with `GraphQL: Projects (classic) is being deprecated ... (repository.issue.projectCards)`. `gh pr edit` fails **silently** — non-zero exit, no output — so a body update appears to succeed and does not. Use the REST API for both: `gh api repos/<owner>/<repo>/issues/<n>` and `gh api -X PATCH repos/<owner>/<repo>/pulls/<n> --input <json>`, and verify the result rather than trusting the exit status.
+
+### The transferable bit
+
+This bug existed because the implementation was read and the specification was not. For a parity emulator that is the whole ballgame: reading the code tells you what it does, and only the primary source tells you what it should do. Nothing in the session's own tooling — the tests, the gate, the §5.1 grep — could have found it, because all of them are derived from the implementation. The user asking "what does the AWS document say?" was the only step that could.

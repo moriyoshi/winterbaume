@@ -24,7 +24,7 @@
 //! | `ddb:{acct}:{rgn}:export:{arn_b64}` | String | JSON `StoredExport` |
 //! | `ddb:{acct}:{rgn}:export_ctr` | String | Monotonic counter for export IDs |
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::future::Future;
 use std::pin::Pin;
 
@@ -1403,52 +1403,62 @@ impl DynamoDbBackend for RedisDynamoDbBackend {
         &self,
         account_id: String,
         region: String,
-        puts: Vec<(String, Item)>,
-        deletes: Vec<(String, Item)>,
-        updates: Vec<(String, Item, Vec<UpdateAction>)>,
+        ops: Vec<TransactOp>,
     ) -> Pin<Box<dyn Future<Output = Result<(), DynamoDbError>> + Send>> {
         let mut conn = self.conn.clone();
         Box::pin(async move {
             let acct = &account_id;
             let rgn = &region;
-            for (table_name, item) in &puts {
-                let stored = load_table(&mut conn, acct, rgn, table_name).await?;
+
+            // Resolve every action's storage field up front: it doubles as the
+            // item's identity, so two actions on one item are caught before
+            // anything is written.
+            let mut resolved: Vec<(&TransactOp, String)> = Vec::with_capacity(ops.len());
+            let mut seen: HashSet<(&str, String)> = HashSet::new();
+            for op in &ops {
+                let stored = load_table(&mut conn, acct, rgn, op.table_name()).await?;
                 let field = item_field(
-                    item,
+                    op.target(),
                     &stored.hash_key_attr,
                     stored.range_key_attr.as_deref(),
                 );
-                let json = serde_json::to_string(item).map_err(json_err)?;
-                conn.hset::<_, _, _, ()>(k_items(acct, rgn, table_name), &field, json)
-                    .await
-                    .map_err(redis_err)?;
+                if !seen.insert((op.table_name(), field.clone())) {
+                    return Err(DynamoDbError::TransactionConflict);
+                }
+                resolved.push((op, field));
             }
-            for (table_name, key) in &deletes {
-                let stored = load_table(&mut conn, acct, rgn, table_name).await?;
-                let field =
-                    item_field(key, &stored.hash_key_attr, stored.range_key_attr.as_deref());
-                conn.hdel::<_, _, ()>(k_items(acct, rgn, table_name), &field)
-                    .await
-                    .map_err(redis_err)?;
-            }
-            for (table_name, key, actions) in &updates {
-                let stored = load_table(&mut conn, acct, rgn, table_name).await?;
-                let field =
-                    item_field(key, &stored.hash_key_attr, stored.range_key_attr.as_deref());
-                let raw: Option<String> = conn
-                    .hget(k_items(acct, rgn, table_name), &field)
-                    .await
-                    .map_err(redis_err)?;
-                let mut item: Item = match raw {
-                    None => key.clone(),
-                    Some(s) => serde_json::from_str(&s).map_err(json_err)?,
-                };
-                winterbaume_dynamodb::expr::apply_update_actions(&mut item, actions)
-                    .map_err(DynamoDbError::ValidationError)?;
-                let json = serde_json::to_string(&item).map_err(json_err)?;
-                conn.hset::<_, _, _, ()>(k_items(acct, rgn, table_name), &field, json)
-                    .await
-                    .map_err(redis_err)?;
+
+            // Then apply in the caller's order.
+            for (op, field) in resolved {
+                let table_name = op.table_name();
+                let items_key = k_items(acct, rgn, table_name);
+                match op {
+                    TransactOp::Put { item, .. } => {
+                        let json = serde_json::to_string(item).map_err(json_err)?;
+                        conn.hset::<_, _, _, ()>(items_key, &field, json)
+                            .await
+                            .map_err(redis_err)?;
+                    }
+                    TransactOp::Delete { .. } => {
+                        conn.hdel::<_, _, ()>(items_key, &field)
+                            .await
+                            .map_err(redis_err)?;
+                    }
+                    TransactOp::Update { key, actions, .. } => {
+                        let raw: Option<String> =
+                            conn.hget(&items_key, &field).await.map_err(redis_err)?;
+                        let mut item: Item = match raw {
+                            None => key.clone(),
+                            Some(s) => serde_json::from_str(&s).map_err(json_err)?,
+                        };
+                        winterbaume_dynamodb::expr::apply_update_actions(&mut item, actions)
+                            .map_err(DynamoDbError::ValidationError)?;
+                        let json = serde_json::to_string(&item).map_err(json_err)?;
+                        conn.hset::<_, _, _, ()>(items_key, &field, json)
+                            .await
+                            .map_err(redis_err)?;
+                    }
+                }
             }
             Ok(())
         })

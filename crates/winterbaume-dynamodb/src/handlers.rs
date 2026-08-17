@@ -15,6 +15,10 @@ use crate::types::*;
 use crate::views::DynamodbStateView;
 use crate::wire;
 
+/// Maximum number of actions DynamoDB accepts in one `TransactWriteItems`
+/// or `TransactGetItems` request.
+const MAX_TRANSACT_ITEMS: usize = 100;
+
 /// AWS-fidelity validation for the WHERE clause of an `EXISTS(SELECT …)`
 /// inner statement. Real DynamoDB requires:
 /// 1. The hash key referenced by an equality predicate.
@@ -624,10 +628,19 @@ impl DynamoDbService {
         let key: Item = item_from_wire(input.key);
 
         let expr_names = input.expression_attribute_names.unwrap_or_default();
-        let projection = crate::expr::parse_projection_expression(
+        let projection = match crate::expr::parse_projection_expression(
             input.projection_expression.as_deref(),
             &expr_names,
-        );
+        ) {
+            Ok(p) => p,
+            Err(msg) => {
+                return json_error_response(
+                    400,
+                    "com.amazonaws.dynamodb.v20120810#ValidationException",
+                    &msg,
+                );
+            }
+        };
 
         match self
             .backend
@@ -769,6 +782,27 @@ impl DynamoDbService {
 
         let index_name = input.index_name;
 
+        // ConsistentRead: the store is strongly consistent, so a request for
+        // either consistency level is satisfied by construction — except on a
+        // global secondary index, which AWS refuses to read consistently.
+        if input.consistent_read == Some(true)
+            && let Some(ref idx) = index_name
+            && let Ok(table) = self
+                .backend
+                .describe_table(account_id.clone(), region.clone(), table_name.clone())
+                .await
+            && table
+                .global_secondary_indexes
+                .iter()
+                .any(|g| &g.index_name == idx)
+        {
+            return json_error_response(
+                400,
+                "com.amazonaws.dynamodb.v20120810#ValidationException",
+                "Consistent reads are not supported on global secondary indexes",
+            );
+        }
+
         let expr_names = input.expression_attribute_names.unwrap_or_default();
         let expr_values = attr_map_from_wire(input.expression_attribute_values);
 
@@ -851,10 +885,19 @@ impl DynamoDbService {
             None => None,
         };
 
-        let projection = crate::expr::parse_projection_expression(
+        let projection = match crate::expr::parse_projection_expression(
             input.projection_expression.as_deref(),
             &expr_names,
-        );
+        ) {
+            Ok(p) => p,
+            Err(msg) => {
+                return json_error_response(
+                    400,
+                    "com.amazonaws.dynamodb.v20120810#ValidationException",
+                    &msg,
+                );
+            }
+        };
 
         match self
             .backend
@@ -944,10 +987,19 @@ impl DynamoDbService {
             None => None,
         };
 
-        let projection = crate::expr::parse_projection_expression(
+        let projection = match crate::expr::parse_projection_expression(
             input.projection_expression.as_deref(),
             &expr_names,
-        );
+        ) {
+            Ok(p) => p,
+            Err(msg) => {
+                return json_error_response(
+                    400,
+                    "com.amazonaws.dynamodb.v20120810#ValidationException",
+                    &msg,
+                );
+            }
+        };
 
         match self
             .backend
@@ -2193,12 +2245,22 @@ impl DynamoDbService {
         };
         let transact_items = input.transact_items;
 
-        let mut puts: Vec<(String, Item)> = Vec::new();
-        let mut deletes: Vec<(String, Item)> = Vec::new();
-        let mut updates: Vec<(String, Item, Vec<crate::types::UpdateAction>)> = Vec::new();
+        // One ordered list, not three batches: DynamoDB applies a transaction
+        // in the caller's order, so `[Delete(k), Put(k)]` must leave the item
+        // present.
+        let mut ops: Vec<crate::types::TransactOp> = Vec::new();
 
         // Track cancellation reasons (one per transact item, in order).
         let item_count = transact_items.len();
+        if item_count > MAX_TRANSACT_ITEMS {
+            return json_error_response(
+                400,
+                "com.amazonaws.dynamodb.v20120810#ValidationException",
+                &format!(
+                    "1 validation error detected: Value at 'transactItems' failed to satisfy constraint: Member must have length less than or equal to {MAX_TRANSACT_ITEMS}"
+                ),
+            );
+        }
         let mut cancellation_reasons: Vec<Option<String>> = vec![None; item_count];
         let mut any_cancelled = false;
 
@@ -2336,10 +2398,16 @@ impl DynamoDbService {
                 // Collect the operation (skip ConditionCheck — it's check-only)
                 match sub.op {
                     "Put" => {
-                        puts.push((sub.table_name, sub.key_or_item));
+                        ops.push(crate::types::TransactOp::Put {
+                            table_name: sub.table_name,
+                            item: sub.key_or_item,
+                        });
                     }
                     "Delete" => {
-                        deletes.push((sub.table_name, sub.key_or_item));
+                        ops.push(crate::types::TransactOp::Delete {
+                            table_name: sub.table_name,
+                            key: sub.key_or_item,
+                        });
                     }
                     "Update" => {
                         let upd = update_for_action.expect("Update branch sets update_for_action");
@@ -2359,7 +2427,11 @@ impl DynamoDbService {
                                 );
                             }
                         };
-                        updates.push((sub.table_name, sub.key_or_item, actions));
+                        ops.push(crate::types::TransactOp::Update {
+                            table_name: sub.table_name,
+                            key: sub.key_or_item,
+                            actions,
+                        });
                     }
                     _ => {} // ConditionCheck — no mutation
                 }
@@ -2388,7 +2460,7 @@ impl DynamoDbService {
 
         match self
             .backend
-            .transact_write_items(account_id, region, puts, deletes, updates)
+            .transact_write_items(account_id, region, ops)
             .await
         {
             Ok(()) => {
@@ -4137,9 +4209,13 @@ fn walk_key_condition(
             walk_key_condition(*lhs, equalities, sort_condition);
             walk_key_condition(*rhs, equalities, sort_condition);
         }
-        Expr::Comparison(Operand::Path(name), op, Operand::Value(val)) => match op {
+        // Key attributes are always top-level, so only a single-segment path
+        // can name one; a nested or indexed path is not a key condition.
+        Expr::Comparison(Operand::Path(path), op, Operand::Value(val)) => match op {
             CompOp::Eq => {
-                equalities.insert(name, val);
+                if let [crate::types::PathSegment::Attr(name)] = path.as_slice() {
+                    equalities.insert(name.clone(), val);
+                }
             }
             CompOp::Lt => *sort_condition = Some(SortKeyCondition::LessThan(val)),
             CompOp::Le => *sort_condition = Some(SortKeyCondition::LessThanOrEqual(val)),
@@ -4184,6 +4260,9 @@ fn dynamodb_error_type(err: &DynamoDbError) -> &'static str {
         DynamoDbError::NoHashKey => "com.amazonaws.dynamodb.v20120810#ValidationException",
         DynamoDbError::MissingKey(_) => "com.amazonaws.dynamodb.v20120810#ValidationException",
         DynamoDbError::ValidationError(_) => "com.amazonaws.dynamodb.v20120810#ValidationException",
+        DynamoDbError::TransactionConflict => {
+            "com.amazonaws.dynamodb.v20120810#ValidationException"
+        }
         DynamoDbError::QueryConditionMissedKey => {
             "com.amazonaws.dynamodb.v20120810#ValidationException"
         }
@@ -4290,6 +4369,9 @@ fn dynamodb_error_response(err: &DynamoDbError) -> MockResponse {
             400,
             "com.amazonaws.dynamodb.v20120810#ConditionalCheckFailedException",
         ),
+        DynamoDbError::TransactionConflict => {
+            (400, "com.amazonaws.dynamodb.v20120810#ValidationException")
+        }
         DynamoDbError::InternalError(_) => (500, "com.amazonaws.dynamodb.v20120810#InternalError"),
         DynamoDbError::ExportNotFound(_) => (
             400,

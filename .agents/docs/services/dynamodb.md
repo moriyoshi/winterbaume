@@ -48,6 +48,10 @@ Sources:
 - https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/transaction-apis.html
 - https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.ReadConsistency.html
 - https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Query.html
+- https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.UpdateExpressions.html
+- https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.Attributes.html
+- https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.ConditionExpressions.html
+- https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.ProjectionExpressions.html
 
 Research outcomes:
 - TransactWriteItems is synchronous, idempotent when a client token is supplied, and all-or-nothing across up to 100 actions, 100 distinct items, and 4 MB aggregate item size, within one account and Region.
@@ -57,6 +61,42 @@ Research outcomes:
 - DynamoDB transaction isolation is serializable between transactional operations and single-item GetItem/PutItem/UpdateItem/DeleteItem operations, but BatchGetItem, BatchWriteItem, Query, and Scan have weaker operation-level isolation.
 - Default reads are eventually consistent. Strongly consistent reads are available for tables and local secondary indexes through ConsistentRead, but not for global secondary indexes or streams.
 - Transaction conflicts have distinct failure modes: single item write conflicts can fail with TransactionConflictException, while transaction-level conflicts fail with TransactionCanceledException.
+
+### Expression sublanguages
+
+The Smithy model types `UpdateExpression`, `ConditionExpression`, `FilterExpression`, `KeyConditionExpression`, and `ProjectionExpression` as plain `String`, so the model carries no hint that each is a language with its own grammar. Record the grammars here, because nothing in the codegen or coverage pipeline can derive them. Every DynamoDB defect found through issue #19 lived inside one of these strings.
+
+`UpdateExpression`, quoted from the AWS documentation:
+
+```
+update-expression ::=
+    [ SET action [, action] ... ]
+    [ REMOVE action [, action] ...]
+    [ ADD action [, action] ... ]
+    [ DELETE action [, action] ...]
+
+set-action ::= path = value
+value      ::= operand | operand '+' operand | operand '-' operand
+operand    ::= path | function
+function   ::= if_not_exists (path, value)
+
+remove-action ::= path
+add-action    ::= path value
+delete-action ::= path subset
+```
+
+Consequences that are easy to get wrong, all documented on that page:
+
+- `operand ::= function`, so a function is a valid operand of `+` / `-`. This is what makes `SET p = if_not_exists(p, :zero) + :v` — the atomic-counter-with-default idiom of issue #19 — valid.
+- `if_not_exists (path, value)` takes a full **value**, not an operand, so arithmetic nests inside the fallback: `if_not_exists(p, :a + :b)`.
+- Exactly **one** `+` or `-` per `value`. A chained `:a + :b + :c` is a syntax error.
+- Each clause keyword may appear **once**: "each action keyword can appear only once".
+- **All actions read the pre-update image.** "DynamoDB evaluates every action against the item's attribute values *as they were before the update*. The actions aren't applied one after another from left to right." Worked example: `{"id":"1","a":1,"b":2,"c":3}` with `REMOVE a SET b = a, c = b` yields `{"id":"1","b":1,"c":2}`. The same rule makes `REMOVE l[1], l[2]` drop the *original* second and third elements — `[Chisel,Hammer,Nails,Screwdriver,Hacksaw]` becomes `[Chisel,Screwdriver,Hacksaw]`, not `[Chisel,Nails,Hacksaw]`.
+- `SET` on a list index past the end **appends**: "If the element doesn't already exist, `SET` appends the new element at the end of the list."
+- `REMOVE` of a list element shifts the remainder down.
+- A nested `SET` requires the parent to exist: "You cannot update nested map attributes if the parent map does not exist... DynamoDB returns a `ValidationException` with the message *The document path provided in the update expression is invalid for update*." Winterbaume is knowingly more permissive for maps — see `dynamodb-set-auto-creates-missing-map`.
+- `ADD` supports only number and set types; `DELETE` only set types.
+- `list_append(list1, list2)` appends the second list to the first, and the function name is case sensitive.
 
 Parity implications:
 - Keep transaction state changes atomic and validate same-item duplication before mutation.
@@ -324,9 +364,20 @@ Mode: full distillation.
 - An `UpdateExpression` the emulator cannot parse or evaluate must be **rejected** with `ValidationException`, never accepted as a no-op ( issue #19 ). Both `parse_update_expression` and `apply_update_actions` return `Result`; `apply_update_actions` mutates a clone so a rejected expression leaves the item untouched. This is the DynamoDB instance of a workspace-wide invariant — see `QUALITY_GATE.md` §5.1, "winterbaume may under-implement, but never quietly".
 - Apply-time fidelity rules AWS enforces and winterbaume now matches: arithmetic on an attribute missing from the item is a `ValidationException` ( not an implicit zero ); `+` / `-` / `list_append` operands must have the right type; `ADD` / `DELETE` must match the stored attribute's type.
 - `N` arithmetic goes through `i128` when both operands are integers, covering DynamoDB's 38 significant digits; only fractional operands fall back to `f64`. Do not reintroduce a blanket `f64` path.
+- Document paths are `Vec<types::PathSegment>` ( `Attr(String)` / `Index(usize)` ) on **both** the update and the condition / filter surfaces, and both dereference through `expr::get_at_path`. Keep them unified: the two parsers are separate but the path semantics must not diverge again. `ProjectionExpression` is still on `Vec<String>` and rejects `[n]` — see `dynamodb-projection-expression-list-index`.
+- List-write semantics AWS enforces and winterbaume matches: `SET l[i]` past the end of the list appends, `REMOVE l[i]` shifts the remainder down, and writing through a missing or non-list parent is `ValidationException`. A missing intermediate *map* is still auto-created, which is more permissive than AWS ( `dynamodb-set-auto-creates-missing-map` ).
+- `TransactWriteItems` actions travel as one ordered `Vec<types::TransactOp>`, not as put / delete / update batches: AWS applies a transaction in the caller's order, so `[Delete(k), Put(k)]` must leave the item present. Every backend must also reject two actions on one item before writing anything, and the request is capped at 100 actions.
+- `ConsistentRead`: the store is strongly consistent, so both consistency levels are satisfied by construction. The one AWS behaviour to model is that a strongly-consistent read of a **global** secondary index is refused; LSIs and the base table allow it. Do not add artificial read staleness.
 - `IS NULL` and `IS MISSING` are distinct: NULL matches `{"NULL": true}` attributes only, while MISSING matches absent attributes.
 - `contains(path, val)` is overloaded for string substring matching, string/number/binary set membership, and list element equality.
 - `attribute_type(path, 'TYPE')` accepts exactly DynamoDB's documented type names: `S`, `N`, `B`, `BOOL`, `NULL`, `SS`, `NS`, `BS`, `L`, and `M`.
+
+### Intentional Divergences
+
+Recorded per `QUALITY_GATE.md` §5.2: dossier claims that are deliberately not implemented, with the reason, so they are not mistaken for oversights.
+
+- **`TransactionConflictException` is never raised.** AWS distinguishes a single-item write conflict ( `TransactionConflictException` ) from transaction-level cancellation ( `TransactionCanceledException` ). Winterbaume serialises all access to a table's state behind a lock, so two transactions cannot interleave and that conflict cannot arise. `TransactionCanceledException` *is* raised for condition failures, with positional `CancellationReasons`. Revisit only if concurrent-write simulation is ever added.
+- **`BatchWriteItem` never returns `UnprocessedItems`.** AWS returns them when a batch exceeds throughput or payload limits; there is no capacity or throttling model here, so every request is processed in full and the field is always the empty map. The behavioural distinction from `TransactWriteItems` still holds — a batch is not atomic, it simply never partially fails for capacity reasons.
 
 ### Streams and Cross-Service Boundaries
 

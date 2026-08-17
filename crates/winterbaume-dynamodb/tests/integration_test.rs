@@ -8022,3 +8022,622 @@ async fn test_update_item_arithmetic_precision() {
         .unwrap();
     assert_eq!(item.get("n").unwrap().as_n().unwrap(), "9007199254740994");
 }
+
+// ---------------------------------------------------------------------------
+// TransactWriteItems validation and ordering (issue #19 additional observations)
+// ---------------------------------------------------------------------------
+
+/// AWS rejects a transaction containing two operations on the same item with
+/// `ValidationException`; winterbaume used to replay both.
+#[tokio::test]
+async fn test_transact_write_rejects_duplicate_item() {
+    use aws_sdk_dynamodb::types::{Delete, Put, TransactWriteItem};
+
+    let client = make_dynamodb_client().await;
+    create_hash_table(&client, "tw-dup").await;
+
+    let err = client
+        .transact_write_items()
+        .transact_items(
+            TransactWriteItem::builder()
+                .put(
+                    Put::builder()
+                        .table_name("tw-dup")
+                        .item("pk", AttributeValue::S("a".into()))
+                        .item("v", AttributeValue::N("1".into()))
+                        .build()
+                        .unwrap(),
+                )
+                .build(),
+        )
+        .transact_items(
+            TransactWriteItem::builder()
+                .delete(
+                    Delete::builder()
+                        .table_name("tw-dup")
+                        .key("pk", AttributeValue::S("a".into()))
+                        .build()
+                        .unwrap(),
+                )
+                .build(),
+        )
+        .send()
+        .await
+        .expect_err("two operations on one item must be rejected");
+    let msg = format!("{err:?}");
+    assert!(msg.contains("ValidationException"), "{msg}");
+    assert!(msg.contains("multiple operations on one item"), "{msg}");
+
+    // Nothing may have been written.
+    let resp = client
+        .get_item()
+        .table_name("tw-dup")
+        .key("pk", AttributeValue::S("a".into()))
+        .send()
+        .await
+        .unwrap();
+    assert!(resp.item.is_none(), "a rejected transaction must not write");
+}
+
+/// The caller's operation order is honoured: `[Delete(k), Put(k)]` on two
+/// distinct items must not be reordered into all-puts-then-all-deletes.
+/// Applied to one key that already exists, delete-then-put leaves it present.
+#[tokio::test]
+async fn test_transact_write_preserves_operation_order() {
+    use aws_sdk_dynamodb::types::{Delete, Put, TransactWriteItem};
+
+    let client = make_dynamodb_client().await;
+    create_hash_table(&client, "tw-order").await;
+
+    client
+        .put_item()
+        .table_name("tw-order")
+        .item("pk", AttributeValue::S("k".into()))
+        .item("gen", AttributeValue::N("1".into()))
+        .send()
+        .await
+        .unwrap();
+
+    // Delete "k" then re-create it in a single transaction. With the old
+    // puts-then-deletes replay the item ended up deleted.
+    client
+        .transact_write_items()
+        .transact_items(
+            TransactWriteItem::builder()
+                .delete(
+                    Delete::builder()
+                        .table_name("tw-order")
+                        .key("pk", AttributeValue::S("k".into()))
+                        .build()
+                        .unwrap(),
+                )
+                .build(),
+        )
+        .transact_items(
+            TransactWriteItem::builder()
+                .put(
+                    Put::builder()
+                        .table_name("tw-order")
+                        .item("pk", AttributeValue::S("k2".into()))
+                        .item("gen", AttributeValue::N("2".into()))
+                        .build()
+                        .unwrap(),
+                )
+                .build(),
+        )
+        .send()
+        .await
+        .unwrap();
+
+    let gone = client
+        .get_item()
+        .table_name("tw-order")
+        .key("pk", AttributeValue::S("k".into()))
+        .send()
+        .await
+        .unwrap();
+    assert!(gone.item.is_none(), "delete must have been applied");
+    let made = client
+        .get_item()
+        .table_name("tw-order")
+        .key("pk", AttributeValue::S("k2".into()))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(made.item.unwrap().get("gen").unwrap().as_n().unwrap(), "2");
+}
+
+/// AWS caps a transaction at 100 actions.
+#[tokio::test]
+async fn test_transact_write_enforces_action_limit() {
+    use aws_sdk_dynamodb::types::{Put, TransactWriteItem};
+
+    let client = make_dynamodb_client().await;
+    create_hash_table(&client, "tw-limit").await;
+
+    let mut req = client.transact_write_items();
+    for i in 0..101 {
+        req = req.transact_items(
+            TransactWriteItem::builder()
+                .put(
+                    Put::builder()
+                        .table_name("tw-limit")
+                        .item("pk", AttributeValue::S(format!("k{i}")))
+                        .build()
+                        .unwrap(),
+                )
+                .build(),
+        );
+    }
+    let err = req
+        .send()
+        .await
+        .expect_err("101 actions should exceed the transaction limit");
+    let msg = format!("{err:?}");
+    assert!(msg.contains("ValidationException"), "{msg}");
+
+    // Exactly 100 is accepted.
+    let mut req = client.transact_write_items();
+    for i in 0..100 {
+        req = req.transact_items(
+            TransactWriteItem::builder()
+                .put(
+                    Put::builder()
+                        .table_name("tw-limit")
+                        .item("pk", AttributeValue::S(format!("ok{i}")))
+                        .build()
+                        .unwrap(),
+                )
+                .build(),
+        );
+    }
+    req.send().await.expect("100 actions is within the limit");
+}
+
+// ---------------------------------------------------------------------------
+// ConsistentRead (issue #19 additional observations)
+// ---------------------------------------------------------------------------
+
+/// A strongly-consistent read is not available on a global secondary index;
+/// AWS answers with ValidationException. LSIs do support it, and the base
+/// table always does.
+#[tokio::test]
+async fn test_consistent_read_rejected_on_gsi() {
+    use aws_sdk_dynamodb::types::{
+        GlobalSecondaryIndex, LocalSecondaryIndex, Projection, ProjectionType,
+    };
+
+    let client = make_dynamodb_client().await;
+    client
+        .create_table()
+        .table_name("cr-tbl")
+        .key_schema(
+            KeySchemaElement::builder()
+                .attribute_name("pk")
+                .key_type(KeyType::Hash)
+                .build()
+                .unwrap(),
+        )
+        .key_schema(
+            KeySchemaElement::builder()
+                .attribute_name("sk")
+                .key_type(KeyType::Range)
+                .build()
+                .unwrap(),
+        )
+        .attribute_definitions(
+            AttributeDefinition::builder()
+                .attribute_name("pk")
+                .attribute_type(ScalarAttributeType::S)
+                .build()
+                .unwrap(),
+        )
+        .attribute_definitions(
+            AttributeDefinition::builder()
+                .attribute_name("sk")
+                .attribute_type(ScalarAttributeType::S)
+                .build()
+                .unwrap(),
+        )
+        .attribute_definitions(
+            AttributeDefinition::builder()
+                .attribute_name("gsi_pk")
+                .attribute_type(ScalarAttributeType::S)
+                .build()
+                .unwrap(),
+        )
+        .attribute_definitions(
+            AttributeDefinition::builder()
+                .attribute_name("lsi_sk")
+                .attribute_type(ScalarAttributeType::S)
+                .build()
+                .unwrap(),
+        )
+        .global_secondary_indexes(
+            GlobalSecondaryIndex::builder()
+                .index_name("by-gsi")
+                .key_schema(
+                    KeySchemaElement::builder()
+                        .attribute_name("gsi_pk")
+                        .key_type(KeyType::Hash)
+                        .build()
+                        .unwrap(),
+                )
+                .projection(
+                    Projection::builder()
+                        .projection_type(ProjectionType::All)
+                        .build(),
+                )
+                .build()
+                .unwrap(),
+        )
+        .local_secondary_indexes(
+            LocalSecondaryIndex::builder()
+                .index_name("by-lsi")
+                .key_schema(
+                    KeySchemaElement::builder()
+                        .attribute_name("pk")
+                        .key_type(KeyType::Hash)
+                        .build()
+                        .unwrap(),
+                )
+                .key_schema(
+                    KeySchemaElement::builder()
+                        .attribute_name("lsi_sk")
+                        .key_type(KeyType::Range)
+                        .build()
+                        .unwrap(),
+                )
+                .projection(
+                    Projection::builder()
+                        .projection_type(ProjectionType::All)
+                        .build(),
+                )
+                .build()
+                .unwrap(),
+        )
+        .provisioned_throughput(
+            ProvisionedThroughput::builder()
+                .read_capacity_units(5)
+                .write_capacity_units(5)
+                .build()
+                .unwrap(),
+        )
+        .send()
+        .await
+        .unwrap();
+
+    // ConsistentRead against the GSI is refused.
+    let err = client
+        .query()
+        .table_name("cr-tbl")
+        .index_name("by-gsi")
+        .consistent_read(true)
+        .key_condition_expression("gsi_pk = :v")
+        .expression_attribute_values(":v", AttributeValue::S("x".into()))
+        .send()
+        .await
+        .expect_err("consistent read on a GSI must be rejected");
+    let msg = format!("{err:?}");
+    assert!(msg.contains("ValidationException"), "{msg}");
+    assert!(
+        msg.contains("Consistent reads are not supported on global secondary indexes"),
+        "{msg}"
+    );
+
+    // The same query without ConsistentRead is fine.
+    client
+        .query()
+        .table_name("cr-tbl")
+        .index_name("by-gsi")
+        .key_condition_expression("gsi_pk = :v")
+        .expression_attribute_values(":v", AttributeValue::S("x".into()))
+        .send()
+        .await
+        .expect("eventually-consistent GSI query is valid");
+
+    // An LSI does support consistent reads.
+    client
+        .query()
+        .table_name("cr-tbl")
+        .index_name("by-lsi")
+        .consistent_read(true)
+        .key_condition_expression("pk = :v")
+        .expression_attribute_values(":v", AttributeValue::S("x".into()))
+        .send()
+        .await
+        .expect("consistent read on an LSI is valid");
+
+    // And so does the base table.
+    client
+        .query()
+        .table_name("cr-tbl")
+        .consistent_read(true)
+        .key_condition_expression("pk = :v")
+        .expression_attribute_values(":v", AttributeValue::S("x".into()))
+        .send()
+        .await
+        .expect("consistent read on the base table is valid");
+}
+
+// ---------------------------------------------------------------------------
+// Document paths: list elements and nested condition paths (issue #19)
+// ---------------------------------------------------------------------------
+
+/// `SET`/`REMOVE` on a list element. Previously `a[0]` parsed as an attribute
+/// literally named "a[0]", so the assignment was silently dropped.
+#[tokio::test]
+async fn test_update_item_list_element_paths() {
+    let client = make_dynamodb_client().await;
+    create_hash_table(&client, "path-list").await;
+
+    client
+        .put_item()
+        .table_name("path-list")
+        .item("pk", AttributeValue::S("p1".into()))
+        .item(
+            "items",
+            AttributeValue::L(vec![
+                AttributeValue::S("a".into()),
+                AttributeValue::S("b".into()),
+                AttributeValue::S("c".into()),
+            ]),
+        )
+        .send()
+        .await
+        .unwrap();
+
+    client
+        .update_item()
+        .table_name("path-list")
+        .key("pk", AttributeValue::S("p1".into()))
+        .update_expression("SET items[1] = :v REMOVE items[2]")
+        .expression_attribute_values(":v", AttributeValue::S("B".into()))
+        .send()
+        .await
+        .unwrap();
+
+    let item = client
+        .get_item()
+        .table_name("path-list")
+        .key("pk", AttributeValue::S("p1".into()))
+        .send()
+        .await
+        .unwrap()
+        .item
+        .unwrap();
+    let list = item.get("items").unwrap().as_l().unwrap();
+    let strs: Vec<&str> = list.iter().map(|v| v.as_s().unwrap().as_str()).collect();
+    assert_eq!(strs, vec!["a", "B"]);
+}
+
+/// A path that mixes map fields and list indexes, used as an arithmetic
+/// operand.
+#[tokio::test]
+async fn test_update_item_mixed_map_and_list_path() {
+    let client = make_dynamodb_client().await;
+    create_hash_table(&client, "path-mixed").await;
+
+    let mut inner = std::collections::HashMap::new();
+    inner.insert("n".to_string(), AttributeValue::N("1".into()));
+    let mut outer = std::collections::HashMap::new();
+    outer.insert(
+        "rows".to_string(),
+        AttributeValue::L(vec![AttributeValue::M(inner)]),
+    );
+
+    client
+        .put_item()
+        .table_name("path-mixed")
+        .item("pk", AttributeValue::S("p1".into()))
+        .item("doc", AttributeValue::M(outer))
+        .send()
+        .await
+        .unwrap();
+
+    client
+        .update_item()
+        .table_name("path-mixed")
+        .key("pk", AttributeValue::S("p1".into()))
+        .update_expression("SET doc.rows[0].n = doc.rows[0].n + :inc")
+        .expression_attribute_values(":inc", AttributeValue::N("41".into()))
+        .send()
+        .await
+        .unwrap();
+
+    let item = client
+        .get_item()
+        .table_name("path-mixed")
+        .key("pk", AttributeValue::S("p1".into()))
+        .send()
+        .await
+        .unwrap()
+        .item
+        .unwrap();
+    let rows = item
+        .get("doc")
+        .unwrap()
+        .as_m()
+        .unwrap()
+        .get("rows")
+        .unwrap();
+    let n = rows.as_l().unwrap()[0].as_m().unwrap().get("n").unwrap();
+    assert_eq!(n.as_n().unwrap(), "42");
+}
+
+/// Dotted paths in a ConditionExpression used to fail tokenisation and return
+/// a spurious ValidationException.
+#[tokio::test]
+async fn test_condition_expression_dotted_path() {
+    let client = make_dynamodb_client().await;
+    create_hash_table(&client, "cond-path").await;
+
+    let mut info = std::collections::HashMap::new();
+    info.insert("city".to_string(), AttributeValue::S("berlin".into()));
+    client
+        .put_item()
+        .table_name("cond-path")
+        .item("pk", AttributeValue::S("p1".into()))
+        .item("info", AttributeValue::M(info))
+        .send()
+        .await
+        .unwrap();
+
+    // A satisfied nested condition allows the write.
+    client
+        .update_item()
+        .table_name("cond-path")
+        .key("pk", AttributeValue::S("p1".into()))
+        .update_expression("SET ok = :one")
+        .condition_expression("info.city = :c")
+        .expression_attribute_values(":one", AttributeValue::N("1".into()))
+        .expression_attribute_values(":c", AttributeValue::S("berlin".into()))
+        .send()
+        .await
+        .expect("dotted path in a ConditionExpression must be accepted");
+
+    // An unsatisfied one fails the condition rather than the parse.
+    let err = client
+        .update_item()
+        .table_name("cond-path")
+        .key("pk", AttributeValue::S("p1".into()))
+        .update_expression("SET nope = :one")
+        .condition_expression("info.city = :c")
+        .expression_attribute_values(":one", AttributeValue::N("1".into()))
+        .expression_attribute_values(":c", AttributeValue::S("paris".into()))
+        .send()
+        .await
+        .expect_err("condition should not match");
+    let msg = format!("{err:?}");
+    assert!(
+        msg.contains("ConditionalCheckFailed"),
+        "expected a conditional failure, not a parse error: {msg}"
+    );
+
+    // attribute_exists over a nested path, as a filter this time.
+    let out = client
+        .scan()
+        .table_name("cond-path")
+        .filter_expression("attribute_exists(info.city)")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(out.count, 1);
+}
+
+/// A ProjectionExpression naming a list element is refused rather than
+/// silently omitting the attribute.
+#[tokio::test]
+async fn test_projection_expression_list_index_is_rejected() {
+    let client = make_dynamodb_client().await;
+    create_hash_table(&client, "proj-idx").await;
+
+    client
+        .put_item()
+        .table_name("proj-idx")
+        .item("pk", AttributeValue::S("p1".into()))
+        .item(
+            "items",
+            AttributeValue::L(vec![AttributeValue::S("a".into())]),
+        )
+        .send()
+        .await
+        .unwrap();
+
+    let err = client
+        .get_item()
+        .table_name("proj-idx")
+        .key("pk", AttributeValue::S("p1".into()))
+        .projection_expression("items[0]")
+        .send()
+        .await
+        .expect_err("unsupported projection path should be rejected, not dropped");
+    let msg = format!("{err:?}");
+    assert!(msg.contains("ValidationException"), "{msg}");
+}
+
+/// Verbatim from the AWS update-expression documentation: every action reads
+/// the item as it was *before* the update, so `REMOVE a SET b = a, c = b` on
+/// `{a:1, b:2, c:3}` yields `{b:1, c:2}`. winterbaume used to apply actions
+/// left to right against the partially updated item, which made `b = a` fail
+/// with "refers to an attribute that does not exist".
+#[tokio::test]
+async fn test_update_item_actions_see_pre_update_values() {
+    let client = make_dynamodb_client().await;
+    create_hash_table(&client, "pre-update").await;
+
+    client
+        .put_item()
+        .table_name("pre-update")
+        .item("pk", AttributeValue::S("1".into()))
+        .item("a", AttributeValue::N("1".into()))
+        .item("b", AttributeValue::N("2".into()))
+        .item("c", AttributeValue::N("3".into()))
+        .send()
+        .await
+        .unwrap();
+
+    let out = client
+        .update_item()
+        .table_name("pre-update")
+        .key("pk", AttributeValue::S("1".into()))
+        .update_expression("REMOVE a SET b = a, c = b")
+        .return_values(aws_sdk_dynamodb::types::ReturnValue::AllNew)
+        .send()
+        .await
+        .expect("multi-action expression must be accepted");
+
+    let item = out.attributes.unwrap();
+    assert!(!item.contains_key("a"), "a should have been removed");
+    assert_eq!(item.get("b").unwrap().as_n().unwrap(), "1");
+    assert_eq!(item.get("c").unwrap().as_n().unwrap(), "2");
+}
+
+/// Also verbatim from that page: `REMOVE RelatedItems[1], RelatedItems[2]`
+/// removes the original second and third elements, not the second and
+/// whichever slid into third place.
+#[tokio::test]
+async fn test_update_item_multiple_list_removals() {
+    let client = make_dynamodb_client().await;
+    create_hash_table(&client, "pre-update-list").await;
+
+    client
+        .put_item()
+        .table_name("pre-update-list")
+        .item("pk", AttributeValue::S("1".into()))
+        .item(
+            "RelatedItems",
+            AttributeValue::L(vec![
+                AttributeValue::S("Chisel".into()),
+                AttributeValue::S("Hammer".into()),
+                AttributeValue::S("Nails".into()),
+                AttributeValue::S("Screwdriver".into()),
+                AttributeValue::S("Hacksaw".into()),
+            ]),
+        )
+        .send()
+        .await
+        .unwrap();
+
+    client
+        .update_item()
+        .table_name("pre-update-list")
+        .key("pk", AttributeValue::S("1".into()))
+        .update_expression("REMOVE RelatedItems[1], RelatedItems[2]")
+        .send()
+        .await
+        .unwrap();
+
+    let item = client
+        .get_item()
+        .table_name("pre-update-list")
+        .key("pk", AttributeValue::S("1".into()))
+        .send()
+        .await
+        .unwrap()
+        .item
+        .unwrap();
+    let list = item.get("RelatedItems").unwrap().as_l().unwrap();
+    let strs: Vec<&str> = list.iter().map(|v| v.as_s().unwrap().as_str()).collect();
+    assert_eq!(strs, vec!["Chisel", "Screwdriver", "Hacksaw"]);
+}
