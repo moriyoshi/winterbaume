@@ -48,6 +48,10 @@ Sources:
 - https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/transaction-apis.html
 - https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.ReadConsistency.html
 - https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Query.html
+- https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.UpdateExpressions.html
+- https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.Attributes.html
+- https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.ConditionExpressions.html
+- https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.ProjectionExpressions.html
 
 Research outcomes:
 - TransactWriteItems is synchronous, idempotent when a client token is supplied, and all-or-nothing across up to 100 actions, 100 distinct items, and 4 MB aggregate item size, within one account and Region.
@@ -57,6 +61,42 @@ Research outcomes:
 - DynamoDB transaction isolation is serializable between transactional operations and single-item GetItem/PutItem/UpdateItem/DeleteItem operations, but BatchGetItem, BatchWriteItem, Query, and Scan have weaker operation-level isolation.
 - Default reads are eventually consistent. Strongly consistent reads are available for tables and local secondary indexes through ConsistentRead, but not for global secondary indexes or streams.
 - Transaction conflicts have distinct failure modes: single item write conflicts can fail with TransactionConflictException, while transaction-level conflicts fail with TransactionCanceledException.
+
+### Expression sublanguages
+
+The Smithy model types `UpdateExpression`, `ConditionExpression`, `FilterExpression`, `KeyConditionExpression`, and `ProjectionExpression` as plain `String`, so the model carries no hint that each is a language with its own grammar. Record the grammars here, because nothing in the codegen or coverage pipeline can derive them. Every DynamoDB defect found through issue #19 lived inside one of these strings.
+
+`UpdateExpression`, quoted from the AWS documentation:
+
+```
+update-expression ::=
+    [ SET action [, action] ... ]
+    [ REMOVE action [, action] ...]
+    [ ADD action [, action] ... ]
+    [ DELETE action [, action] ...]
+
+set-action ::= path = value
+value      ::= operand | operand '+' operand | operand '-' operand
+operand    ::= path | function
+function   ::= if_not_exists (path, value)
+
+remove-action ::= path
+add-action    ::= path value
+delete-action ::= path subset
+```
+
+Consequences that are easy to get wrong, all documented on that page:
+
+- `operand ::= function`, so a function is a valid operand of `+` / `-`. This is what makes `SET p = if_not_exists(p, :zero) + :v` — the atomic-counter-with-default idiom of issue #19 — valid.
+- `if_not_exists (path, value)` takes a full **value**, not an operand, so arithmetic nests inside the fallback: `if_not_exists(p, :a + :b)`.
+- Exactly **one** `+` or `-` per `value`. A chained `:a + :b + :c` is a syntax error.
+- Each clause keyword may appear **once**: "each action keyword can appear only once".
+- **All actions read the pre-update image.** "DynamoDB evaluates every action against the item's attribute values *as they were before the update*. The actions aren't applied one after another from left to right." Worked example: `{"id":"1","a":1,"b":2,"c":3}` with `REMOVE a SET b = a, c = b` yields `{"id":"1","b":1,"c":2}`. The same rule makes `REMOVE l[1], l[2]` drop the *original* second and third elements — `[Chisel,Hammer,Nails,Screwdriver,Hacksaw]` becomes `[Chisel,Screwdriver,Hacksaw]`, not `[Chisel,Nails,Hacksaw]`.
+- `SET` on a list index past the end **appends**: "If the element doesn't already exist, `SET` appends the new element at the end of the list."
+- `REMOVE` of a list element shifts the remainder down.
+- A nested `SET` requires the parent to exist: "You cannot update nested map attributes if the parent map does not exist... DynamoDB returns a `ValidationException` with the message *The document path provided in the update expression is invalid for update*." Winterbaume is knowingly more permissive for maps — see `dynamodb-set-auto-creates-missing-map`.
+- `ADD` supports only number and set types; `DELETE` only set types.
+- `list_append(list1, list2)` appends the second list to the first, and the function name is case sensitive.
 
 Parity implications:
 - Keep transaction state changes atomic and validate same-item duplication before mutation.
