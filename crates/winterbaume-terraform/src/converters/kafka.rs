@@ -245,7 +245,7 @@ impl AwsMskClusterConverter {
                             "b-{}.{}.kafka.{}.amazonaws.com:9092",
                             i + 1,
                             cluster.cluster_name,
-                            &ctx.default_region
+                            ctx.default_region
                         )
                     })
                     .collect();
@@ -259,7 +259,7 @@ impl AwsMskClusterConverter {
                             "b-{}.{}.kafka.{}.amazonaws.com:9094",
                             i + 1,
                             cluster.cluster_name,
-                            &ctx.default_region
+                            ctx.default_region
                         )
                     })
                     .collect();
@@ -274,7 +274,7 @@ impl AwsMskClusterConverter {
                             "z-{}.{}.kafka.{}.amazonaws.com:2181",
                             i + 1,
                             cluster.cluster_name,
-                            &ctx.default_region
+                            ctx.default_region
                         )
                     })
                     .collect();

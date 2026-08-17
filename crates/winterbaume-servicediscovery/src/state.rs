@@ -88,7 +88,7 @@ impl ServiceDiscoveryState {
         let arn = format!("arn:aws:servicediscovery:{region}:{account_id}:namespace/{ns_id}");
         let hosted_zone_id = format!(
             "Z{}",
-            &uuid::Uuid::new_v4().simple().to_string()[..13].to_uppercase()
+            uuid::Uuid::new_v4().simple().to_string()[..13].to_uppercase()
         );
 
         let namespace = Namespace {
@@ -171,7 +171,7 @@ impl ServiceDiscoveryState {
         let arn = format!("arn:aws:servicediscovery:{region}:{account_id}:namespace/{ns_id}");
         let hosted_zone_id = format!(
             "Z{}",
-            &uuid::Uuid::new_v4().simple().to_string()[..13].to_uppercase()
+            uuid::Uuid::new_v4().simple().to_string()[..13].to_uppercase()
         );
 
         let namespace = Namespace {

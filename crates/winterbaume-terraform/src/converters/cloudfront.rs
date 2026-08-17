@@ -91,7 +91,7 @@ impl AwsCloudfrontDistributionConverter {
         let dist_id = model.id.unwrap_or_else(|| {
             format!(
                 "E{}",
-                &uuid::Uuid::new_v4().to_string()[..13]
+                uuid::Uuid::new_v4().to_string()[..13]
                     .to_uppercase()
                     .replace('-', "")
             )
@@ -315,7 +315,7 @@ fn synthetic_cf_id(prefix: char) -> String {
     format!(
         "{}{}",
         prefix,
-        &uuid::Uuid::new_v4().to_string()[..13]
+        uuid::Uuid::new_v4().to_string()[..13]
             .to_uppercase()
             .replace('-', "")
     )
