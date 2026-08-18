@@ -220,7 +220,9 @@ Four checks run before anything is created, because a wrong tag is far more expe
 | Published on crates.io | Tags follow the publish, never precede it. | `--allow-unpublished` |
 | Existing tags | A tag already at the requested commit is left alone ( locally ) or not re-pushed ( on `origin` ). A tag pointing anywhere else aborts the run — published tags are never moved silently. | delete the tag deliberately |
 
-Everything is a state probe first and an action second, so a re-run after a partial failure creates only what is missing. `--no-push` stops after creating the tags locally; otherwise every tag missing on the remote goes up in a single `git push`, which is what triggers the cargo-dist binary release for `winterbaume-server-vX.Y.Z`.
+Everything is a state probe first and an action second, so a re-run after a partial failure creates only what is missing. `--no-push` stops after creating the tags locally; otherwise every tag missing on the remote is pushed, which is what triggers the cargo-dist binary release for `winterbaume-server-vX.Y.Z`.
+
+**Tags go up one `git push` at a time, and must stay that way.** GitHub Actions discards push events entirely when a single push carries more than three tags — not merely the tags past the third, all of them — so a bulk push lands every ref on the remote and triggers nothing. That is how `winterbaume-server-v0.2.6` reached `origin` on 2026-08-18 without starting the binary release: twelve tags, one push, zero workflow runs. The harness now pushes one ref per invocation ( `batch::push_batches` ), which is also what `batch` does for its chunk tags. Consolidating them back into one push is a silent release failure, not a tidy-up.
 
 #### `batch` — direct chunked publish, no plan file
 
@@ -255,6 +257,15 @@ The `winterbaume-server-vX.Y.Z` tag — pushed by `release-harness tag`, or by `
 
 ```sh
 git tag winterbaume-server-v0.1.1
+git push origin winterbaume-server-v0.1.1
+```
+
+Push it **on its own**. A push carrying more than three tags delivers no push event at all, so the tag arrives on the remote and nothing runs — see the `tag` subcommand above.
+
+If a tag is already on the remote from such a push, re-pushing it is a no-op: the ref has to be deleted and re-created for the event to fire.
+
+```sh
+git push origin :refs/tags/winterbaume-server-v0.1.1
 git push origin winterbaume-server-v0.1.1
 ```
 

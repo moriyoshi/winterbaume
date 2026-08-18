@@ -262,16 +262,12 @@ pub fn run(cargo: &CargoExe, args: &TagArgs) -> Result<ExitCode, Error> {
                 t.tag,
             );
         }
-        if !args.no_push && !to_push.is_empty() {
-            println!(
-                "$ git push {} {}",
-                args.remote,
-                to_push
-                    .iter()
-                    .map(|t| t.tag.as_str())
-                    .collect::<Vec<_>>()
-                    .join(" ")
-            );
+        // One invocation per tag, as the real run does — a reader who sees a
+        // single bulk push here will write one.
+        if !args.no_push {
+            for t in &to_push {
+                println!("$ git push {} {}", args.remote, t.tag);
+            }
         }
         println!();
         println!("(dry run — re-run with --execute to create and push the tags)");
@@ -295,10 +291,18 @@ pub fn run(cargo: &CargoExe, args: &TagArgs) -> Result<ExitCode, Error> {
         return Ok(ExitCode::SUCCESS);
     }
 
+    // One push per tag. A single push carrying more than three tags makes
+    // GitHub discard every push event, so the `winterbaume-server-vX.Y.Z` tag
+    // would land on the remote without starting the binary release — see
+    // `batch::push_batches`.
     let refs: Vec<String> = to_push.iter().map(|t| t.tag.clone()).collect();
-    batch::git_push(&root, &refs)?;
+    batch::push_refs(&root, None, &refs)?;
     println!();
-    println!("{} tag(s) pushed to {}.", refs.len(), args.remote);
+    println!(
+        "{} tag(s) pushed to {}, one push each.",
+        refs.len(),
+        args.remote
+    );
     Ok(ExitCode::SUCCESS)
 }
 

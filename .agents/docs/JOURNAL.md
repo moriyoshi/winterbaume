@@ -2513,3 +2513,29 @@ One inversion worth flagging: `publish --tag` signs unconditionally rather than 
 ### Verified
 
 77 unit tests pass ( 3 new in `publish`, 10 in the new `tag` module ), per-crate clippy and rustfmt gate clean. Dry runs against the real merged release ( `bf5ae40`, PR #25, twelve crates, nothing published yet ) exercised the intended sequencing end to end: `tag` verified all twelve manifests at the merge commit, confirmed containment in `origin/main`, and then refused with all twelve crates listed as unpublished — the correct answer, and the one the old `publish` path would have got wrong in the other direction.
+
+## 2026-08-18 — twelve tags in one push triggered nothing
+
+`release-harness tag --execute` did its job: twelve signed annotated tags on the merge commit, all twelve on `origin`, `winterbaume-server-v0.2.6` peeling to `bf5ae40`. The cargo-dist binary release never started.
+
+Nothing was wrong with the tag, the workflow, or the pattern. The `Release` workflow is active, `winterbaume-server-v[0-9]+.[0-9]+.[0-9]+` matches, and the tag points where it should. What is missing is the *event*: between the PR #25 merge at 06:09 UTC and PR #26's CI at 09:21 UTC there are zero workflow runs of any kind, while the tags were pushed at 08:58 UTC. Not a failed run, not a skipped one — no event was ever delivered.
+
+**GitHub Actions discards push events entirely when a single push carries more than three tags.** Not the tags past the third: all of them. Twelve tags, one `git push`, no events.
+
+### The regression was the tidy-up
+
+The old `publish` created and pushed tags inside each version group's chunk, so each push happened to carry one or two tags. On 3 July the four tags stamped at 15:59:15 belonged to four different version groups — four separate pushes — and `winterbaume-server-v0.2.5` triggered its release run normally. Nobody designed that; it fell out of chunking by target version.
+
+Consolidating the tag push into one `git push` was a genuine simplification of that accident, and it silently broke the release. The failure mode is the worst shape available: everything reports success, the refs are on the remote, and the only visible symptom is a workflow that never ran.
+
+### Fix
+
+`push_batches(branch, tags)` returns one invocation per ref — branch first, then a push per tag — and both `tag` and `batch` go through it. One per push rather than the three the limit technically allows, because three is a ceiling someone tidies back into on a slow day and one is a rule; a partial failure also leaves an unambiguous record of which tags landed.
+
+The reasoning lives in three places on purpose: a doc comment on `push_batches` naming this incident, a test ( `assert_at_most_one_tag_per_push` ) that fails if any invocation grows a second tag, and a paragraph in RELEASE.md. A constraint that exists only in an external service's behaviour has nothing in the local toolchain to enforce it — no compiler error, no clippy lint, no failing test unless one is written to encode it. Comment, test, and runbook are the entire enforcement surface.
+
+Recovering an already-pushed tag needs the ref deleted and re-created; re-pushing an existing tag is a no-op and delivers no event.
+
+### The transferable bit
+
+When behaviour depends on an external system's undocumented-feeling limits, the code that satisfies the limit looks arbitrary and reads as a candidate for cleanup. Write down which incident the shape prevents, right where someone would delete it.
