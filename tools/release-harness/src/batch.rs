@@ -175,12 +175,23 @@ fn run_chunk(
     // 1-3. Version-bump / replace / hook (only when manifests are not yet at
     //      the target version).
     let mut manifest_versions = read_versions(cargo, root, chunk)?;
-    if should_run_version_step(version_or_level, &manifest_versions, chunk) {
+    let needs_version =
+        crates_needing_version_step(version_or_level, &manifest_versions, chunk, |c, v| {
+            already_on_crates_io(c, v)
+        });
+    if !needs_version.is_empty() {
+        if needs_version.len() < chunk.len() {
+            eprintln!(
+                "version step covers {}/{} crate(s) — the rest are already bumped",
+                needs_version.len(),
+                chunk.len()
+            );
+        }
         let (status, _) = run_release_step(
             cargo,
             root,
             &["version", version_or_level],
-            chunk,
+            &needs_version,
             false,
             opts.no_confirm,
         )?;
@@ -492,30 +503,43 @@ fn parse_amend_body(msg: &str) -> Vec<(String, String)> {
     out
 }
 
-fn should_run_version_step(
+/// Which crates in `chunk` still need the `version` step. An empty result
+/// means the whole chunk is already at its target and the step is skipped.
+///
+/// Per-crate, not all-or-nothing: a chunk can be partially bumped if a
+/// previous run died midway through `cargo release version`, and passing the
+/// already-bumped crates back to a *level* dispatch would bump them a second
+/// time. Only the crates that still need it are handed to the step.
+///
+/// `is_published` is injected so the level branch is testable without
+/// touching the network.
+fn crates_needing_version_step(
     version_or_level: &str,
     manifest_versions: &BTreeMap<String, String>,
     chunk: &[String],
-) -> bool {
-    if looks_like_semver(version_or_level) {
-        chunk.iter().any(|c| {
-            manifest_versions
-                .get(c)
-                .map(|v| v != version_or_level)
-                .unwrap_or(true)
+    is_published: impl Fn(&str, &str) -> bool,
+) -> Vec<String> {
+    chunk
+        .iter()
+        .filter(|c| match manifest_versions.get(*c) {
+            // Literal target: needs the step unless it is already there.
+            Some(v) if looks_like_semver(version_or_level) => v != version_or_level,
+            // Level keyword: the manifest still carrying a version that is on
+            // crates.io means this crate has not been bumped yet. An
+            // unpublished current version means a previous run already bumped
+            // it, so leave it alone.
+            //
+            // `already_on_crates_io` reports false when the lookup itself
+            // fails, which lands us on "already bumped, skip". That is the
+            // safe direction: skipping a needed bump surfaces as a failed or
+            // pruned publish, whereas a spurious bump burns a version number
+            // that cannot be unpublished.
+            Some(v) => is_published(c, v),
+            // Unknown to `cargo metadata` — let the step decide and report.
+            None => true,
         })
-    } else {
-        // Level keyword: only re-bump if the current manifest versions are
-        // still the ones already on crates.io. If any current version is
-        // unpublished, we treat the chunk as already-bumped to avoid double-
-        // bumping mid-resume.
-        chunk.iter().any(|c| {
-            manifest_versions
-                .get(c)
-                .map(|v| already_on_crates_io(c, v))
-                .unwrap_or(false)
-        })
-    }
+        .cloned()
+        .collect()
 }
 
 fn print_dry_run(version_or_level: &str, chunk: &[String], sign: bool, no_confirm: bool) {
@@ -540,7 +564,10 @@ fn print_dry_run(version_or_level: &str, chunk: &[String], sign: bool, no_confir
     eprintln!("$ git push origin <branch> <missing-tags>");
 }
 
-fn run_release_step(
+/// Also used by the `version-bump` subcommand, which drives the `version`
+/// step alone. Extra flags for a step ride along in `step_args` — cargo-release
+/// accepts them in any position.
+pub(crate) fn run_release_step(
     cargo: &CargoExe,
     root: &Path,
     step_args: &[&str],
@@ -1134,18 +1161,67 @@ chunk 1 failed (rc=Some(101)); fix the cause and re-run
         );
     }
 
+    /// Nothing in these tests may reach the network.
+    fn never_published(_: &str, _: &str) -> bool {
+        unreachable!("literal dispatch must not consult crates.io")
+    }
+
     #[test]
     fn should_run_version_literal_skips_when_matched() {
         let chunk = vec!["winterbaume-foo".into(), "winterbaume-bar".into()];
         let mfs = versions(&[("winterbaume-foo", "0.3.0"), ("winterbaume-bar", "0.3.0")]);
-        assert!(!should_run_version_step("0.3.0", &mfs, &chunk));
+        assert!(crates_needing_version_step("0.3.0", &mfs, &chunk, never_published).is_empty());
     }
 
     #[test]
     fn should_run_version_literal_runs_when_mismatched() {
         let chunk = vec!["winterbaume-foo".into(), "winterbaume-bar".into()];
         let mfs = versions(&[("winterbaume-foo", "0.2.0"), ("winterbaume-bar", "0.3.0")]);
-        assert!(should_run_version_step("0.3.0", &mfs, &chunk));
+        assert_eq!(
+            crates_needing_version_step("0.3.0", &mfs, &chunk, never_published),
+            vec!["winterbaume-foo".to_string()]
+        );
+    }
+
+    #[test]
+    fn literal_dispatch_covers_only_the_crates_behind_target() {
+        // A chunk half-bumped by a previous run: only the laggard is passed to
+        // the step, so the already-bumped crate cannot move twice.
+        let chunk = vec![
+            "winterbaume-foo".into(),
+            "winterbaume-bar".into(),
+            "winterbaume-baz".into(),
+        ];
+        let mfs = versions(&[
+            ("winterbaume-foo", "0.3.0"),
+            ("winterbaume-bar", "0.2.0"),
+            ("winterbaume-baz", "0.3.0"),
+        ]);
+        assert_eq!(
+            crates_needing_version_step("0.3.0", &mfs, &chunk, never_published),
+            vec!["winterbaume-bar".to_string()]
+        );
+    }
+
+    #[test]
+    fn level_dispatch_skips_crates_already_bumped_by_an_earlier_run() {
+        // foo is still at its published version (needs the bump); bar was
+        // bumped before the previous run died, so its version is not on
+        // crates.io and it must not be bumped again.
+        let chunk = vec!["winterbaume-foo".into(), "winterbaume-bar".into()];
+        let mfs = versions(&[("winterbaume-foo", "0.2.0"), ("winterbaume-bar", "0.2.1")]);
+        let published = |_: &str, v: &str| v == "0.2.0";
+        assert_eq!(
+            crates_needing_version_step("patch", &mfs, &chunk, published),
+            vec!["winterbaume-foo".to_string()]
+        );
+    }
+
+    #[test]
+    fn level_dispatch_skips_the_whole_chunk_once_every_crate_is_bumped() {
+        let chunk = vec!["winterbaume-foo".into(), "winterbaume-bar".into()];
+        let mfs = versions(&[("winterbaume-foo", "0.2.1"), ("winterbaume-bar", "0.2.1")]);
+        assert!(crates_needing_version_step("patch", &mfs, &chunk, |_, _| false).is_empty());
     }
 
     #[test]

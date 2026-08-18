@@ -1,15 +1,18 @@
 //! Per-crate semver bump planner and selective-publish driver for the
 //! winterbaume workspace.
 //!
-//! Three-stage workflow:
+//! Four-stage workflow:
 //!
 //! 1. `plan` — discover which crates have changed since their last
 //!    `<crate>-v<ver>` tag, classify the semver bump (skip / patch / minor /
 //!    major / literal), and write `release-plan.toml`.
 //! 2. `changelog` — draft per-crate CHANGELOG.md entries and refresh the root
 //!    umbrella CHANGELOG.md based on the plan.
-//! 3. `publish` — group plan entries by bump level and drive `release-batch`
-//!    once per group.
+//! 3. `version-bump` — drive `cargo release version` per target version from
+//!    the plan, so the bump can land as its own reviewable commit. Optional:
+//!    `publish` drives the same step itself.
+//! 4. `publish` — group plan entries by target version and drive
+//!    `release-batch` once per group.
 
 mod batch;
 mod changelog;
@@ -20,6 +23,7 @@ mod polisher;
 mod publish;
 mod semver_checks;
 mod version;
+mod version_bump;
 
 use std::ffi::OsString;
 use std::path::PathBuf;
@@ -53,7 +57,9 @@ enum Cmd {
     Plan(PlanArgs),
     /// Draft per-crate CHANGELOG.md entries for each non-skip crate in the plan.
     Changelog(ChangelogArgs),
-    /// Run a chunked `cargo release` per bump-level group from a plan file.
+    /// Apply the plan's `next` versions to the workspace manifests, without publishing.
+    VersionBump(VersionBumpArgs),
+    /// Run a chunked `cargo release` per target-version group from a plan file.
     Publish(PublishArgs),
     /// Run a single chunked `cargo release` directly, without a plan file.
     /// Equivalent to the former standalone `release-batch` binary; useful for
@@ -102,6 +108,18 @@ struct ChangelogArgs {
     /// environment variable provides a default when this flag is omitted.
     #[arg(long)]
     polisher: Option<String>,
+}
+
+#[derive(Parser, Debug)]
+pub struct VersionBumpArgs {
+    /// Path to the plan file written by `plan`.
+    #[arg(long, default_value = "release-plan.toml")]
+    pub plan: PathBuf,
+
+    /// Without this, print the planned per-version `cargo release version`
+    /// invocations and exit without writing anything.
+    #[arg(long)]
+    pub execute: bool,
 }
 
 #[derive(Parser, Debug)]
@@ -202,6 +220,7 @@ fn main() -> ExitCode {
     let result: Result<ExitCode, Box<dyn std::error::Error>> = match args.cmd {
         Cmd::Plan(p) => plan::run(&cargo, &p).map_err(Into::into),
         Cmd::Changelog(c) => changelog::run(&cargo, &c).map_err(Into::into),
+        Cmd::VersionBump(v) => version_bump::run(&cargo, &v).map_err(Into::into),
         Cmd::Publish(p) => publish::run(&cargo, &p).map_err(Into::into),
         Cmd::Batch(b) => publish::run_batch(&cargo, &b).map_err(Into::into),
     };

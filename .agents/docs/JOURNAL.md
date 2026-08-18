@@ -2425,3 +2425,45 @@ Two different failure modes were conflated, and they need different remedies:
 ### The transferable bit
 
 This bug existed because the implementation was read and the specification was not. For a parity emulator that is the whole ballgame: reading the code tells you what it does, and only the primary source tells you what it should do. Nothing in the session's own tooling — the tests, the gate, the §5.1 grep — could have found it, because all of them are derived from the implementation. The user asking "what does the AWS document say?" was the only step that could.
+
+## 2026-08-18 — release-harness gains `version-bump`
+
+`release-harness` could classify bumps ( `plan` ), draft changelogs ( `changelog` ), and publish ( `publish`, which drives `cargo release`'s `version` step as part of publishing ). There was no way to land the version change as its own reviewable commit first. `version-bump` fills that gap: it reads `release-plan.toml`, groups entries by their literal `next` version, and runs one `cargo release version <next> -p <crates>... --allow-branch '*' --execute` per group.
+
+### The first attempt reimplemented cargo-release, and the review caught it
+
+The subcommand initially shipped as 527 lines of `toml_edit` manifest surgery — walking `[package] version`, following the workspace-inheritance chain into the root `[workspace.dependencies]`, saving and restoring `Decor` so comments survived, staging documents in a map so a mid-run failure could not half-bump the tree, re-resolving `Cargo.lock` afterwards. All of it careful, all of it tested, and all of it already provided by `cargo release version`, which is not only installed here but **already invoked by this very binary** at `batch.rs:179`.
+
+Verified against cargo-release 1.1.3, `cargo release version` does every one of those things: package version, workspace-inheritance update ( it logs `Updating workspace's dependency from 0.2.0 to 0.2.1` ), comment and inline-table spacing preservation, path-only dep entries left alone with no `version` injected, root manifest that is simultaneously a package and the workspace table, `Cargo.lock` refresh, dry-run default with `-x` to write, and no git commit.
+
+The tell was available before a line was written: the module's own crate already shelled out to the exact subcommand, and the top of `batch.rs` documents the `version` / `replace` / `hook` / `commit` / `publish` step sequence. Reading how the neighbouring module solved the same problem would have been enough. Generalisable: before writing a mechanical transformation of a well-known file format, check whether the tool the repo already drives exposes it as a step.
+
+### What the thin driver keeps
+
+Delegating is not free — two properties come from the plan, not from cargo-release, and they are the reason this is a driver rather than a shell alias:
+
+- **Idempotency requires dispatching literals, not levels.** `cargo release version patch` re-run bumps a second time ( verified: `0.2.1 → 0.2.2` ); the same literal re-run is a no-op. So the driver passes each crate's literal `next`, and drops crates already sitting there from the dispatch entirely. Note `publish` dispatches *levels* today ( `key_for` in `publish.rs` ), so it carries this same re-run hazard — the crates.io skip check only guards literal-version dispatch. Worth a separate look.
+- **Drift is only half-covered upstream.** cargo-release refuses downgrades ( `error: cannot downgrade wb-b from 0.2.1 to 0.3.0` ), which catches the common stale-plan case, but it fires partway through — after earlier groups have already written — and it cannot see backwards drift. The driver keeps a pre-flight pass that reports every crate matching neither `current` nor `next` and invokes nothing.
+
+Cost of delegating: one invocation per distinct target version, each re-reading workspace metadata. Measured at ~1 minute per invocation on this 700-crate workspace, against ~2 s for the single-pass implementation. Irrelevant next to `publish`'s hours, and crates sharing a `next` ride one invocation.
+
+Two smaller things the driver has to know: `--allow-branch '*'`, because cargo-release refuses to run outside the configured release branch and bumping on a topic branch for review is the entire point; and `--no-confirm`, because the harness prints its own preview table. `batch::run_release_step` was widened to `pub(crate)` and reused rather than growing a second Command builder — extra flags ride along in `step_args`, which cargo-release accepts in any position.
+
+Review caught the same species of duplication twice more in one change, which is the useful part: the driver's cargo-release probe was `semver_checks::available` with one word swapped, so both now go through `CargoExe::has_subcommand`. Three redundant implementations in one subcommand — a 527-line one, a `Command` builder, and a five-line probe — all of them found by asking "does something in this crate already do this?" rather than by any test or lint. Nothing in the gate detects a reimplementation; only reading the neighbours does.
+
+### `publish` dispatched levels, which broke resume in two ways
+
+Working out why `version-bump` must dispatch literals exposed the same defect in `publish`, which had been grouping plan entries by bump level ( `patch` / `minor` / `major` ) since it was written. Two consequences, neither of which any test covered:
+
+1. **Double-bump on resume.** `cargo release version patch` re-run bumps a second time. `batch` guarded this with `should_run_version_step`, but the guard was `any()` over the chunk: if a previous run died midway through the step, leaving some crates bumped and some not, the whole chunk was handed back to a level dispatch and the already-bumped ones moved again — silently skipping a version number.
+2. **The resumability prune never ran.** `batch` can only drop crates whose target is already on crates.io when it knows the concrete target. Given a level it printed `skipping pre-flight crates.io resumability check` and pruned nothing — so the documented "mid-launch retries are idempotent" property was, for every level group, not in effect.
+
+Fixed at the root: `key_for` now returns the plan's `next` for `patch` / `minor` / `major` as it already did for `pinned`, so the plan-driven path never takes the level branch. On this workspace the 241 publishable members sit at 10 distinct versions, so a workspace-wide patch bump drives ~10 groups instead of 1 — a few extra partial chunks, which costs wall-clock only under first-launch `--sleep` settings. Cheap for a correctness property.
+
+The level branch still exists for `batch --version patch`, the bypass mode, so `should_run_version_step` became `crates_needing_version_step`, returning the subset that still needs the step instead of a chunk-wide bool. The crates.io predicate is injected so the branch is testable without network.
+
+One fail-direction worth recording rather than "fixing": `already_on_crates_io` returns false when the lookup itself errors, which in the level branch lands on "already bumped, skip". That looks like the wrong default until you compare outcomes — a skipped bump surfaces as a failed or pruned publish, while a spurious bump burns a version number that cannot be unpublished. The asymmetry, not the probability, decides it.
+
+Unplanned dividend: `version-bump` followed by `publish` now composes, because both dispatch the same literal. `publish` finds the manifests at target, skips version/replace/hook, and goes straight to commit/publish/tag. The earlier draft of RELEASE.md warned operators not to run both; that warning described a bug, not a design.
+
+Verified by 8 unit tests ( disposition table, version grouping ) plus an end-to-end run against a throwaway three-crate workspace: grouping collapsed two crates sharing a target into one invocation, `--execute` produced one-line diffs with comments intact, the re-run was a no-op, a hand-drifted plan aborted before invoking anything, and a deliberately downgrading pin aborted the run with cargo-release's status and left the later group un-invoked. Net effect on the tree: 527 lines and a `toml_edit` dependency deleted, `Cargo.lock` unchanged from main.
