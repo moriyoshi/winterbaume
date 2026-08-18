@@ -499,7 +499,8 @@ fn run_chunk(
         eprintln!("tag: skipped — run `release-harness tag` once every chunk has published");
     }
 
-    // 8. Push — HEAD and any chunk tags missing on origin, in one push.
+    // 8. Push — HEAD and any chunk tags missing on origin, one ref per push.
+    //    See `push_batches` for why they must not ride together.
     if !opts.stages.push {
         eprintln!("push: skipped — this run owns neither the release commit nor the tags");
         return Ok(None);
@@ -512,10 +513,7 @@ fn run_chunk(
         .map(|s| s == &head_sha)
         .unwrap_or(false);
 
-    let mut refs_to_push: Vec<String> = Vec::new();
-    if !head_pushed {
-        refs_to_push.push(branch.clone());
-    }
+    let mut tags_to_push: Vec<String> = Vec::new();
     for c in chunk {
         let v = target_versions.get(c).cloned().unwrap_or_default();
         if v.is_empty() {
@@ -525,12 +523,13 @@ fn run_chunk(
         if remote.contains_key(&format!("refs/tags/{tag}")) {
             continue;
         }
-        refs_to_push.push(tag);
+        tags_to_push.push(tag);
     }
-    if refs_to_push.is_empty() {
+    let branch_to_push = if head_pushed { None } else { Some(branch) };
+    if branch_to_push.is_none() && tags_to_push.is_empty() {
         eprintln!("push: HEAD and all chunk tags already on origin — nothing to push");
     } else {
-        git_push(root, &refs_to_push)?;
+        push_refs(root, branch_to_push.as_deref(), &tags_to_push)?;
     }
 
     Ok(None)
@@ -842,6 +841,42 @@ pub(crate) fn create_tag_at(
             status: out.status.to_string(),
             stderr: String::from_utf8_lossy(&out.stderr).into_owned(),
         });
+    }
+    Ok(())
+}
+
+/// Split a branch plus a set of tags into one `git push` invocation per ref.
+///
+/// **Do not consolidate these into a single push.** GitHub Actions discards
+/// push events entirely when one push carries more than three tags — not just
+/// the tags past the third, all of them — so a bulk tag push lands the refs on
+/// the remote and silently triggers nothing. That is exactly how
+/// `winterbaume-server-v0.2.6` reached origin on 2026-08-18 without starting
+/// the cargo-dist binary release: twelve tags, one push, zero events.
+///
+/// One ref per push rather than the three the limit technically allows: three
+/// is a ceiling someone tidies back into on a slow day, one is a rule. It also
+/// means a push that fails partway leaves an unambiguous record of which tags
+/// landed. Pushes are cheap next to the publish they follow.
+fn push_batches(branch: Option<&str>, tags: &[String]) -> Vec<Vec<String>> {
+    let mut out: Vec<Vec<String>> = Vec::with_capacity(tags.len() + 1);
+    // Branch first, so the commit the tags name is already on the branch.
+    if let Some(b) = branch {
+        out.push(vec![b.to_string()]);
+    }
+    out.extend(tags.iter().map(|t| vec![t.clone()]));
+    out
+}
+
+/// Push a branch and/or tags, one ref per invocation. See `push_batches`.
+pub(crate) fn push_refs(root: &Path, branch: Option<&str>, tags: &[String]) -> Result<(), Error> {
+    let batches = push_batches(branch, tags);
+    let total = batches.len();
+    for (i, refs) in batches.iter().enumerate() {
+        if total > 1 {
+            eprintln!("push {}/{total}", i + 1);
+        }
+        git_push(root, refs)?;
     }
     Ok(())
 }
@@ -1375,6 +1410,45 @@ chunk 1 failed (rc=Some(101)); fix the cause and re-run
         let chunk = vec!["winterbaume-foo".into(), "winterbaume-bar".into()];
         let mfs = versions(&[("winterbaume-foo", "0.2.1"), ("winterbaume-bar", "0.2.1")]);
         assert!(crates_needing_version_step("patch", &mfs, &chunk, |_, _| false).is_empty());
+    }
+
+    /// The invariant the release depends on: no `git push` may carry more than
+    /// one tag, because GitHub drops every push event once a single push
+    /// exceeds three of them.
+    fn assert_at_most_one_tag_per_push(batches: &[Vec<String>], branch: Option<&str>) {
+        for refs in batches {
+            let tags = refs.iter().filter(|r| Some(r.as_str()) != branch).count();
+            assert!(tags <= 1, "push carries {tags} tags: {refs:?}");
+        }
+    }
+
+    #[test]
+    fn each_tag_gets_its_own_push() {
+        let tags: Vec<String> = (0..12).map(|i| format!("wb-{i}-v0.1.0")).collect();
+        let batches = push_batches(None, &tags);
+        assert_eq!(batches.len(), 12);
+        assert_at_most_one_tag_per_push(&batches, None);
+    }
+
+    #[test]
+    fn the_branch_is_pushed_first_and_alone() {
+        let tags = vec!["wb-a-v0.1.0".to_string(), "wb-b-v0.1.0".to_string()];
+        let batches = push_batches(Some("main"), &tags);
+        assert_eq!(batches.len(), 3);
+        assert_eq!(batches[0], vec!["main".to_string()]);
+        assert_eq!(batches[1], vec!["wb-a-v0.1.0".to_string()]);
+        assert_eq!(batches[2], vec!["wb-b-v0.1.0".to_string()]);
+        assert_at_most_one_tag_per_push(&batches, Some("main"));
+    }
+
+    #[test]
+    fn a_branch_with_no_tags_is_one_push() {
+        assert_eq!(push_batches(Some("main"), &[]), vec![vec!["main"]]);
+    }
+
+    #[test]
+    fn nothing_to_push_is_no_invocations() {
+        assert!(push_batches(None, &[]).is_empty());
     }
 
     #[test]
