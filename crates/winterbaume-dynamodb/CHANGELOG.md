@@ -7,9 +7,9 @@
 - `UpdateExpression` attribute updates were silently discarded instead of being applied, causing items to appear unchanged after a successful `UpdateItem` call (#20).
 - Corrected pre-update state handling in condition and update expression evaluation: expressions now consistently observe the item's state before the update is applied, resolving several edge-case failures that followed the original fix for issue #19 (#22).
 
-### Tests
+### Documentation
 
-- Added a fakecloud comparison column to the integration test suite to make parity gaps against AWS DynamoDB visible at a glance (#17).
+- Added a FakeCloud comparison column to the README API coverage table (#17).
 
 ## v0.2.0 - 2026-05-14
 
