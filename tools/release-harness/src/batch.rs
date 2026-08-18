@@ -9,6 +9,14 @@
 //! recorded in each tarball's `.cargo_vcs_info.json` consistent with the final
 //! commit and with the per-crate tags that get created afterwards.
 //!
+//! Not every caller owns every step. `Stages` selects which of version /
+//! commit / tag / push this run drives: `batch` owns all of them, while the
+//! plan-driven `publish` owns none — the release PR carries the bump and the
+//! commit, and the `tag` subcommand tags the merge commit afterwards. A step
+//! this run does not own turns its skip into a refusal: a manifest behind the
+//! target means the PR has not landed, and a dirty tree means uncommitted work
+//! is about to be published.
+//!
 //! The chunk loop is fully resumable: every step is gated on a state probe
 //! (manifest versions, HEAD subject/body, crates.io publish status, local +
 //! remote git refs), so a re-run after a crash, 429 cliff, or Ctrl+C picks up
@@ -41,6 +49,25 @@ pub enum Error {
         stderr: String,
     },
     #[error(
+        "{} crate(s) are not at version {version} in this tree: {}. \
+         The release PR has not landed here — run `release-harness version-bump --execute`, \
+         merge the release PR into main, then re-run publish ( or pass --all-in-one to bump \
+         in place, the pre-PR flow ).",
+        .crates.len(),
+        .crates.join(", "),
+    )]
+    ManifestsBehindTarget {
+        crates: Vec<String>,
+        version: String,
+    },
+    #[error(
+        "the working tree is dirty, but this run does not own the release commit. \
+         Commit, stash, or discard the changes first — in the PR-based flow the version \
+         bump reaches main through the release PR, and publish only publishes what is \
+         already committed."
+    )]
+    DirtyTree,
+    #[error(
         "ambiguous resume state for chunk {chunk:?}: HEAD subject = {head_subject:?}, \
          working tree is clean, but no in-progress release commit was found. Bailing out \
          to avoid clobbering unrelated work; fix manually and re-run."
@@ -55,6 +82,52 @@ pub enum Error {
     Io(#[from] std::io::Error),
     #[error(transparent)]
     Utf8(#[from] std::string::FromUtf8Error),
+}
+
+/// Which steps around the publish this run owns.
+///
+/// The workspace releases through a pull request now: `plan` → `changelog` +
+/// `version-bump` → release PR → merge → `publish` → `tag`. By the time
+/// `publish` runs, the bump is already committed on `main` and the tags belong
+/// on the merge commit *after* crates.io has accepted the crates, so the
+/// version / commit / tag / push steps are not the publisher's to run. `batch`
+/// — the first-launch and targeted-retry bypass — still owns all of them.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Stages {
+    /// Run `cargo release version` / `replace` / `hook` for crates whose
+    /// manifests are behind the target version. When off, a manifest behind
+    /// the target is a hard error: it means the release PR has not landed.
+    pub version: bool,
+    /// Create the consolidated release commit (`cargo release commit` plus our
+    /// amend). When off, a dirty tree is a hard error.
+    pub commit: bool,
+    /// Create the per-crate `<crate>-v<version>` tags at HEAD.
+    pub tag: bool,
+    /// Push the current branch and any new tags to `origin`.
+    pub push: bool,
+}
+
+impl Stages {
+    /// The all-in-one flow: bump, commit, publish, tag, push. Used by `batch`.
+    pub fn all() -> Self {
+        Self {
+            version: true,
+            commit: true,
+            tag: true,
+            push: true,
+        }
+    }
+
+    /// Publish only. The PR-based flow lands the bump on `main` beforehand and
+    /// tags separately afterwards via the `tag` subcommand.
+    pub fn publish_only() -> Self {
+        Self {
+            version: false,
+            commit: false,
+            tag: false,
+            push: false,
+        }
+    }
 }
 
 /// Parameters to a single chunked release run.
@@ -78,6 +151,8 @@ pub struct BatchOptions<'a> {
     pub sign: bool,
     pub no_confirm: bool,
     pub skip_version_check: bool,
+    /// Which steps around the publish this run owns.
+    pub stages: Stages,
 }
 
 pub fn run_chunked(opts: BatchOptions<'_>) -> Result<RunOutcome, Error> {
@@ -138,7 +213,13 @@ pub fn run_chunked(opts: BatchOptions<'_>) -> Result<RunOutcome, Error> {
         );
 
         if !opts.execute {
-            print_dry_run(version_or_level, chunk, opts.sign, opts.no_confirm);
+            print_dry_run(
+                version_or_level,
+                chunk,
+                opts.sign,
+                opts.no_confirm,
+                opts.stages,
+            );
             continue;
         }
 
@@ -179,6 +260,16 @@ fn run_chunk(
         crates_needing_version_step(version_or_level, &manifest_versions, chunk, |c, v| {
             already_on_crates_io(c, v)
         });
+    if !needs_version.is_empty() && !opts.stages.version {
+        // Not ours to fix: in the PR-based flow the bump is committed on main
+        // before publish runs, so a laggard manifest means we are publishing
+        // the wrong tree. Bailing out here is much cheaper than discovering it
+        // from a crates.io version nobody planned.
+        return Err(Error::ManifestsBehindTarget {
+            crates: needs_version,
+            version: version_or_level.to_string(),
+        });
+    }
     if !needs_version.is_empty() {
         if needs_version.len() < chunk.len() {
             eprintln!(
@@ -216,30 +307,49 @@ fn run_chunk(
     let target_versions = &manifest_versions;
 
     // 4-5. Commit + amend, guided by what HEAD currently looks like.
-    let head_state = classify_head(root, chunk, target_versions)?;
-    match head_state {
-        HeadState::AmendedForThisChunk => {
-            eprintln!("HEAD already amended for this chunk — skipping commit + amend");
+    if !opts.stages.commit {
+        // Nothing of ours to commit: the release PR carried the bump. A dirty
+        // tree here would either be published as-is by `cargo publish
+        // --allow-dirty` semantics or abort mid-chunk, so refuse up front.
+        if git_status_dirty(root)? {
+            return Err(Error::DirtyTree);
         }
-        HeadState::CargoReleasePlaceholder => {
-            eprintln!("HEAD is a cargo-release placeholder commit — running amend only");
-            let msg = build_commit_message(chunk, target_versions);
-            amend_commit(root, &msg, opts.sign)?;
-        }
-        HeadState::Unrelated { subject } => {
-            if git_status_dirty(root)? {
-                let (status, _) =
-                    run_release_step(cargo, root, &["commit"], chunk, opts.sign, opts.no_confirm)?;
-                if !status.success() {
-                    return Ok(Some(status));
-                }
+        eprintln!(
+            "commit: skipped — publishing the tree as committed at {}",
+            rev_parse(root, "HEAD")?
+        );
+    }
+    if opts.stages.commit {
+        match classify_head(root, chunk, target_versions)? {
+            HeadState::AmendedForThisChunk => {
+                eprintln!("HEAD already amended for this chunk — skipping commit + amend");
+            }
+            HeadState::CargoReleasePlaceholder => {
+                eprintln!("HEAD is a cargo-release placeholder commit — running amend only");
                 let msg = build_commit_message(chunk, target_versions);
                 amend_commit(root, &msg, opts.sign)?;
-            } else {
-                return Err(Error::AmbiguousResume {
-                    chunk: chunk.to_vec(),
-                    head_subject: subject,
-                });
+            }
+            HeadState::Unrelated { subject } => {
+                if git_status_dirty(root)? {
+                    let (status, _) = run_release_step(
+                        cargo,
+                        root,
+                        &["commit"],
+                        chunk,
+                        opts.sign,
+                        opts.no_confirm,
+                    )?;
+                    if !status.success() {
+                        return Ok(Some(status));
+                    }
+                    let msg = build_commit_message(chunk, target_versions);
+                    amend_commit(root, &msg, opts.sign)?;
+                } else {
+                    return Err(Error::AmbiguousResume {
+                        chunk: chunk.to_vec(),
+                        head_subject: subject,
+                    });
+                }
             }
         }
     }
@@ -366,26 +476,34 @@ fn run_chunk(
 
     // 7. Tag — one annotated (and signed when requested) tag per crate, at the
     //    amended HEAD. Direct `git tag` so we can create only the missing ones.
-    let local_tags = local_tags(root)?;
-    let mut tagged_now = 0;
-    for c in chunk {
-        let v = target_versions.get(c).cloned().unwrap_or_default();
-        if v.is_empty() {
-            continue;
+    if opts.stages.tag {
+        let local_tags = local_tags(root)?;
+        let mut tagged_now = 0;
+        for c in chunk {
+            let v = target_versions.get(c).cloned().unwrap_or_default();
+            if v.is_empty() {
+                continue;
+            }
+            let tag = format!("{c}-v{v}");
+            if local_tags.contains(&tag) {
+                continue;
+            }
+            create_tag(root, &tag, &tag_message(c, &v), opts.sign)?;
+            eprintln!("created tag {tag}");
+            tagged_now += 1;
         }
-        let tag = format!("{c}-v{v}");
-        if local_tags.contains(&tag) {
-            continue;
+        if tagged_now == 0 {
+            eprintln!("tag: all chunk tags already exist locally — skipping tag step");
         }
-        create_tag(root, &tag, &tag_message(c, &v), opts.sign)?;
-        eprintln!("created tag {tag}");
-        tagged_now += 1;
-    }
-    if tagged_now == 0 {
-        eprintln!("tag: all chunk tags already exist locally — skipping tag step");
+    } else {
+        eprintln!("tag: skipped — run `release-harness tag` once every chunk has published");
     }
 
     // 8. Push — HEAD and any chunk tags missing on origin, in one push.
+    if !opts.stages.push {
+        eprintln!("push: skipped — this run owns neither the release commit nor the tags");
+        return Ok(None);
+    }
     let remote = remote_refs(root)?;
     let branch = current_branch(root)?;
     let head_sha = rev_parse(root, "HEAD")?;
@@ -542,26 +660,48 @@ fn crates_needing_version_step(
         .collect()
 }
 
-fn print_dry_run(version_or_level: &str, chunk: &[String], sign: bool, no_confirm: bool) {
+fn print_dry_run(
+    version_or_level: &str,
+    chunk: &[String],
+    sign: bool,
+    no_confirm: bool,
+    stages: Stages,
+) {
     let p_args: String = chunk.iter().map(|c| format!(" -p {c}")).collect();
     let commit_sign_flag = if sign { " --sign-commit" } else { "" };
     let nc = if no_confirm { " --no-confirm" } else { "" };
     eprintln!("(steps below are gated on resume probes; some may be skipped at runtime)");
-    eprintln!("$ cargo release version {version_or_level}{p_args}{nc} --execute");
-    eprintln!("$ cargo release replace{p_args}{nc} --execute");
-    eprintln!("$ cargo release hook{p_args}{nc} --execute");
-    // `cargo release commit` rejects -p; it commits the whole working tree.
-    eprintln!("$ cargo release commit{commit_sign_flag}{nc} --execute");
-    eprintln!(
-        "$ git commit --amend{} -m \"chore: release ... per-crate body\"",
-        if sign { " -S" } else { "" }
-    );
+    if stages.version {
+        eprintln!("$ cargo release version {version_or_level}{p_args}{nc} --execute");
+        eprintln!("$ cargo release replace{p_args}{nc} --execute");
+        eprintln!("$ cargo release hook{p_args}{nc} --execute");
+    } else {
+        eprintln!(
+            "(version/replace/hook: not this run's step — the manifests must already be at {version_or_level})"
+        );
+    }
+    if stages.commit {
+        // `cargo release commit` rejects -p; it commits the whole working tree.
+        eprintln!("$ cargo release commit{commit_sign_flag}{nc} --execute");
+        eprintln!(
+            "$ git commit --amend{} -m \"chore: release ... per-crate body\"",
+            if sign { " -S" } else { "" }
+        );
+    } else {
+        eprintln!("(commit: not this run's step — the release PR carries it)");
+    }
     eprintln!("$ cargo release publish{p_args}{nc} --execute");
-    eprintln!(
-        "$ git tag {}-m \"chore: release <crate> v<ver>\" <crate>-v<ver>   (per missing tag)",
-        if sign { "-s " } else { "-a " }
-    );
-    eprintln!("$ git push origin <branch> <missing-tags>");
+    if stages.tag {
+        eprintln!(
+            "$ git tag {}-m \"chore: release <crate> v<ver>\" <crate>-v<ver>   (per missing tag)",
+            if sign { "-s " } else { "-a " }
+        );
+    } else {
+        eprintln!("(tag: not this run's step — `release-harness tag` runs after the publish)");
+    }
+    if stages.push {
+        eprintln!("$ git push origin <branch> <missing-tags>");
+    }
 }
 
 /// Also used by the `version-bump` subcommand, which drives the `version`
@@ -654,7 +794,7 @@ fn build_commit_message(crates: &[String], versions: &BTreeMap<String, String>) 
     s
 }
 
-fn tag_message(crate_name: &str, version: &str) -> String {
+pub(crate) fn tag_message(crate_name: &str, version: &str) -> String {
     format!("chore: release {crate_name} v{version}")
 }
 
@@ -677,10 +817,23 @@ fn amend_commit(root: &Path, message: &str, sign: bool) -> Result<(), Error> {
     Ok(())
 }
 
-fn create_tag(root: &Path, tag: &str, message: &str, sign: bool) -> Result<(), Error> {
+pub(crate) fn create_tag(root: &Path, tag: &str, message: &str, sign: bool) -> Result<(), Error> {
+    create_tag_at(root, tag, message, sign, "HEAD")
+}
+
+/// `create_tag`, but pointing at an explicit commit. The `tag` subcommand tags
+/// the merge commit the release PR landed as, which is not necessarily HEAD by
+/// the time someone gets round to running it.
+pub(crate) fn create_tag_at(
+    root: &Path,
+    tag: &str,
+    message: &str,
+    sign: bool,
+    commit: &str,
+) -> Result<(), Error> {
     let mut cmd = Command::new("git");
     cmd.arg("tag").arg(if sign { "-s" } else { "-a" });
-    cmd.args(["-m", message]).arg(tag);
+    cmd.args(["-m", message]).arg(tag).arg(commit);
     cmd.current_dir(root);
     let out = cmd.output()?;
     if !out.status.success() {
@@ -693,7 +846,7 @@ fn create_tag(root: &Path, tag: &str, message: &str, sign: bool) -> Result<(), E
     Ok(())
 }
 
-fn git_push(root: &Path, refs: &[String]) -> Result<(), Error> {
+pub(crate) fn git_push(root: &Path, refs: &[String]) -> Result<(), Error> {
     let mut cmd = Command::new("git");
     cmd.arg("push").arg("origin");
     for r in refs {
@@ -745,7 +898,7 @@ fn git_status_dirty(root: &Path) -> Result<bool, Error> {
     Ok(!out.stdout.iter().all(u8::is_ascii_whitespace))
 }
 
-fn local_tags(root: &Path) -> Result<BTreeSet<String>, Error> {
+pub(crate) fn local_tags(root: &Path) -> Result<BTreeSet<String>, Error> {
     let out = Command::new("git")
         .args(["tag", "-l"])
         .current_dir(root)
@@ -763,7 +916,7 @@ fn local_tags(root: &Path) -> Result<BTreeSet<String>, Error> {
         .collect())
 }
 
-fn remote_refs(root: &Path) -> Result<BTreeMap<String, String>, Error> {
+pub(crate) fn remote_refs(root: &Path) -> Result<BTreeMap<String, String>, Error> {
     let out = Command::new("git")
         .args(["ls-remote", "origin"])
         .current_dir(root)
@@ -800,7 +953,7 @@ fn current_branch(root: &Path) -> Result<String, Error> {
     Ok(String::from_utf8(out.stdout)?.trim().to_string())
 }
 
-fn rev_parse(root: &Path, refname: &str) -> Result<String, Error> {
+pub(crate) fn rev_parse(root: &Path, refname: &str) -> Result<String, Error> {
     let out = Command::new("git")
         .args(["rev-parse", refname])
         .current_dir(root)
@@ -827,7 +980,7 @@ pub(crate) fn looks_like_semver(s: &str) -> bool {
     matches!((major, minor, patch), (Some(_), Some(_), Some(_)))
 }
 
-fn already_on_crates_io(name: &str, version: &str) -> bool {
+pub(crate) fn already_on_crates_io(name: &str, version: &str) -> bool {
     let url = format!("https://crates.io/api/v1/crates/{name}/{version}");
     match ureq::get(&url)
         .set("User-Agent", "winterbaume-release-harness/0.1")

@@ -1,8 +1,14 @@
-//! Stage 3 — group plan entries by target version and run a chunked publish
+//! Stage 4 — group plan entries by target version and run a chunked publish
 //! per group, in-process via the `batch` module.
 //!
 //! Grouping is by the concrete `next` version, never by bump level: see
 //! `key_for` for why a level keyword is the wrong dispatch currency.
+//!
+//! By default this stage publishes and nothing else. The version bump reaches
+//! `main` through the release PR ( `version-bump` → PR → merge ) and the tags
+//! are created afterwards by the `tag` subcommand, at the merge commit, once
+//! crates.io has accepted every crate. `--all-in-one` restores the pre-PR
+//! behaviour where this command also bumps, commits, tags, and pushes.
 
 use std::collections::BTreeMap;
 use std::fs;
@@ -10,12 +16,12 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 use std::time::Duration;
 
-use crate::PublishArgs;
-use crate::batch::{self, BatchOptions, RunOutcome};
+use crate::batch::{self, BatchOptions, RunOutcome, Stages};
 use crate::metadata::{
     CargoExe, Package, cargo_metadata, publishable_members, topo_sort, workspace_root,
 };
 use crate::plan::{BumpDecision, CrateEntry, Plan};
+use crate::{PublishArgs, TagArgs};
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -23,6 +29,10 @@ pub enum Error {
     Metadata(#[from] crate::metadata::Error),
     #[error(transparent)]
     Batch(#[from] batch::Error),
+    #[error(transparent)]
+    Git(#[from] crate::git::Error),
+    #[error(transparent)]
+    Tag(#[from] Box<crate::tag::Error>),
     #[error(transparent)]
     Io(#[from] std::io::Error),
     #[error("cannot read plan {path}: {source}")]
@@ -33,6 +43,17 @@ pub enum Error {
     },
     #[error("crate {name} is {bump} but next version missing from plan entry")]
     MissingNextVersion { name: String, bump: &'static str },
+    #[error(
+        "{} crate(s) are not at their planned version in this tree: {}. \
+         The release PR has not landed here — run `release-harness version-bump --execute`, \
+         merge the release PR into main, then re-run publish ( or pass --all-in-one to bump \
+         in place, the pre-PR flow ).",
+        .crates.len(),
+        .crates.join(", "),
+    )]
+    ManifestsBehindPlan { crates: Vec<String> },
+    #[error("plan lists {name}, which is not a publishable workspace member")]
+    UnknownCrate { name: String },
 }
 
 /// The version every dispatch is keyed on — always a concrete semver, never a
@@ -45,7 +66,10 @@ pub enum Error {
 /// pre-flight "already on crates.io" prune when it knows the concrete target,
 /// so a level silently disables the resumability check for the whole group.
 /// The plan already computes `next` for every bumping crate, so use it.
-fn key_for(entry: &CrateEntry) -> Option<String> {
+///
+/// Shared with the `tag` subcommand: the tag set and the publish set are the
+/// same set by construction, so they must be derived the same way.
+pub(crate) fn key_for(entry: &CrateEntry) -> Option<String> {
     match entry.bump {
         BumpDecision::Patch | BumpDecision::Minor | BumpDecision::Major | BumpDecision::Pinned => {
             entry.next.clone()
@@ -110,20 +134,49 @@ pub fn run(cargo: &CargoExe, args: &PublishArgs) -> Result<ExitCode, Error> {
         .map(|(i, n)| (n.as_str(), i))
         .collect();
 
+    let stages = if args.all_in_one {
+        Stages::all()
+    } else {
+        Stages::publish_only()
+    };
+
     println!("workspace root:  {}", root.display());
     println!("groups to drive: {}", groups.len());
+    println!(
+        "mode:            {}",
+        if args.all_in_one {
+            "all-in-one (bump + commit + publish + tag + push)"
+        } else {
+            "publish only (the release PR carries the bump; `tag` follows)"
+        }
+    );
+    if !args.all_in_one {
+        // Group-by-group, `batch` refuses to publish a crate whose manifest is
+        // behind the plan — but only once that group's turn comes round, by
+        // which time the earlier groups are on crates.io for good. One sweep
+        // up front turns a half-published release into a clean refusal.
+        assert_manifests_match_plan(&groups, &all_publishable)?;
+        warn_if_not_on_release_branch(&root, args)?;
+    }
     println!();
 
     for (version, entries) in &groups {
         let mut names: Vec<String> = entries.iter().map(|e| e.name.clone()).collect();
         names.sort_by_key(|n| order_index.get(n.as_str()).copied().unwrap_or(usize::MAX));
         println!("--- group `{version}` ({} crate(s)) ---", names.len());
-        println!(
-            "$ release-harness batch --version {version} --crates {}{}{}",
-            names.join(" "),
-            if args.sign { " --sign" } else { "" },
-            if args.no_confirm { " --no-confirm" } else { "" },
-        );
+        if args.all_in_one {
+            println!(
+                "$ release-harness batch --version {version} --crates {}{}{}",
+                names.join(" "),
+                if args.sign { " --sign" } else { "" },
+                if args.no_confirm { " --no-confirm" } else { "" },
+            );
+        } else {
+            // Not `batch`-equivalent: batch owns the bump, commit, tag and push
+            // too, which is precisely what this mode leaves to the PR and to
+            // `tag`.
+            println!("publish: {}", names.join(" "));
+        }
         if !args.execute {
             continue;
         }
@@ -140,6 +193,7 @@ pub fn run(cargo: &CargoExe, args: &PublishArgs) -> Result<ExitCode, Error> {
             sign: args.sign,
             no_confirm: args.no_confirm,
             skip_version_check: args.skip_version_check,
+            stages,
         })?;
         if let RunOutcome::ChunkFailed(status) = outcome {
             eprintln!("chunked publish failed for group `{version}` (status {status}); aborting");
@@ -147,14 +201,112 @@ pub fn run(cargo: &CargoExe, args: &PublishArgs) -> Result<ExitCode, Error> {
         }
     }
 
+    println!();
     if !args.execute {
-        println!();
         println!("(dry run — re-run with --execute to actually publish)");
-    } else {
-        println!();
-        println!("all groups complete.");
+        if !args.all_in_one && !args.tag {
+            println!("next after a real publish: release-harness tag --execute");
+        }
+        return Ok(ExitCode::SUCCESS);
     }
+
+    println!("all groups complete.");
+    if args.all_in_one {
+        return Ok(ExitCode::SUCCESS);
+    }
+    if args.tag {
+        println!();
+        return tag_after_publish(cargo, args)
+            .map_err(Box::new)
+            .map_err(Into::into);
+    }
+    println!();
+    println!("nothing is tagged yet. Tag the merge commit and push the tags with:");
+    println!(
+        "  release-harness tag --execute{}",
+        if args.plan.as_os_str() == "release-plan.toml" {
+            String::new()
+        } else {
+            format!(" --plan {}", args.plan.display())
+        }
+    );
     Ok(ExitCode::SUCCESS)
+}
+
+/// `publish --tag`: run the `tag` stage at HEAD straight after the publish, for
+/// operators who want the two halves in one command. The checks are the tag
+/// subcommand's own — nothing is loosened by coming through this door.
+fn tag_after_publish(cargo: &CargoExe, args: &PublishArgs) -> Result<ExitCode, crate::tag::Error> {
+    crate::tag::run(
+        cargo,
+        &TagArgs {
+            plan: args.plan.clone(),
+            at: "HEAD".to_string(),
+            execute: true,
+            // Always signed, regardless of publish's `--sign` ( which governs
+            // the release commit this mode does not create ). Unsigned tags
+            // are available through the standalone `tag --no-sign`.
+            no_sign: false,
+            no_push: false,
+            allow_unpublished: false,
+            allow_unmerged: false,
+            remote: "origin".to_string(),
+            branch: "main".to_string(),
+        },
+    )
+}
+
+/// Every crate the plan dispatches must already sit at its target version in
+/// the working tree. Checked across all groups before the first publish, since
+/// a crates.io release cannot be taken back.
+fn assert_manifests_match_plan(
+    groups: &BTreeMap<String, Vec<&CrateEntry>>,
+    publishable: &[&Package],
+) -> Result<(), Error> {
+    let by_name: BTreeMap<&str, &Package> =
+        publishable.iter().map(|p| (p.name.as_str(), *p)).collect();
+    let mut behind: Vec<String> = Vec::new();
+    for (version, entries) in groups {
+        for entry in entries {
+            let pkg = by_name
+                .get(entry.name.as_str())
+                .ok_or_else(|| Error::UnknownCrate {
+                    name: entry.name.clone(),
+                })?;
+            if &pkg.version != version {
+                behind.push(format!(
+                    "{} (manifest {}, planned {version})",
+                    entry.name, pkg.version
+                ));
+            }
+        }
+    }
+    if !behind.is_empty() {
+        return Err(Error::ManifestsBehindPlan { crates: behind });
+    }
+    Ok(())
+}
+
+/// In the PR-based flow the publish runs from the merge commit on `main`. A
+/// commit that `origin` has never seen is not fatal — the remote-tracking ref
+/// can simply be stale — but it is worth saying out loud before 241 crates go
+/// to crates.io from the wrong tree.
+fn warn_if_not_on_release_branch(root: &std::path::Path, args: &PublishArgs) -> Result<(), Error> {
+    let base = "origin/main";
+    if !crate::git::rev_exists(root, base)? {
+        return Ok(());
+    }
+    let head = batch::rev_parse(root, "HEAD")?;
+    if crate::git::is_ancestor(root, &head, base)? {
+        return Ok(());
+    }
+    let hint = if args.execute { "" } else { " (dry run)" };
+    println!(
+        "warning:         HEAD ({head}) is not contained in {base}{hint} — in the PR-based \
+         flow you publish from the merged release commit. Run `git fetch origin` if the \
+         remote-tracking ref is just stale."
+    );
+    Ok(())
 }
 
 /// Direct `batch` subcommand entry point. Used by callers who want the
@@ -232,6 +384,10 @@ pub fn run_batch(cargo: &CargoExe, args: &crate::BatchArgs) -> Result<ExitCode, 
         sign: args.sign,
         no_confirm: args.no_confirm,
         skip_version_check: args.skip_version_check,
+        // The bypass mode owns the whole lifecycle: it exists for the first
+        // launch and for targeted retries, neither of which goes through a
+        // release PR.
+        stages: Stages::all(),
     })?;
     match outcome {
         RunOutcome::Success => Ok(ExitCode::SUCCESS),
@@ -301,6 +457,56 @@ mod tests {
         assert_eq!(groups.len(), 2);
         assert_eq!(groups["0.2.1"], vec!["a", "c"]);
         assert_eq!(groups["0.3.1"], vec!["b"]);
+    }
+
+    fn package(name: &str, version: &str) -> Package {
+        Package {
+            id: name.to_string(),
+            name: name.to_string(),
+            version: version.to_string(),
+            manifest_path: format!("crates/{name}/Cargo.toml").into(),
+            publish: None,
+            dependencies: Vec::new(),
+        }
+    }
+
+    fn one_group<'a>(
+        version: &str,
+        entries: &'a [CrateEntry],
+    ) -> BTreeMap<String, Vec<&'a CrateEntry>> {
+        let mut groups = BTreeMap::new();
+        groups.insert(version.to_string(), entries.iter().collect());
+        groups
+    }
+
+    #[test]
+    fn a_tree_already_at_the_planned_versions_passes_the_pre_flight() {
+        let entries = [entry("a", "0.2.0", Some("0.2.1"), BumpDecision::Patch)];
+        let pkgs = [package("a", "0.2.1")];
+        let refs: Vec<&Package> = pkgs.iter().collect();
+        assert!(assert_manifests_match_plan(&one_group("0.2.1", &entries), &refs).is_ok());
+    }
+
+    #[test]
+    fn an_unbumped_manifest_fails_the_pre_flight_before_anything_publishes() {
+        // The release PR has not landed: the plan wants 0.2.1, the tree still
+        // says 0.2.0. Catching it here is the difference between refusing and
+        // publishing the groups that happen to sort first.
+        let entries = [entry("a", "0.2.0", Some("0.2.1"), BumpDecision::Patch)];
+        let pkgs = [package("a", "0.2.0")];
+        let refs: Vec<&Package> = pkgs.iter().collect();
+        let err = assert_manifests_match_plan(&one_group("0.2.1", &entries), &refs).unwrap_err();
+        assert!(matches!(err, Error::ManifestsBehindPlan { ref crates } if crates.len() == 1));
+    }
+
+    #[test]
+    fn a_plan_naming_an_unknown_crate_fails_the_pre_flight() {
+        let entries = [entry("ghost", "0.2.0", Some("0.2.1"), BumpDecision::Patch)];
+        let refs: Vec<&Package> = Vec::new();
+        assert!(matches!(
+            assert_manifests_match_plan(&one_group("0.2.1", &entries), &refs),
+            Err(Error::UnknownCrate { .. })
+        ));
     }
 
     #[test]

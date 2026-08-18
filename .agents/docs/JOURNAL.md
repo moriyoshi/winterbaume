@@ -2467,3 +2467,49 @@ One fail-direction worth recording rather than "fixing": `already_on_crates_io` 
 Unplanned dividend: `version-bump` followed by `publish` now composes, because both dispatch the same literal. `publish` finds the manifests at target, skips version/replace/hook, and goes straight to commit/publish/tag. The earlier draft of RELEASE.md warned operators not to run both; that warning described a bug, not a design.
 
 Verified by 8 unit tests ( disposition table, version grouping ) plus an end-to-end run against a throwaway three-crate workspace: grouping collapsed two crates sharing a target into one invocation, `--execute` produced one-line diffs with comments intact, the re-run was a no-op, a hand-drifted plan aborted before invoking anything, and a deliberately downgrading pin aborted the run with cargo-release's status and left the later group un-invoked. Net effect on the tree: 527 lines and a `toml_edit` dependency deleted, `Cargo.lock` unchanged from main.
+
+## 2026-08-18 — release-harness follows the release through a PR
+
+The release flow changed shape: the version bump no longer lands as a local commit that `publish` makes on its way to crates.io. It goes through a pull request.
+
+```
+plan → changelog + version-bump → release PR → merge into main → publish → tag ( signed, at the merge commit ) → push the tag
+```
+
+The harness did not know this, and the mismatch was not cosmetic — it was a hard failure. Run against a merged release, `publish` would find the manifests already at target ( fine, that path existed for the optional `version-bump` composition ), then classify HEAD. HEAD is now the PR's merge commit, subject `Merge pull request #25 from …`, so `classify_head` returned `Unrelated`; the working tree was clean, so the `Unrelated` arm fell through to `Error::AmbiguousResume` and aborted. The very first steady-state release under the new flow would have stopped there.
+
+### Stages, not a mode flag
+
+`batch::run_chunk` drives seven steps in sequence: version, replace, hook, commit + amend, publish, tag, push. Under the PR flow the publisher owns exactly one of them. Rather than branch on "am I in PR mode" at each site, `BatchOptions` gained a `Stages { version, commit, tag, push }` record with two constructors — `Stages::all()` for `batch` ( first launch and targeted retries, where there is no PR ) and `Stages::publish_only()` for the plan-driven `publish`. Each step site asks the record, and the two disabled steps turn their old silent-skip into a hard error:
+
+- **A manifest behind the target** used to mean "run the version step". With `stages.version` off it means the release PR has not landed in this tree, so the run refuses rather than bumping a tree nobody reviewed.
+- **A dirty tree** used to mean "run `cargo release commit`". With `stages.commit` off it means uncommitted work is about to be published, so the run refuses rather than shipping it.
+
+Turning skips into refusals is the whole point. The failure mode being designed against is not a crash, it is a release that half-succeeds and cannot be taken back.
+
+### The check that has to happen before the first publish, not per group
+
+`publish` groups by concrete target version, and this workspace's twelve bumping crates span five groups. The per-chunk manifest check inside `run_chunk` fires only when that group's turn comes round — so a tree where group 1 is bumped and group 4 is not would publish 1, 2 and 3 to crates.io and *then* refuse. crates.io has no undo. `publish` now sweeps every group's crates against the plan before the first invocation and fails as a unit.
+
+Same reasoning one level up: HEAD not being contained in `origin/main` is a warning rather than an error, because a re-run after a partial publish is a legitimate reason to be somewhere else, and a stale remote-tracking ref is a legitimate reason for the check to be wrong.
+
+### `tag` is a subcommand because the tag is a claim about two things
+
+Tagging moved out of `publish` into its own `tag` subcommand — not merely because the flow lists it as a separate step, but because a `<crate>-v<version>` tag asserts two facts the publisher cannot both see: *this commit is what shipped* ( known only after the merge ) and *this version is on crates.io* ( known only after the publish ). Four checks run before anything is created:
+
+| Check | What it catches |
+|-------|-----------------|
+| `[package] version` in each crate's manifest **as of the tagged commit** ( `git show <rev>:<path>` ) | tagging `main` from before the merge; the PR never merged |
+| containment in `origin/main` | pushing a tag that drags along commits that never went through the PR |
+| every planned version present on crates.io | tags running ahead of the publish |
+| existing tags peeled to their commit, local *and* remote | silently moving a published tag |
+
+The crates.io check is the one worth arguing about, since it is the slowest and the most obviously skippable. It stays on by default because of what the *next* release does: `plan` diffs each crate against its latest `<crate>-v<ver>` tag. A tag for a version that was never published makes the following `plan` report the crate as `unchanged` and quietly drop real work from the release. A tag is not just a label here; it is the baseline the next classification is computed from. `--allow-unpublished` exists for the operator who knows better.
+
+Re-runnability came out of the state-probe shape rather than being designed in separately: tags already at the requested commit are skipped, tags already on the remote are not re-pushed, and anything pointing elsewhere aborts. Tags are signed by default ( `--no-sign` opts out ), which inverts the harness's usual `--sign` opt-in — the flow specifies a signed tag, so the safe direction is the default.
+
+One inversion worth flagging: `publish --tag` signs unconditionally rather than mapping publish's `--sign`. `--sign` there governs the release commit that mode does not create, so threading it into the tag would have produced unsigned tags for anyone who left it off — a footgun aimed exactly at the convenience path.
+
+### Verified
+
+77 unit tests pass ( 3 new in `publish`, 10 in the new `tag` module ), per-crate clippy and rustfmt gate clean. Dry runs against the real merged release ( `bf5ae40`, PR #25, twelve crates, nothing published yet ) exercised the intended sequencing end to end: `tag` verified all twelve manifests at the merge commit, confirmed containment in `origin/main`, and then refused with all twelve crates listed as unpublished — the correct answer, and the one the old `publish` path would have got wrong in the other direction.

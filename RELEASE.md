@@ -15,6 +15,8 @@ This file is the canonical release runbook. The `verify-publish-ready` skill emb
 
 The workspace uses [cargo-release](https://github.com/crate-ci/cargo-release) to handle the full release lifecycle: version bump, crates.io publish, git tag, and push. Each crate is versioned independently.
 
+A real release does not drive cargo-release directly, though: the version bump goes through a **release PR**, and the release harness drives cargo-release one step at a time either side of it — see [Release Harness](#release-harness-toolsrelease-harness) below. The invocations here are the single-crate escape hatch and the mental model for what the harness is orchestrating.
+
 ```sh
 # Release a single crate (dry run)
 cargo release patch -p winterbaume-s3
@@ -66,16 +68,36 @@ Configured in `[workspace.metadata.release]` in the root `Cargo.toml`:
 
 A single Rust binary owns the release lifecycle: it both classifies per-crate semver bumps from `git diff` since each crate's last `<crate>-v<ver>` tag and drives the chunked `cargo release` invocations that respect the crates.io `publish_new` rate limit (default: 5 new crates per 10 minutes, which would otherwise reject a workspace-wide release upfront).
 
-Five subcommands. The first four are the steady-state per-crate flow ( `version-bump` is optional — see below ); `batch` is the bypass mode for first-launch or targeted retries.
+Six subcommands. The version bump reaches `main` through a **release PR**, so the steady-state flow interleaves harness steps with review:
+
+| # | Step | Command |
+|---|------|---------|
+| 1 | Classify the bumps | `plan` |
+| 2 | Draft the changelogs and apply the versions | `changelog`, `version-bump --execute` |
+| 3 | Open the release PR | ( git / `gh`; not the harness ) |
+| 4 | Review and merge into `main` | ( GitHub ) |
+| 5 | Publish the crates | `publish --execute` |
+| 6 | Tag the merge commit, signed | `tag --execute` |
+| 7 | Push the tags | ( same `tag --execute` run, unless `--no-push` ) |
+
+`batch` is the bypass mode for first launch or targeted retries, where there is no release PR to go through.
 
 ```sh
-# Steady-state: per-crate semver bumps + selective publish
+# Steps 1-2: classify, draft the changelogs, apply the versions to the manifests
 ./.agents/bin/cargo.sh run -p release-harness -- plan
 ./.agents/bin/cargo.sh run -p release-harness -- changelog
-./.agents/bin/cargo.sh run -p release-harness -- version-bump                         # dry-run, optional
+./.agents/bin/cargo.sh run -p release-harness -- version-bump                         # dry-run
 ./.agents/bin/cargo.sh run -p release-harness -- version-bump --execute
+
+# Steps 3-4: commit the bump + changelogs on a branch, open the PR, merge it.
+
+# Step 5, from the merge commit on main: publish only — no bump, no commit, no tag
 ./.agents/bin/cargo.sh run -p release-harness -- publish                              # dry-run
-./.agents/bin/cargo.sh run -p release-harness -- publish --execute --sign --no-confirm
+./.agents/bin/cargo.sh run -p release-harness -- publish --execute --no-confirm
+
+# Steps 6-7: signed tags on the merge commit, pushed
+./.agents/bin/cargo.sh run -p release-harness -- tag                                  # dry-run
+./.agents/bin/cargo.sh run -p release-harness -- tag --execute
 
 # Bypass mode: chunked publish at one version across every (or a listed) crate
 ./.agents/bin/cargo.sh run -p release-harness -- batch --version 0.1.0                # dry-run
@@ -144,13 +166,24 @@ What the plan buys over calling cargo-release by hand:
 
 `--allow-branch '*'` is passed because cargo-release otherwise refuses to run outside the configured release branch, and bumping on a topic branch for review is the whole point of this subcommand. Nothing is published here. `--no-confirm` is passed too — the table above is the preview. The harness makes no git commit; review the diff and commit it yourself.
 
-This step is **optional**. `publish` drives the same `cargo release version` step itself, so the shortest path is `plan` → `changelog` → `publish`. Run `version-bump` when the bump should land as its own reviewable commit ahead of the publish — for example when the version change goes through a PR, or when CI needs to build the bumped tree before anything reaches crates.io.
+This step is **required** in the PR-based flow: it produces the diff the release PR carries. `publish` refuses to bump manifests itself ( see below ), so a tree that has not been through `version-bump` and the PR merge cannot be published.
 
-Running `version-bump --execute` and then `publish` against the same plan is safe: both dispatch the plan's concrete `next`, so `publish` finds the manifests already at their target, reports `manifests already at target — skipping version/replace/hook`, and goes straight to committing, publishing, and tagging. ( That composition is only sound because `publish` groups by version rather than by bump level — see below. )
+Commit the result together with the `changelog` output, open the PR, and merge it into `main`. Keep `release-plan.toml` for the remaining steps — `publish` and `tag` both read it, and both would have to be re-derived by a fresh `plan` otherwise.
 
 #### `publish` — chunked publish grouped by target version
 
 Groups plan entries by their concrete `next` version and runs one chunked `cargo release` per group, in-process. Without `--execute`, prints the planned invocations and exits. With `--execute`, drives the actual publish.
+
+**It publishes and nothing else.** The bump is already committed on `main` ( that is what the release PR was for ) and the tags belong on the merge commit after crates.io has accepted every crate, so this stage owns neither the version step, nor the release commit, nor the tags, nor the push:
+
+| Guard | Behaviour |
+|-------|-----------|
+| Manifest pre-flight | Every crate the plan dispatches must already sit at its `next` version. Checked across *all* groups before the first crate is published, so a stale tree is a clean refusal rather than a half-published release. |
+| Dirty tree | Refused. There is no release commit to fold the changes into, and `cargo publish` would either reject the tree or ship uncommitted work. |
+| Branch check | HEAD not contained in `origin/main` prints a warning ( the remote-tracking ref may simply be stale — `git fetch origin` ). Not fatal: a rerun after a partial publish is a legitimate reason to be elsewhere. |
+| Tags | Not created. The run ends by printing the `tag` invocation to follow it with. |
+
+`--all-in-one` restores the pre-PR behaviour ( bump + commit + publish + tag + push in one command ) for the rare case that warrants it; `--tag` runs the `tag` stage at HEAD immediately after a successful publish, with the same checks it applies on its own.
 
 Grouping is by version, not by bump level, because a level keyword is the wrong dispatch currency in two ways:
 
@@ -160,6 +193,34 @@ Grouping is by version, not by bump level, because a level keyword is the wrong 
 The plan already computes `next` for every bumping crate, so `publish` dispatches that. On this workspace the 241 publishable members currently sit at 10 distinct versions, so a workspace-wide patch bump drives ~10 groups rather than 1 — a handful of extra partial chunks, which matters only under the first-launch `--sleep` settings.
 
 Within `batch`, the version step is additionally computed per crate rather than per chunk: only the crates not yet at their target are handed to `cargo release version`. Under a level dispatch ( reachable through `batch --version patch`, the bypass mode ) a crate whose current version is *not* on crates.io is treated as already bumped and left alone. When the crates.io lookup itself fails, that check reports "not published" and the crate is skipped — the safe direction, since a skipped bump surfaces as a failed or pruned publish, whereas a spurious bump burns a version number that cannot be unpublished.
+
+#### `tag` — sign the merge commit's per-crate tags and push them
+
+Creates one annotated `<crate>-v<version>` tag per published crate at the commit the release landed on, then pushes them. Signed by default ( `--no-sign` opts out ). Dry run by default; `--execute` writes.
+
+```
+$ release-harness tag
+workspace root: /home/moriyoshi/src/winterbaume
+plan:           /home/moriyoshi/src/winterbaume/release-plan.toml
+tagging commit: bf5ae40199d8c354818b4db55b78119d02a299d0 (HEAD)
+
+manifests at bf5ae401…: all 12 at their planned version.
+containment: bf5ae401… is contained in origin/main.
+crates.io: all 12 crate(s) published.
+winterbaume-dynamodb-v0.3.0  create
+…
+```
+
+Four checks run before anything is created, because a wrong tag is far more expensive than a refused run — the next `plan` diffs each crate against its latest tag, so a tag on the wrong commit ( or on a version nobody can download ) makes real changes disappear from the following release:
+
+| Check | Why | Override |
+|-------|-----|----------|
+| Manifest versions at the tagged commit | Catches "the release PR has not merged yet" and "you are tagging `main` from before the merge". A crate that inherits its version from the workspace is reported as unverifiable rather than failing. | `--at <rev>` to tag a different commit |
+| Containment in `origin/main` | Tagging a commit the remote has never seen would push work that never went through the PR. Skipped with a note when the remote-tracking ref is absent. | `--allow-unmerged`, `--remote`, `--branch` |
+| Published on crates.io | Tags follow the publish, never precede it. | `--allow-unpublished` |
+| Existing tags | A tag already at the requested commit is left alone ( locally ) or not re-pushed ( on `origin` ). A tag pointing anywhere else aborts the run — published tags are never moved silently. | delete the tag deliberately |
+
+Everything is a state probe first and an action second, so a re-run after a partial failure creates only what is missing. `--no-push` stops after creating the tags locally; otherwise every tag missing on the remote goes up in a single `git push`, which is what triggers the cargo-dist binary release for `winterbaume-server-vX.Y.Z`.
 
 #### `batch` — direct chunked publish, no plan file
 
@@ -182,7 +243,7 @@ Operational notes:
 - **First-launch wall time.** 240 new crates ÷ 5 per chunk × 660 s/chunk ≈ 8.5 hours unattended. Plan accordingly, or request a higher `publish_new` rate from crates.io support before launch and raise `--chunk-size` to match.
 - **Subsequent releases.** After the first launch every crate already exists on crates.io, so the much higher `publish_existing` rate applies and `publish` (or a `batch --chunk-size <large>`) finishes in minutes.
 
-`release-plan.toml` is gitignored. `release-plan-overrides.toml` is not — when overrides are used, they should be visible in the same commit that lands the changelog draft.
+`release-plan.toml` is gitignored, but `publish` and `tag` both read it after the release PR has merged — keep the file from the `plan` run that produced the PR rather than regenerating it, since a fresh `plan` taken after the bump landed would classify the crates against a different baseline. `release-plan-overrides.toml` is not gitignored — when overrides are used, they should be visible in the same PR that lands the changelog draft.
 
 ## Binary Release
 
@@ -190,7 +251,7 @@ Binary releases are managed by [cargo-dist](https://github.com/axodotdev/cargo-d
 
 ### Trigger
 
-The tag pushed by `cargo release` for `winterbaume-server`, for example `winterbaume-server-v0.1.1`, automatically triggers the release workflow. You can also push a tag manually:
+The `winterbaume-server-vX.Y.Z` tag — pushed by `release-harness tag`, or by `cargo release` in the bypass flow — automatically triggers the release workflow. You can also push a tag manually:
 
 ```sh
 git tag winterbaume-server-v0.1.1
@@ -232,9 +293,11 @@ git push origin winterbaume-server-v0.1.1
 - [ ] Regenerate API coverage and README if any service, Terraform converter, or generated service page changed before release.
 - [ ] Generate or refresh `CHANGELOG.md` with the `generate-changelog` skill, including relevant per-crate changelogs for the release set.
 - [ ] For steady-state releases, run the release harness: `./.agents/bin/cargo.sh run -p release-harness -- plan`, inspect `release-plan.toml`, then `./.agents/bin/cargo.sh run -p release-harness -- changelog` and review the per-crate CHANGELOG diffs.
-- [ ] Dry-run the publish: `./.agents/bin/cargo.sh run -p release-harness -- publish` for the plan-driven case, or `./.agents/bin/cargo.sh run -p release-harness -- batch --version <ver>` for first-launch / single-version mode. Budget the wall time accordingly for first launch (~8.5 hours for 240 new crates at the default rate, less if a higher rate is granted).
-- [ ] Publish: re-run the same harness command with `--execute --sign --no-confirm` for unattended GPG-signed runs.
-- [ ] Push the `winterbaume-server-vX.Y.Z` tag after crate publish succeeds.
+- [ ] Apply the versions: `./.agents/bin/cargo.sh run -p release-harness -- version-bump` to preview, then `--execute`. Keep `release-plan.toml` — `publish` and `tag` both read it later.
+- [ ] Open the release PR with the bump, the per-crate changelogs, and the umbrella rollup. Commits must be signed. Merge it into `main` once CI is green.
+- [ ] From the merge commit on `main` ( `git fetch origin && git switch main && git pull --ff-only` ), dry-run the publish: `./.agents/bin/cargo.sh run -p release-harness -- publish` for the plan-driven case, or `./.agents/bin/cargo.sh run -p release-harness -- batch --version <ver>` for first-launch / single-version mode. Budget the wall time accordingly for first launch (~8.5 hours for 240 new crates at the default rate, less if a higher rate is granted).
+- [ ] Publish: re-run the same harness command with `--execute --no-confirm` ( add `--sign` for the `batch` path, which creates commits and tags of its own ).
+- [ ] Tag the merge commit and push the tags: `./.agents/bin/cargo.sh run -p release-harness -- tag` to preview, then `--execute`. Tags are signed by default; the `winterbaume-server-vX.Y.Z` tag in that push triggers the binary release.
 - [ ] Verify GitHub Release artefacts, checksums, bundled `LICENSE`, bundled `README.md`, and platform archive contents.
 - [ ] Verify docs deploy after release.
 - [ ] Publish the public announcement with exact version, supported surfaces, known limitations, contribution policy, and security contact.
