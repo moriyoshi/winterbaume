@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-08-17
+
+- `winterbaume-autoscaling` v0.2.1: see [`crates/winterbaume-autoscaling/CHANGELOG.md`](crates/winterbaume-autoscaling/CHANGELOG.md).
+- `winterbaume-cloudfront` v1.0.1: see [`crates/winterbaume-cloudfront/CHANGELOG.md`](crates/winterbaume-cloudfront/CHANGELOG.md).
+- `winterbaume-codedeploy` v0.2.1: see [`crates/winterbaume-codedeploy/CHANGELOG.md`](crates/winterbaume-codedeploy/CHANGELOG.md).
+- `winterbaume-dynamodb` v0.3.0: see [`crates/winterbaume-dynamodb/CHANGELOG.md`](crates/winterbaume-dynamodb/CHANGELOG.md).
+- `winterbaume-dynamodb-redis` v0.2.1: see [`crates/winterbaume-dynamodb-redis/CHANGELOG.md`](crates/winterbaume-dynamodb-redis/CHANGELOG.md).
+- `winterbaume-dynamodbstreams` v0.2.1: see [`crates/winterbaume-dynamodbstreams/CHANGELOG.md`](crates/winterbaume-dynamodbstreams/CHANGELOG.md).
+- `winterbaume-fis` v0.2.1: see [`crates/winterbaume-fis/CHANGELOG.md`](crates/winterbaume-fis/CHANGELOG.md).
+- `winterbaume-iam` v0.2.1: see [`crates/winterbaume-iam/CHANGELOG.md`](crates/winterbaume-iam/CHANGELOG.md).
+- `winterbaume-managedblockchain` v0.2.1: see [`crates/winterbaume-managedblockchain/CHANGELOG.md`](crates/winterbaume-managedblockchain/CHANGELOG.md).
+- `winterbaume-server` v0.2.6: see [`crates/winterbaume-server/CHANGELOG.md`](crates/winterbaume-server/CHANGELOG.md).
+- `winterbaume-servicediscovery` v0.2.1: see [`crates/winterbaume-servicediscovery/CHANGELOG.md`](crates/winterbaume-servicediscovery/CHANGELOG.md).
+- `winterbaume-terraform` v0.2.4: see [`crates/winterbaume-terraform/CHANGELOG.md`](crates/winterbaume-terraform/CHANGELOG.md).
+
 ## 2026-07-03
 
 - `winterbaume` v0.7.0: see [`crates/winterbaume/CHANGELOG.md`](crates/winterbaume/CHANGELOG.md).

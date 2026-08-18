@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.2.1 - 2026-08-17
+
+### Documentation
+
+- Extended the coverage table in the README to include a FakeCloud comparison column.
+
+### Internal
+
+- Fixed clippy warnings in the state module introduced by toolchain drift (PR #21).
+
 ## v0.2.0 - 2026-05-13
 
 ### Internal

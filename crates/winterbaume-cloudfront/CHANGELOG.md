@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.0.1 - 2026-08-17
+
+### Documentation
+- Updated README coverage table to include a FakeCloud comparison column.
+
+### Internal
+- Fixed Clippy warnings arising from toolchain drift.
+
 ## v0.3.0 - 2026-05-25
 
 ### Fixed

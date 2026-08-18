@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.2.1 - 2026-08-17
+
+### Documentation
+
+- Added a fakecloud comparison column to the README coverage table.
+
+### Internal
+
+- Fixed clippy warnings in the state module arising from toolchain drift.
+
 ## v0.2.0 - 2026-05-13
 
 ### Internal
