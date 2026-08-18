@@ -133,6 +133,14 @@ depends = ["build-release-harness"]
 run = "${RELEASE_HARNESS} changelog ${usage_options}"
 run_windows = "& $env:RELEASE_HARNESS changelog ${usage_options}"
 
+[tasks.release-version-bump]
+usage = '''
+arg "[options]" var=#true
+'''
+depends = ["build-release-harness"]
+run = "${RELEASE_HARNESS} version-bump ${usage_options}"
+run_windows = "& $env:RELEASE_HARNESS version-bump ${usage_options}"
+
 [tasks.release]
 usage = '''
 arg "[options]" var=#true

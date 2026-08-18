@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.2.1 - 2026-08-17
+
+### Documentation
+
+- Updated README with a FakeCloud coverage comparison column.
+
+### Internal
+
+- Applied Clippy toolchain-drift fixes to `state.rs`.
+
 ## v0.2.0 - 2026-05-14
 
 ### Internal

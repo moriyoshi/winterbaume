@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.2.1 - 2026-08-17
+
+### Fixed
+- Applied follow-up handler corrections related to DynamoDB issue #19 (PR #22).
+
+### Documentation
+- Added a FakeCloud comparison column to the API coverage table in the README (PR #17).
+
 ## v0.2.0 - 2026-05-14
 
 ### Internal

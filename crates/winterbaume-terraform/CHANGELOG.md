@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.2.4 - 2026-08-17
+
+### Internal
+- Fixed clippy warnings in the CloudFront and Kafka converter modules to resolve toolchain drift.
+
 ## v0.2.3 - 2026-07-03
 
 ### Internal

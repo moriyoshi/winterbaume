@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.6 - 2026-08-17
+
+### Internal
+
+- Maintenance release to pick up updated dependencies (`winterbaume-autoscaling`, `winterbaume-cloudfront`, `winterbaume-codedeploy`, `winterbaume-dynamodb`, `winterbaume-dynamodb-redis`, `winterbaume-dynamodbstreams`, `winterbaume-fis`, `winterbaume-iam`, `winterbaume-managedblockchain`, `winterbaume-servicediscovery`, `winterbaume-terraform`). No changes to `winterbaume-server` itself.
+
 ## v0.2.5 - 2026-07-03
 
 ### Internal
