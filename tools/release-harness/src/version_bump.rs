@@ -7,9 +7,11 @@
 //! `Cargo.lock`. This module only decides *which* crates move to *which*
 //! version, and it gets that from the plan.
 //!
-//! Sits between `changelog` and `publish`, and is optional: `publish` drives
-//! the same `version` step itself ( see `batch::run_chunk` ). Run this when the
-//! bump should land as its own reviewable commit ahead of the publish.
+//! Sits between `changelog` and the release PR. The bump lands on `main`
+//! through that PR, so by the time `publish` runs the manifests are already at
+//! their planned versions and `publish` refuses to move them ( `batch`, and
+//! `publish --all-in-one`, still drive the `version` step themselves for the
+//! first launch and for targeted retries, where there is no PR ).
 //!
 //! Two properties the plan buys us over calling cargo-release by hand:
 //!

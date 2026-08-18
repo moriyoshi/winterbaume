@@ -179,6 +179,34 @@ pub fn rev_short(root: &Path, rev: &str) -> Result<String, Error> {
     Ok(raw.trim().to_string())
 }
 
+/// Contents of `<path>` as of `<rev>` (`git show <rev>:<path>`). `None` when
+/// the path does not exist at that revision — a crate added after the tagged
+/// commit, say — which callers treat as "nothing to verify" rather than an
+/// error.
+pub fn show_file(root: &Path, rev: &str, path: &str) -> Result<Option<String>, Error> {
+    let spec = format!("{rev}:{path}");
+    let out = Command::new("git")
+        .args(["show", &spec])
+        .current_dir(root)
+        .output()?;
+    if !out.status.success() {
+        return Ok(None);
+    }
+    Ok(Some(String::from_utf8(out.stdout)?))
+}
+
+/// Whether `rev` resolves to anything in this repository. Used to tell a
+/// missing remote-tracking ref (`origin/main` in a fresh clone that has never
+/// fetched) apart from a genuine containment failure.
+pub fn rev_exists(root: &Path, rev: &str) -> Result<bool, Error> {
+    let spec = format!("{rev}^{{commit}}");
+    let out = Command::new("git")
+        .args(["rev-parse", "--verify", "--quiet", &spec])
+        .current_dir(root)
+        .output()?;
+    Ok(out.status.success())
+}
+
 /// `git merge-base --is-ancestor`. Returns true when `ancestor` is reachable
 /// from `descendant` (i.e. `ancestor` was made first), false otherwise.
 /// Distinct from the generic `GitFailed` branch: a clean status 1 is the "no"

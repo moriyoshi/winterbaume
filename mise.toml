@@ -111,9 +111,10 @@ depends = ["build-sccache-wrapper"]
 run = "${SCCACHE_WRAPPER} --show-scoreboard"
 run_windows = "& $env:SCCACHE_WRAPPER --show-scoreboard"
 
-# Release harness entry points, mirroring `tools/release-harness/`'s four
-# subcommands. The steady-state per-crate flow is
-# `release-plan` → `release-changelog` → `release` (= `publish`).
+# Release harness entry points, mirroring `tools/release-harness/`'s
+# subcommands. The steady-state per-crate flow runs through a release PR:
+# `release-plan` → `release-changelog` + `release-version-bump` → PR → merge
+# → `release` (= `publish`) → `release-tag`.
 # `release-all` is the one-version bypass for first-launch or targeted
 # retries (former `release-batch` UX).
 
@@ -146,8 +147,19 @@ usage = '''
 arg "[options]" var=#true
 '''
 depends = ["build-release-harness"]
+# `--sign` is inert for the default publish-only mode ( it signs commits and
+# tags, which that mode does not create ); it is kept so the task stays correct
+# if `--all-in-one` is passed through.
 run = "${RELEASE_HARNESS} publish --sign ${usage_options}"
 run_windows = "& $env:RELEASE_HARNESS publish --sign ${usage_options}"
+
+[tasks.release-tag]
+usage = '''
+arg "[options]" var=#true
+'''
+depends = ["build-release-harness"]
+run = "${RELEASE_HARNESS} tag ${usage_options}"
+run_windows = "& $env:RELEASE_HARNESS tag ${usage_options}"
 
 [tasks.release-all]
 usage = '''

@@ -1,7 +1,8 @@
 //! Per-crate semver bump planner and selective-publish driver for the
 //! winterbaume workspace.
 //!
-//! Four-stage workflow:
+//! The release goes through a pull request, and the harness's subcommands map
+//! onto that flow one step at a time:
 //!
 //! 1. `plan` — discover which crates have changed since their last
 //!    `<crate>-v<ver>` tag, classify the semver bump (skip / patch / minor /
@@ -9,10 +10,18 @@
 //! 2. `changelog` — draft per-crate CHANGELOG.md entries and refresh the root
 //!    umbrella CHANGELOG.md based on the plan.
 //! 3. `version-bump` — drive `cargo release version` per target version from
-//!    the plan, so the bump can land as its own reviewable commit. Optional:
-//!    `publish` drives the same step itself.
-//! 4. `publish` — group plan entries by target version and drive
-//!    `release-batch` once per group.
+//!    the plan, applying the planned versions to the manifests.
+//! 4. *(outside the harness)* open the release PR with the bump plus the
+//!    changelogs, review it, and merge it into `main`.
+//! 5. `publish` — group plan entries by target version and drive a chunked
+//!    publish once per group, from the merged tree. Publishes only: the
+//!    manifests must already be at their planned versions.
+//! 6. `tag` — create one signed annotated `<crate>-v<version>` tag per
+//!    published crate at the merge commit, and push them.
+//!
+//! `batch` is the bypass for the first launch and for targeted retries, where
+//! there is no release PR; it still owns the whole bump → commit → publish →
+//! tag → push lifecycle in one command, as does `publish --all-in-one`.
 
 mod batch;
 mod changelog;
@@ -22,6 +31,7 @@ mod plan;
 mod polisher;
 mod publish;
 mod semver_checks;
+mod tag;
 mod version;
 mod version_bump;
 
@@ -38,8 +48,10 @@ use crate::metadata::CargoExe;
     name = "release-harness",
     about = "Per-crate semver bump planner and selective-publish driver",
     long_about = "Computes per-crate semver bumps from git diffs since each crate's last \
-                  release tag, refreshes per-crate and umbrella changelogs, and drives \
-                  `release-batch` to publish only the crates that actually changed."
+                  release tag, refreshes per-crate and umbrella changelogs, applies the \
+                  planned versions to the manifests for a release PR, publishes only the \
+                  crates that actually changed once that PR has merged, and tags the merge \
+                  commit."
 )]
 struct Args {
     /// Cargo executable to invoke for `metadata` and `locate-project`.
@@ -61,6 +73,9 @@ enum Cmd {
     VersionBump(VersionBumpArgs),
     /// Run a chunked `cargo release` per target-version group from a plan file.
     Publish(PublishArgs),
+    /// Tag the commit the release landed on — one signed annotated tag per
+    /// published crate — and push the tags.
+    Tag(TagArgs),
     /// Run a single chunked `cargo release` directly, without a plan file.
     /// Equivalent to the former standalone `release-batch` binary; useful for
     /// first-launch (no prior tags) or targeted retries.
@@ -160,6 +175,62 @@ struct PublishArgs {
     /// Skip the crates.io existence check for the target version (resumability).
     #[arg(long)]
     skip_version_check: bool,
+
+    /// Also bump the manifests, create the release commit, tag, and push —
+    /// the pre-PR all-in-one flow. Without it, the manifests must already be
+    /// at their planned versions (the release PR having landed) and nothing
+    /// but the publish happens.
+    #[arg(long)]
+    all_in_one: bool,
+
+    /// After a successful publish, run the `tag` stage at HEAD instead of
+    /// leaving it to a separate `release-harness tag` invocation. The tags are
+    /// signed; use the standalone `tag --no-sign` if you need unsigned ones.
+    #[arg(long, conflicts_with = "all_in_one")]
+    tag: bool,
+}
+
+#[derive(Parser, Debug)]
+pub struct TagArgs {
+    /// Path to the plan file written by `plan`.
+    #[arg(long, default_value = "release-plan.toml")]
+    pub plan: PathBuf,
+
+    /// Commit to tag. Defaults to `HEAD`, which after the release PR merges is
+    /// the merge commit.
+    #[arg(long, default_value = "HEAD")]
+    pub at: String,
+
+    /// Without this, print the tags that would be created and pushed, and exit
+    /// without touching the repository.
+    #[arg(long)]
+    pub execute: bool,
+
+    /// Create unsigned annotated tags. Tags are signed by default.
+    #[arg(long)]
+    pub no_sign: bool,
+
+    /// Create the tags locally without pushing them.
+    #[arg(long)]
+    pub no_push: bool,
+
+    /// Tag crates whose planned version is not on crates.io yet. Off by
+    /// default: a tag for an unpublished version makes the next `plan` report
+    /// the crate as unchanged.
+    #[arg(long)]
+    pub allow_unpublished: bool,
+
+    /// Tag a commit that is not contained in the remote release branch.
+    #[arg(long)]
+    pub allow_unmerged: bool,
+
+    /// Remote to check containment against and push to.
+    #[arg(long, default_value = "origin")]
+    pub remote: String,
+
+    /// Release branch the commit must be contained in.
+    #[arg(long, default_value = "main")]
+    pub branch: String,
 }
 
 #[derive(Parser, Debug)]
@@ -222,6 +293,7 @@ fn main() -> ExitCode {
         Cmd::Changelog(c) => changelog::run(&cargo, &c).map_err(Into::into),
         Cmd::VersionBump(v) => version_bump::run(&cargo, &v).map_err(Into::into),
         Cmd::Publish(p) => publish::run(&cargo, &p).map_err(Into::into),
+        Cmd::Tag(t) => tag::run(&cargo, &t).map_err(Into::into),
         Cmd::Batch(b) => publish::run_batch(&cargo, &b).map_err(Into::into),
     };
     match result {
