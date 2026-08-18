@@ -52,6 +52,18 @@ impl CargoExe {
     pub fn path(&self) -> &OsString {
         &self.path
     }
+
+    /// Whether `cargo <name>` resolves to an installed subcommand, probed with
+    /// a `--version` invocation. Callers use this to fall back or fail with an
+    /// actionable "install it with ..." message instead of surfacing cargo's
+    /// "no such command" error.
+    pub fn has_subcommand(&self, name: &str) -> bool {
+        Command::new(&self.path)
+            .args([name, "--version"])
+            .output()
+            .map(|o| o.status.success())
+            .unwrap_or(false)
+    }
 }
 
 #[derive(Deserialize)]

@@ -106,6 +106,19 @@ pub enum BumpDecision {
 }
 
 impl BumpDecision {
+    /// Lowercase label matching the plan file's serialised form.
+    pub fn label(self) -> &'static str {
+        match self {
+            BumpDecision::Unchanged => "unchanged",
+            BumpDecision::Skip => "skip",
+            BumpDecision::Patch => "patch",
+            BumpDecision::Minor => "minor",
+            BumpDecision::Major => "major",
+            BumpDecision::Pinned => "pinned",
+            BumpDecision::Initial => "initial",
+        }
+    }
+
     pub fn level(self) -> Option<Level> {
         match self {
             BumpDecision::Patch => Some(Level::Patch),
@@ -646,7 +659,7 @@ pub fn run(cargo: &CargoExe, args: &PlanArgs) -> Result<ExitCode, Error> {
     members.sort_by(|a, b| a.name.cmp(&b.name));
 
     let overrides = parse_overrides(&root.join(&args.overrides))?;
-    let semver_tool_available = !args.skip_semver_checks && semver_checks::available(cargo);
+    let semver_tool_available = !args.skip_semver_checks && cargo.has_subcommand("semver-checks");
     if args.skip_semver_checks {
         eprintln!("note: --skip-semver-checks set; using heuristics only");
     } else if !semver_tool_available {
@@ -825,14 +838,7 @@ pub fn run(cargo: &CargoExe, args: &PlanArgs) -> Result<ExitCode, Error> {
                 .map(|e| e.name.as_str())
                 .collect();
             if !names.is_empty() {
-                let label = match level {
-                    BumpDecision::Major => "major",
-                    BumpDecision::Minor => "minor",
-                    BumpDecision::Patch => "patch",
-                    BumpDecision::Pinned => "pinned",
-                    BumpDecision::Initial => "initial",
-                    _ => continue,
-                };
+                let label = level.label();
                 println!("  {label:<8} ({}): {}", names.len(), names.join(" "));
             }
         }

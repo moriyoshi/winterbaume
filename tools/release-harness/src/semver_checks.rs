@@ -34,14 +34,6 @@ pub enum Outcome {
     NotApplicable,
 }
 
-pub fn available(cargo: &CargoExe) -> bool {
-    Command::new(cargo.path())
-        .args(["semver-checks", "--version"])
-        .output()
-        .map(|o| o.status.success())
-        .unwrap_or(false)
-}
-
 /// Run `cargo semver-checks check-release` for one package and return whether
 /// it reports a breaking change at `candidate`.
 pub fn check(

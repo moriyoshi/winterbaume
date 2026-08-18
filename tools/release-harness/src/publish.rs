@@ -1,5 +1,8 @@
-//! Stage 3 — group plan entries by bump level and run a chunked publish per
-//! group, in-process via the `batch` module.
+//! Stage 3 — group plan entries by target version and run a chunked publish
+//! per group, in-process via the `batch` module.
+//!
+//! Grouping is by the concrete `next` version, never by bump level: see
+//! `key_for` for why a level keyword is the wrong dispatch currency.
 
 use std::collections::BTreeMap;
 use std::fs;
@@ -28,22 +31,39 @@ pub enum Error {
         #[source]
         source: toml::de::Error,
     },
-    #[error("crate {name} pinned but next version missing from plan entry")]
-    PinnedWithoutVersion { name: String },
+    #[error("crate {name} is {bump} but next version missing from plan entry")]
+    MissingNextVersion { name: String, bump: &'static str },
 }
 
+/// The version every dispatch is keyed on — always a concrete semver, never a
+/// level keyword.
+///
+/// Dispatching `patch` / `minor` / `major` would be wrong in two ways. The
+/// version step is not idempotent under a level: `cargo release version patch`
+/// re-run bumps a *second* time, so a chunk that was partially bumped before a
+/// failure gets double-bumped on resume. And `batch` can only run its
+/// pre-flight "already on crates.io" prune when it knows the concrete target,
+/// so a level silently disables the resumability check for the whole group.
+/// The plan already computes `next` for every bumping crate, so use it.
 fn key_for(entry: &CrateEntry) -> Option<String> {
     match entry.bump {
-        BumpDecision::Patch => Some("patch".to_string()),
-        BumpDecision::Minor => Some("minor".to_string()),
-        BumpDecision::Major => Some("major".to_string()),
-        BumpDecision::Pinned => entry.next.clone(),
+        BumpDecision::Patch | BumpDecision::Minor | BumpDecision::Major | BumpDecision::Pinned => {
+            entry.next.clone()
+        }
         // Initial = no bump; cargo-release wouldn't change the version but
         // would still publish + tag. We dispatch with the literal current
         // version so the resumability check works.
         BumpDecision::Initial => Some(entry.current.clone()),
         BumpDecision::Skip | BumpDecision::Unchanged => None,
     }
+}
+
+/// Whether the plan entry is expected to carry a `next` version.
+fn requires_next(bump: BumpDecision) -> bool {
+    matches!(
+        bump,
+        BumpDecision::Patch | BumpDecision::Minor | BumpDecision::Major | BumpDecision::Pinned
+    )
 }
 
 pub fn run(cargo: &CargoExe, args: &PublishArgs) -> Result<ExitCode, Error> {
@@ -59,13 +79,14 @@ pub fn run(cargo: &CargoExe, args: &PublishArgs) -> Result<ExitCode, Error> {
         source: e,
     })?;
 
-    // Group by version-or-level key. Each unique key becomes one
-    // chunked-publish invocation.
+    // Group by target version. Each unique version becomes one chunked-publish
+    // invocation.
     let mut groups: BTreeMap<String, Vec<&CrateEntry>> = BTreeMap::new();
     for entry in &plan.crates {
-        if matches!(entry.bump, BumpDecision::Pinned) && entry.next.is_none() {
-            return Err(Error::PinnedWithoutVersion {
+        if requires_next(entry.bump) && entry.next.is_none() {
+            return Err(Error::MissingNextVersion {
                 name: entry.name.clone(),
+                bump: entry.bump.label(),
             });
         }
         if let Some(k) = key_for(entry) {
@@ -93,15 +114,12 @@ pub fn run(cargo: &CargoExe, args: &PublishArgs) -> Result<ExitCode, Error> {
     println!("groups to drive: {}", groups.len());
     println!();
 
-    for (version_or_level, entries) in &groups {
+    for (version, entries) in &groups {
         let mut names: Vec<String> = entries.iter().map(|e| e.name.clone()).collect();
         names.sort_by_key(|n| order_index.get(n.as_str()).copied().unwrap_or(usize::MAX));
+        println!("--- group `{version}` ({} crate(s)) ---", names.len());
         println!(
-            "--- group `{version_or_level}` ({} crate(s)) ---",
-            names.len()
-        );
-        println!(
-            "$ release-harness batch --version {version_or_level} --crates {}{}{}",
+            "$ release-harness batch --version {version} --crates {}{}{}",
             names.join(" "),
             if args.sign { " --sign" } else { "" },
             if args.no_confirm { " --no-confirm" } else { "" },
@@ -112,7 +130,7 @@ pub fn run(cargo: &CargoExe, args: &PublishArgs) -> Result<ExitCode, Error> {
         let outcome = batch::run_chunked(BatchOptions {
             cargo,
             root: &root,
-            version_or_level,
+            version_or_level: version,
             crates: names,
             chunk_size: args.chunk_size,
             sleep_between_chunks: Duration::from_secs(args.sleep),
@@ -124,9 +142,7 @@ pub fn run(cargo: &CargoExe, args: &PublishArgs) -> Result<ExitCode, Error> {
             skip_version_check: args.skip_version_check,
         })?;
         if let RunOutcome::ChunkFailed(status) = outcome {
-            eprintln!(
-                "chunked publish failed for group `{version_or_level}` (status {status}); aborting"
-            );
+            eprintln!("chunked publish failed for group `{version}` (status {status}); aborting");
             return Ok(ExitCode::from(status.code().unwrap_or(1) as u8));
         }
     }
@@ -220,5 +236,89 @@ pub fn run_batch(cargo: &CargoExe, args: &crate::BatchArgs) -> Result<ExitCode, 
     match outcome {
         RunOutcome::Success => Ok(ExitCode::SUCCESS),
         RunOutcome::ChunkFailed(status) => Ok(ExitCode::from(status.code().unwrap_or(1) as u8)),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn entry(name: &str, current: &str, next: Option<&str>, bump: BumpDecision) -> CrateEntry {
+        CrateEntry {
+            name: name.to_string(),
+            current: current.to_string(),
+            next: next.map(str::to_string),
+            bump,
+            last_tag: None,
+            reason: String::new(),
+            files_changed: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn level_bumps_dispatch_their_literal_target_not_the_level() {
+        for (bump, next) in [
+            (BumpDecision::Patch, "0.2.1"),
+            (BumpDecision::Minor, "0.3.0"),
+            (BumpDecision::Major, "1.0.0"),
+        ] {
+            let e = entry("a", "0.2.0", Some(next), bump);
+            assert_eq!(key_for(&e).as_deref(), Some(next));
+        }
+    }
+
+    #[test]
+    fn pinned_and_initial_keep_their_literal_keys() {
+        let e = entry("a", "0.2.0", Some("0.9.9"), BumpDecision::Pinned);
+        assert_eq!(key_for(&e).as_deref(), Some("0.9.9"));
+        let e = entry("a", "0.1.0", Some("0.1.0"), BumpDecision::Initial);
+        assert_eq!(key_for(&e).as_deref(), Some("0.1.0"));
+    }
+
+    #[test]
+    fn skip_and_unchanged_are_not_dispatched() {
+        let e = entry("a", "0.2.0", None, BumpDecision::Skip);
+        assert_eq!(key_for(&e), None);
+        let e = entry("a", "0.2.0", None, BumpDecision::Unchanged);
+        assert_eq!(key_for(&e), None);
+    }
+
+    #[test]
+    fn crates_sharing_a_target_version_land_in_one_group() {
+        // Two crates bumping patch from different currents no longer share a
+        // group just because they share a level.
+        let entries = [
+            entry("a", "0.2.0", Some("0.2.1"), BumpDecision::Patch),
+            entry("b", "0.3.0", Some("0.3.1"), BumpDecision::Patch),
+            entry("c", "0.2.0", Some("0.2.1"), BumpDecision::Patch),
+        ];
+        let mut groups: BTreeMap<String, Vec<&str>> = BTreeMap::new();
+        for e in &entries {
+            if let Some(k) = key_for(e) {
+                groups.entry(k).or_default().push(&e.name);
+            }
+        }
+        assert_eq!(groups.len(), 2);
+        assert_eq!(groups["0.2.1"], vec!["a", "c"]);
+        assert_eq!(groups["0.3.1"], vec!["b"]);
+    }
+
+    #[test]
+    fn every_bumping_decision_requires_a_next_version() {
+        for bump in [
+            BumpDecision::Patch,
+            BumpDecision::Minor,
+            BumpDecision::Major,
+            BumpDecision::Pinned,
+        ] {
+            assert!(requires_next(bump), "{bump:?} must carry next");
+        }
+        for bump in [
+            BumpDecision::Initial,
+            BumpDecision::Skip,
+            BumpDecision::Unchanged,
+        ] {
+            assert!(!requires_next(bump), "{bump:?} must not require next");
+        }
     }
 }

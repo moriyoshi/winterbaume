@@ -66,12 +66,14 @@ Configured in `[workspace.metadata.release]` in the root `Cargo.toml`:
 
 A single Rust binary owns the release lifecycle: it both classifies per-crate semver bumps from `git diff` since each crate's last `<crate>-v<ver>` tag and drives the chunked `cargo release` invocations that respect the crates.io `publish_new` rate limit (default: 5 new crates per 10 minutes, which would otherwise reject a workspace-wide release upfront).
 
-Four subcommands. The first three are the steady-state per-crate flow; `batch` is the bypass mode for first-launch or targeted retries.
+Five subcommands. The first four are the steady-state per-crate flow ( `version-bump` is optional — see below ); `batch` is the bypass mode for first-launch or targeted retries.
 
 ```sh
 # Steady-state: per-crate semver bumps + selective publish
 ./.agents/bin/cargo.sh run -p release-harness -- plan
 ./.agents/bin/cargo.sh run -p release-harness -- changelog
+./.agents/bin/cargo.sh run -p release-harness -- version-bump                         # dry-run, optional
+./.agents/bin/cargo.sh run -p release-harness -- version-bump --execute
 ./.agents/bin/cargo.sh run -p release-harness -- publish                              # dry-run
 ./.agents/bin/cargo.sh run -p release-harness -- publish --execute --sign --no-confirm
 
@@ -112,9 +114,52 @@ Output: `release-plan.toml` at the repo root (gitignored) plus a stdout summary 
 
 Reads `release-plan.toml`. For each non-skip crate, runs `git log <last-tag>..HEAD -- <crate-dir>/`, buckets commits by conventional-commit-style prefix (`feat:` → Added, `fix:` → Fixed, etc.), and prepends a fresh `## v<next> - <date>` section to that crate's `CHANGELOG.md`. The root umbrella `CHANGELOG.md` gets a matching dated rollup. Drafts are mechanical — polish the wording (or invoke the `generate-changelog` skill) before committing.
 
-#### `publish` — chunked publish grouped by bump level
+#### `version-bump` — apply the planned versions to the manifests
 
-Groups plan entries by bump level (`patch`, `minor`, `major`, plus each pinned literal version as its own one-crate group) and runs one chunked `cargo release` per group, in-process. Without `--execute`, prints the planned invocations and exits. With `--execute`, drives the actual publish.
+A thin driver over `cargo release version`. It reads `release-plan.toml`, groups the entries by their literal `next` version, and runs one `cargo release version <next> -p <crates>... --allow-branch '*' --execute` per group. cargo-release does the actual editing: it rewrites the crate's `[package] version`, follows the workspace-inheritance chain into the root `[workspace.dependencies].<crate>.version`, preserves comments and inline-table spacing, leaves a path-only dep entry alone, and refreshes `Cargo.lock`.
+
+```
+$ release-harness version-bump
+wb-a         0.2.0 -> 0.2.1  (patch)
+wb-b         0.3.0 -> 0.8.0  (pinned)
+wb-umbrella  0.7.0 -> 0.8.0  (pinned)
+
+3 crate(s) across 2 target version(s)
+
+$ cargo release version 0.2.1 -p wb-a --allow-branch '*' --execute
+$ cargo release version 0.8.0 -p wb-b -p wb-umbrella --allow-branch '*' --execute
+
+(dry run — re-run with --execute to write)
+```
+
+What the plan buys over calling cargo-release by hand:
+
+| Behaviour | Detail |
+|-----------|--------|
+| Dry run by default | Prints the per-crate `current -> next` table and the invocations it would run. `--execute` runs them. |
+| Idempotent | Each crate is dispatched at its literal `next`, never a level — `cargo release version patch` re-run bumps a second time, the same literal re-run is a no-op. Crates already at `next` are dropped from the dispatch entirely, so a partially-applied run is safe to repeat. `initial` entries ( `next` == `current` ) are always no-ops. |
+| Pre-flight drift check | A manifest matching neither `current` nor `next` means the plan no longer describes this tree: every such crate is reported and nothing is invoked. cargo-release catches only the downgrade direction, and only after it has already written the earlier groups. |
+| One invocation per target version | `cargo release version` applies one version to every package it is given, so crates sharing a `next` ride along together. Each invocation re-reads workspace metadata — budget roughly a minute per group on this workspace. |
+| Aborts on failure | A failing group stops the run with cargo-release's exit status; later groups are not invoked. |
+
+`--allow-branch '*'` is passed because cargo-release otherwise refuses to run outside the configured release branch, and bumping on a topic branch for review is the whole point of this subcommand. Nothing is published here. `--no-confirm` is passed too — the table above is the preview. The harness makes no git commit; review the diff and commit it yourself.
+
+This step is **optional**. `publish` drives the same `cargo release version` step itself, so the shortest path is `plan` → `changelog` → `publish`. Run `version-bump` when the bump should land as its own reviewable commit ahead of the publish — for example when the version change goes through a PR, or when CI needs to build the bumped tree before anything reaches crates.io.
+
+Running `version-bump --execute` and then `publish` against the same plan is safe: both dispatch the plan's concrete `next`, so `publish` finds the manifests already at their target, reports `manifests already at target — skipping version/replace/hook`, and goes straight to committing, publishing, and tagging. ( That composition is only sound because `publish` groups by version rather than by bump level — see below. )
+
+#### `publish` — chunked publish grouped by target version
+
+Groups plan entries by their concrete `next` version and runs one chunked `cargo release` per group, in-process. Without `--execute`, prints the planned invocations and exits. With `--execute`, drives the actual publish.
+
+Grouping is by version, not by bump level, because a level keyword is the wrong dispatch currency in two ways:
+
+- **The version step is not idempotent under a level.** `cargo release version patch` re-run bumps a *second* time. A chunk that was partially bumped before a failure — a crash or Ctrl+C midway through the step — would have its already-bumped crates moved again on resume, silently skipping a version number.
+- **A level disables the resumability prune.** `batch` can only drop crates whose target is already on crates.io when it knows the concrete target; given a level it prints `skipping pre-flight crates.io resumability check` and prunes nothing.
+
+The plan already computes `next` for every bumping crate, so `publish` dispatches that. On this workspace the 241 publishable members currently sit at 10 distinct versions, so a workspace-wide patch bump drives ~10 groups rather than 1 — a handful of extra partial chunks, which matters only under the first-launch `--sleep` settings.
+
+Within `batch`, the version step is additionally computed per crate rather than per chunk: only the crates not yet at their target are handed to `cargo release version`. Under a level dispatch ( reachable through `batch --version patch`, the bypass mode ) a crate whose current version is *not* on crates.io is treated as already bumped and left alone. When the crates.io lookup itself fails, that check reports "not published" and the crate is skipped — the safe direction, since a skipped bump surfaces as a failed or pruned publish, whereas a spurious bump burns a version number that cannot be unpublished.
 
 #### `batch` — direct chunked publish, no plan file
 
