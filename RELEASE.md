@@ -275,10 +275,12 @@ git push origin winterbaume-server-v0.1.1
 2. If CI passes, cargo-dist builds `winterbaume-server` for all target platforms.
 3. A GitHub Release is created with:
    - Platform archives (`.tar.xz` for Unix, `.zip` for Windows)
-   - SHA-256 checksums
-   - `LICENSE` and `README.md` bundled in each archive
+   - SHA-256 checksums, per asset and as a combined `sha256.sum`
+   - `LICENSE`, `README.md`, and `CHANGELOG.md` bundled in each archive
 
 ### Target Platforms
+
+The list `dist-workspace.toml` actually builds. Five archives per release:
 
 | Target | OS |
 |--------|----|
@@ -286,9 +288,16 @@ git push origin winterbaume-server-v0.1.1
 | `x86_64-apple-darwin` | macOS (Intel) |
 | `aarch64-unknown-linux-gnu` | Linux (ARM64) |
 | `x86_64-unknown-linux-gnu` | Linux (x86_64, glibc) |
-| `x86_64-unknown-linux-musl` | Linux (x86_64, musl/static) |
-| `aarch64-pc-windows-msvc` | Windows (ARM64) |
 | `x86_64-pc-windows-msvc` | Windows (x86_64) |
+
+Two further targets were configured at first launch and dropped in commit `6b26b75` ( 2026-05-11 ) because neither could be built from GitHub runners:
+
+| Target | OS | Why it was dropped |
+|--------|----|--------------------|
+| `x86_64-unknown-linux-musl` | Linux (x86_64, musl/static) | musl.cc times out from GitHub runners ( curl exit 28 ) |
+| `aarch64-pc-windows-msvc` | Windows (ARM64) | a rustup-stable bump inside cargo-xwin surfaced a ring/clang `/imsvc` flag mismatch |
+
+Both need upstream movement before they can come back. Until then, a release carrying archives for them would be a surprise, not a regression — check `dist-workspace.toml` rather than this table if the two ever disagree.
 
 ### Configuration Files
 
