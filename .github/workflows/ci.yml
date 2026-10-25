@@ -30,20 +30,15 @@ jobs:
       - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d  # v4.0.1
         id: filter
         with:
+          # With 'every', a file must match all patterns, so the code paths
+          # are folded into one brace glob and `!**/*.md` then excludes
+          # Markdown (e.g. per-crate CHANGELOG.md). Keep the path list in sync
+          # with the `hashFiles` call in the fingerprint job.
+          predicate-quantifier: 'every'
           filters: |
             code:
-              - 'crates/**'
-              - 'src/**'
-              - 'tools/**'
-              - 'examples/**'
-              - 'vendor/**'
-              - 'Cargo.toml'
-              - 'Cargo.lock'
-              - 'rustfmt.toml'
-              - 'dist-workspace.toml'
-              - '.gitmodules'
-              - '.github/workflows/ci.yml'
-              - '.github/actions/**'
+              - '{crates/**,src/**,tools/**,examples/**,vendor/**,Cargo.toml,Cargo.lock,rustfmt.toml,dist-workspace.toml,.gitmodules,.github/workflows/ci.yml,.github/actions/**}'
+              - '!**/*.md'
 
   # Hash the code-relevant tree and probe per-job cache markers. A marker for
   # `ci-pass-<job>-<os>-<hash>` exists only when a prior run finished that job
@@ -69,7 +64,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
       - id: hash
         run: |
-          echo "value=${{ hashFiles('crates/**', 'src/**', 'tools/**', 'examples/**', 'Cargo.toml', 'Cargo.lock', 'rustfmt.toml', 'dist-workspace.toml', '.gitmodules', '.github/workflows/ci.yml', '.github/actions/**') }}" >> "$GITHUB_OUTPUT"
+          echo "value=${{ hashFiles('crates/**', 'src/**', 'tools/**', 'examples/**', 'Cargo.toml', 'Cargo.lock', 'rustfmt.toml', 'dist-workspace.toml', '.gitmodules', '.github/workflows/ci.yml', '.github/actions/**', '!**/*.md') }}" >> "$GITHUB_OUTPUT"
       - id: fmt
         uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
         with:
