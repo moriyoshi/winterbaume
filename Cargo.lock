@@ -13187,6 +13187,7 @@ dependencies = [
  "aws-smithy-types",
  "bytes",
  "chrono",
+ "ciborium",
  "http 1.4.0",
  "serde",
  "serde_json",

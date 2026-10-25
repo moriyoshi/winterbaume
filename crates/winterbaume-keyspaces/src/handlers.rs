@@ -9,6 +9,7 @@ use winterbaume_core::{
     default_account_id, json_error_response,
 };
 
+use crate::protocol;
 use crate::state::{KeyspacesError, KeyspacesState};
 use crate::types;
 use crate::views::KeyspacesStateView;
@@ -56,6 +57,23 @@ impl MockService for KeyspacesService {
 
 impl KeyspacesService {
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
+        // FIX(terraform-e2e): newer Keyspaces SDKs prefer RPC-v2 CBOR and
+        // omit X-Amz-Target. Keep both protocols on the same stateful handlers.
+        if request
+            .headers
+            .get("smithy-protocol")
+            .is_some_and(|value| value == "rpc-v2-cbor")
+        {
+            let request = match protocol::decode_request(request) {
+                Ok(request) => request,
+                Err(response) => return response,
+            };
+            return protocol::encode_response(self.dispatch_json(request).await);
+        }
+        self.dispatch_json(request).await
+    }
+
+    async fn dispatch_json(&self, request: MockRequest) -> MockResponse {
         let region = winterbaume_core::auth::extract_region_from_uri(&request.uri);
         let account_id = default_account_id();
 
