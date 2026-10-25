@@ -1160,6 +1160,21 @@ impl S3Service {
                     }
                     PreconditionOutcome::Pass => {}
                 }
+                let range = request
+                    .headers
+                    .get(http::header::RANGE)
+                    .and_then(|value| value.to_str().ok())
+                    .map(|value| parse_object_range(value, size))
+                    .unwrap_or(ObjectRange::Full);
+                let (start, length, status) = match range {
+                    ObjectRange::Full => (0, size, 200),
+                    ObjectRange::Partial(range) => (range.start, range.len(), 206),
+                    ObjectRange::Unsatisfiable => {
+                        return s3_error_response(&S3Error::InvalidRange {
+                            resource: format!("/{bucket_name}/{key}"),
+                        });
+                    }
+                };
                 let body = {
                     let mut reader =
                         match blobs.get_version_reader(&blob_key, &blob_version_id).await {
@@ -1171,22 +1186,46 @@ impl S3Service {
                                 });
                             }
                         };
-                    use tokio::io::AsyncReadExt;
-                    let mut buf = Vec::new();
-                    if let Err(e) = reader.read_to_end(&mut buf).await {
-                        return s3_error_response(&S3Error::InternalError {
-                            message: e.to_string(),
-                            resource: format!("/{bucket_name}/{key}"),
-                        });
+                    // Discard the prefix without buffering it, then read only
+                    // the requested bytes. This also works with file-backed VFS.
+                    let result = async {
+                        if start > 0 {
+                            tokio::io::copy(
+                                &mut (&mut reader).take(start as u64),
+                                &mut tokio::io::sink(),
+                            )
+                            .await?;
+                        }
+                        let mut buf = Vec::new();
+                        reader.take(length as u64).read_to_end(&mut buf).await?;
+                        Ok::<_, std::io::Error>(Bytes::from(buf))
                     }
-                    Bytes::from(buf)
+                    .await;
+                    match result {
+                        Ok(body) => body,
+                        Err(e) => {
+                            return s3_error_response(&S3Error::InternalError {
+                                message: e.to_string(),
+                                resource: format!("/{bucket_name}/{key}"),
+                            });
+                        }
+                    }
                 };
                 let mut headers = http::HeaderMap::new();
+                headers.insert(http::header::ACCEPT_RANGES, "bytes".parse().unwrap());
+                if status == 206 {
+                    headers.insert(
+                        http::header::CONTENT_RANGE,
+                        format!("bytes {start}-{}/{size}", start + length - 1)
+                            .parse()
+                            .unwrap(),
+                    );
+                }
                 headers.insert("ETag", etag.parse().unwrap());
                 headers.insert(http::header::CONTENT_TYPE, content_type.parse().unwrap());
                 headers.insert(
                     http::header::CONTENT_LENGTH,
-                    size.to_string().parse().unwrap(),
+                    length.to_string().parse().unwrap(),
                 );
                 headers.insert(
                     "Last-Modified",
@@ -1209,7 +1248,7 @@ impl S3Service {
                     }
                 }
                 MockResponse {
-                    status: 200,
+                    status,
                     headers,
                     body,
                 }
@@ -4912,6 +4951,7 @@ fn s3_error_response(err: &S3Error) -> MockResponse {
         S3Error::NoSuchMetadataConfiguration { .. } => (404, "NoSuchConfiguration"),
         S3Error::MissingRenameSourceHeader { .. } => (400, "InvalidArgument"),
         S3Error::PreconditionFailed { .. } => (412, "PreconditionFailed"),
+        S3Error::InvalidRange { .. } => (416, "InvalidRange"),
     };
     let body = format!(
         r#"<?xml version="1.0" encoding="UTF-8"?>
@@ -4927,6 +4967,62 @@ fn s3_error_response(err: &S3Error) -> MockResponse {
         request_id = uuid::Uuid::new_v4(),
     );
     MockResponse::xml(status, body)
+}
+
+enum ObjectRange {
+    Full,
+    Partial(std::ops::Range<usize>),
+    Unsatisfiable,
+}
+
+/// Resolve a single HTTP byte range into exclusive byte offsets. S3 ignores
+/// malformed ranges and multiple ranges, returning the full object instead.
+fn parse_object_range(value: &str, size: usize) -> ObjectRange {
+    let Some(spec) = value.strip_prefix("bytes=") else {
+        return ObjectRange::Full;
+    };
+    let Some((first, last)) = spec.split_once('-') else {
+        return ObjectRange::Full;
+    };
+    // RFC 9110 permits arbitrarily large decimal positions. Saturation keeps
+    // huge ends/suffixes clampable and huge starts unsatisfiable without overflow.
+    let decimal = |text: &str| {
+        if text.is_empty() || !text.bytes().all(|b| b.is_ascii_digit()) {
+            return None;
+        }
+        Some(text.bytes().fold(0usize, |number, digit| {
+            number
+                .saturating_mul(10)
+                .saturating_add((digit - b'0') as usize)
+        }))
+    };
+    if first.is_empty() {
+        let Some(suffix) = decimal(last) else {
+            return ObjectRange::Full;
+        };
+        if suffix == 0 || size == 0 {
+            return ObjectRange::Unsatisfiable;
+        }
+        return ObjectRange::Partial(size.saturating_sub(suffix)..size);
+    }
+    let Some(start) = decimal(first) else {
+        return ObjectRange::Full;
+    };
+    let end = if last.is_empty() {
+        usize::MAX
+    } else {
+        let Some(end) = decimal(last) else {
+            return ObjectRange::Full;
+        };
+        if end < start {
+            return ObjectRange::Full;
+        }
+        end
+    };
+    if start >= size {
+        return ObjectRange::Unsatisfiable;
+    }
+    ObjectRange::Partial(start..end.saturating_add(1).min(size))
 }
 
 /// Test an S3 conditional-write header value against a stored object ETag.

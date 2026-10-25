@@ -38,6 +38,23 @@ Amazon Keyspaces (for Apache Cassandra) is a scalable, highly available, and man
 - Documentation and model terms indicate cross-service dependencies or identifiers: `IAM`, `S3`, `KMS`.
 - Some responses appear to be derived from telemetry, managed inventories, recommendations, or findings; seedable mock state may be required because real AWS derives these from external systems.
 
+### Dual-protocol transport compatibility
+
+The committed model/wire snapshot uses AWS JSON 1.0, but [AWS SDK for Go v2 Keyspaces v1.37.0](https://github.com/aws/aws-sdk-go-v2/blob/main/service/keyspaces/CHANGELOG.md) added RPC-v2 CBOR on 2026-10-08 and newer clients prefer it. The [current AWS model](https://github.com/aws/aws-sdk-go-v2/blob/main/codegen/sdk-codegen/aws-models/keyspaces.json) declares both `aws.protocols#awsJson1_0` and `smithy.protocols#rpcv2Cbor` on `com.amazonaws.keyspaces#KeyspacesService`. The protocol shown in the identity section describes the older snapshot, not the complete current transport surface.
+
+Winterbaume accepts both protocols through the same stateful operation dispatch. `protocol.rs` adapts CBOR requests into the existing generated JSON request shapes and converts their responses back to CBOR. This is a service-local transport adapter; generated `model.rs` / `wire.rs` remain unchanged. Keyspaces has no blob members, and its JSON wire names coincide with its CBOR structure member names, so the adapter preserves strings, integers, lists, and nested structures without interpreting them as service behaviour. Model additions that introduce blobs or rename JSON members require revisiting that assumption.
+
+The [Smithy RPC-v2 CBOR specification](https://smithy.io/2.0/additional-specs/protocols/smithy-rpc-v2-cbor.html) requires path-based operation selection, protocol headers on responses, CBOR error bodies containing absolute shape IDs, and timestamp tag 1. JSON errors on a CBOR request produce misleading client decoder failures rather than a usable AWS error. Request timestamp `RestoreTable.restoreTimestamp` is decoded from tag 1; response timestamps `creationTimestamp`, `lastModifiedTimestamp`, `earliestRestorableTimestamp`, and `lastUpdateToPayPerRequestTimestamp` are tagged recursively, including timestamps inside nested summaries.
+
+| Transport input / output | Required effect | Handler use | Regression evidence |
+|---|---|---|---|
+| `smithy-protocol: rpc-v2-cbor`, POST path ending `/service/KeyspacesService/operation/{operation}` | Dispatch without `X-Amz-Target`; accept runtime path prefixes | Decode to the common generated JSON request path | `cbor_keyspace_lifecycle_shares_json_state_and_errors`; six Keyspaces Terraform E2E tests |
+| AWS JSON target header and JSON body | Continue sharing state with CBOR clients | Existing JSON dispatch | Existing SDK integration/scenario suites; JSON read after CBOR create in the protocol lifecycle regression |
+| CBOR structures, nested lists, tag-1 timestamps | Preserve member values and timestamp representation | CBOR adapter plus generated shapes | `cbor_tables_use_tagged_timestamps_and_accept_restore_timestamp` |
+| Invalid CBOR, malformed routes/methods, prohibited target headers, service errors | Return a CBOR error with protocol headers and a qualified error shape | Reject before dispatch or encode the domain error response | `cbor_rejects_malformed_requests_with_cbor_errors`; conflict/not-found assertions in the protocol lifecycle regression |
+
+CI run `40165867237` failed six Keyspaces tests and two IoT tests in the same Terraform batch. All eight failures originated in Keyspaces CreateKeyspace transport decoding; the IoT failures were a shared-batch consequence. A focused local reproduction with AWS provider 6.70.0 failed before the adapter, and all eight tests passed together after it. The Terraform provider constraint `~> 6.0` admits protocol changes independently of `Cargo.lock`, so passing Rust SDK tests alone does not prove current Terraform-client compatibility.
+
 ## Official AWS Documentation Research
 
 Sources:

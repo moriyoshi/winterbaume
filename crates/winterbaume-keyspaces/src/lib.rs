@@ -1,5 +1,6 @@
 pub mod handlers;
 pub(crate) mod model;
+mod protocol;
 pub mod state;
 pub mod types;
 pub mod views;
