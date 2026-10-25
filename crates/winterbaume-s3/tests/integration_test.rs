@@ -105,6 +105,281 @@ async fn test_put_and_get_object() {
 }
 
 #[tokio::test]
+async fn test_get_object_range() {
+    use std::sync::Arc;
+    use winterbaume_core::{MockRequest, MockService};
+
+    let service = Arc::new(S3Service::new());
+    let mock = MockAws::builder().with_service(service.clone()).build();
+    let client = aws_sdk_s3::Client::new(&mock.sdk_config("us-east-1").await);
+    let blob: Vec<u8> = (0..=255u8).cycle().take(1024).collect();
+    client
+        .create_bucket()
+        .bucket("range-bucket")
+        .send()
+        .await
+        .unwrap();
+    let put = client
+        .put_object()
+        .bucket("range-bucket")
+        .key("k")
+        .body(ByteStream::from(blob.clone()))
+        .content_type("application/octet-stream")
+        .metadata("source", "range-test")
+        .send()
+        .await
+        .unwrap();
+
+    for (range, start, end) in [
+        ("bytes=3-7", 3, 8),
+        ("bytes=0-0", 0, 1),
+        ("bytes=1023-1023", 1023, 1024),
+        ("bytes=1020-9999", 1020, 1024),
+        ("bytes=1020-", 1020, 1024),
+        ("bytes=-5", 1019, 1024),
+        ("bytes=-9999", 0, 1024),
+        ("bytes=0-1023", 0, 1024),
+        ("bytes=3-999999999999999999999999999999", 3, 1024),
+        ("bytes=-999999999999999999999999999999", 0, 1024),
+    ] {
+        let content_range = format!("bytes {start}-{}/1024", end - 1);
+        let out = client
+            .get_object()
+            .bucket("range-bucket")
+            .key("k")
+            .range(range)
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(out.content_length(), Some((end - start) as i64), "{range}");
+        assert_eq!(out.content_range(), Some(content_range.as_str()), "{range}");
+        assert_eq!(out.accept_ranges(), Some("bytes"));
+        assert_eq!(out.e_tag(), put.e_tag());
+        assert_eq!(out.content_type(), Some("application/octet-stream"));
+        assert_eq!(out.metadata().unwrap().get("source").unwrap(), "range-test");
+        assert_eq!(
+            out.body.collect().await.unwrap().into_bytes().as_ref(),
+            &blob[start..end],
+            "{range}"
+        );
+
+        let mut headers = http::HeaderMap::new();
+        headers.insert(http::header::RANGE, range.parse().unwrap());
+        let raw = service
+            .handle(MockRequest {
+                method: "GET".to_string(),
+                uri: "https://range-bucket.s3.us-east-1.amazonaws.com/k".to_string(),
+                headers,
+                body: bytes::Bytes::new(),
+            })
+            .await;
+        assert_eq!(raw.status, 206, "{range}");
+        assert_eq!(raw.headers[http::header::CONTENT_RANGE], content_range);
+        assert_eq!(
+            raw.headers[http::header::CONTENT_LENGTH],
+            (end - start).to_string()
+        );
+        assert_eq!(raw.body.as_ref(), &blob[start..end], "{range}");
+    }
+
+    // S3 treats malformed and multiple ranges as ordinary full-object reads.
+    for range in [
+        None,
+        Some("bytes=7-3"),
+        Some("bytes=foo-bar"),
+        Some("bytes=-"),
+        Some("bytes=0-1,3-4"),
+        Some("items=0-1"),
+        Some("bytes=+1-3"),
+    ] {
+        let out = client
+            .get_object()
+            .bucket("range-bucket")
+            .key("k")
+            .set_range(range.map(str::to_string))
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(out.content_length(), Some(1024), "{range:?}");
+        assert!(out.content_range().is_none(), "{range:?}");
+        assert_eq!(
+            out.body.collect().await.unwrap().into_bytes().as_ref(),
+            blob.as_slice(),
+            "{range:?}"
+        );
+    }
+}
+
+#[tokio::test]
+async fn test_get_object_range_unsatisfiable() {
+    let client = make_s3_client().await;
+    client
+        .create_bucket()
+        .bucket("range-errors")
+        .send()
+        .await
+        .unwrap();
+    for (key, body) in [("k", b"data".as_slice()), ("empty", b"".as_slice())] {
+        client
+            .put_object()
+            .bucket("range-errors")
+            .key(key)
+            .body(ByteStream::from_static(body))
+            .send()
+            .await
+            .unwrap();
+    }
+    for (key, range) in [
+        ("k", "bytes=4-"),
+        ("k", "bytes=99-100"),
+        ("k", "bytes=-0"),
+        ("k", "bytes=999999999999999999999999999999-"),
+        ("empty", "bytes=0-0"),
+        ("empty", "bytes=0-"),
+        ("empty", "bytes=-1"),
+    ] {
+        let err = client
+            .get_object()
+            .bucket("range-errors")
+            .key(key)
+            .range(range)
+            .send()
+            .await
+            .expect_err("range must be unsatisfiable");
+        let aws_sdk_s3::error::SdkError::ServiceError(err) = err else {
+            panic!("expected a service error for {key}: {range}");
+        };
+        assert_eq!(err.raw().status().as_u16(), 416, "{key}: {range}");
+        assert_eq!(err.err().meta().code(), Some("InvalidRange"));
+    }
+    let out = client
+        .get_object()
+        .bucket("range-errors")
+        .key("empty")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(out.content_length(), Some(0));
+    assert!(out.content_range().is_none());
+    assert!(out.body.collect().await.unwrap().into_bytes().is_empty());
+}
+
+#[tokio::test]
+async fn test_get_object_range_specific_version() {
+    let client = make_s3_client().await;
+    client
+        .create_bucket()
+        .bucket("range-versions")
+        .send()
+        .await
+        .unwrap();
+    client
+        .put_bucket_versioning()
+        .bucket("range-versions")
+        .versioning_configuration(
+            aws_sdk_s3::types::VersioningConfiguration::builder()
+                .status(aws_sdk_s3::types::BucketVersioningStatus::Enabled)
+                .build(),
+        )
+        .send()
+        .await
+        .unwrap();
+    let old = client
+        .put_object()
+        .bucket("range-versions")
+        .key("k")
+        .body(ByteStream::from_static(b"original version"))
+        .send()
+        .await
+        .unwrap();
+    client
+        .put_object()
+        .bucket("range-versions")
+        .key("k")
+        .body(ByteStream::from_static(b"new"))
+        .send()
+        .await
+        .unwrap();
+    let out = client
+        .get_object()
+        .bucket("range-versions")
+        .key("k")
+        .set_version_id(old.version_id.clone())
+        .range("bytes=9-")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(out.version_id(), old.version_id());
+    assert_eq!(out.e_tag(), old.e_tag());
+    assert_eq!(out.content_range(), Some("bytes 9-15/16"));
+    assert_eq!(out.content_length(), Some(7));
+    assert_eq!(
+        out.body.collect().await.unwrap().into_bytes().as_ref(),
+        b"version"
+    );
+}
+
+#[tokio::test]
+async fn test_get_object_range_preconditions() {
+    let client = make_s3_client().await;
+    client
+        .create_bucket()
+        .bucket("range-conditions")
+        .send()
+        .await
+        .unwrap();
+    let put = client
+        .put_object()
+        .bucket("range-conditions")
+        .key("k")
+        .body(ByteStream::from_static(b"data"))
+        .send()
+        .await
+        .unwrap();
+    for (condition, status) in [
+        ("match", 412),
+        ("none-match", 304),
+        ("modified", 304),
+        ("unmodified", 412),
+    ] {
+        // Preconditions must take precedence over an unsatisfiable range.
+        let request = client
+            .get_object()
+            .bucket("range-conditions")
+            .key("k")
+            .range("bytes=99-");
+        let request = match condition {
+            "match" => request.if_match("\"stale\""),
+            "none-match" => request.if_none_match(put.e_tag().unwrap()),
+            "modified" => {
+                request.if_modified_since(aws_smithy_types::DateTime::from_secs(4_102_444_800))
+            }
+            "unmodified" => request.if_unmodified_since(aws_smithy_types::DateTime::from_secs(0)),
+            _ => unreachable!(),
+        };
+        let err = request.send().await.expect_err("precondition must fail");
+        let aws_sdk_s3::error::SdkError::ServiceError(err) = err else {
+            panic!("expected a service error for {condition}");
+        };
+        assert_eq!(err.raw().status().as_u16(), status, "{condition}");
+    }
+    let out = client
+        .get_object()
+        .bucket("range-conditions")
+        .key("k")
+        .if_match(put.e_tag().unwrap())
+        .range("bytes=1-2")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(out.content_range(), Some("bytes 1-2/4"));
+    assert_eq!(
+        out.body.collect().await.unwrap().into_bytes().as_ref(),
+        b"at"
+    );
+}
+
+#[tokio::test]
 async fn test_head_object() {
     let client = make_s3_client().await;
 
@@ -2616,6 +2891,22 @@ async fn test_multipart_upload_lifecycle() {
         .expect("get_object should succeed after multipart completion");
     let body = object.body.collect().await.unwrap().into_bytes();
     assert_eq!(body.as_ref(), b"hello world");
+
+    // A range spanning uploaded parts must address the completed object.
+    let ranged = client
+        .get_object()
+        .bucket("multipart-bucket")
+        .key("joined.txt")
+        .range("bytes=3-7")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(ranged.content_range(), Some("bytes 3-7/11"));
+    assert_eq!(ranged.content_length(), Some(5));
+    assert_eq!(
+        ranged.body.collect().await.unwrap().into_bytes().as_ref(),
+        b"lo wo"
+    );
 }
 
 // Regression test for issue #12: UploadPart must treat the request body as

@@ -106,6 +106,8 @@ For each operation to implement, read its shape in the model JSON:
 
 Use the service research document as a companion index while reading the model. The generated operation table can quickly surface idempotency tokens, pagination traits, required fields, resource associations, and known error shapes, but the Smithy model remains the source of truth for exact generated Rust fields.
 
+Before implementing each selected operation, create the request modifier inventory required by [QUALITY_GATE.md §5.3](../../docs/QUALITY_GATE.md). Enumerate optional headers, query parameters, and semantic input modifiers from the model and AWS reference, including read operations. Record each member's intended effect and eventual regression test or open TODO. During implementation, trace each modifier through to the observable response or mutation; parsing it into a generated input does not establish support. Before reporting completion, exercise non-default modifiers independently and assert their effects, including HTTP status/headers when those change. Full-object or minimum-input round-trips cannot substitute.
+
 ### 1f. Cross-reference with moto (optional)
 
 Check [moto's source](https://github.com/getmoto/moto/tree/master/moto) for implementation hints if needed. Always prefer the Smithy model as source of truth.

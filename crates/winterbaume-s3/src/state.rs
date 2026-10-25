@@ -212,6 +212,9 @@ pub enum S3Error {
 
     #[error("At least one of the pre-conditions you specified did not hold.")]
     PreconditionFailed { resource: String },
+
+    #[error("The requested range is not satisfiable")]
+    InvalidRange { resource: String },
 }
 
 impl S3Error {
@@ -247,7 +250,8 @@ impl S3Error {
             | S3Error::NoSuchMetadataTableConfiguration { resource }
             | S3Error::NoSuchMetadataConfiguration { resource }
             | S3Error::MissingRenameSourceHeader { resource }
-            | S3Error::PreconditionFailed { resource } => resource.as_str(),
+            | S3Error::PreconditionFailed { resource }
+            | S3Error::InvalidRange { resource } => resource.as_str(),
             S3Error::InvalidPart { resource, .. }
             | S3Error::MethodNotAllowed { resource, .. }
             | S3Error::InternalError { resource, .. }
