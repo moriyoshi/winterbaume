@@ -49,7 +49,7 @@
 - `winterbaume-appconfigdata` v0.3.1: see [`crates/winterbaume-appconfigdata/CHANGELOG.md`](crates/winterbaume-appconfigdata/CHANGELOG.md).
 - `winterbaume-lambda` v2.0.0: see [`crates/winterbaume-lambda/CHANGELOG.md`](crates/winterbaume-lambda/CHANGELOG.md).
 - `winterbaume-opensearchserverless` v0.2.1: see [`crates/winterbaume-opensearchserverless/CHANGELOG.md`](crates/winterbaume-opensearchserverless/CHANGELOG.md).
-- `winterbaume-s3` v0.3.0: see [`crates/winterbaume-s3/CHANGELOG.md`](crates/winterbaume-s3/CHANGELOG.md).
+- `winterbaume-s3` v1.0.0: see [`crates/winterbaume-s3/CHANGELOG.md`](crates/winterbaume-s3/CHANGELOG.md).
 - `winterbaume-server` v0.2.5: see [`crates/winterbaume-server/CHANGELOG.md`](crates/winterbaume-server/CHANGELOG.md).
 - `winterbaume-terraform` v0.2.3: see [`crates/winterbaume-terraform/CHANGELOG.md`](crates/winterbaume-terraform/CHANGELOG.md).
 

@@ -11,7 +11,7 @@
 ### Tests
 - Added integration tests covering byte-range `GetObject` requests.
 
-## v0.3.0 - 2026-07-03
+## v1.0.0 - 2026-07-03
 
 ### Fixed
 
