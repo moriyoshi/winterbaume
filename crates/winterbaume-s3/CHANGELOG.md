@@ -1,6 +1,17 @@
 # Changelog
 
-## v0.3.0 - 2026-07-03
+## v1.0.1 - 2026-10-25
+
+### Fixed
+- `GetObject` now correctly honours byte-range requests: responses respect the `Range` header and return the appropriate `206 Partial Content` status with the requested byte slice.
+
+### Documentation
+- Added a fakecloud comparison column to the API coverage table in the README.
+
+### Tests
+- Added integration tests covering byte-range `GetObject` requests.
+
+## v1.0.0 - 2026-07-03
 
 ### Fixed
 

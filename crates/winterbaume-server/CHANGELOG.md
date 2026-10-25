@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.7 - 2026-10-25
+
+### Internal
+
+- Bumped dependencies on `winterbaume-keyspaces` and `winterbaume-s3` to pick up their latest patch releases.
+
 ## v0.2.6 - 2026-08-17
 
 ### Internal
