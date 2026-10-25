@@ -3,7 +3,7 @@
 ## v0.2.5 - 2026-10-25
 
 ### Internal
-- Bumped dependency versions to track the `winterbaume-keyspaces` v0.2.5 and `winterbaume-s3` v0.2.5 patch releases. No Terraform provider behaviour changed.
+- Bumped dependency versions to track the `winterbaume-keyspaces` v0.2.1 and `winterbaume-s3` v1.0.1 patch releases. No Terraform provider behaviour changed.
 
 ## v0.2.4 - 2026-08-17
 
