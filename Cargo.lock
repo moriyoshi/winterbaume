@@ -13178,7 +13178,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-keyspaces"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -14355,7 +14355,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-s3"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -14634,7 +14634,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-server"
-version = "0.2.6"
+version = "0.2.7"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -15433,7 +15433,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-terraform"
-version = "0.2.4"
+version = "0.2.5"
 dependencies = [
  "aws-config",
  "aws-credential-types",
