@@ -19,6 +19,11 @@ pub struct SsmService {
 }
 
 impl SsmService {
+    /// Share the account/region-scoped state with another AWS API surface.
+    pub fn shared_state(&self) -> Arc<BackendState<SsmState>> {
+        Arc::clone(&self.state)
+    }
+
     pub fn new() -> Self {
         Self {
             state: Arc::new(BackendState::new()),
@@ -509,10 +514,15 @@ impl SsmService {
 
         let mut state = state.write().await;
         match state.put_parameter(name, value, param_type, account_id, region, overwrite, tags) {
-            Ok(version) => wire::serialize_put_parameter_response(&wire::PutParameterResult {
-                version: Some(version),
-                tier: Some("Standard".to_string()),
-            }),
+            Ok(version) => {
+                if let Some(data_type) = input.data_type {
+                    state.parameters.get_mut(name).unwrap().data_type = data_type;
+                }
+                wire::serialize_put_parameter_response(&wire::PutParameterResult {
+                    version: Some(version),
+                    tier: Some("Standard".to_string()),
+                })
+            }
             Err(e) => ssm_error_response(&e),
         }
     }

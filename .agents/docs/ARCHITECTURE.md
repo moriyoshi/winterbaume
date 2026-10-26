@@ -203,8 +203,22 @@ Winterbaume does not treat cross-service behaviour as a generic message bus or s
 - EventBridge rule targets and Pipes source adapters
 - AppSync data sources, including DynamoDB, Lambda, OpenSearch, RDS Data API, HTTP endpoints, and EventBridge
 - Step Functions optimised integrations, including Lambda and the narrower documented DynamoDB action set
+- Cloud Control API resource-type handlers, which create, read, update, and delete resources owned by other services
 
 This matters architecturally because it keeps service-to-service work anchored to real AWS contracts and prevents handler-local shortcuts from becoming de facto platform behaviour. The DynamoDB case is the clearest example: Step Functions does not imply general DynamoDB integration, only the documented `GetItem`, `PutItem`, `UpdateItem`, and `DeleteItem` path.
+
+Cloud Control is a facade rather than an integration that passes events between services. In AWS, a resource created through Cloud Control is an ordinary resource of the owning service, and resources created through the service's own API are readable and listable through Cloud Control. Winterbaume therefore supports two kinds of resource type in `winterbaume-cloudcontrol`:
+
+- **Shaped types** keep a schema-shaped copy in `CloudControlState`. The owning service's API cannot see that copy.
+- **Service-backed types** operate directly on the owning service's state and build every read from it. `AWS::SSM::Parameter` is the first of these (issue #33).
+
+Service-backed types are wired by sharing an instance, not by message passing. The Cloud Control service is given the same `Arc` of the owning service that is registered with `MockAws` or the server (`CloudControlService::with_ssm_service`). It then reaches the account- and region-scoped state through an accessor that the owning crate exposes (`SsmService::shared_state()`). Three rules apply:
+
+- **One-way dependency.** The owning crate never depends on `winterbaume-cloudcontrol`.
+- **Lock order.** Mutations take the Cloud Control lock before the owning service's lock.
+- **Notification.** Successful mutations notify state-change subscribers of both services.
+
+Shaped types are not coherent with the owning service's API, so a shaped type should become service-backed once its owning crate exists and a client depends on that coherence. The per-type contract, including the CloudFormation registry schema rules, is in `.agents/docs/services/cloudcontrol.md`. The obligations on the owning crate are in that service's dossier, for example `.agents/docs/services/ssm.md`.
 
 The Athena-Glue catalogue relationship is a known open integration seam. In real AWS, Athena's default data catalogue is the Glue Data Catalogue — most users create Glue databases and tables, then query them via Athena. Winterbaume currently accepts `DataCatalogType::Glue` at the CRUD level but does not resolve Glue-managed metadata during query execution. Closing this gap requires a catalogue-resolution layer that consults `winterbaume-glue` state when the target catalogue type is `Glue`, plus a schema-injection mechanism so the `AthenaQueryBackend` (or the DuckDB engine) receives table definitions.
 

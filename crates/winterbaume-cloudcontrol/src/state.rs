@@ -42,6 +42,43 @@ pub struct CloudControlState {
 }
 
 impl CloudControlState {
+    /// Record a successful operation whose resource is owned by another service.
+    pub(crate) fn record_operation(
+        &mut self,
+        type_name: &str,
+        identifier: &str,
+        operation: OperationType,
+        resource_model: Option<String>,
+    ) -> ResourceRequest {
+        let key = (type_name.to_string(), identifier.to_string());
+        if let Some(model) = &resource_model {
+            self.resources.insert(
+                key,
+                ManagedResource {
+                    type_name: type_name.to_string(),
+                    identifier: identifier.to_string(),
+                    resource_model: model.clone(),
+                },
+            );
+        } else {
+            self.resources.remove(&key);
+        }
+        let request = ResourceRequest {
+            request_token: Uuid::new_v4().to_string(),
+            type_name: type_name.to_string(),
+            identifier: identifier.to_string(),
+            operation,
+            operation_status: OperationStatus::Success,
+            event_time: Utc::now(),
+            resource_model,
+            status_message: None,
+            error_code: None,
+        };
+        self.requests
+            .insert(request.request_token.clone(), request.clone());
+        request
+    }
+
     /// Create a resource. Operations complete synchronously in the mock.
     ///
     /// When a CFN resource-type shaper is registered for `type_name`, the

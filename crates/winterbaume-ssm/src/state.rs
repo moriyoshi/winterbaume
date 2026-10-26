@@ -244,6 +244,17 @@ impl SsmState {
             1
         };
 
+        let mut parameter_tags = self
+            .parameters
+            .get(name)
+            .map(|p| p.tags.clone())
+            .unwrap_or_default();
+        parameter_tags.extend(tags);
+        let data_type = self
+            .parameters
+            .get(name)
+            .map(|p| p.data_type.clone())
+            .unwrap_or_else(|| "text".to_string());
         let arn = if name.starts_with('/') {
             format!("arn:aws:ssm:{region}:{account_id}:parameter{name}")
         } else {
@@ -257,8 +268,8 @@ impl SsmState {
             version,
             last_modified_date: now,
             arn,
-            data_type: "text".to_string(),
-            tags,
+            data_type,
+            tags: parameter_tags.clone(),
         };
 
         // Record version history
@@ -275,6 +286,7 @@ impl SsmState {
             .or_default()
             .push(pv);
 
+        self.resource_tags.insert(name.to_string(), parameter_tags);
         self.parameters.insert(name.to_string(), parameter);
         Ok(version)
     }
@@ -324,6 +336,7 @@ impl SsmState {
             return Err(SsmError::ParameterNotFound(name.to_string()));
         }
         self.parameter_versions.remove(name);
+        self.resource_tags.remove(name);
         Ok(())
     }
 
@@ -333,6 +346,7 @@ impl SsmState {
         for name in names {
             if self.parameters.remove(*name).is_some() {
                 self.parameter_versions.remove(*name);
+                self.resource_tags.remove(*name);
                 deleted.push(name.to_string());
             } else {
                 invalid.push(name.to_string());

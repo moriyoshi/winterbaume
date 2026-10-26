@@ -9,6 +9,7 @@ use winterbaume_core::{
 };
 
 use crate::cfn_schema::ShapeContext;
+use crate::ssm_parameter::TYPE_NAME as SSM_PARAMETER;
 use crate::state::{CloudControlError, CloudControlState};
 use crate::types::ResourceRequest;
 use crate::views::CloudControlStateView;
@@ -17,13 +18,21 @@ use crate::wire;
 pub struct CloudControlService {
     pub(crate) state: Arc<BackendState<CloudControlState>>,
     pub(crate) notifier: StateChangeNotifier<CloudControlStateView>,
+    pub(crate) ssm: Arc<winterbaume_ssm::SsmService>,
 }
 
 impl CloudControlService {
     pub fn new() -> Self {
+        Self::with_ssm_service(Arc::new(winterbaume_ssm::SsmService::new()))
+    }
+
+    /// Use the same SSM service registered with `MockAws` or the server so
+    /// `AWS::SSM::Parameter` operations share live parameter state.
+    pub fn with_ssm_service(ssm: Arc<winterbaume_ssm::SsmService>) -> Self {
         Self {
             state: Arc::new(BackendState::new()),
             notifier: StateChangeNotifier::new(),
+            ssm,
         }
     }
 }
@@ -109,10 +118,10 @@ impl CloudControlService {
 
         let response = match action.as_str() {
             "CreateResource" => self.handle_create_resource(&state, body_bytes, &ctx).await,
-            "DeleteResource" => self.handle_delete_resource(&state, body_bytes).await,
+            "DeleteResource" => self.handle_delete_resource(&state, body_bytes, &ctx).await,
             "UpdateResource" => self.handle_update_resource(&state, body_bytes, &ctx).await,
-            "GetResource" => self.handle_get_resource(&state, body_bytes).await,
-            "ListResources" => self.handle_list_resources(&state, body_bytes).await,
+            "GetResource" => self.handle_get_resource(&state, body_bytes, &ctx).await,
+            "ListResources" => self.handle_list_resources(&state, body_bytes, &ctx).await,
             "GetResourceRequestStatus" => {
                 self.handle_get_resource_request_status(&state, body_bytes)
                     .await
@@ -136,6 +145,10 @@ impl CloudControlService {
         if MUTATING_ACTIONS.contains(&action.as_str()) && response.status / 100 == 2 {
             use winterbaume_core::StatefulService;
             self.notify_state_changed(account_id, &region).await;
+            let body: Value = serde_json::from_slice(body_bytes).unwrap();
+            if body.get("TypeName").and_then(Value::as_str) == Some(SSM_PARAMETER) {
+                self.ssm.notify_state_changed(account_id, &region).await;
+            }
         }
 
         response
@@ -168,8 +181,15 @@ impl CloudControlService {
         let type_name = input.type_name.as_str();
         let desired_state = input.desired_state.as_str();
 
-        let mut guard = state.write().await;
-        match guard.create_resource(type_name, desired_state, ctx) {
+        let result = if type_name == SSM_PARAMETER {
+            self.create_ssm_parameter(desired_state, ctx).await
+        } else {
+            state
+                .write()
+                .await
+                .create_resource(type_name, desired_state, ctx)
+        };
+        match result {
             Ok(request) => create_response(&request),
             Err(e) => service_error_response(&e),
         }
@@ -179,6 +199,7 @@ impl CloudControlService {
         &self,
         state: &Arc<tokio::sync::RwLock<CloudControlState>>,
         body: &[u8],
+        ctx: &ShapeContext<'_>,
     ) -> MockResponse {
         let input = match wire::deserialize_delete_resource_request(body) {
             Ok(v) => v,
@@ -201,8 +222,12 @@ impl CloudControlService {
         let type_name = input.type_name.as_str();
         let identifier = input.identifier.as_str();
 
-        let mut guard = state.write().await;
-        match guard.delete_resource(type_name, identifier) {
+        let result = if type_name == SSM_PARAMETER {
+            self.delete_ssm_parameter(identifier, ctx).await
+        } else {
+            state.write().await.delete_resource(type_name, identifier)
+        };
+        match result {
             Ok(request) => delete_response(&request),
             Err(e) => service_error_response(&e),
         }
@@ -243,8 +268,16 @@ impl CloudControlService {
         let identifier = input.identifier.as_str();
         let patch_document = input.patch_document.as_str();
 
-        let mut guard = state.write().await;
-        match guard.update_resource(type_name, identifier, patch_document, ctx) {
+        let result = if type_name == SSM_PARAMETER {
+            self.update_ssm_parameter(identifier, patch_document, ctx)
+                .await
+        } else {
+            state
+                .write()
+                .await
+                .update_resource(type_name, identifier, patch_document, ctx)
+        };
+        match result {
             Ok(request) => update_response(&request),
             Err(e) => service_error_response(&e),
         }
@@ -254,6 +287,7 @@ impl CloudControlService {
         &self,
         state: &Arc<tokio::sync::RwLock<CloudControlState>>,
         body: &[u8],
+        ctx: &ShapeContext<'_>,
     ) -> MockResponse {
         let input = match wire::deserialize_get_resource_request(body) {
             Ok(v) => v,
@@ -276,8 +310,16 @@ impl CloudControlService {
         let type_name = input.type_name.as_str();
         let identifier = input.identifier.as_str();
 
-        let guard = state.read().await;
-        match guard.get_resource(type_name, identifier) {
+        let result = if type_name == SSM_PARAMETER {
+            self.get_ssm_parameter(identifier, ctx).await
+        } else {
+            state
+                .read()
+                .await
+                .get_resource(type_name, identifier)
+                .cloned()
+        };
+        match result {
             Ok(resource) => wire::serialize_get_resource_response(&wire::GetResourceOutput {
                 type_name: Some(resource.type_name.clone()),
                 resource_description: Some(wire::ResourceDescription {
@@ -293,6 +335,7 @@ impl CloudControlService {
         &self,
         state: &Arc<tokio::sync::RwLock<CloudControlState>>,
         body: &[u8],
+        ctx: &ShapeContext<'_>,
     ) -> MockResponse {
         let input = match wire::deserialize_list_resources_request(body) {
             Ok(v) => v,
@@ -307,8 +350,17 @@ impl CloudControlService {
         }
         let type_name = input.type_name.as_str();
 
-        let guard = state.read().await;
-        let resources = guard.list_resources(type_name);
+        let resources = if type_name == SSM_PARAMETER {
+            self.list_ssm_parameters(ctx).await
+        } else {
+            state
+                .read()
+                .await
+                .list_resources(type_name)
+                .into_iter()
+                .cloned()
+                .collect()
+        };
         let descriptions: Vec<wire::ResourceDescription> = resources
             .iter()
             .map(|r| wire::ResourceDescription {
