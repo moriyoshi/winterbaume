@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.3.0 - 2026-10-27
+
+### Fixed
+
+- `AWS::SSM::Parameter` resources managed via CloudControl now read from and write to live SSM state, rather than maintaining a separate backing store. This ensures that parameters created or modified through the CloudControl API are immediately visible through direct SSM calls, and vice versa. (#35)
+
+### Tests
+
+- Expanded integration tests to cover the CloudControl/SSM parameter backing behaviour.
+
 ## v0.2.0 - 2026-05-14
 
 ### Internal

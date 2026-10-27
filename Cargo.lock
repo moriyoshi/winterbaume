@@ -11492,7 +11492,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-cloudcontrol"
-version = "1.0.1"
+version = "1.1.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -14638,7 +14638,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-server"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -15229,7 +15229,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-ssm"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -15437,7 +15437,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-terraform"
-version = "0.2.5"
+version = "0.2.6"
 dependencies = [
  "aws-config",
  "aws-credential-types",

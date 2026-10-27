@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.2.8 - 2026-10-27
+
+### Internal
+- Maintenance release; `main.rs` updated as part of CloudControl SSM parameter backing wiring ( see `winterbaume-cloudcontrol` v1.1.0 for the user-visible change ).
+
 ## v0.2.7 - 2026-10-25
 
 ### Internal
