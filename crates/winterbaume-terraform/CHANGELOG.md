@@ -3,7 +3,7 @@
 ## v0.2.6 - 2026-10-27
 
 ### Internal
-- Bumped to track the `winterbaume-ssm` v0.2.6 patch release; no changes to this crate's own source.
+- Bumped to track the `winterbaume-ssm` v0.3.0 release; no changes to this crate's own source.
 
 ## v0.2.5 - 2026-10-25
 
