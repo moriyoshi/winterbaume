@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.1.0 - 2026-10-27
+
+### Fixed
+- `AWS::SSM::Parameter` resources managed through the Cloud Control API are now backed by live SSM state, so parameters written via Cloud Control are immediately visible to SSM API clients and vice versa.
+
+### Tests
+- Added integration tests for `AWS::SSM::Parameter` round-trips through the Cloud Control API.
+
+### Documentation
+- Added a FakeCloud comparison column to the README coverage table.
+
 ## v1.0.1 - 2026-06-04
 
 ### Fixed

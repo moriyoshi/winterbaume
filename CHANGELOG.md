@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-27
+
+- `winterbaume-cloudcontrol` v1.1.0: see [`crates/winterbaume-cloudcontrol/CHANGELOG.md`](crates/winterbaume-cloudcontrol/CHANGELOG.md).
+- `winterbaume-server` v0.2.8: see [`crates/winterbaume-server/CHANGELOG.md`](crates/winterbaume-server/CHANGELOG.md).
+- `winterbaume-ssm` v0.3.0: see [`crates/winterbaume-ssm/CHANGELOG.md`](crates/winterbaume-ssm/CHANGELOG.md).
+- `winterbaume-terraform` v0.2.6: see [`crates/winterbaume-terraform/CHANGELOG.md`](crates/winterbaume-terraform/CHANGELOG.md).
+
 ## 2026-10-25
 
 - `winterbaume-keyspaces` v0.2.1: see [`crates/winterbaume-keyspaces/CHANGELOG.md`](crates/winterbaume-keyspaces/CHANGELOG.md).
