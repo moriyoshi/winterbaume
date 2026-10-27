@@ -1,6 +1,7 @@
 pub mod cfn_schema;
 pub mod handlers;
 pub(crate) mod model;
+mod ssm_parameter;
 pub mod state;
 pub mod types;
 pub mod views;

@@ -18,6 +18,7 @@
 //!   cargo test -p winterbaume-e2e-tests --test terraform ecr -- --ignored
 //!   cargo test -p winterbaume-e2e-tests --test terraform events -- --ignored
 //!   cargo test -p winterbaume-e2e-tests --test terraform cloudwatch -- --ignored
+//!   cargo test -p winterbaume-e2e-tests --test terraform cloudcontrol -- --ignored
 //!   cargo test -p winterbaume-e2e-tests --test terraform lambda -- --ignored
 //!   cargo test -p winterbaume-e2e-tests --test terraform stepfunctions -- --ignored
 //!   cargo test -p winterbaume-e2e-tests --test terraform firehose -- --ignored
@@ -56,6 +57,7 @@ mod applicationcostprofiler;
 mod autoscaling;
 mod batch;
 mod bedrockagent;
+mod cloudcontrol;
 mod cloudfront;
 mod cloudwatch;
 mod codecommit;

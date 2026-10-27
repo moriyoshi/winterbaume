@@ -25,6 +25,7 @@ winterbaume-lambda = { workspace = true }
 winterbaume-secretsmanager = { workspace = true }
 winterbaume-cloudwatchlogs = { workspace = true }
 winterbaume-ssm = { workspace = true }
+winterbaume-cloudcontrol = { workspace = true }
 winterbaume-ecr = { workspace = true }
 winterbaume-eventbridge = { workspace = true }
 winterbaume-firehose = { workspace = true }
@@ -79,6 +80,7 @@ http-body-util = "0.1"
 http = { workspace = true }
 bytes = { workspace = true }
 regex = { workspace = true }
+serde_json = { workspace = true }
 
 [lints]
 workspace = true

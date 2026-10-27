@@ -64,6 +64,33 @@ Parity implications:
 - Implement label uniqueness, label movement, version selectors, latest-version defaults, and version-not-found errors.
 - SecureString handling should enforce symmetric KMS-key constraints, WithDecryption behaviour, and encryption-context-sensitive permission checks where applicable.
 
+## Cross-Service Resource Ownership
+
+SSM owns Parameter Store state for every API surface that exposes it. In real AWS, a parameter created through Cloud Control or CloudFormation (`AWS::SSM::Parameter`) is an ordinary SSM parameter, and Cloud Control reads parameters back from SSM. Winterbaume follows that model: `winterbaume-cloudcontrol` depends on `winterbaume-ssm` and works directly on the same `SsmState` (issue #33). The full Cloud Control-side contract is in [cloudcontrol.md](cloudcontrol.md) under "Cross-Service Resource Ownership".
+
+What this means for changes in this crate:
+
+- **`SsmService::shared_state()` is a public contract.** It returns the `Arc<BackendState<SsmState>>` behind the service. Cloud Control calls `put_parameter`, `get_parameter`, and `delete_parameter` on it, reads `parameters` directly, and writes `Parameter::data_type`, `Parameter::tags`, and `SsmState::resource_tags`. Renaming or changing these, or the meaning of these fields, breaks `crates/winterbaume-cloudcontrol/src/ssm_parameter.rs`. Run `crates/winterbaume-cloudcontrol/tests/ssm_parameter_test.rs` whenever they change.
+- **Parameter fields map one-to-one onto the Cloud Control read model** (`Name`, `Type`, `Value`, `Arn`, `DataType`, `Tags`). A field added to `Parameter` that `AWS::SSM::Parameter` also exposes should be added to that read model in the same change.
+- **Wiring is by instance, not by type.** The server constructs one `SsmService` and passes it to `CloudControlService::with_ssm_service`. A second `SsmService::new()` anywhere in the server breaks coherence without any compile error.
+- **Writes through Cloud Control notify SSM subscribers.** Cloud Control calls `SsmService::notify_state_changed` after a successful `AWS::SSM::Parameter` mutation, so SSM snapshots and Terraform state sync see those writes.
+
+### Parameter state invariants
+
+Parameter tags are stored twice: in `Parameter::tags`, and in `SsmState::resource_tags`, which `ListTagsForResource` reads. Every path that changes a parameter's tags must keep the two equal:
+
+- `put_parameter` merges the new tags into the parameter's existing tags. An overwrite without tags keeps the existing tags rather than clearing them. The merged set is written to both places.
+- `AddTagsToResource` and `RemoveTagsFromResource` update both places.
+- `delete_parameter` and `delete_parameters` remove the `resource_tags` entry along with the parameter and its version history, so a later parameter with the same name does not inherit stale tags.
+- A Cloud Control `UpdateResource` that changes `Tags` replaces the tag set in both places.
+
+`DataType` defaults to `text` on first creation. An overwrite keeps the stored `DataType` unless the request sets one, because `PutParameter` applies an explicit `DataType` after `put_parameter` returns. Covered by `test_parameter_overwrite_preserves_tags_and_data_type` in `crates/winterbaume-ssm/tests/integration_test.rs`.
+
+### Known gaps exposed by Cloud Control
+
+- `Parameter` has no `Description`, `Tier`, `AllowedPattern`, or `Policies` fields, so these are discarded whether they arrive through `PutParameter` or through Cloud Control. They are writeOnly in the `AWS::SSM::Parameter` schema, so Cloud Control reads are unaffected. However, `DescribeParameters` cannot show a description, and `AllowedPattern` is not enforced on later writes.
+- `aws:ec2:image` values are accepted without the asynchronous EC2 image validation that real SSM performs.
+
 ## Operation Groups
 
 ### Describe

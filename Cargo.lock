@@ -11497,6 +11497,7 @@ dependencies = [
  "aws-config",
  "aws-credential-types",
  "aws-sdk-cloudcontrol",
+ "aws-sdk-ssm",
  "aws-smithy-runtime-api",
  "aws-smithy-types",
  "bytes",
@@ -11509,6 +11510,7 @@ dependencies = [
  "tracing",
  "uuid",
  "winterbaume-core",
+ "winterbaume-ssm",
 ]
 
 [[package]]
@@ -12434,6 +12436,7 @@ dependencies = [
  "hyper-util",
  "libc",
  "regex",
+ "serde_json",
  "tokio",
  "winterbaume-acm",
  "winterbaume-apigatewayv2",
@@ -12444,6 +12447,7 @@ dependencies = [
  "winterbaume-autoscaling",
  "winterbaume-batch",
  "winterbaume-bedrockagent",
+ "winterbaume-cloudcontrol",
  "winterbaume-cloudfront",
  "winterbaume-cloudwatch",
  "winterbaume-cloudwatchlogs",

@@ -346,6 +346,37 @@ provider "aws" {{
     std::fs::write(dir.join("provider.tf"), content).unwrap();
 }
 
+/// Write the AWS Cloud Control (`awscc`) provider configuration pointing at the
+/// given server URL. Unlike the `aws` provider, `awscc` manages every resource
+/// through the Cloud Control API, so it is the only Terraform path that
+/// exercises `winterbaume-cloudcontrol` resource-type handlers.
+pub fn write_awscc_provider_tf(dir: &Path, server_url: &str) {
+    let content = format!(
+        r#"terraform {{
+  required_providers {{
+    awscc = {{
+      source  = "hashicorp/awscc"
+      version = "~> 1.0"
+    }}
+  }}
+}}
+
+provider "awscc" {{
+  region                  = "us-east-1"
+  access_key              = "test"
+  secret_key              = "test"
+  skip_metadata_api_check = true
+
+  endpoints = {{
+    cloudcontrolapi = "{server_url}"
+    sts             = "{server_url}"
+  }}
+}}
+"#
+    );
+    std::fs::write(dir.join("provider.tf"), content).unwrap();
+}
+
 /// Shared plugin cache directory to avoid re-downloading the AWS provider for each test.
 fn plugin_cache_dir() -> PathBuf {
     let dir = tf_tmp_root().join("tf-plugin-cache");

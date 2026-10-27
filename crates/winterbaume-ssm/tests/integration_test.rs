@@ -18,6 +18,62 @@ async fn make_ssm_client() -> aws_sdk_ssm::Client {
 // ── Parameter operations ──────────────────────────────────────────
 
 #[tokio::test]
+async fn test_parameter_overwrite_preserves_tags_and_data_type() {
+    let client = make_ssm_client().await;
+    let name = "/test/image";
+    client
+        .put_parameter()
+        .name(name)
+        .value("ami-12345678")
+        .r#type(aws_sdk_ssm::types::ParameterType::String)
+        .data_type("aws:ec2:image")
+        .tags(
+            aws_sdk_ssm::types::Tag::builder()
+                .key("env")
+                .value("test")
+                .build()
+                .unwrap(),
+        )
+        .send()
+        .await
+        .unwrap();
+    client
+        .put_parameter()
+        .name(name)
+        .value("ami-87654321")
+        .overwrite(true)
+        .send()
+        .await
+        .unwrap();
+    let result = client.get_parameter().name(name).send().await.unwrap();
+    let parameter = result.parameter().unwrap();
+    assert_eq!(parameter.data_type(), Some("aws:ec2:image"));
+    assert_eq!(parameter.version(), 2);
+    let tags = client
+        .list_tags_for_resource()
+        .resource_type(aws_sdk_ssm::types::ResourceTypeForTagging::Parameter)
+        .resource_id(name)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(tags.tag_list().len(), 1);
+    assert_eq!(tags.tag_list()[0].key(), "env");
+    assert_eq!(tags.tag_list()[0].value(), "test");
+    client.delete_parameters().names(name).send().await.unwrap();
+    assert!(
+        client
+            .list_tags_for_resource()
+            .resource_type(aws_sdk_ssm::types::ResourceTypeForTagging::Parameter)
+            .resource_id(name)
+            .send()
+            .await
+            .unwrap()
+            .tag_list()
+            .is_empty()
+    );
+}
+
+#[tokio::test]
 async fn test_put_and_get_parameter() {
     let client = make_ssm_client().await;
 
