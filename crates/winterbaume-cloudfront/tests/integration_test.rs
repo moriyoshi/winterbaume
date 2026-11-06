@@ -4015,3 +4015,202 @@ async fn test_get_distribution_config_always_includes_origin_groups() {
         .expect("origin_groups should always be present in config response");
     assert_eq!(og.quantity(), 0);
 }
+
+fn js_function_config(comment: &str) -> aws_sdk_cloudfront::types::FunctionConfig {
+    aws_sdk_cloudfront::types::FunctionConfig::builder()
+        .comment(comment)
+        .runtime(aws_sdk_cloudfront::types::FunctionRuntime::CloudfrontJs20)
+        .build()
+        .unwrap()
+}
+
+#[tokio::test]
+async fn test_function_development_and_live_stages() {
+    use aws_sdk_cloudfront::primitives::Blob;
+    use aws_sdk_cloudfront::types::FunctionStage;
+
+    let client = make_cloudfront_client().await;
+    let v1 = "function handler(event) { return event.request; }";
+    let created = client
+        .create_function()
+        .name("staged")
+        .function_config(js_function_config("v1"))
+        .function_code(Blob::new(v1.as_bytes()))
+        .send()
+        .await
+        .unwrap();
+    let summary = created.function_summary().unwrap();
+    assert_eq!(summary.function_config().unwrap().comment(), "v1");
+    assert_eq!(
+        summary.function_metadata().unwrap().stage(),
+        Some(&FunctionStage::Development)
+    );
+    // The code round-trips as the decoded blob, not the XML request body.
+    let code = client.get_function().name("staged").send().await.unwrap();
+    assert_eq!(code.function_code().unwrap().as_ref(), v1.as_bytes());
+    // An unpublished function has no LIVE stage.
+    let err = client
+        .describe_function()
+        .name("staged")
+        .stage(FunctionStage::Live)
+        .send()
+        .await
+        .expect_err("LIVE must not exist before publishing");
+    assert!(err.into_service_error().is_no_such_function_exists());
+
+    let etag = created.e_tag().unwrap().to_string();
+    let published = client
+        .publish_function()
+        .name("staged")
+        .if_match(&etag)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        published
+            .function_summary()
+            .unwrap()
+            .function_metadata()
+            .unwrap()
+            .stage(),
+        Some(&FunctionStage::Live)
+    );
+
+    // UpdateFunction changes DEVELOPMENT only.
+    let v2 = "function handler(event) { return event; }";
+    let etag = client
+        .describe_function()
+        .name("staged")
+        .send()
+        .await
+        .unwrap()
+        .e_tag()
+        .unwrap()
+        .to_string();
+    client
+        .update_function()
+        .name("staged")
+        .if_match(&etag)
+        .function_config(js_function_config("v2"))
+        .function_code(Blob::new(v2.as_bytes()))
+        .send()
+        .await
+        .unwrap();
+    let live = client
+        .get_function()
+        .name("staged")
+        .stage(FunctionStage::Live)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(live.function_code().unwrap().as_ref(), v1.as_bytes());
+    let live = client
+        .describe_function()
+        .name("staged")
+        .stage(FunctionStage::Live)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        live.function_summary()
+            .unwrap()
+            .function_config()
+            .unwrap()
+            .comment(),
+        "v1"
+    );
+    let development = client.get_function().name("staged").send().await.unwrap();
+    assert_eq!(development.function_code().unwrap().as_ref(), v2.as_bytes());
+    let live_list = client
+        .list_functions()
+        .stage(FunctionStage::Live)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(live_list.function_list().unwrap().quantity(), 1);
+}
+
+#[tokio::test]
+async fn test_function_duplicate_name_and_tags() {
+    use aws_sdk_cloudfront::primitives::Blob;
+
+    let client = make_cloudfront_client().await;
+    let created = client
+        .create_function()
+        .name("tagged")
+        .function_config(js_function_config("c"))
+        .function_code(Blob::new(
+            b"function handler(e) { return e.request; }".to_vec(),
+        ))
+        .send()
+        .await
+        .unwrap();
+    let arn = created
+        .function_summary()
+        .unwrap()
+        .function_metadata()
+        .unwrap()
+        .function_arn()
+        .to_string();
+    let err = client
+        .create_function()
+        .name("tagged")
+        .function_config(js_function_config("c"))
+        .function_code(Blob::new(b"x".to_vec()))
+        .send()
+        .await
+        .expect_err("duplicate function name must fail");
+    assert!(err.into_service_error().is_function_already_exists());
+
+    client
+        .tag_resource()
+        .resource(&arn)
+        .tags(
+            aws_sdk_cloudfront::types::Tags::builder()
+                .items(
+                    aws_sdk_cloudfront::types::Tag::builder()
+                        .key("env")
+                        .value("dev")
+                        .build()
+                        .unwrap(),
+                )
+                .build(),
+        )
+        .send()
+        .await
+        .unwrap();
+    let tags = client
+        .list_tags_for_resource()
+        .resource(&arn)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(tags.tags().unwrap().items().len(), 1);
+}
+
+#[tokio::test]
+async fn test_response_headers_policy_duplicate_name_rejected() {
+    let client = make_cloudfront_client().await;
+    let config = || {
+        aws_sdk_cloudfront::types::ResponseHeadersPolicyConfig::builder()
+            .name("dup-rhp")
+            .build()
+            .unwrap()
+    };
+    client
+        .create_response_headers_policy()
+        .response_headers_policy_config(config())
+        .send()
+        .await
+        .unwrap();
+    let err = client
+        .create_response_headers_policy()
+        .response_headers_policy_config(config())
+        .send()
+        .await
+        .expect_err("duplicate response headers policy name must fail");
+    assert!(
+        err.into_service_error()
+            .is_response_headers_policy_already_exists()
+    );
+}

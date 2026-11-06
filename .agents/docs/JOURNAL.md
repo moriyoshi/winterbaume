@@ -2590,3 +2590,97 @@ Added the first `awscc`-provider E2E to the existing `winterbaume-e2e-tests` cra
 - New dev-dependencies: `winterbaume-cloudcontrol`, `serde_json`.
 
 Validation: `WINTERBAUME_TF_TMP_DIR=.agents-workspace/tmp/tf-e2e-issue33 ./.agents/bin/cargo.sh test -p winterbaume-e2e-tests --test terraform cloudcontrol -- --ignored` passed (1 test, 22 s) on the first run, with no handler fixes needed. Per-crate `clippy --all-targets --all-features -- -D warnings` and `fmt --check` passed for `winterbaume-e2e-tests`. Updated `cloudcontrol-awscc-terraform-e2e` in `TODO.md` with this progress; scenarios for the six shaped types are still open.
+
+## 2026-11-06 — DynamoDB Query/Scan honour secondary-index projections ( issue #39 )
+
+[Issue #39](https://github.com/moriyoshi/winterbaume/issues/39): `Query` and `Scan` on a GSI returned every attribute of the base item, so `INCLUDE` and `KEYS_ONLY` behaved like `ALL`. Root cause: the stored `projection_type` / `non_key_attributes` were only echoed by `DescribeTable`; the read path never consulted them. `Scan` also ignored `IndexName` entirely ( the open `dynamodb-scan-ignores-index-name` TODO ), so a GSI scan returned base-table items, including ones absent from the sparse index.
+
+Fix, confined to `winterbaume-dynamodb`:
+
+- `handlers.rs`: `IndexReadView` resolves the addressed index ( unknown index → `ValidationException: The table does not have the specified index: X` instead of the previous 500 `InternalError` ) and its projected attribute set. `shape_read_items` applies projection, `FilterExpression`, `Select` and `ProjectionExpression` in AWS order. GSI: filter and output see only the index entry. LSI: the filter sees the whole item and explicit `ProjectionExpression` / `AttributesToGet` / `Select=ALL_ATTRIBUTES` fetch table attributes; the default output is the projection. `read_projection` validates `Select` with moto's message wording ( `ALL_PROJECTED_ATTRIBUTES` needs an index, `ALL_ATTRIBUTES` refused on a non-`ALL` GSI, only `SPECIFIC_ATTRIBUTES` combines with a projection, `AttributesToGet` + `ProjectionExpression` refused ), and maps the previously ignored legacy `AttributesToGet` to projection paths. `Select=COUNT` now omits `Items`. `Scan` gained the GSI `ConsistentRead` refusal that `Query` already had.
+- `backend.rs`: additive `DynamoDbBackend::scan_index` with a best-effort default ( `scan`, then drop non-indexed items ), so the Redis backend keeps compiling untouched; the in-memory backend overrides it properly.
+- `state.rs`: `scan_index` returns only items carrying every index key, with `LastEvaluatedKey` = table key + index key. The index `query` now drops items missing the index sort key ( sparse ), and orders / resumes by ( index sort key, table hash, table range ). Previously `ExclusiveStartKey` was ignored on a hash-only index ( pagination never advanced ), and ties on a non-unique index sort key could skip or repeat items.
+
+Pitfalls: projection happens in the handler after the backend applied `Limit`, so `LastEvaluatedKey` is computed from full items and survives a `KEYS_ONLY` projection. The LSI-filter-sees-table-attributes choice follows the LSI guide's "fetching is automatic and transparent"; moto instead projects before filtering on both index kinds. Projection is top-level only; nested `NonKeyAttributes` paths are not a DynamoDB feature, so this is enough.
+
+Follow-up filed as `dynamodb-redis-scan-index` in `TODO.md` ( Redis should override `scan_index` and gain the sparse / tie-break query fixes ); `dynamodb-scan-ignores-index-name` is marked done. Dossier `AWS-Fidelity Rules` gained the projection rule.
+
+Validation: 12 new integration tests ( `test_query_gsi_include_projection_omits_unprojected_attributes` is the issue repro ); `./.agents/bin/cargo.sh test -p winterbaume-dynamodb` passed ( 23 unit, 204 integration, 5 scenario ). Per-crate `clippy --all-targets --all-features -- -D warnings` and `fmt --check` passed; `cargo check -p winterbaume-dynamodb-redis` passed.
+
+## 2026-11-06 — Cloud Control backs `AWS::CloudFront::ResponseHeadersPolicy` and `AWS::CloudFront::Function` by live CloudFront state ( issues #37, #38 )
+
+[Issue #37](https://github.com/moriyoshi/winterbaume/issues/37) and [issue #38](https://github.com/moriyoshi/winterbaume/issues/38) are the same class as #33: both types fell through to the verbatim-`DesiredState` fallback, so `GetResource` echoed the input (no `Id` / `LastModifiedTime`, no `FunctionARN` / `Stage`, write-only `AutoPublish` echoed), the function was identified by `Name` instead of `FunctionARN`, and neither resource existed in CloudFront.
+
+Fix: both are now service-backed, following the #33 pattern.
+
+- `winterbaume-cloudcontrol`: new `backed.rs` (`BackedType` routes create/get/list/update/delete and owning-service notification for all three backed types, replacing the `type_name == SSM_PARAMETER` branches in `handlers.rs`), `cloudfront_response_headers_policy.rs`, `cloudfront_function.rs`, `json_patch.rs` (full RFC 6902, needed for nested paths such as `/ResponseHeadersPolicyConfig/Comment`), and `cfn_validate.rs` (hand-transcribed schema subset that produces `Model validation failed (...)` as a synchronous `ValidationException` via the new `CloudControlError::ValidationFailed`). `CloudControlService::with_cloudfront_service` shares the registered `CloudFrontService`; the server now wires it.
+- `winterbaume-cloudfront`: `CloudFrontService::shared_state()`; functions have an explicit LIVE snapshot (`CloudFrontFunctionData::live`) taken by `PublishFunction`, and `DescribeFunction` / `GetFunction` / `ListFunctions` honour the `Stage` query parameter (previously stage was inferred from `status`, and `DescribeFunction` was being passed the `If-Match` header instead of `Stage`); `CreateFunction` / `UpdateFunction` now parse the request model and base64-decode `FunctionCode` (previously the whole XML body was stored as the code and `FunctionConfig` was always default); duplicate function names (`FunctionAlreadyExists`) and response headers policy names (`ResponseHeadersPolicyAlreadyExists`) are rejected; tagging covers function ARNs. Snapshot views gained `live` and `tags` with `#[serde(default)]`, and the Terraform `aws_cloudfront_function` converter fills `live` when `publish` is set.
+
+Pitfalls:
+
+- The read model, not the desired state, is what `UpdateResource` patches and validates. Real AWS reports unset `SecurityHeadersConfig` members as `{}`, which violates their own `required` keys, so any nested patch fails until those members are replaced. Reproduce that faithfully; do not "fix" it by omitting the empty objects.
+- `ValidationException` is not a modelled `CreateResource` / `UpdateResource` error in the Cloud Control Smithy model, so SDK tests must check `ProvideErrorMetadata::code()` rather than an `is_validation_exception()` helper.
+- CloudFront is global: always use the `us-east-1` region key for its state, regardless of the Cloud Control request region.
+
+Validation: 7 new SDK tests in `crates/winterbaume-cloudcontrol/tests/cloudfront_test.rs`, 3 new CloudFront integration tests (stages and code decoding, duplicate function name and function tags, duplicate response headers policy name), and unit tests for `json_patch` and `cfn_validate`. `./.agents/bin/cargo.sh test -p winterbaume-cloudcontrol` and `-p winterbaume-cloudfront` passed, as did the `cloudfront` filter of `-p winterbaume-terraform`. Per-crate clippy (`--all-targets --all-features -D warnings`) and `fmt --check` passed for `winterbaume-cloudfront`, `winterbaume-cloudcontrol`, `winterbaume-terraform` and `winterbaume-server`. The issues' AWS CLI repros were rerun against a freshly built `winterbaume-server`: both read models match the captures, the nested patch returns the expected `ValidationException`, and `cloudfront get-response-headers-policy` / `describe-function --stage LIVE` find the resources. Not done: an `awscc` Terraform E2E for these two types.
+
+## 2026-11-06 — Redis DynamoDB backend: secondary-index reads (rest of issue #39)
+
+Finishes the `dynamodb-redis-scan-index` follow-up left by the in-memory fix for issue #39.
+
+- **Index Scan.** `RedisDynamoDbBackend` now overrides `DynamoDbBackend::scan_index`. The trait default ran `scan`, then dropped non-index items, so `Limit` counted items that were then discarded. Pages came back short, and because the Redis `scan` never returned a `LastEvaluatedKey`, the caller stopped after the first page.
+- **Plain Scan.** `scan` now orders items by the table key, honours `ExclusiveStartKey` and returns a `LastEvaluatedKey`. Previously it truncated an unordered `HGETALL` with no way to continue.
+- **Index Query.**
+  - It applies the sparse filter, so an LSI query no longer returns items that lack the LSI sort key.
+  - It breaks ties on the index sort key with the table primary key. `ExclusiveStartKey` was positioned by the index sort key alone, so paging skipped items that shared a value. On an index without a sort key it was ignored outright, so `Limit=1` repeated the first item forever.
+  - An unknown index is a `ValidationException` rather than a 500, matching the in-memory change.
+- **Shared code.** Query, Scan and index Scan go through one `paginate` helper ordered by `ReadPosition` ( sort-key value, then table hash and range key, compared with `compare_attr_values` ). Ordering follows the key values, not their base64 storage fields, whose order does not follow the values.
+- **Testing.** The crate had no tests that touch Redis. `tests/index_reads_test.rs` adds 4 end-to-end tests that run against a real server when `WINTERBAUME_TEST_REDIS_URL` is set and return early otherwise. Each uses a uniquely named table and deletes it, so a shared database is safe. 3 unit tests cover `paginate` and run without Redis. All passed against `redis:7-alpine` in a throwaway Docker container. Traced against the old code, each end-to-end test would fail: short page with no continuation, endless first page, LSI items without the sort key, and a 500.
+- **Found along the way.** The in-memory backend orders numeric sort keys as `N:<digits>` strings, so `10` sorts before `9`. This predates #39 and is filed as `dynamodb-numeric-sort-key-order`; the Redis backend already compares numerically.
+
+## 2026-11-06 — DynamoDB numeric sort keys order numerically and exactly
+
+Closes `dynamodb-numeric-sort-key-order`, found while finishing issue #39.
+
+- **Bug.** The in-memory backend stores items under `serialize_key_value` strings ( `N:10` ). Both its base-table `query` and the index path added for #39 sorted by those strings and positioned `ExclusiveStartKey` with them, so `10` came before `9`, and pages followed that wrong order. The Redis backend did order numbers numerically, but through `f64`. That merges keys beyond about 15 significant digits: `12345678901234567890` and `12345678901234567891` compared equal, so `ExclusiveStartKey` skipped one of them.
+- **Fix.** `types::compare_numbers` parses each number into sign, significant digits and decimal exponent, normalised so that `1.50`, `1.5` and `15e-1` are equal, and compares them exactly. `types::compare_key_values` is the public `S` / `N` / `B` comparator built on it. Sort-key conditions use it, as do `expr::compare_ddb` for filters and conditions, both in-memory query paths ( via `state::key_order` / `index_order` ) and the Redis `compare_attr_values`. An index query breaks ties with the table key by value too.
+- **Left as is.** `Scan` still orders by the storage strings: AWS leaves Scan order unspecified, and the order only has to be consistent with `ExclusiveStartKey`, which it is. `B` keys still compare by their base64 text rather than by the decoded bytes AWS uses; this is pre-existing and not touched here.
+- **Tests.** `test_query_numeric_sort_key_order` covers the table and a GSI, forward and reverse, paged with `Limit=3`, plus a `>` key condition on a 20-digit key. The Redis end-to-end test `query_orders_numeric_sort_keys_exactly` pages with `Limit=1`. Both were mutation-checked. With the storage-string order put back, the in-memory test returned `-1.5, 10, 100, …, 2, 9`. With the `f64` comparison put back, the Redis test lost `12345678901234567890`. Two unit tests cover `compare_numbers`, including signs, zero, exponents, 38-digit fractions and malformed input.
+
+## 2026-11-06 — DynamoDB binary sort keys order by bytes
+
+Follow-up to the numeric sort-key fix. AWS orders `B` values as unsigned bytes. Winterbaume stores them as the client's base64 text and compared that text.
+
+- **What was wrong.**
+  - Base64 text sorts in a different order from the bytes it encodes: digits, `+` and `/` sort before the letters as text but encode the highest bytes. So 0xd0 ( `0A==` ) came before 0x68 ( `aA==` ), and 0xff ( `/w==` ) before 0x00 ( `AA==` ), on both backends.
+  - The key-condition `begins_with` matched text prefixes. Padding broke byte prefixes: `AQ==` ( 01 ) is not a text prefix of `AQI=` ( 01 02 ).
+  - Filter and condition expressions had no `B` case: `<`, `>` and `begins_with` on a binary attribute always evaluated to false.
+- **Fix.**
+  - `types::decode_binary` decodes with a padding-indifferent standard-alphabet engine; `base64` is a new dependency of `winterbaume-dynamodb`.
+  - `types::compare_binaries` and `binary_starts_with` work on the decoded bytes and fall back to the text for invalid base64.
+  - `compare_key_values` uses them, which covers sort order and key conditions in both backends, since the Redis `compare_attr_values` already delegates to it. `expr::compare_ddb` and the filter `begins_with` gained `B` cases.
+- **Tests.**
+  - 2 unit tests use pairs whose text order and byte order disagree, plus prefixes and padding.
+  - `test_query_binary_sort_key_order` covers the table and a GSI, both directions, paged with `Limit=4`, `begins_with` and `>` key conditions, and `begins_with` and `<` filters on a non-key `B` attribute.
+  - The Redis end-to-end test `query_orders_binary_sort_keys_by_bytes` passed against `redis:7-alpine` in Docker.
+  - Mutation-checked: with the text comparison put back, the in-memory test returned `ff, d0, 00, 01, 01 02, 68`.
+- **Not touched.** `size()` on a `B` value still estimates `len * 3 / 4` from the base64 text, which overcounts padded values: `size` of `AQ==` is 3, not 1.
+
+## 2026-11-06 — DynamoDB `size()` of a binary value counts bytes
+
+Follow-up to the binary sort-key fix. AWS defines `size()` of a `B` value as its length in bytes. Winterbaume measured the stored base64 text instead, in two different ways:
+- Filter and condition expressions ( `expr::compute_size` ) estimated `len * 3 / 4`, which overcounts padded values: `AQ==`, one byte, measured 3.
+- PartiQL ( `partiql_exec::attribute_value_size` ) returned the text length, 4, although its doc comment promised bytes.
+
+Both now call `types::binary_len`, which decodes through the same padding-indifferent `decode_binary` as the comparisons. Invalid base64 falls back to the old estimate.
+
+`test_size_of_binary_counts_bytes` checks 1-, 2- and 4-byte values through a filter, a condition expression and a PartiQL `WHERE`. Putting back each old calculation on its own fails the test: the filter matched nothing, and PartiQL matched 0 items. `binary_len_counts_decoded_bytes` covers padded, unpadded and empty values.
+
+## 2026-11-06 — `awscc` Terraform E2E for the CloudFront Cloud Control types
+
+Follow-up to issues #37 and #38. Three `awscc` tests in `crates/winterbaume-e2e-tests/tests/terraform/cloudcontrol.rs` drive `awscc_cloudfront_response_headers_policy` and `awscc_cloudfront_function` (provider 1.109.0) against an isolated server that shares one `CloudFrontService` between Cloud Control and the native API. They follow the `awscc_ssm_parameter` test.
+
+- **Finding.** The first draft set only `frame_options` in `security_headers_config`, and the in-place update failed with `ValidationException: Model validation failed`. The trace showed a correct patch that replaced only `Comment` and `CustomHeadersConfig/Items`. The failure is the issue #37 behaviour: the read model reports unset members as `{}`, and validation of the patched model rejects them. Real AWS does the same, so with the `awscc` provider a policy can be updated in place only when all six `SecurityHeadersConfig` members are set. The lifecycle test now sets all six, and a separate test pins the rejection, as well as the absence of drift from the empty objects.
+- **Function.** `auto_publish = true` publishes on create and on each code change through Terraform, `id` is the ARN, and an out-of-band `DeleteFunction` plans as `1 to add`.
+- **Run.** `cargo test -p winterbaume-e2e-tests --test terraform cloudcontrol -- --ignored`. All four `awscc` tests passed. Setting `WINTERBAUME_TF_TMP_DIR` to a directory with a populated `tf-plugin-cache` avoids re-downloading the provider.
+

@@ -8641,3 +8641,1051 @@ async fn test_update_item_multiple_list_removals() {
     let strs: Vec<&str> = list.iter().map(|v| v.as_s().unwrap().as_str()).collect();
     assert_eq!(strs, vec!["Chisel", "Screwdriver", "Hacksaw"]);
 }
+
+// ---------------------------------------------------------------------------
+// Secondary index projections (GitHub issue #39)
+// ---------------------------------------------------------------------------
+
+/// Table `pk`/`sk` with:
+/// - GSI `ByGsiPk` ( `gsi_pk`/`sk`, INCLUDE `wanted` )
+/// - GSI `ByGsiKeys` ( `gsi_pk`, KEYS_ONLY )
+/// - GSI `ByGsiAll` ( `gsi_pk`, ALL )
+/// - LSI `ByLsi` ( `pk`/`lsi_sk`, INCLUDE `wanted` )
+///
+/// Items `p1/a`, `p1/b` and `p2/c` carry `gsi_pk = g`; `p3/d` carries no
+/// `gsi_pk` and so is absent from every GSI. `p2/c` has no `lsi_sk`.
+async fn create_projection_table(client: &aws_sdk_dynamodb::Client, table_name: &str) {
+    use aws_sdk_dynamodb::types::{
+        BillingMode, GlobalSecondaryIndex, LocalSecondaryIndex, Projection, ProjectionType,
+    };
+
+    fn key(name: &str, key_type: KeyType) -> KeySchemaElement {
+        KeySchemaElement::builder()
+            .attribute_name(name)
+            .key_type(key_type)
+            .build()
+            .unwrap()
+    }
+    fn attr(name: &str) -> AttributeDefinition {
+        AttributeDefinition::builder()
+            .attribute_name(name)
+            .attribute_type(ScalarAttributeType::S)
+            .build()
+            .unwrap()
+    }
+    fn projection(projection_type: ProjectionType, include: &[&str]) -> Projection {
+        let mut builder = Projection::builder().projection_type(projection_type);
+        for name in include {
+            builder = builder.non_key_attributes(*name);
+        }
+        builder.build()
+    }
+
+    client
+        .create_table()
+        .table_name(table_name)
+        .billing_mode(BillingMode::PayPerRequest)
+        .key_schema(key("pk", KeyType::Hash))
+        .key_schema(key("sk", KeyType::Range))
+        .attribute_definitions(attr("pk"))
+        .attribute_definitions(attr("sk"))
+        .attribute_definitions(attr("gsi_pk"))
+        .attribute_definitions(attr("lsi_sk"))
+        .global_secondary_indexes(
+            GlobalSecondaryIndex::builder()
+                .index_name("ByGsiPk")
+                .key_schema(key("gsi_pk", KeyType::Hash))
+                .key_schema(key("sk", KeyType::Range))
+                .projection(projection(ProjectionType::Include, &["wanted"]))
+                .build()
+                .unwrap(),
+        )
+        .global_secondary_indexes(
+            GlobalSecondaryIndex::builder()
+                .index_name("ByGsiKeys")
+                .key_schema(key("gsi_pk", KeyType::Hash))
+                .projection(projection(ProjectionType::KeysOnly, &[]))
+                .build()
+                .unwrap(),
+        )
+        .global_secondary_indexes(
+            GlobalSecondaryIndex::builder()
+                .index_name("ByGsiAll")
+                .key_schema(key("gsi_pk", KeyType::Hash))
+                .projection(projection(ProjectionType::All, &[]))
+                .build()
+                .unwrap(),
+        )
+        .local_secondary_indexes(
+            LocalSecondaryIndex::builder()
+                .index_name("ByLsi")
+                .key_schema(key("pk", KeyType::Hash))
+                .key_schema(key("lsi_sk", KeyType::Range))
+                .projection(projection(ProjectionType::Include, &["wanted"]))
+                .build()
+                .unwrap(),
+        )
+        .send()
+        .await
+        .unwrap();
+
+    let rows: [(&str, &str, Option<&str>, Option<&str>, &str, &str); 4] = [
+        ("p1", "a", Some("g"), Some("l1"), "w1", "s1"),
+        ("p1", "b", Some("g"), Some("l2"), "w2", "s2"),
+        ("p2", "c", Some("g"), None, "w3", "s3"),
+        ("p3", "d", None, None, "w4", "s4"),
+    ];
+    for (pk, sk, gsi_pk, lsi_sk, wanted, secret) in rows {
+        let mut req = client
+            .put_item()
+            .table_name(table_name)
+            .item("pk", AttributeValue::S(pk.into()))
+            .item("sk", AttributeValue::S(sk.into()))
+            .item("wanted", AttributeValue::S(wanted.into()))
+            .item("secret", AttributeValue::S(secret.into()));
+        if let Some(v) = gsi_pk {
+            req = req.item("gsi_pk", AttributeValue::S(v.into()));
+        }
+        if let Some(v) = lsi_sk {
+            req = req.item("lsi_sk", AttributeValue::S(v.into()));
+        }
+        req.send().await.unwrap();
+    }
+}
+
+fn sorted_attr_names(item: &std::collections::HashMap<String, AttributeValue>) -> Vec<String> {
+    let mut names: Vec<String> = item.keys().cloned().collect();
+    names.sort();
+    names
+}
+
+/// Repro from issue #39: a GSI with an INCLUDE projection returns only the
+/// table keys, the index keys and the included non-key attributes.
+#[tokio::test]
+async fn test_query_gsi_include_projection_omits_unprojected_attributes() {
+    use aws_sdk_dynamodb::types::{BillingMode, GlobalSecondaryIndex, Projection, ProjectionType};
+    let client = make_dynamodb_client().await;
+    let key = |name: &str, key_type: KeyType| {
+        KeySchemaElement::builder()
+            .attribute_name(name)
+            .key_type(key_type)
+            .build()
+            .unwrap()
+    };
+    let attr = |name: &str| {
+        AttributeDefinition::builder()
+            .attribute_name(name)
+            .attribute_type(ScalarAttributeType::S)
+            .build()
+            .unwrap()
+    };
+    client
+        .create_table()
+        .table_name("T")
+        .billing_mode(BillingMode::PayPerRequest)
+        .key_schema(key("pk", KeyType::Hash))
+        .key_schema(key("sk", KeyType::Range))
+        .attribute_definitions(attr("pk"))
+        .attribute_definitions(attr("sk"))
+        .attribute_definitions(attr("gsi_pk"))
+        .global_secondary_indexes(
+            GlobalSecondaryIndex::builder()
+                .index_name("ByGsiPk")
+                .key_schema(key("gsi_pk", KeyType::Hash))
+                .key_schema(key("sk", KeyType::Range))
+                .projection(
+                    Projection::builder()
+                        .projection_type(ProjectionType::Include)
+                        .non_key_attributes("wanted")
+                        .build(),
+                )
+                .build()
+                .unwrap(),
+        )
+        .send()
+        .await
+        .unwrap();
+    client
+        .put_item()
+        .table_name("T")
+        .item("pk", AttributeValue::S("p".into()))
+        .item("sk", AttributeValue::S("s".into()))
+        .item("gsi_pk", AttributeValue::S("g".into()))
+        .item("wanted", AttributeValue::S("yes".into()))
+        .item("secret", AttributeValue::S("no".into()))
+        .send()
+        .await
+        .unwrap();
+
+    let resp = client
+        .query()
+        .table_name("T")
+        .index_name("ByGsiPk")
+        .key_condition_expression("gsi_pk = :g")
+        .expression_attribute_values(":g", AttributeValue::S("g".into()))
+        .send()
+        .await
+        .unwrap();
+    let items = resp.items();
+    assert_eq!(items.len(), 1);
+    assert!(items[0].contains_key("wanted"), "{:?}", items[0]);
+    assert!(!items[0].contains_key("secret"), "{:?}", items[0]);
+    assert_eq!(
+        sorted_attr_names(&items[0]),
+        vec!["gsi_pk", "pk", "sk", "wanted"]
+    );
+}
+
+/// Scan on an INCLUDE GSI projects every item and skips items that are not
+/// in the (sparse) index.
+#[tokio::test]
+async fn test_scan_gsi_include_projection_and_sparse_index() {
+    let client = make_dynamodb_client().await;
+    create_projection_table(&client, "proj-scan").await;
+
+    let resp = client
+        .scan()
+        .table_name("proj-scan")
+        .index_name("ByGsiPk")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        resp.count(),
+        3,
+        "p3/d has no gsi_pk and is not in the index"
+    );
+    for item in resp.items() {
+        assert_eq!(
+            sorted_attr_names(item),
+            vec!["gsi_pk", "pk", "sk", "wanted"]
+        );
+    }
+
+    // The base-table scan is unaffected.
+    let base = client.scan().table_name("proj-scan").send().await.unwrap();
+    assert_eq!(base.count(), 4);
+    assert!(base.items().iter().all(|i| i.contains_key("secret")));
+}
+
+/// KEYS_ONLY returns just the table and index key attributes.
+#[tokio::test]
+async fn test_query_gsi_keys_only_projection() {
+    let client = make_dynamodb_client().await;
+    create_projection_table(&client, "proj-keys").await;
+
+    let resp = client
+        .query()
+        .table_name("proj-keys")
+        .index_name("ByGsiKeys")
+        .key_condition_expression("gsi_pk = :g")
+        .expression_attribute_values(":g", AttributeValue::S("g".into()))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(resp.count(), 3);
+    for item in resp.items() {
+        assert_eq!(sorted_attr_names(item), vec!["gsi_pk", "pk", "sk"]);
+    }
+
+    let scan = client
+        .scan()
+        .table_name("proj-keys")
+        .index_name("ByGsiKeys")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(scan.count(), 3);
+    for item in scan.items() {
+        assert_eq!(sorted_attr_names(item), vec!["gsi_pk", "pk", "sk"]);
+    }
+}
+
+/// An ALL projection still returns the whole item, and accepts
+/// `Select=ALL_ATTRIBUTES`.
+#[tokio::test]
+async fn test_query_gsi_all_projection_returns_full_item() {
+    use aws_sdk_dynamodb::types::Select;
+    let client = make_dynamodb_client().await;
+    create_projection_table(&client, "proj-all").await;
+
+    for select in [None, Some(Select::AllAttributes)] {
+        let resp = client
+            .query()
+            .table_name("proj-all")
+            .index_name("ByGsiAll")
+            .key_condition_expression("gsi_pk = :g")
+            .expression_attribute_values(":g", AttributeValue::S("g".into()))
+            .set_select(select)
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(resp.count(), 3);
+        for item in resp.items() {
+            assert!(item.contains_key("secret"), "{item:?}");
+            assert!(item.contains_key("wanted"), "{item:?}");
+        }
+        assert!(
+            resp.items().iter().any(|i| i.contains_key("lsi_sk")),
+            "unrelated attributes are part of an ALL projection"
+        );
+    }
+}
+
+/// A GSI cannot fetch from the base table: unprojected attributes named in a
+/// `ProjectionExpression` ( or `AttributesToGet` ) are simply not returned.
+#[tokio::test]
+async fn test_query_gsi_projection_expression_cannot_fetch_unprojected() {
+    let client = make_dynamodb_client().await;
+    create_projection_table(&client, "proj-pe").await;
+
+    let resp = client
+        .query()
+        .table_name("proj-pe")
+        .index_name("ByGsiPk")
+        .key_condition_expression("gsi_pk = :g")
+        .expression_attribute_values(":g", AttributeValue::S("g".into()))
+        .projection_expression("pk, secret, wanted")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(resp.count(), 3);
+    for item in resp.items() {
+        assert_eq!(sorted_attr_names(item), vec!["pk", "wanted"]);
+    }
+
+    let resp = client
+        .query()
+        .table_name("proj-pe")
+        .index_name("ByGsiPk")
+        .key_condition_expression("gsi_pk = :g")
+        .expression_attribute_values(":g", AttributeValue::S("g".into()))
+        .attributes_to_get("sk")
+        .attributes_to_get("secret")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(resp.count(), 3);
+    for item in resp.items() {
+        assert_eq!(sorted_attr_names(item), vec!["sk"]);
+    }
+}
+
+/// On a GSI the filter runs against the index entry, so an unprojected
+/// attribute is absent from its point of view.
+#[tokio::test]
+async fn test_query_gsi_filter_sees_unprojected_attribute_as_absent() {
+    let client = make_dynamodb_client().await;
+    create_projection_table(&client, "proj-filter").await;
+
+    let resp = client
+        .query()
+        .table_name("proj-filter")
+        .index_name("ByGsiPk")
+        .key_condition_expression("gsi_pk = :g")
+        .filter_expression("attribute_exists(secret)")
+        .expression_attribute_values(":g", AttributeValue::S("g".into()))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(resp.count(), 0);
+    assert_eq!(resp.scanned_count(), 3);
+
+    let resp = client
+        .query()
+        .table_name("proj-filter")
+        .index_name("ByGsiPk")
+        .key_condition_expression("gsi_pk = :g")
+        .filter_expression("attribute_not_exists(secret) AND wanted = :w")
+        .expression_attribute_values(":g", AttributeValue::S("g".into()))
+        .expression_attribute_values(":w", AttributeValue::S("w2".into()))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(resp.count(), 1);
+    assert_eq!(resp.items()[0]["sk"], AttributeValue::S("b".into()));
+
+    let scan = client
+        .scan()
+        .table_name("proj-filter")
+        .index_name("ByGsiKeys")
+        .filter_expression("attribute_exists(wanted)")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(scan.count(), 0);
+    assert_eq!(scan.scanned_count(), 3);
+}
+
+/// `Select=ALL_ATTRIBUTES` is refused on a GSI whose projection is not ALL.
+#[tokio::test]
+async fn test_query_gsi_select_all_attributes_rejected_for_non_all_projection() {
+    use aws_sdk_dynamodb::types::Select;
+    let client = make_dynamodb_client().await;
+    create_projection_table(&client, "proj-sel-all").await;
+
+    let err = client
+        .query()
+        .table_name("proj-sel-all")
+        .index_name("ByGsiPk")
+        .key_condition_expression("gsi_pk = :g")
+        .expression_attribute_values(":g", AttributeValue::S("g".into()))
+        .select(Select::AllAttributes)
+        .send()
+        .await
+        .expect_err("ALL_ATTRIBUTES on an INCLUDE GSI must be rejected");
+    let msg = format!("{err:?}");
+    assert!(msg.contains("ValidationException"), "{msg}");
+    assert!(
+        msg.contains(
+            "Select type ALL_ATTRIBUTES is not supported for global secondary index ByGsiPk because its projection type is not ALL"
+        ),
+        "{msg}"
+    );
+
+    let err = client
+        .scan()
+        .table_name("proj-sel-all")
+        .index_name("ByGsiKeys")
+        .select(Select::AllAttributes)
+        .send()
+        .await
+        .expect_err("ALL_ATTRIBUTES on a KEYS_ONLY GSI scan must be rejected");
+    assert!(format!("{err:?}").contains("ValidationException"));
+
+    // ALL_PROJECTED_ATTRIBUTES is the index default.
+    let resp = client
+        .query()
+        .table_name("proj-sel-all")
+        .index_name("ByGsiPk")
+        .key_condition_expression("gsi_pk = :g")
+        .expression_attribute_values(":g", AttributeValue::S("g".into()))
+        .select(Select::AllProjectedAttributes)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(resp.count(), 3);
+    for item in resp.items() {
+        assert_eq!(
+            sorted_attr_names(item),
+            vec!["gsi_pk", "pk", "sk", "wanted"]
+        );
+    }
+}
+
+/// An LSI returns its projection by default but fetches unprojected
+/// attributes from the base table when they are explicitly requested; its
+/// filter can also see table attributes.
+#[tokio::test]
+async fn test_query_lsi_projection_and_table_fetch() {
+    use aws_sdk_dynamodb::types::Select;
+    let client = make_dynamodb_client().await;
+    create_projection_table(&client, "proj-lsi").await;
+
+    let query = || {
+        client
+            .query()
+            .table_name("proj-lsi")
+            .index_name("ByLsi")
+            .key_condition_expression("pk = :p")
+            .expression_attribute_values(":p", AttributeValue::S("p1".into()))
+    };
+
+    // Default: ALL_PROJECTED_ATTRIBUTES.
+    let resp = query().send().await.unwrap();
+    assert_eq!(resp.count(), 2);
+    for item in resp.items() {
+        assert_eq!(
+            sorted_attr_names(item),
+            vec!["lsi_sk", "pk", "sk", "wanted"]
+        );
+    }
+
+    // Select=ALL_ATTRIBUTES fetches the whole item from the table.
+    let resp = query().select(Select::AllAttributes).send().await.unwrap();
+    assert_eq!(resp.count(), 2);
+    for item in resp.items() {
+        assert_eq!(
+            sorted_attr_names(item),
+            vec!["gsi_pk", "lsi_sk", "pk", "secret", "sk", "wanted"]
+        );
+    }
+
+    // An unprojected attribute named in ProjectionExpression is fetched.
+    let resp = query()
+        .projection_expression("sk, secret")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(resp.count(), 2);
+    for item in resp.items() {
+        assert_eq!(sorted_attr_names(item), vec!["secret", "sk"]);
+    }
+
+    // The filter sees the table attribute; the output stays projected.
+    let resp = query()
+        .filter_expression("secret = :s")
+        .expression_attribute_values(":s", AttributeValue::S("s2".into()))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(resp.count(), 1);
+    assert_eq!(resp.scanned_count(), 2);
+    assert_eq!(resp.items()[0]["sk"], AttributeValue::S("b".into()));
+    assert!(!resp.items()[0].contains_key("secret"));
+
+    // Scanning the LSI skips items without the index sort key ( p2/c, p3/d ).
+    let scan = client
+        .scan()
+        .table_name("proj-lsi")
+        .index_name("ByLsi")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(scan.count(), 2);
+    for item in scan.items() {
+        assert_eq!(
+            sorted_attr_names(item),
+            vec!["lsi_sk", "pk", "sk", "wanted"]
+        );
+    }
+}
+
+/// `Select=COUNT` returns the count of matching items and no `Items`.
+#[tokio::test]
+async fn test_query_and_scan_select_count_omits_items() {
+    use aws_sdk_dynamodb::types::Select;
+    let client = make_dynamodb_client().await;
+    create_projection_table(&client, "proj-count").await;
+
+    let resp = client
+        .query()
+        .table_name("proj-count")
+        .index_name("ByGsiPk")
+        .key_condition_expression("gsi_pk = :g")
+        .filter_expression("wanted <> :w")
+        .expression_attribute_values(":g", AttributeValue::S("g".into()))
+        .expression_attribute_values(":w", AttributeValue::S("w1".into()))
+        .select(Select::Count)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(resp.count(), 2);
+    assert_eq!(resp.scanned_count(), 3);
+    assert!(resp.items.is_none(), "{:?}", resp.items);
+
+    let scan = client
+        .scan()
+        .table_name("proj-count")
+        .select(Select::Count)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(scan.count(), 4);
+    assert!(scan.items.is_none(), "{:?}", scan.items);
+}
+
+/// `Select` validation: ALL_PROJECTED_ATTRIBUTES needs an index, and only
+/// SPECIFIC_ATTRIBUTES can be combined with ( and requires ) a projection.
+#[tokio::test]
+async fn test_query_select_validation() {
+    use aws_sdk_dynamodb::types::Select;
+    let client = make_dynamodb_client().await;
+    create_projection_table(&client, "proj-sel-val").await;
+
+    let base = || {
+        client
+            .query()
+            .table_name("proj-sel-val")
+            .key_condition_expression("pk = :p")
+            .expression_attribute_values(":p", AttributeValue::S("p1".into()))
+    };
+
+    let err = base()
+        .select(Select::AllProjectedAttributes)
+        .send()
+        .await
+        .expect_err("ALL_PROJECTED_ATTRIBUTES without IndexName");
+    let msg = format!("{err:?}");
+    assert!(
+        msg.contains("ALL_PROJECTED_ATTRIBUTES can be used only when Querying using an IndexName"),
+        "{msg}"
+    );
+
+    let err = base()
+        .select(Select::Count)
+        .projection_expression("pk")
+        .send()
+        .await
+        .expect_err("COUNT with ProjectionExpression");
+    let msg = format!("{err:?}");
+    assert!(
+        msg.contains("Cannot specify the ProjectionExpression when choosing to get only the Count"),
+        "{msg}"
+    );
+
+    let err = base()
+        .select(Select::SpecificAttributes)
+        .send()
+        .await
+        .expect_err("SPECIFIC_ATTRIBUTES without a projection");
+    let msg = format!("{err:?}");
+    assert!(
+        msg.contains(
+            "Must specify the AttributesToGet or ProjectionExpression when choosing to get SPECIFIC_ATTRIBUTES"
+        ),
+        "{msg}"
+    );
+
+    let resp = base()
+        .select(Select::SpecificAttributes)
+        .projection_expression("secret")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(resp.count(), 2);
+    for item in resp.items() {
+        assert_eq!(sorted_attr_names(item), vec!["secret"]);
+    }
+}
+
+/// Paginating a projected GSI query follows `LastEvaluatedKey`, which carries
+/// the table and index keys, and visits every item exactly once — including
+/// on a hash-only index whose entries share one partition.
+#[tokio::test]
+async fn test_query_gsi_pagination_with_projection() {
+    let client = make_dynamodb_client().await;
+    create_projection_table(&client, "proj-page").await;
+
+    for (index, expected_attrs) in [
+        ("ByGsiPk", vec!["gsi_pk", "pk", "sk", "wanted"]),
+        ("ByGsiKeys", vec!["gsi_pk", "pk", "sk"]),
+    ] {
+        let mut seen: Vec<String> = Vec::new();
+        let mut start = None;
+        for _ in 0..10 {
+            let resp = client
+                .query()
+                .table_name("proj-page")
+                .index_name(index)
+                .key_condition_expression("gsi_pk = :g")
+                .expression_attribute_values(":g", AttributeValue::S("g".into()))
+                .limit(1)
+                .set_exclusive_start_key(start.take())
+                .send()
+                .await
+                .unwrap();
+            for item in resp.items() {
+                assert_eq!(sorted_attr_names(item), expected_attrs);
+                seen.push(item["sk"].as_s().unwrap().clone());
+            }
+            match resp.last_evaluated_key {
+                Some(lek) => {
+                    let mut names: Vec<&String> = lek.keys().collect();
+                    names.sort();
+                    assert_eq!(names, vec!["gsi_pk", "pk", "sk"], "{index}");
+                    start = Some(lek);
+                }
+                None => break,
+            }
+        }
+        seen.sort();
+        assert_eq!(seen, vec!["a", "b", "c"], "{index}");
+    }
+}
+
+/// Paginating a GSI scan returns each indexed item once and a
+/// `LastEvaluatedKey` carrying the index key.
+#[tokio::test]
+async fn test_scan_gsi_pagination_with_projection() {
+    let client = make_dynamodb_client().await;
+    create_projection_table(&client, "proj-scan-page").await;
+
+    let first = client
+        .scan()
+        .table_name("proj-scan-page")
+        .index_name("ByGsiPk")
+        .limit(2)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(first.count(), 2);
+    let lek = first.last_evaluated_key.clone().expect("more items remain");
+    assert!(lek.contains_key("gsi_pk"), "{lek:?}");
+    assert!(lek.contains_key("pk") && lek.contains_key("sk"), "{lek:?}");
+
+    let second = client
+        .scan()
+        .table_name("proj-scan-page")
+        .index_name("ByGsiPk")
+        .limit(2)
+        .set_exclusive_start_key(Some(lek))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(second.count(), 1);
+    assert!(second.last_evaluated_key.is_none());
+
+    let mut seen: Vec<String> = first
+        .items()
+        .iter()
+        .chain(second.items())
+        .map(|i| i["sk"].as_s().unwrap().clone())
+        .collect();
+    seen.sort();
+    assert_eq!(seen, vec!["a", "b", "c"]);
+}
+
+/// Numeric sort keys order numerically on the table and on an index, in
+/// both directions and across pages. The keys used to be ordered as their
+/// storage strings (`N:10` before `N:9`). Key conditions compare exactly,
+/// beyond `f64` precision.
+#[tokio::test]
+async fn test_query_numeric_sort_key_order() {
+    use aws_sdk_dynamodb::types::{BillingMode, GlobalSecondaryIndex, Projection, ProjectionType};
+    let client = make_dynamodb_client().await;
+    let key = |name: &str, key_type: KeyType| {
+        KeySchemaElement::builder()
+            .attribute_name(name)
+            .key_type(key_type)
+            .build()
+            .unwrap()
+    };
+    let attr = |name: &str, attribute_type: ScalarAttributeType| {
+        AttributeDefinition::builder()
+            .attribute_name(name)
+            .attribute_type(attribute_type)
+            .build()
+            .unwrap()
+    };
+    client
+        .create_table()
+        .table_name("numeric-sk")
+        .billing_mode(BillingMode::PayPerRequest)
+        .key_schema(key("pk", KeyType::Hash))
+        .key_schema(key("n", KeyType::Range))
+        .attribute_definitions(attr("pk", ScalarAttributeType::S))
+        .attribute_definitions(attr("n", ScalarAttributeType::N))
+        .attribute_definitions(attr("g", ScalarAttributeType::S))
+        .attribute_definitions(attr("gn", ScalarAttributeType::N))
+        .global_secondary_indexes(
+            GlobalSecondaryIndex::builder()
+                .index_name("ByGn")
+                .key_schema(key("g", KeyType::Hash))
+                .key_schema(key("gn", KeyType::Range))
+                .projection(
+                    Projection::builder()
+                        .projection_type(ProjectionType::All)
+                        .build(),
+                )
+                .build()
+                .unwrap(),
+        )
+        .send()
+        .await
+        .unwrap();
+
+    let numbers = [
+        "10",
+        "9",
+        "-1.5",
+        "100",
+        "2",
+        "12345678901234567891",
+        "12345678901234567890",
+    ];
+    for n in numbers {
+        client
+            .put_item()
+            .table_name("numeric-sk")
+            .item("pk", AttributeValue::S("p".into()))
+            .item("n", AttributeValue::N(n.into()))
+            .item("g", AttributeValue::S("g".into()))
+            .item("gn", AttributeValue::N(n.into()))
+            .send()
+            .await
+            .unwrap();
+    }
+    let ascending = [
+        "-1.5",
+        "2",
+        "9",
+        "10",
+        "100",
+        "12345678901234567890",
+        "12345678901234567891",
+    ];
+
+    for (index, hash, sort) in [(None, "pk", "n"), (Some("ByGn"), "g", "gn")] {
+        for forward in [true, false] {
+            let mut seen: Vec<String> = Vec::new();
+            let mut start = None;
+            for _ in 0..10 {
+                let resp = client
+                    .query()
+                    .table_name("numeric-sk")
+                    .set_index_name(index.map(String::from))
+                    .key_condition_expression(format!("{hash} = :h"))
+                    .expression_attribute_values(
+                        ":h",
+                        AttributeValue::S(if index.is_some() { "g" } else { "p" }.into()),
+                    )
+                    .scan_index_forward(forward)
+                    .limit(3)
+                    .set_exclusive_start_key(start.take())
+                    .send()
+                    .await
+                    .unwrap();
+                seen.extend(resp.items().iter().map(|i| i[sort].as_n().unwrap().clone()));
+                match resp.last_evaluated_key {
+                    Some(lek) => start = Some(lek),
+                    None => break,
+                }
+            }
+            let mut expected: Vec<&str> = ascending.to_vec();
+            if !forward {
+                expected.reverse();
+            }
+            assert_eq!(seen, expected, "index={index:?} forward={forward}");
+        }
+
+        // `>` on a 20-digit key separates values that are equal as f64.
+        let resp = client
+            .query()
+            .table_name("numeric-sk")
+            .set_index_name(index.map(String::from))
+            .key_condition_expression(format!("{hash} = :h AND {sort} > :v"))
+            .expression_attribute_values(
+                ":h",
+                AttributeValue::S(if index.is_some() { "g" } else { "p" }.into()),
+            )
+            .expression_attribute_values(":v", AttributeValue::N("12345678901234567890".into()))
+            .send()
+            .await
+            .unwrap();
+        let seen: Vec<&String> = resp
+            .items()
+            .iter()
+            .map(|i| i[sort].as_n().unwrap())
+            .collect();
+        assert_eq!(seen, ["12345678901234567891"], "index={index:?}");
+    }
+}
+
+/// Binary sort keys order by unsigned bytes on the table and on an index,
+/// in both directions and across pages. They used to order by their base64
+/// text, which puts 0xd0 ("0A==") before 0x68 ("aA==") and 0xff ("/w==")
+/// before 0x00 ("AA=="). `begins_with` and comparisons on `B` work by bytes
+/// too, in key conditions and in filters.
+#[tokio::test]
+async fn test_query_binary_sort_key_order() {
+    use aws_sdk_dynamodb::primitives::Blob;
+    use aws_sdk_dynamodb::types::{BillingMode, GlobalSecondaryIndex, Projection, ProjectionType};
+    let client = make_dynamodb_client().await;
+    let key = |name: &str, key_type: KeyType| {
+        KeySchemaElement::builder()
+            .attribute_name(name)
+            .key_type(key_type)
+            .build()
+            .unwrap()
+    };
+    let attr = |name: &str, attribute_type: ScalarAttributeType| {
+        AttributeDefinition::builder()
+            .attribute_name(name)
+            .attribute_type(attribute_type)
+            .build()
+            .unwrap()
+    };
+    client
+        .create_table()
+        .table_name("binary-sk")
+        .billing_mode(BillingMode::PayPerRequest)
+        .key_schema(key("pk", KeyType::Hash))
+        .key_schema(key("b", KeyType::Range))
+        .attribute_definitions(attr("pk", ScalarAttributeType::S))
+        .attribute_definitions(attr("b", ScalarAttributeType::B))
+        .attribute_definitions(attr("g", ScalarAttributeType::S))
+        .attribute_definitions(attr("gb", ScalarAttributeType::B))
+        .global_secondary_indexes(
+            GlobalSecondaryIndex::builder()
+                .index_name("ByGb")
+                .key_schema(key("g", KeyType::Hash))
+                .key_schema(key("gb", KeyType::Range))
+                .projection(
+                    Projection::builder()
+                        .projection_type(ProjectionType::All)
+                        .build(),
+                )
+                .build()
+                .unwrap(),
+        )
+        .send()
+        .await
+        .unwrap();
+
+    let ascending: [&[u8]; 6] = [&[0x00], &[0x01], &[0x01, 0x02], &[0x68], &[0xd0], &[0xff]];
+    for bytes in ascending.iter().rev() {
+        client
+            .put_item()
+            .table_name("binary-sk")
+            .item("pk", AttributeValue::S("p".into()))
+            .item("b", AttributeValue::B(Blob::new(*bytes)))
+            .item("g", AttributeValue::S("g".into()))
+            .item("gb", AttributeValue::B(Blob::new(*bytes)))
+            .item("copy", AttributeValue::B(Blob::new(*bytes)))
+            .send()
+            .await
+            .unwrap();
+    }
+    let bytes_of = |item: &std::collections::HashMap<String, AttributeValue>, name: &str| {
+        item[name].as_b().unwrap().as_ref().to_vec()
+    };
+
+    for (index, hash, hash_value, sort) in [(None, "pk", "p", "b"), (Some("ByGb"), "g", "g", "gb")]
+    {
+        for forward in [true, false] {
+            let mut seen: Vec<Vec<u8>> = Vec::new();
+            let mut start = None;
+            for _ in 0..10 {
+                let resp = client
+                    .query()
+                    .table_name("binary-sk")
+                    .set_index_name(index.map(String::from))
+                    .key_condition_expression(format!("{hash} = :h"))
+                    .expression_attribute_values(":h", AttributeValue::S(hash_value.into()))
+                    .scan_index_forward(forward)
+                    .limit(4)
+                    .set_exclusive_start_key(start.take())
+                    .send()
+                    .await
+                    .unwrap();
+                seen.extend(resp.items().iter().map(|i| bytes_of(i, sort)));
+                match resp.last_evaluated_key {
+                    Some(lek) => start = Some(lek),
+                    None => break,
+                }
+            }
+            let mut expected: Vec<Vec<u8>> = ascending.iter().map(|b| b.to_vec()).collect();
+            if !forward {
+                expected.reverse();
+            }
+            assert_eq!(seen, expected, "index={index:?} forward={forward}");
+        }
+
+        // Key conditions: a one-byte prefix, and `>` across the text order.
+        for (condition, value, expected) in [
+            (
+                format!("begins_with({sort}, :v)"),
+                vec![0x01],
+                vec![vec![0x01], vec![0x01, 0x02]],
+            ),
+            (
+                format!("{sort} > :v"),
+                vec![0x68],
+                vec![vec![0xd0], vec![0xff]],
+            ),
+        ] {
+            let resp = client
+                .query()
+                .table_name("binary-sk")
+                .set_index_name(index.map(String::from))
+                .key_condition_expression(format!("{hash} = :h AND {condition}"))
+                .expression_attribute_values(":h", AttributeValue::S(hash_value.into()))
+                .expression_attribute_values(":v", AttributeValue::B(Blob::new(value)))
+                .send()
+                .await
+                .unwrap();
+            let seen: Vec<Vec<u8>> = resp.items().iter().map(|i| bytes_of(i, sort)).collect();
+            assert_eq!(seen, expected, "index={index:?} {condition}");
+        }
+    }
+
+    // Filters on a non-key binary attribute compare by bytes as well.
+    for (filter, expected) in [
+        ("begins_with(copy, :v)", vec![vec![0x01], vec![0x01, 0x02]]),
+        ("copy < :v", vec![vec![0x00]]),
+    ] {
+        let resp = client
+            .query()
+            .table_name("binary-sk")
+            .key_condition_expression("pk = :h")
+            .filter_expression(filter)
+            .expression_attribute_values(":h", AttributeValue::S("p".into()))
+            .expression_attribute_values(":v", AttributeValue::B(Blob::new(vec![0x01])))
+            .send()
+            .await
+            .unwrap();
+        let seen: Vec<Vec<u8>> = resp.items().iter().map(|i| bytes_of(i, "copy")).collect();
+        assert_eq!(seen, expected, "{filter}");
+    }
+}
+
+/// `size()` of a binary attribute is its length in bytes, in filter and
+/// condition expressions and in PartiQL. It used to come from the base64
+/// text: an estimate of `len * 3 / 4` in expressions ( 3 for one padded
+/// byte ) and the raw text length in PartiQL ( 4 ).
+#[tokio::test]
+async fn test_size_of_binary_counts_bytes() {
+    use aws_sdk_dynamodb::primitives::Blob;
+    let client = make_dynamodb_client().await;
+    create_hash_table(&client, "binary-size").await;
+    for (pk, bytes) in [
+        ("one", vec![0x01]),
+        ("two", vec![0x01, 0x02]),
+        ("four", vec![0; 4]),
+    ] {
+        client
+            .put_item()
+            .table_name("binary-size")
+            .item("pk", AttributeValue::S(pk.into()))
+            .item("blob", AttributeValue::B(Blob::new(bytes)))
+            .send()
+            .await
+            .unwrap();
+    }
+
+    for (pk, size) in [("one", "1"), ("two", "2"), ("four", "4")] {
+        // Filter expression.
+        let resp = client
+            .scan()
+            .table_name("binary-size")
+            .filter_expression("size(blob) = :n")
+            .expression_attribute_values(":n", AttributeValue::N(size.into()))
+            .send()
+            .await
+            .unwrap();
+        let seen: Vec<&String> = resp
+            .items()
+            .iter()
+            .map(|i| i["pk"].as_s().unwrap())
+            .collect();
+        assert_eq!(seen, [pk], "filter size(blob) = {size}");
+
+        // Condition expression: a put guarded by the exact size succeeds.
+        client
+            .put_item()
+            .table_name("binary-size")
+            .item("pk", AttributeValue::S(pk.into()))
+            .item("blob", resp.items()[0]["blob"].clone())
+            .condition_expression("size(blob) = :n")
+            .expression_attribute_values(":n", AttributeValue::N(size.into()))
+            .send()
+            .await
+            .unwrap_or_else(|e| panic!("condition size(blob) = {size}: {e:?}"));
+
+        // PartiQL.
+        let resp = client
+            .execute_statement()
+            .statement(format!(
+                "SELECT * FROM \"binary-size\" WHERE pk = '{pk}' AND size(blob) = {size}"
+            ))
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(
+            resp.items().len(),
+            1,
+            "PartiQL size(blob) = {size} for {pk}"
+        );
+    }
+}
