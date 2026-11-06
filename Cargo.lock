@@ -11497,6 +11497,7 @@ dependencies = [
  "aws-config",
  "aws-credential-types",
  "aws-sdk-cloudcontrol",
+ "aws-sdk-cloudfront",
  "aws-sdk-ssm",
  "aws-smithy-runtime-api",
  "aws-smithy-types",
@@ -11509,6 +11510,7 @@ dependencies = [
  "tokio",
  "tracing",
  "uuid",
+ "winterbaume-cloudfront",
  "winterbaume-core",
  "winterbaume-ssm",
 ]
@@ -11565,6 +11567,7 @@ dependencies = [
  "aws-sdk-cloudfront",
  "aws-smithy-runtime-api",
  "aws-smithy-types",
+ "base64",
  "bytes",
  "chrono",
  "http 1.4.0",

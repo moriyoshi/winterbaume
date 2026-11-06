@@ -8,8 +8,8 @@ use winterbaume_core::{
     json_error_response,
 };
 
+use crate::backed::BackedType;
 use crate::cfn_schema::ShapeContext;
-use crate::ssm_parameter::TYPE_NAME as SSM_PARAMETER;
 use crate::state::{CloudControlError, CloudControlState};
 use crate::types::ResourceRequest;
 use crate::views::CloudControlStateView;
@@ -19,6 +19,7 @@ pub struct CloudControlService {
     pub(crate) state: Arc<BackendState<CloudControlState>>,
     pub(crate) notifier: StateChangeNotifier<CloudControlStateView>,
     pub(crate) ssm: Arc<winterbaume_ssm::SsmService>,
+    pub(crate) cloudfront: Arc<winterbaume_cloudfront::CloudFrontService>,
 }
 
 impl CloudControlService {
@@ -33,7 +34,19 @@ impl CloudControlService {
             state: Arc::new(BackendState::new()),
             notifier: StateChangeNotifier::new(),
             ssm,
+            cloudfront: Arc::new(winterbaume_cloudfront::CloudFrontService::new()),
         }
+    }
+
+    /// Use the same CloudFront service registered with `MockAws` or the
+    /// server so `AWS::CloudFront::ResponseHeadersPolicy` and
+    /// `AWS::CloudFront::Function` operations share live CloudFront state.
+    pub fn with_cloudfront_service(
+        mut self,
+        cloudfront: Arc<winterbaume_cloudfront::CloudFrontService>,
+    ) -> Self {
+        self.cloudfront = cloudfront;
+        self
     }
 }
 
@@ -72,6 +85,7 @@ fn service_error_response(err: &CloudControlError) -> MockResponse {
         CloudControlError::RequestTokenNotFound { .. } => (404, "RequestTokenNotFoundException"),
         CloudControlError::TypeNotFound { .. } => (404, "TypeNotFoundException"),
         CloudControlError::InvalidRequest { .. } => (400, "InvalidRequestException"),
+        CloudControlError::ValidationFailed { .. } => (400, "ValidationException"),
         CloudControlError::NotCancellable { .. } => (400, "ConcurrentModificationException"),
     };
     json_error_response(status, error_type, &err.to_string())
@@ -146,8 +160,13 @@ impl CloudControlService {
             use winterbaume_core::StatefulService;
             self.notify_state_changed(account_id, &region).await;
             let body: Value = serde_json::from_slice(body_bytes).unwrap();
-            if body.get("TypeName").and_then(Value::as_str) == Some(SSM_PARAMETER) {
-                self.ssm.notify_state_changed(account_id, &region).await;
+            if let Some(backed) = body
+                .get("TypeName")
+                .and_then(Value::as_str)
+                .and_then(BackedType::lookup)
+            {
+                self.notify_owning_service(backed, account_id, &region)
+                    .await;
             }
         }
 
@@ -181,8 +200,8 @@ impl CloudControlService {
         let type_name = input.type_name.as_str();
         let desired_state = input.desired_state.as_str();
 
-        let result = if type_name == SSM_PARAMETER {
-            self.create_ssm_parameter(desired_state, ctx).await
+        let result = if let Some(backed) = BackedType::lookup(type_name) {
+            self.backed_create(backed, desired_state, ctx).await
         } else {
             state
                 .write()
@@ -222,8 +241,8 @@ impl CloudControlService {
         let type_name = input.type_name.as_str();
         let identifier = input.identifier.as_str();
 
-        let result = if type_name == SSM_PARAMETER {
-            self.delete_ssm_parameter(identifier, ctx).await
+        let result = if let Some(backed) = BackedType::lookup(type_name) {
+            self.backed_delete(backed, identifier, ctx).await
         } else {
             state.write().await.delete_resource(type_name, identifier)
         };
@@ -268,8 +287,8 @@ impl CloudControlService {
         let identifier = input.identifier.as_str();
         let patch_document = input.patch_document.as_str();
 
-        let result = if type_name == SSM_PARAMETER {
-            self.update_ssm_parameter(identifier, patch_document, ctx)
+        let result = if let Some(backed) = BackedType::lookup(type_name) {
+            self.backed_update(backed, identifier, patch_document, ctx)
                 .await
         } else {
             state
@@ -310,8 +329,8 @@ impl CloudControlService {
         let type_name = input.type_name.as_str();
         let identifier = input.identifier.as_str();
 
-        let result = if type_name == SSM_PARAMETER {
-            self.get_ssm_parameter(identifier, ctx).await
+        let result = if let Some(backed) = BackedType::lookup(type_name) {
+            self.backed_get(backed, identifier, ctx).await
         } else {
             state
                 .read()
@@ -350,8 +369,8 @@ impl CloudControlService {
         }
         let type_name = input.type_name.as_str();
 
-        let resources = if type_name == SSM_PARAMETER {
-            self.list_ssm_parameters(ctx).await
+        let resources = if let Some(backed) = BackedType::lookup(type_name) {
+            self.backed_list(backed, ctx).await
         } else {
             state
                 .read()

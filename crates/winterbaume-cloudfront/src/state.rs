@@ -63,6 +63,10 @@ pub enum CloudFrontError {
     NoSuchResponseHeadersPolicy(String),
     #[error("The specified function does not exist: {0}")]
     NoSuchFunctionExists(String),
+    #[error("A function with the same name already exists: {0}")]
+    FunctionAlreadyExists(String),
+    #[error("A response headers policy with this name already exists: {0}")]
+    ResponseHeadersPolicyAlreadyExists(String),
     #[error("The caller reference {0} is already used by another OAI.")]
     CloudFrontOriginAccessIdentityAlreadyExists(String),
     #[error("The specified origin access identity does not exist: {0}")]
@@ -540,21 +544,29 @@ impl CloudFrontState {
 
     // ---- Tag operations ----
 
+    /// Tags of the taggable resource (distribution or function) with `arn`.
+    fn resource_tags_mut(
+        &mut self,
+        arn: &str,
+    ) -> Result<&mut HashMap<String, String>, CloudFrontError> {
+        if let Some(d) = self.distributions.values_mut().find(|d| d.arn == arn) {
+            return Ok(&mut d.tags);
+        }
+        if let Some(f) = self.functions.values_mut().find(|f| f.arn == arn) {
+            return Ok(&mut f.tags);
+        }
+        Err(CloudFrontError::NoSuchResource(format!(
+            "The specified resource does not exist: {arn}"
+        )))
+    }
+
     pub fn tag_resource(
         &mut self,
         arn: &str,
         tags: HashMap<String, String>,
     ) -> Result<(), CloudFrontError> {
-        let dist = self.distributions.values_mut().find(|d| d.arn == arn);
-        match dist {
-            Some(d) => {
-                d.tags.extend(tags);
-                Ok(())
-            }
-            None => Err(CloudFrontError::NoSuchResource(format!(
-                "The specified resource does not exist: {arn}"
-            ))),
-        }
+        self.resource_tags_mut(arn)?.extend(tags);
+        Ok(())
     }
 
     pub fn untag_resource(
@@ -562,31 +574,26 @@ impl CloudFrontState {
         arn: &str,
         tag_keys: &[String],
     ) -> Result<(), CloudFrontError> {
-        let dist = self.distributions.values_mut().find(|d| d.arn == arn);
-        match dist {
-            Some(d) => {
-                for key in tag_keys {
-                    d.tags.remove(key);
-                }
-                Ok(())
-            }
-            None => Err(CloudFrontError::NoSuchResource(format!(
-                "The specified resource does not exist: {arn}"
-            ))),
+        let tags = self.resource_tags_mut(arn)?;
+        for key in tag_keys {
+            tags.remove(key);
         }
+        Ok(())
     }
 
     pub fn list_tags_for_resource(
         &self,
         arn: &str,
     ) -> Result<&HashMap<String, String>, CloudFrontError> {
-        let dist = self.distributions.values().find(|d| d.arn == arn);
-        match dist {
-            Some(d) => Ok(&d.tags),
-            None => Err(CloudFrontError::NoSuchResource(format!(
-                "The specified resource does not exist: {arn}"
-            ))),
+        if let Some(d) = self.distributions.values().find(|d| d.arn == arn) {
+            return Ok(&d.tags);
         }
+        if let Some(f) = self.functions.values().find(|f| f.arn == arn) {
+            return Ok(&f.tags);
+        }
+        Err(CloudFrontError::NoSuchResource(format!(
+            "The specified resource does not exist: {arn}"
+        )))
     }
 
     // ---- Cache Policy operations ----
@@ -740,7 +747,16 @@ impl CloudFrontState {
     pub fn create_response_headers_policy(
         &mut self,
         config: ResponseHeadersPolicyConfig,
-    ) -> &ResponseHeadersPolicyData {
+    ) -> Result<&ResponseHeadersPolicyData, CloudFrontError> {
+        if self
+            .response_headers_policies
+            .values()
+            .any(|p| p.config.name == config.name)
+        {
+            return Err(CloudFrontError::ResponseHeadersPolicyAlreadyExists(
+                config.name,
+            ));
+        }
         let id = uuid::Uuid::new_v4().to_string();
         let etag = uuid::Uuid::new_v4().to_string();
         let rhp = ResponseHeadersPolicyData {
@@ -750,7 +766,7 @@ impl CloudFrontState {
             etag,
         };
         self.response_headers_policies.insert(id.clone(), rhp);
-        self.response_headers_policies.get(&id).unwrap()
+        Ok(self.response_headers_policies.get(&id).unwrap())
     }
 
     pub fn get_response_headers_policy(
@@ -777,6 +793,16 @@ impl CloudFrontState {
             && rhp.etag != expected
         {
             return Err(CloudFrontError::PreconditionFailed);
+        }
+
+        if self
+            .response_headers_policies
+            .values()
+            .any(|p| p.id != id && p.config.name == config.name)
+        {
+            return Err(CloudFrontError::ResponseHeadersPolicyAlreadyExists(
+                config.name,
+            ));
         }
 
         let rhp = self.response_headers_policies.get_mut(id).unwrap();
@@ -815,7 +841,10 @@ impl CloudFrontState {
         config: FunctionConfig,
         code: Vec<u8>,
         account_id: &str,
-    ) -> &CloudFrontFunctionData {
+    ) -> Result<&CloudFrontFunctionData, CloudFrontError> {
+        if self.functions.contains_key(name) {
+            return Err(CloudFrontError::FunctionAlreadyExists(name.to_string()));
+        }
         let arn = format!("arn:aws:cloudfront::{account_id}:function/{name}");
         let etag = uuid::Uuid::new_v4().to_string();
         let func = CloudFrontFunctionData {
@@ -827,15 +856,31 @@ impl CloudFrontState {
             config,
             code,
             etag,
+            live: None,
+            tags: HashMap::new(),
         };
         self.functions.insert(name.to_string(), func);
-        self.functions.get(name).unwrap()
+        Ok(self.functions.get(name).unwrap())
     }
 
     pub fn get_function(&self, name: &str) -> Result<&CloudFrontFunctionData, CloudFrontError> {
         self.functions
             .get(name)
             .ok_or_else(|| CloudFrontError::NoSuchFunctionExists(name.to_string()))
+    }
+
+    /// Look up a function and check that it exists in `stage` (`DEVELOPMENT`
+    /// or `LIVE`). A function that was never published has no LIVE stage.
+    pub fn get_function_in_stage(
+        &self,
+        name: &str,
+        stage: &str,
+    ) -> Result<&CloudFrontFunctionData, CloudFrontError> {
+        let func = self.get_function(name)?;
+        if stage == "LIVE" && func.live.is_none() {
+            return Err(CloudFrontError::NoSuchFunctionExists(name.to_string()));
+        }
+        Ok(func)
     }
 
     pub fn update_function(
@@ -902,6 +947,11 @@ impl CloudFrontState {
 
         let func = self.functions.get_mut(name).unwrap();
         func.status = "DEPLOYED".to_string();
+        func.live = Some(CloudFrontFunctionStage {
+            config: func.config.clone(),
+            code: func.code.clone(),
+            last_modified_time: Utc::now(),
+        });
         func.etag = uuid::Uuid::new_v4().to_string();
         Ok(self.functions.get(name).unwrap())
     }

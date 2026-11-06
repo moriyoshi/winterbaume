@@ -72,7 +72,7 @@ Schema keys that govern the read model:
 Winterbaume implements this contract in two ways, chosen per resource type:
 
 1. **Shaped, Cloud Control-owned** (`crates/winterbaume-cloudcontrol/src/cfn_schema/`). A `CfnResourceShaper` strips `writeOnlyProperties`, generates `readOnlyProperties`, fills read-handler defaults, and returns the `primaryIdentifier`. The shaped model is stored in `CloudControlState` and is invisible to the owning service's own API. Registered types: `AWS::KMS::Key`, `AWS::DynamoDB::Table`, `AWS::ECS::Cluster`, `AWS::ElasticLoadBalancingV2::TargetGroup`, `AWS::ElasticLoadBalancingV2::LoadBalancer`, `AWS::ElasticLoadBalancingV2::Listener`.
-2. **Service-backed** (see the next section). Create, update, and delete go to the owning service's state, and every read is built from that state. Implemented for `AWS::SSM::Parameter` (issue #33).
+2. **Service-backed** (see the next section). Create, update, and delete go to the owning service's state, and every read is built from that state. Implemented for `AWS::SSM::Parameter` (issue #33), `AWS::CloudFront::ResponseHeadersPolicy` (issue #37) and `AWS::CloudFront::Function` (issue #38). `crates/winterbaume-cloudcontrol/src/backed.rs::BackedType` is the single routing point for backed types.
 
 Any other type falls back to storing `DesiredState` verbatim, keyed by the first of `Id`, `Identifier`, `Name`, `Arn`, `BucketName`, `FunctionName`, `TableName` found in it, or by a random UUID. That fallback is a known fidelity gap, not intended behaviour; see `cloudcontrol-cfn-shapers-backfill` in `.agents/docs/TODO.md`.
 
@@ -116,6 +116,39 @@ Known gaps:
 Tests: `crates/winterbaume-cloudcontrol/tests/ssm_parameter_test.rs` drives Cloud Control and SSM SDK clients against one `MockAws` instance. It covers the shared lifecycle in both directions, native SSM parameters read through Cloud Control, duplicate-create rejection, `DataType` defaulting and validation, and atomicity of a failed update.
 
 Terraform E2E: `test_awscc_ssm_parameter_backed_by_ssm` in `crates/winterbaume-e2e-tests/tests/terraform/cloudcontrol.rs` drives `awscc_ssm_parameter` through the `awscc` provider, which is the only Terraform provider that goes through Cloud Control. It runs an isolated server where Cloud Control and the native SSM API share one `SsmService`, and checks each step against the native SSM API. The steps are: create, then confirm that SSM sees the value, `DataType`, and tags; a no-drift plan despite the write-only `Description`; drift detected after an out-of-band `PutParameter`; an in-place value and tag update that reaches SSM; and destroy, after which SSM returns `ParameterNotFound`. Run it with `cargo test -p winterbaume-e2e-tests --test terraform cloudcontrol -- --ignored`.
+
+### Shared machinery for backed types
+
+- **Nested patches.** `json_patch.rs` is a full RFC 6902 implementation (nested object paths, array indices and `-`, `add`, `remove`, `replace`, `move`, `copy`, `test`). The CloudFront backed types use it. The fallback path in `state.rs::apply_json_patch` still handles top-level paths only, and `ssm_parameter.rs` keeps its own whitelist-based patcher.
+- **Model validation.** `cfn_validate.rs` checks a model against a hand-transcribed subset of the registry schema (types, `required`, `additionalProperties: false`, and enum-style `pattern`s). It reports every violation in the registry validator's wording, joined by newlines inside `Model validation failed (...)`, as a synchronous `ValidationException` (`CloudControlError::ValidationFailed`). On `UpdateResource`, Cloud Control validates the patch applied to the **current read model**, so read-handler artefacts in that model (such as the empty `{}` objects below) can make a patch fail even when it touches an unrelated property. Changing a read-only or create-only property is rejected with `InvalidRequestException` and the message `Invalid patch update: readOnlyProperties [/properties/X] cannot be updated` (or `createOnlyProperties`).
+- **CloudFront is global.** Its state always lives under the `us-east-1` region key, whatever region the Cloud Control request names. `CloudControlService::with_cloudfront_service(Arc<CloudFrontService>)` shares the registered instance; the server wires it in `crates/winterbaume-server/src/main.rs`, and `CloudFrontService::shared_state()` exposes the backend.
+
+### `AWS::CloudFront::ResponseHeadersPolicy`
+
+Schema facts (checked against `aws-cloudfront-responseheaderspolicy.json` on 2026-11-06):
+
+- `primaryIdentifier`: `Id`. `readOnlyProperties`: `Id`, `LastModifiedTime`. No write-only or create-only properties. `required`: `ResponseHeadersPolicyConfig`, whose `Name` is required. Not taggable.
+- Every `SecurityHeadersConfig` member definition has required keys (for example `FrameOptions` requires `Override` and `FrameOption`), although `SecurityHeadersConfig` itself requires none of them.
+
+Winterbaume behaviour (`crates/winterbaume-cloudcontrol/src/cloudfront_response_headers_policy.rs`):
+
+- The read model is `Id`, `LastModifiedTime` (ISO 8601 with milliseconds and `Z`) and `ResponseHeadersPolicyConfig`, built from the CloudFront policy. When `SecurityHeadersConfig` is present, every unset member is reported as `{}`, as captured from a live account on 2026-10-27. Consequently a nested patch such as `/ResponseHeadersPolicyConfig/Comment` fails model validation unless it also fills in those members. Replacing the whole `/ResponseHeadersPolicyConfig` succeeds in place and keeps the `Id`.
+- CFN lists (`{"Items": [...]}`) are converted to and from the REST-XML `{"Quantity": n, "Items": {"<member>": [...]}}` shape of the CloudFront model (`XML_LISTS`).
+- Duplicate names are rejected by CloudFront (`ResponseHeadersPolicyAlreadyExists`) and surface as `AlreadyExistsException`.
+
+### `AWS::CloudFront::Function`
+
+Schema facts (checked against `aws-cloudfront-function.json` on 2026-11-06):
+
+- `primaryIdentifier`: `FunctionARN`, not `Name`. `createOnlyProperties`: `Name`. `readOnlyProperties`: `FunctionARN`, `FunctionMetadata/FunctionARN`, `Stage`. `writeOnlyProperties`: `AutoPublish`. `required`: `Name`, `FunctionConfig`, `FunctionCode`. Taggable through `Tags` (a `[{"Key", "Value"}]` list).
+
+Winterbaume behaviour (`crates/winterbaume-cloudcontrol/src/cloudfront_function.rs`):
+
+- The read model is `Name`, `FunctionARN`, `FunctionMetadata.FunctionARN`, `FunctionCode` and `FunctionConfig` from the DEVELOPMENT stage, `Stage`, and `Tags` (always present, `[]` when empty). `Stage` is `LIVE` once the function has ever been published, even when DEVELOPMENT has since moved ahead (live capture, 2026-10-27).
+- `AutoPublish: true` on create publishes DEVELOPMENT to LIVE. On update, `FunctionCode` or `FunctionConfig` changes go to DEVELOPMENT only; LIVE moves only when the patch also sets `/AutoPublish` to `true`.
+- The CloudFront crate models the two stages explicitly: `CloudFrontFunctionData::live` is the snapshot taken by `PublishFunction`, `DescribeFunction`, `GetFunction` and `ListFunctions` honour `Stage` (LIVE is `NoSuchFunctionExists` before the first publish), and functions are taggable.
+
+Tests: `crates/winterbaume-cloudcontrol/tests/cloudfront_test.rs` drives Cloud Control and CloudFront SDK clients against one `MockAws`. It covers the issue #37 read model and nested-patch `ValidationException`, whole-config replacement, read-only rejection, create validation and duplicates, the issue #38 read model, the AutoPublish stage rules, tags, natively created resources visible through Cloud Control, and deletion visible through CloudFront. There is no `awscc` Terraform E2E for these types yet.
 
 ## Operation Groups
 

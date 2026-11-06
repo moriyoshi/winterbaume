@@ -36,13 +36,13 @@ use winterbaume_core::{StateChangeNotifier, StateViewError, StatefulService};
 use crate::handlers::CloudFrontService;
 use crate::state::CloudFrontState;
 use crate::types::{
-    AnycastIpListData, CachePolicyData, CloudFrontFunctionData, ConnectionFunctionData,
-    ConnectionGroupData, ContinuousDeploymentPolicyData, DefaultCacheBehavior, Distribution,
-    DistributionTenantData, FieldLevelEncryptionData, FieldLevelEncryptionProfileData,
-    Invalidation, KeyGroupData, KeyValueStoreData, MonitoringSubscriptionData, OaiData, Origin,
-    OriginAccessControlData, OriginRequestPolicyData, PublicKeyData, RealtimeLogConfigData,
-    ResourcePolicyData, ResponseHeadersPolicyData, StreamingDistributionData, TrustStoreData,
-    VpcOriginData, WebAclAssociation,
+    AnycastIpListData, CachePolicyData, CloudFrontFunctionData, CloudFrontFunctionStage,
+    ConnectionFunctionData, ConnectionGroupData, ContinuousDeploymentPolicyData,
+    DefaultCacheBehavior, Distribution, DistributionTenantData, FieldLevelEncryptionData,
+    FieldLevelEncryptionProfileData, Invalidation, KeyGroupData, KeyValueStoreData,
+    MonitoringSubscriptionData, OaiData, Origin, OriginAccessControlData, OriginRequestPolicyData,
+    PublicKeyData, RealtimeLogConfigData, ResourcePolicyData, ResponseHeadersPolicyData,
+    StreamingDistributionData, TrustStoreData, VpcOriginData, WebAclAssociation,
 };
 
 /// Serializable view of the entire CloudFront state for one account/region.
@@ -270,6 +270,20 @@ pub struct CloudFrontFunctionView {
     #[serde(with = "hex_serde")]
     pub code: Vec<u8>,
     pub etag: String,
+    /// The LIVE stage, present once the function has been published.
+    #[serde(default)]
+    pub live: Option<CloudFrontFunctionStageView>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Serializable view of a published (LIVE) CloudFront function stage.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudFrontFunctionStageView {
+    pub config: crate::model::FunctionConfig,
+    #[serde(with = "hex_serde")]
+    pub code: Vec<u8>,
+    pub last_modified_time: Option<String>,
 }
 
 /// Serializable view of a CloudFront anycast IP list.
@@ -778,6 +792,12 @@ impl From<&CloudFrontFunctionData> for CloudFrontFunctionView {
             config: f.config.clone(),
             code: f.code.clone(),
             etag: f.etag.clone(),
+            live: f.live.as_ref().map(|live| CloudFrontFunctionStageView {
+                config: live.config.clone(),
+                code: live.code.clone(),
+                last_modified_time: Some(live.last_modified_time.to_rfc3339()),
+            }),
+            tags: f.tags.clone(),
         }
     }
 }
@@ -805,6 +825,17 @@ impl From<CloudFrontFunctionView> for CloudFrontFunctionData {
             config: v.config,
             code: v.code,
             etag: v.etag,
+            live: v.live.map(|live| CloudFrontFunctionStage {
+                config: live.config,
+                code: live.code,
+                last_modified_time: live
+                    .last_modified_time
+                    .as_deref()
+                    .and_then(|s| DateTime::parse_from_rfc3339(s).ok())
+                    .map(|dt| dt.with_timezone(&Utc))
+                    .unwrap_or(last_modified_time),
+            }),
+            tags: v.tags,
         }
     }
 }

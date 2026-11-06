@@ -27,6 +27,9 @@ pub enum CloudControlError {
     TypeNotFound { type_name: String },
     #[error("{message}")]
     InvalidRequest { message: String },
+    /// The desired or patched model violates the resource type's schema.
+    #[error("{message}")]
+    ValidationFailed { message: String },
     #[error(
         "The resource operation request with token {token} cannot be cancelled because its status is {status}."
     )]

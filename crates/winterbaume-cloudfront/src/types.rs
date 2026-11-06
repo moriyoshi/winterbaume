@@ -126,9 +126,23 @@ pub struct CloudFrontFunctionData {
     pub status: String,
     pub created_time: DateTime<Utc>,
     pub last_modified_time: DateTime<Utc>,
+    /// The DEVELOPMENT stage configuration.
     pub config: FunctionConfig,
+    /// The DEVELOPMENT stage code.
     pub code: Vec<u8>,
     pub etag: String,
+    /// The LIVE stage: a snapshot of DEVELOPMENT taken by `PublishFunction`.
+    /// `None` until the function is first published.
+    pub live: Option<CloudFrontFunctionStage>,
+    pub tags: HashMap<String, String>,
+}
+
+/// A published (LIVE) snapshot of a CloudFront function.
+#[derive(Debug, Clone)]
+pub struct CloudFrontFunctionStage {
+    pub config: FunctionConfig,
+    pub code: Vec<u8>,
+    pub last_modified_time: DateTime<Utc>,
 }
 
 /// A stored CloudFront Origin Access Identity (legacy OAI).

@@ -27,6 +27,13 @@ impl CloudFrontService {
             notifier: StateChangeNotifier::new(),
         }
     }
+
+    /// The backend state shared with facade services such as Cloud Control.
+    /// CloudFront is a global service: its state always lives under the
+    /// `us-east-1` region key.
+    pub fn shared_state(&self) -> Arc<BackendState<CloudFrontState>> {
+        Arc::clone(&self.state)
+    }
 }
 
 impl Default for CloudFrontService {
@@ -426,7 +433,7 @@ impl CloudFrontService {
             }
             // DescribeFunction (GET /2020-05-31/function/{Name}/describe)
             ("GET", ["2020-05-31", "function", name, "describe"]) => {
-                self.handle_describe_function(&state, name, if_match.as_deref())
+                self.handle_describe_function(&state, name, function_stage(&query_params))
                     .await
             }
             // DescribeKeyValueStore (GET /2020-05-31/key-value-store/{Name})
@@ -544,7 +551,7 @@ impl CloudFrontService {
             }
             // GetFunction (GET /2020-05-31/function/{Name})
             ("GET", ["2020-05-31", "function", name]) => {
-                self.handle_get_function(&state, name, if_match.as_deref())
+                self.handle_get_function(&state, name, function_stage(&query_params))
                     .await
             }
             // GetInvalidationForDistributionTenant (GET /2020-05-31/distribution-tenant/{DistributionTenantId}/invalidation/{Id})
@@ -739,7 +746,10 @@ impl CloudFrontService {
                     .await
             }
             // ListFunctions (GET /2020-05-31/function)
-            ("GET", ["2020-05-31", "function"]) => self.handle_list_functions(&state).await,
+            ("GET", ["2020-05-31", "function"]) => {
+                self.handle_list_functions(&state, function_stage(&query_params))
+                    .await
+            }
             // ListInvalidationsForDistributionTenant (GET /2020-05-31/distribution-tenant/{Id}/invalidation)
             ("GET", ["2020-05-31", "distribution-tenant", id, "invalidation"]) => {
                 self.handle_list_invalidations_for_distribution_tenant(&state, id)
@@ -2067,17 +2077,25 @@ impl CloudFrontService {
         body: &str,
         account_id: &str,
     ) -> MockResponse {
-        let config =
-            quick_xml::de::from_str::<crate::model::FunctionConfig>(body).unwrap_or_default();
-        let name = match extract_xml_value(body, "Name") {
-            Some(n) => n,
-            None => return xml_error_response(400, "MissingParameter", "Missing Name"),
+        let req = match quick_xml::de::from_str::<crate::model::CreateFunctionRequest>(body) {
+            Ok(r) => r,
+            Err(e) => {
+                return xml_error_response(
+                    400,
+                    "MalformedXML",
+                    &format!("Failed to parse CreateFunctionRequest: {e}"),
+                );
+            }
         };
-        // Function code is sent as raw bytes in the request body alongside XML metadata.
-        // For simplicity, store the entire body as code bytes.
-        let code = body.as_bytes().to_vec();
+        if req.name.is_empty() {
+            return xml_error_response(400, "MissingParameter", "Missing Name");
+        }
+        let code = decode_function_code(&req.function_code);
         let mut state = state.write().await;
-        let func = state.create_function(&name, config, code, account_id);
+        let func = match state.create_function(&req.name, req.function_config, code, account_id) {
+            Ok(func) => func,
+            Err(e) => return cloudfront_error_response(&e),
+        };
         let etag_val = func.etag.clone();
         let wire_func = func_to_wire(func);
         let mut resp = wire::serialize_create_function_response(&wire_func);
@@ -2255,7 +2273,10 @@ impl CloudFrontService {
                 }
             };
         let mut state = state.write().await;
-        let rhp = state.create_response_headers_policy(config);
+        let rhp = match state.create_response_headers_policy(config) {
+            Ok(rhp) => rhp,
+            Err(e) => return cloudfront_error_response(&e),
+        };
         let etag_val = rhp.etag.clone();
         let wire_rhp = wire::ResponseHeadersPolicy {
             id: Some(rhp.id.clone()),
@@ -2667,14 +2688,13 @@ impl CloudFrontService {
         &self,
         state: &Arc<tokio::sync::RwLock<CloudFrontState>>,
         name: &str,
-        if_match: Option<&str>,
+        stage: &str,
     ) -> MockResponse {
-        let _ = if_match;
         let state = state.read().await;
-        match state.get_function(name) {
+        match state.get_function_in_stage(name, stage) {
             Ok(func) => {
                 let etag_val = func.etag.clone();
-                let wire_func = func_to_wire(func);
+                let wire_func = func_to_wire_in_stage(func, stage);
                 let mut resp = wire::serialize_describe_function_response(&wire_func);
                 resp.headers.insert(ETAG, etag_val.parse().unwrap());
                 resp
@@ -3050,15 +3070,18 @@ impl CloudFrontService {
         &self,
         state: &Arc<tokio::sync::RwLock<CloudFrontState>>,
         name: &str,
-        if_match: Option<&str>,
+        stage: &str,
     ) -> MockResponse {
-        let _ = if_match;
         let state = state.read().await;
-        match state.get_function(name) {
+        match state.get_function_in_stage(name, stage) {
             Ok(func) => {
                 let etag_val = func.etag.clone();
                 // GetFunction returns the function code as the response body
-                let code = bytes::Bytes::from(func.code.clone());
+                let code = match (&func.live, stage) {
+                    (Some(live), "LIVE") => live.code.clone(),
+                    _ => func.code.clone(),
+                };
+                let code = bytes::Bytes::from(code);
                 let mut resp = wire::serialize_get_function_response();
                 resp.body = code;
                 resp.headers.insert(ETAG, etag_val.parse().unwrap());
@@ -4027,10 +4050,15 @@ impl CloudFrontService {
     async fn handle_list_functions(
         &self,
         state: &Arc<tokio::sync::RwLock<CloudFrontState>>,
+        stage: &str,
     ) -> MockResponse {
         let state = state.read().await;
         let funcs = state.list_functions();
-        let items: Vec<wire::FunctionSummary> = funcs.iter().map(|f| func_to_wire(f)).collect();
+        let items: Vec<wire::FunctionSummary> = funcs
+            .iter()
+            .filter(|f| stage != "LIVE" || f.live.is_some())
+            .map(|f| func_to_wire_in_stage(f, stage))
+            .collect();
         let quantity = items.len() as i32;
         let wire_list = wire::FunctionList {
             quantity: Some(quantity),
@@ -4305,7 +4333,7 @@ impl CloudFrontService {
         match state.publish_function(name, if_match) {
             Ok(func) => {
                 let etag_val = func.etag.clone();
-                let wire_func = func_to_wire(func);
+                let wire_func = func_to_wire_in_stage(func, "LIVE");
                 let mut resp = wire::serialize_publish_function_response(&wire_func);
                 resp.headers.insert(ETAG, etag_val.parse().unwrap());
                 resp
@@ -4706,11 +4734,19 @@ impl CloudFrontService {
         body: &str,
         if_match: Option<&str>,
     ) -> MockResponse {
-        let config =
-            quick_xml::de::from_str::<crate::model::FunctionConfig>(body).unwrap_or_default();
-        let code = body.as_bytes().to_vec();
+        let req = match quick_xml::de::from_str::<crate::model::UpdateFunctionRequest>(body) {
+            Ok(r) => r,
+            Err(e) => {
+                return xml_error_response(
+                    400,
+                    "MalformedXML",
+                    &format!("Failed to parse UpdateFunctionRequest: {e}"),
+                );
+            }
+        };
+        let code = decode_function_code(&req.function_code);
         let mut state = state.write().await;
-        match state.update_function(name, config, code, if_match) {
+        match state.update_function(name, req.function_config, code, if_match) {
             Ok(func) => {
                 let etag_val = func.etag.clone();
                 let wire_func = func_to_wire(func);
@@ -5155,21 +5191,48 @@ fn pk_to_wire(pk: &crate::types::PublicKeyData) -> wire::PublicKey {
 }
 
 fn func_to_wire(func: &crate::types::CloudFrontFunctionData) -> wire::FunctionSummary {
+    func_to_wire_in_stage(func, "DEVELOPMENT")
+}
+
+/// Summarise `func` as seen in `stage`. The LIVE stage reports the
+/// configuration captured by the last `PublishFunction`.
+fn func_to_wire_in_stage(
+    func: &crate::types::CloudFrontFunctionData,
+    stage: &str,
+) -> wire::FunctionSummary {
+    let (config, last_modified_time) = match (&func.live, stage) {
+        (Some(live), "LIVE") => (live.config.clone(), live.last_modified_time),
+        _ => (func.config.clone(), func.last_modified_time),
+    };
     wire::FunctionSummary {
         name: Some(func.name.clone()),
         status: Some(func.status.clone()),
-        function_config: Some(func.config.clone()),
+        function_config: Some(config),
         function_metadata: Some(wire::FunctionMetadata {
             function_a_r_n: Some(func.arn.clone()),
             created_time: Some(func.created_time.to_rfc3339()),
-            last_modified_time: Some(func.last_modified_time.to_rfc3339()),
-            stage: Some(if func.status == "DEPLOYED" {
-                "LIVE".to_string()
-            } else {
-                "DEVELOPMENT".to_string()
-            }),
+            last_modified_time: Some(last_modified_time.to_rfc3339()),
+            stage: Some(stage.to_string()),
         }),
     }
+}
+
+/// The `Stage` query parameter of `DescribeFunction` and `GetFunction`;
+/// CloudFront defaults to `DEVELOPMENT`.
+fn function_stage(query_params: &HashMap<String, String>) -> &str {
+    match query_params.get("Stage").map(String::as_str) {
+        Some("LIVE") => "LIVE",
+        _ => "DEVELOPMENT",
+    }
+}
+
+/// `FunctionCode` is a blob, so the REST-XML body carries it base64-encoded.
+/// Fall back to the raw text for hand-written requests that send it unencoded.
+fn decode_function_code(encoded: &str) -> Vec<u8> {
+    use base64::Engine as _;
+    base64::engine::general_purpose::STANDARD
+        .decode(encoded.trim())
+        .unwrap_or_else(|_| encoded.as_bytes().to_vec())
 }
 
 // ---- XML parsing helpers ----
@@ -5704,6 +5767,10 @@ fn cloudfront_error_shape(err: &CloudFrontError) -> (u16, &'static str) {
         CloudFrontError::NoSuchOriginRequestPolicy(_) => (404, "NoSuchOriginRequestPolicy"),
         CloudFrontError::NoSuchResponseHeadersPolicy(_) => (404, "NoSuchResponseHeadersPolicy"),
         CloudFrontError::NoSuchFunctionExists(_) => (404, "NoSuchFunctionExists"),
+        CloudFrontError::FunctionAlreadyExists(_) => (409, "FunctionAlreadyExists"),
+        CloudFrontError::ResponseHeadersPolicyAlreadyExists(_) => {
+            (409, "ResponseHeadersPolicyAlreadyExists")
+        }
         CloudFrontError::CloudFrontOriginAccessIdentityAlreadyExists(_) => {
             (409, "CloudFrontOriginAccessIdentityAlreadyExists")
         }

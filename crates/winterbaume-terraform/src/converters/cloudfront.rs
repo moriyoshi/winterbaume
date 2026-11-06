@@ -21,11 +21,11 @@ use winterbaume_cloudfront::model::{
     ResponseHeadersPolicyConfig, VpcOriginEndpointConfig,
 };
 use winterbaume_cloudfront::views::{
-    CachePolicyView, CloudFrontFunctionView, CloudFrontStateView, ContinuousDeploymentPolicyView,
-    DefaultCacheBehaviorView, DistributionView, FieldLevelEncryptionProfileView,
-    FieldLevelEncryptionView, KeyGroupView, KeyValueStoreView, MonitoringSubscriptionView, OaiView,
-    OriginAccessControlView, OriginRequestPolicyView, OriginView, PublicKeyView,
-    RealtimeLogConfigView, ResponseHeadersPolicyView, VpcOriginView,
+    CachePolicyView, CloudFrontFunctionStageView, CloudFrontFunctionView, CloudFrontStateView,
+    ContinuousDeploymentPolicyView, DefaultCacheBehaviorView, DistributionView,
+    FieldLevelEncryptionProfileView, FieldLevelEncryptionView, KeyGroupView, KeyValueStoreView,
+    MonitoringSubscriptionView, OaiView, OriginAccessControlView, OriginRequestPolicyView,
+    OriginView, PublicKeyView, RealtimeLogConfigView, ResponseHeadersPolicyView, VpcOriginView,
 };
 use winterbaume_core::StatefulService;
 use winterbaume_tfstate::ResourceInstance;
@@ -814,6 +814,12 @@ impl AwsCloudfrontFunctionConverter {
             runtime: model.runtime,
         };
 
+        let live = model.publish.then(|| CloudFrontFunctionStageView {
+            config: config.clone(),
+            code: model.code.clone().into_bytes(),
+            last_modified_time: Some(Utc::now().to_rfc3339()),
+        });
+
         let view = CloudFrontFunctionView {
             name: model.name.clone(),
             arn,
@@ -821,8 +827,10 @@ impl AwsCloudfrontFunctionConverter {
             created_time: Some(Utc::now().to_rfc3339()),
             last_modified_time: Some(Utc::now().to_rfc3339()),
             config,
+            live,
             code: model.code.into_bytes(),
             etag,
+            tags: Default::default(),
         };
 
         let mut state_view = CloudFrontStateView::default();
