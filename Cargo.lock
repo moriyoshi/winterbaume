@@ -12379,6 +12379,7 @@ dependencies = [
  "aws-credential-types",
  "aws-sdk-dynamodb",
  "aws-smithy-runtime-api",
+ "base64",
  "bytes",
  "chrono",
  "http 1.4.0",
@@ -12396,12 +12397,16 @@ dependencies = [
 name = "winterbaume-dynamodb-redis"
 version = "0.2.1"
 dependencies = [
+ "aws-config",
+ "aws-sdk-dynamodb",
  "base64",
  "chrono",
  "redis",
  "serde",
  "serde_json",
+ "tokio",
  "uuid",
+ "winterbaume-core",
  "winterbaume-dynamodb",
 ]
 

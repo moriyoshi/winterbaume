@@ -178,6 +178,41 @@ pub trait DynamoDbBackend: Send + Sync {
         exclusive_start_key: Option<Item>,
     ) -> Pin<Box<dyn Future<Output = Result<QueryResult, DynamoDbError>> + Send>>;
 
+    /// Scan a secondary index (`Scan` with `IndexName`).
+    ///
+    /// Must return only the items that belong to the sparse index (those
+    /// carrying every index key attribute), unprojected; the protocol layer
+    /// applies the index projection. `LastEvaluatedKey` should carry the
+    /// table primary key plus the index key attributes.
+    ///
+    /// The default implementation is a best-effort fallback for backends
+    /// that predate this method: it delegates to [`DynamoDbBackend::scan`]
+    /// and drops the items absent from the index afterwards, so `Limit` is
+    /// applied before the sparse filter. Backends should override it.
+    fn scan_index(
+        &self,
+        account_id: String,
+        region: String,
+        table_name: String,
+        index_name: String,
+        limit: Option<usize>,
+        exclusive_start_key: Option<Item>,
+    ) -> Pin<Box<dyn Future<Output = Result<QueryResult, DynamoDbError>> + Send>> {
+        let describe = self.describe_table(account_id.clone(), region.clone(), table_name.clone());
+        let scan = self.scan(account_id, region, table_name, limit, exclusive_start_key);
+        Box::pin(async move {
+            let table = describe.await?;
+            let (hash_attr, range_attr) = crate::state::index_key_attrs(&table, &index_name)?;
+            let mut result = scan.await?;
+            result.items.retain(|item| {
+                item.contains_key(&hash_attr)
+                    && range_attr.as_ref().is_none_or(|r| item.contains_key(r))
+            });
+            result.count = result.items.len();
+            Ok(result)
+        })
+    }
+
     fn transact_get_items(
         &self,
         account_id: String,
@@ -820,6 +855,28 @@ impl DynamoDbBackend for InMemoryDynamoDbBackend {
             let lock = state.get(&account_id, &region);
             let s = lock.read().await;
             s.scan(&table_name, limit, exclusive_start_key.as_ref())
+        })
+    }
+
+    fn scan_index(
+        &self,
+        account_id: String,
+        region: String,
+        table_name: String,
+        index_name: String,
+        limit: Option<usize>,
+        exclusive_start_key: Option<Item>,
+    ) -> Pin<Box<dyn Future<Output = Result<QueryResult, DynamoDbError>> + Send>> {
+        let state = Arc::clone(&self.state);
+        Box::pin(async move {
+            let lock = state.get(&account_id, &region);
+            let s = lock.read().await;
+            s.scan_index(
+                &table_name,
+                &index_name,
+                limit,
+                exclusive_start_key.as_ref(),
+            )
         })
     }
 

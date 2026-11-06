@@ -162,6 +162,39 @@ impl MockService for DynamoDbService {
 }
 
 impl DynamoDbService {
+    /// Resolve the secondary index a `Query` / `Scan` addresses. Returns
+    /// `Ok(None)` for a base-table read and an error response when the table
+    /// or the index does not exist.
+    async fn resolve_index_view(
+        &self,
+        account_id: &str,
+        region: &str,
+        table_name: &str,
+        index_name: Option<&str>,
+    ) -> Result<Option<IndexReadView>, MockResponse> {
+        let Some(index_name) = index_name else {
+            return Ok(None);
+        };
+        let table = self
+            .backend
+            .describe_table(
+                account_id.to_string(),
+                region.to_string(),
+                table_name.to_string(),
+            )
+            .await
+            .map_err(|e| dynamodb_error_response(&e))?;
+        IndexReadView::resolve(&table, index_name)
+            .map(Some)
+            .ok_or_else(|| {
+                json_error_response(
+                    400,
+                    "com.amazonaws.dynamodb.v20120810#ValidationException",
+                    &format!("The table does not have the specified index: {index_name}"),
+                )
+            })
+    }
+
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
         let region = extract_dynamodb_region(&request);
         let account_id = default_account_id();
@@ -781,21 +814,18 @@ impl DynamoDbService {
         let exclusive_start_key: Option<Item> = input.exclusive_start_key.map(item_from_wire);
 
         let index_name = input.index_name;
+        let index_view = match self
+            .resolve_index_view(&account_id, &region, &table_name, index_name.as_deref())
+            .await
+        {
+            Ok(v) => v,
+            Err(resp) => return resp,
+        };
 
         // ConsistentRead: the store is strongly consistent, so a request for
         // either consistency level is satisfied by construction — except on a
         // global secondary index, which AWS refuses to read consistently.
-        if input.consistent_read == Some(true)
-            && let Some(ref idx) = index_name
-            && let Ok(table) = self
-                .backend
-                .describe_table(account_id.clone(), region.clone(), table_name.clone())
-                .await
-            && table
-                .global_secondary_indexes
-                .iter()
-                .any(|g| &g.index_name == idx)
-        {
+        if input.consistent_read == Some(true) && index_view.as_ref().is_some_and(|v| v.global) {
             return json_error_response(
                 400,
                 "com.amazonaws.dynamodb.v20120810#ValidationException",
@@ -885,9 +915,14 @@ impl DynamoDbService {
             None => None,
         };
 
-        let projection = match crate::expr::parse_projection_expression(
+        let select = input.select;
+        let projection = match read_projection(
+            select.as_deref(),
             input.projection_expression.as_deref(),
+            input.attributes_to_get,
             &expr_names,
+            index_name.as_deref(),
+            index_view.as_ref(),
         ) {
             Ok(p) => p,
             Err(msg) => {
@@ -916,24 +951,16 @@ impl DynamoDbService {
         {
             Ok(result) => {
                 let scanned_count = result.items.len();
-                let filtered_items: Vec<Item> = match filter {
-                    Some(ref f) => result
-                        .items
-                        .into_iter()
-                        .filter(|i| crate::expr::evaluate(f, i))
-                        .collect(),
-                    None => result.items,
-                };
-                let projected_items: Vec<Item> = match &projection {
-                    Some(paths) => filtered_items
-                        .iter()
-                        .map(|i| crate::expr::apply_projection(i, paths))
-                        .collect(),
-                    None => filtered_items.clone(),
-                };
+                let (items, count) = shape_read_items(
+                    result.items,
+                    index_view.as_ref(),
+                    select.as_deref(),
+                    filter.as_ref(),
+                    projection.as_deref(),
+                );
                 let output = wire::QueryOutput {
-                    items: Some(convert_items_to_wire(&projected_items)),
-                    count: Some(filtered_items.len() as i32),
+                    items: items.as_deref().map(convert_items_to_wire),
+                    count: Some(count as i32),
                     scanned_count: Some(scanned_count as i32),
                     last_evaluated_key: result
                         .last_evaluated_key
@@ -970,6 +997,22 @@ impl DynamoDbService {
         let limit = input.limit.map(|v| v as usize);
         let exclusive_start_key: Option<Item> = input.exclusive_start_key.map(item_from_wire);
 
+        let index_name = input.index_name;
+        let index_view = match self
+            .resolve_index_view(&account_id, &region, &table_name, index_name.as_deref())
+            .await
+        {
+            Ok(v) => v,
+            Err(resp) => return resp,
+        };
+        if input.consistent_read == Some(true) && index_view.as_ref().is_some_and(|v| v.global) {
+            return json_error_response(
+                400,
+                "com.amazonaws.dynamodb.v20120810#ValidationException",
+                "Consistent reads are not supported on global secondary indexes",
+            );
+        }
+
         // --- FilterExpression ---
         let expr_names = input.expression_attribute_names.unwrap_or_default();
         let expr_values = attr_map_from_wire(input.expression_attribute_values);
@@ -987,9 +1030,14 @@ impl DynamoDbService {
             None => None,
         };
 
-        let projection = match crate::expr::parse_projection_expression(
+        let select = input.select;
+        let projection = match read_projection(
+            select.as_deref(),
             input.projection_expression.as_deref(),
+            input.attributes_to_get,
             &expr_names,
+            index_name.as_deref(),
+            index_view.as_ref(),
         ) {
             Ok(p) => p,
             Err(msg) => {
@@ -1001,37 +1049,32 @@ impl DynamoDbService {
             }
         };
 
-        match self
-            .backend
-            .scan(
+        let scan = match index_name {
+            Some(index_name) => self.backend.scan_index(
                 account_id,
                 region,
                 table_name,
+                index_name,
                 limit,
-                exclusive_start_key.clone(),
-            )
-            .await
-        {
+                exclusive_start_key,
+            ),
+            None => self
+                .backend
+                .scan(account_id, region, table_name, limit, exclusive_start_key),
+        };
+        match scan.await {
             Ok(result) => {
                 let scanned_count = result.items.len();
-                let filtered_items: Vec<Item> = match filter {
-                    Some(ref f) => result
-                        .items
-                        .into_iter()
-                        .filter(|i| crate::expr::evaluate(f, i))
-                        .collect(),
-                    None => result.items,
-                };
-                let projected_items: Vec<Item> = match &projection {
-                    Some(paths) => filtered_items
-                        .iter()
-                        .map(|i| crate::expr::apply_projection(i, paths))
-                        .collect(),
-                    None => filtered_items.clone(),
-                };
+                let (items, count) = shape_read_items(
+                    result.items,
+                    index_view.as_ref(),
+                    select.as_deref(),
+                    filter.as_ref(),
+                    projection.as_deref(),
+                );
                 let output = wire::ScanOutput {
-                    items: Some(convert_items_to_wire(&projected_items)),
-                    count: Some(filtered_items.len() as i32),
+                    items: items.as_deref().map(convert_items_to_wire),
+                    count: Some(count as i32),
                     scanned_count: Some(scanned_count as i32),
                     last_evaluated_key: result
                         .last_evaluated_key
@@ -3959,6 +4002,199 @@ fn convert_item_to_wire(item: &Item) -> HashMap<String, wire::AttributeValue> {
 }
 
 /// Convert a Vec of state Items to a Vec of wire items.
+/// What a `Query` / `Scan` on a secondary index can see.
+///
+/// An index holds only its projection: the table primary key, the index key
+/// attributes and — for `INCLUDE` — the declared `NonKeyAttributes` ( `ALL`
+/// holds everything ). A global secondary index can never reach past that.
+/// A local secondary index transparently fetches unprojected attributes from
+/// the base table when the request asks for them through
+/// `ProjectionExpression` / `AttributesToGet` or `Select=ALL_ATTRIBUTES`.
+struct IndexReadView {
+    global: bool,
+    /// The projected attribute names; `None` for an `ALL` projection.
+    projected: Option<std::collections::HashSet<String>>,
+}
+
+impl IndexReadView {
+    fn resolve(table: &Table, index_name: &str) -> Option<Self> {
+        let build = |global: bool,
+                     key_schema: &[KeySchemaElement],
+                     projection_type: &str,
+                     non_key_attributes: &[String]| {
+            let projected = (projection_type != "ALL").then(|| {
+                let mut set: std::collections::HashSet<String> =
+                    [Some(&table.hash_key_attr), table.range_key_attr.as_ref()]
+                        .into_iter()
+                        .flatten()
+                        .cloned()
+                        .collect();
+                set.extend(key_schema.iter().map(|k| k.attribute_name.clone()));
+                if projection_type == "INCLUDE" {
+                    set.extend(non_key_attributes.iter().cloned());
+                }
+                set
+            });
+            Self { global, projected }
+        };
+        if let Some(g) = table
+            .global_secondary_indexes
+            .iter()
+            .find(|g| g.index_name == index_name)
+        {
+            return Some(build(
+                true,
+                &g.key_schema,
+                &g.projection_type,
+                &g.non_key_attributes,
+            ));
+        }
+        table
+            .local_secondary_indexes
+            .iter()
+            .find(|l| l.index_name == index_name)
+            .map(|l| {
+                build(
+                    false,
+                    &l.key_schema,
+                    &l.projection_type,
+                    &l.non_key_attributes,
+                )
+            })
+    }
+
+    fn projects_all(&self) -> bool {
+        self.projected.is_none()
+    }
+
+    /// The index entry for a base-table item.
+    fn project(&self, item: &Item) -> Item {
+        match &self.projected {
+            None => item.clone(),
+            Some(set) => item
+                .iter()
+                .filter(|(k, _)| set.contains(k.as_str()))
+                .map(|(k, v)| (k.clone(), v.clone()))
+                .collect(),
+        }
+    }
+}
+
+const SELECT_VALUES: [&str; 4] = [
+    "SPECIFIC_ATTRIBUTES",
+    "COUNT",
+    "ALL_ATTRIBUTES",
+    "ALL_PROJECTED_ATTRIBUTES",
+];
+
+/// Validate `Select` against the other attribute-selection parameters of a
+/// `Query` / `Scan` and resolve the requested attribute paths from either
+/// `ProjectionExpression` or the legacy `AttributesToGet`.
+fn read_projection(
+    select: Option<&str>,
+    projection_expression: Option<&str>,
+    attributes_to_get: Option<Vec<String>>,
+    expr_names: &HashMap<String, String>,
+    index_name: Option<&str>,
+    index: Option<&IndexReadView>,
+) -> Result<Option<Vec<Vec<String>>>, String> {
+    let has_expression = projection_expression.is_some_and(|p| !p.trim().is_empty());
+    let has_attributes_to_get = attributes_to_get.as_ref().is_some_and(|a| !a.is_empty());
+    if has_expression && has_attributes_to_get {
+        return Err("Can not use both expression and non-expression parameters in the same request: Non-expression parameters: {AttributesToGet} Expression parameters: {ProjectionExpression}".to_string());
+    }
+    if let Some(select) = select {
+        if !SELECT_VALUES.contains(&select) {
+            return Err(format!(
+                "1 validation error detected: Value '{select}' at 'select' failed to satisfy constraint: Member must satisfy enum value set: [{}]",
+                SELECT_VALUES.join(", ")
+            ));
+        }
+        if select == "SPECIFIC_ATTRIBUTES" && !(has_expression || has_attributes_to_get) {
+            return Err("1 validation error detected: Must specify the AttributesToGet or ProjectionExpression when choosing to get SPECIFIC_ATTRIBUTES".to_string());
+        }
+        if select != "SPECIFIC_ATTRIBUTES" {
+            let description = if select == "COUNT" {
+                "only the Count"
+            } else {
+                select
+            };
+            if has_expression {
+                return Err(format!(
+                    "1 validation error detected: Cannot specify the ProjectionExpression when choosing to get {description}"
+                ));
+            }
+            if has_attributes_to_get {
+                return Err(format!(
+                    "1 validation error detected: Cannot specify the AttributesToGet when choosing to get {description}"
+                ));
+            }
+        }
+        if select == "ALL_PROJECTED_ATTRIBUTES" && index_name.is_none() {
+            return Err("1 validation error detected: ALL_PROJECTED_ATTRIBUTES can be used only when Querying using an IndexName".to_string());
+        }
+        if select == "ALL_ATTRIBUTES"
+            && let (Some(index_name), Some(index)) = (index_name, index)
+            && index.global
+            && !index.projects_all()
+        {
+            return Err(format!(
+                "One or more parameter values were invalid: Select type ALL_ATTRIBUTES is not supported for global secondary index {index_name} because its projection type is not ALL"
+            ));
+        }
+    }
+    if has_attributes_to_get {
+        return Ok(attributes_to_get.map(|attrs| attrs.into_iter().map(|a| vec![a]).collect()));
+    }
+    crate::expr::parse_projection_expression(projection_expression, expr_names)
+}
+
+/// Turn the items a `Query` / `Scan` evaluated into the response `Items` and
+/// `Count`, honouring the index projection, `FilterExpression`, `Select` and
+/// `ProjectionExpression`. `Items` is `None` for `Select=COUNT`.
+///
+/// On a global secondary index the filter and the output only ever see the
+/// index entry, so unprojected attributes are absent. On a local secondary
+/// index the filter sees the whole item ( fetched from the base table ), and
+/// the output is the index entry unless the request explicitly asked for
+/// table attributes through a projection or `Select=ALL_ATTRIBUTES`.
+fn shape_read_items(
+    items: Vec<Item>,
+    index: Option<&IndexReadView>,
+    select: Option<&str>,
+    filter: Option<&crate::expr::Expr>,
+    projection: Option<&[Vec<String>]>,
+) -> (Option<Vec<Item>>, usize) {
+    let count_only = select == Some("COUNT");
+    let fetch_from_table = projection.is_some() || select == Some("ALL_ATTRIBUTES");
+    let mut out = Vec::new();
+    let mut count = 0;
+    for full in items {
+        let visible = match index {
+            Some(ix) if !ix.projects_all() && (ix.global || !fetch_from_table) => ix.project(&full),
+            _ => full.clone(),
+        };
+        let filter_view = match index {
+            Some(ix) if !ix.global => &full,
+            _ => &visible,
+        };
+        if let Some(f) = filter
+            && !crate::expr::evaluate(f, filter_view)
+        {
+            continue;
+        }
+        count += 1;
+        if count_only {
+            continue;
+        }
+        out.push(match projection {
+            Some(paths) => crate::expr::apply_projection(&visible, paths),
+            None => visible,
+        });
+    }
+    ((!count_only).then_some(out), count)
+}
+
 fn convert_items_to_wire(items: &[Item]) -> Vec<HashMap<String, wire::AttributeValue>> {
     items.iter().map(convert_item_to_wire).collect()
 }

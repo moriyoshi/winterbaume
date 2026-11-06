@@ -510,7 +510,7 @@ fn get_attr<'a>(item: &'a Item, path: &[PathSegment]) -> Option<&'a AttributeVal
 fn compute_size(val: &AttributeValue) -> Option<usize> {
     match val {
         AttributeValue::S(s) => Some(s.len()),
-        AttributeValue::B(b) => Some(b.len() * 3 / 4), // Approximate base64 decoded length
+        AttributeValue::B(b) => Some(crate::types::binary_len(b)),
         AttributeValue::SS(ss) => Some(ss.len()),
         AttributeValue::NS(ns) => Some(ns.len()),
         AttributeValue::BS(bs) => Some(bs.len()),
@@ -537,10 +537,9 @@ fn resolve_operand<'a>(op: &'a Operand, item: &'a Item) -> Option<Cow<'a, Attrib
 fn compare_ddb(a: &AttributeValue, b: &AttributeValue) -> Option<std::cmp::Ordering> {
     match (a, b) {
         (AttributeValue::S(sa), AttributeValue::S(sb)) => Some(sa.cmp(sb)),
-        (AttributeValue::N(na), AttributeValue::N(nb)) => {
-            let fa: f64 = na.parse().ok()?;
-            let fb: f64 = nb.parse().ok()?;
-            fa.partial_cmp(&fb)
+        (AttributeValue::N(na), AttributeValue::N(nb)) => crate::types::compare_numbers(na, nb),
+        (AttributeValue::B(ba), AttributeValue::B(bb)) => {
+            Some(crate::types::compare_binaries(ba, bb))
         }
         (AttributeValue::Bool(ba), AttributeValue::Bool(bb)) => {
             let ia = if *ba { 1u8 } else { 0 };
@@ -684,14 +683,18 @@ pub fn evaluate(expr: &Expr, item: &Item) -> bool {
                 Some(v) => v,
                 None => return false,
             };
-            if let AttributeValue::S(s) = attr_val {
-                if let Some(prefix) = resolve_operand(prefix_op, item) {
-                    if let AttributeValue::S(prefix_s) = prefix.as_ref() {
-                        return s.starts_with(prefix_s.as_str());
-                    }
+            let Some(prefix) = resolve_operand(prefix_op, item) else {
+                return false;
+            };
+            match (attr_val, prefix.as_ref()) {
+                (AttributeValue::S(s), AttributeValue::S(prefix_s)) => {
+                    s.starts_with(prefix_s.as_str())
                 }
+                (AttributeValue::B(b), AttributeValue::B(prefix_b)) => {
+                    crate::types::binary_starts_with(b, prefix_b)
+                }
+                _ => false,
             }
-            false
         }
     }
 }
