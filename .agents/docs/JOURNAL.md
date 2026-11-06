@@ -2675,3 +2675,12 @@ Follow-up to the binary sort-key fix. AWS defines `size()` of a `B` value as its
 Both now call `types::binary_len`, which decodes through the same padding-indifferent `decode_binary` as the comparisons. Invalid base64 falls back to the old estimate.
 
 `test_size_of_binary_counts_bytes` checks 1-, 2- and 4-byte values through a filter, a condition expression and a PartiQL `WHERE`. Putting back each old calculation on its own fails the test: the filter matched nothing, and PartiQL matched 0 items. `binary_len_counts_decoded_bytes` covers padded, unpadded and empty values.
+
+## 2026-11-06 — `awscc` Terraform E2E for the CloudFront Cloud Control types
+
+Follow-up to issues #37 and #38. Three `awscc` tests in `crates/winterbaume-e2e-tests/tests/terraform/cloudcontrol.rs` drive `awscc_cloudfront_response_headers_policy` and `awscc_cloudfront_function` (provider 1.109.0) against an isolated server that shares one `CloudFrontService` between Cloud Control and the native API. They follow the `awscc_ssm_parameter` test.
+
+- **Finding.** The first draft set only `frame_options` in `security_headers_config`, and the in-place update failed with `ValidationException: Model validation failed`. The trace showed a correct patch that replaced only `Comment` and `CustomHeadersConfig/Items`. The failure is the issue #37 behaviour: the read model reports unset members as `{}`, and validation of the patched model rejects them. Real AWS does the same, so with the `awscc` provider a policy can be updated in place only when all six `SecurityHeadersConfig` members are set. The lifecycle test now sets all six, and a separate test pins the rejection, as well as the absence of drift from the empty objects.
+- **Function.** `auto_publish = true` publishes on create and on each code change through Terraform, `id` is the ARN, and an out-of-band `DeleteFunction` plans as `1 to add`.
+- **Run.** `cargo test -p winterbaume-e2e-tests --test terraform cloudcontrol -- --ignored`. All four `awscc` tests passed. Setting `WINTERBAUME_TF_TMP_DIR` to a directory with a populated `tf-plugin-cache` avoids re-downloading the provider.
+
