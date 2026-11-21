@@ -2708,3 +2708,32 @@ Six of the seven bugs are the same anti-pattern as issue #4 ( `handler-signature
   - A statement applies only with a wildcard `Principal`; specific principals, `NotPrincipal`, statements with no `Principal`, and statements conditioned on caller-identity keys ( `aws:PrincipalArn`, `aws:userid`, ... ) are skipped, since the emulator does not authenticate callers and a `StringNotLike aws:userid` guard-rail would otherwise deny everyone.
   - Other missing keys follow IAM: the test fails unless the operator is negated, `...IfExists`, `ForAllValues:` or `Null: true`.
   - `winterbaume-server` hands services an `https://` URI whatever the transport. It now sets `x-forwarded-proto: http` ( and `x-forwarded-for` ) when absent, and S3 reads `aws:SecureTransport` from that header before the URI scheme.
+
+## 2026-11-21 — Issues #50 – #54, and why this class keeps arriving
+
+Five more reports of the same shape as #41 – #47, fixed on `fix/open-issues-50-54`.
+
+- **#50 S3 ownership controls.** `DeleteBucketOwnershipControls` did clear the value; `GetBucketOwnershipControls` then synthesised `BucketOwnerEnforced` for a missing one. The default now lives where AWS puts it, on bucket creation, and a read after delete is 404 `OwnershipControlsNotFoundError`. The existing test asserted the bug.
+- **#51 DynamoDB.** `CreateTable` `Tags` are routed to the store `TagResource` uses, in both backends. Tags were also never dropped with the table, so a recreated table inherited them.
+- **#52 IAM.** `CreateRole` / `GetRole` built XML by hand beside a correct `make_wire_role`. Both, and the user equivalents, now use the shared builders, which also brings `Description` and `PermissionsBoundary`. The list operations AWS documents as omitting tags still omit them, with tests.
+- **#53 S3.** `handle_create_bucket` never looked at the request. It now uses the generated deserialiser and applies `Tags`, `LocationConstraint`, `x-amz-object-ownership` and `x-amz-bucket-object-lock-enabled`. That did not remove the Terraform diff: provider 6.73 reads and writes `aws_s3_bucket` tags through S3 Control, whose requests were not even reaching `S3ControlService` under a custom endpoint. S3 Control is now linked to S3 for bucket ARNs ( see `services/s3-control.md` ).
+- **#54 Lambda.** Mapping responses carry a derived `EventSourceMappingArn`; creation tags are stored; the tag operations resolve all four documented resource types. Capacity provider operations were routed under the wrong API version prefix and were unreachable.
+
+### Why they were missed
+
+`QUALITY_GATE.md` already said a deserialised field must not be silently inert ( §5.1 ) and asked for a request modifier inventory ( §5.3 ). Twelve issues arrived regardless, because nothing made those rules reach these members:
+
+1. Coverage is per operation. Every affected operation counted as implemented and tested.
+2. The dossiers do not list the members concerned. `Operation Detail Matrix` has required inputs only and `HTTP Bindings` has header and query bindings only; optional body members and all response members are in no table. The quality-gate skill applied §5.3 to `HTTP Bindings` rows only.
+3. §5.3 is forward-only, and the one fleet-wide audit was closed as "absorbed into the recurring gate" without running.
+4. No tool looked. The §5.1 grep finds comments, not silent drops.
+5. Tests came from the implementation and from moto: round trips of what the handler already kept, tags applied after creation, and in one case an assertion of the bug.
+6. Hand-rolled request parsing and response building bypass the generated code, which does carry every member.
+7. Terraform E2E cases mostly end at apply. These defects show on the second plan or on destroy.
+
+### What changed
+
+- `.agents/bin/audit-wire-members.py` reports unread request members, operations that bypass the generated deserialiser, response members never populated, and structures populated unevenly. Against the pre-fix tree it lists eleven of the twelve issues; #50 is a state-transition bug and is out of its reach. Fleet-wide it reports about 7,000 unread request members in about 2,100 operations: a worklist with false positives, but an honest measure of how much of the API surface is accepted and dropped.
+- `QUALITY_GATE.md` §5.4 records the causes and adds checks: run the audit, cover body and response members, create-with-tags and read-after-delete tests, one builder per shared response structure, expected values from AWS and not from the handler. §10 adds the no-drift plan, destroy, `tags` and `default_tags` cases, and reading the provider log.
+- The quality-gate and service-dossier skills run the script and describe the dossier's new `## Member Audit` section, which the S3, Lambda, DynamoDB, IAM and EventBridge dossiers now have.
+- The backlog is `member-audit-backlog` in `TODO.md`.
