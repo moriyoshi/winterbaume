@@ -1,9 +1,10 @@
-use crate::condition::evaluate_condition;
+use crate::condition::{evaluate_condition, evaluate_condition_block};
 use crate::types::{
-    Effect, EvalDecision, EvalOutcome, MatchedStatement, PolicyDocument, PolicySource,
-    SimulationContext,
+    ConditionBlock, ConditionMode, Effect, EvalDecision, EvalOptions, EvalOutcome,
+    MatchedStatement, PolicyDocument, PolicySource, PrincipalMode, PrincipalSpec,
+    SimulationContext, Statement,
 };
-use crate::wildcard::{action_matches, resource_matches};
+use crate::wildcard::{action_matches, glob_match, resource_matches};
 
 /// Evaluate a set of IAM policies against an action/resource pair.
 ///
@@ -14,12 +15,28 @@ use crate::wildcard::{action_matches, resource_matches};
 /// 4. Otherwise → `ImplicitDenied`.
 ///
 /// Principal matching is skipped — identity-based simulation does not
-/// evaluate `Principal`/`NotPrincipal` fields.
+/// evaluate `Principal`/`NotPrincipal` fields — and `Condition` blocks are
+/// treated as satisfied. Use [`evaluate_with_options`] to change either.
 pub fn evaluate(
     policies: &[(PolicyDocument, PolicySource)],
     action: &str,
     resource: &str,
     context: &SimulationContext,
+) -> EvalOutcome {
+    evaluate_with_options(policies, action, resource, context, &EvalOptions::default())
+}
+
+/// [`evaluate`] with explicit handling of `Principal` and `Condition`.
+///
+/// With [`EvalOptions::default`] this is exactly [`evaluate`]. Resource-policy
+/// callers ( for example S3 bucket-policy enforcement ) select
+/// [`PrincipalMode::WildcardOnly`] and [`ConditionMode::Evaluate`].
+pub fn evaluate_with_options(
+    policies: &[(PolicyDocument, PolicySource)],
+    action: &str,
+    resource: &str,
+    context: &SimulationContext,
+    options: &EvalOptions,
 ) -> EvalOutcome {
     let mut matched_deny: Vec<MatchedStatement> = Vec::new();
     let mut matched_allow: Vec<MatchedStatement> = Vec::new();
@@ -27,6 +44,11 @@ pub fn evaluate(
 
     for (doc, source) in policies {
         for stmt in &doc.statement {
+            // ── Principal matching ─────────────────────────────────
+            if !principal_applies(stmt, options.principal_mode) {
+                continue;
+            }
+
             // ── Action matching ────────────────────────────────────
             let action_matched = if let Some(ref actions) = stmt.action {
                 actions.as_slice().iter().any(|p| action_matches(p, action))
@@ -66,11 +88,19 @@ pub fn evaluate(
                 continue;
             }
 
-            // ── Condition matching (Phase 1: stub) ─────────────────
-            let (cond_matched, missing_keys) = if let Some(ref cond) = stmt.condition {
-                evaluate_condition(cond, context)
-            } else {
-                (true, vec![])
+            // ── Condition matching ─────────────────────────────────
+            let (cond_matched, missing_keys) = match (&stmt.condition, options.condition_mode) {
+                (None, _) => (true, vec![]),
+                (Some(cond), ConditionMode::AssumeSatisfied) => evaluate_condition(cond, context),
+                (Some(cond), ConditionMode::Evaluate) => {
+                    if references_unknowable_key(cond, context, &options.unknowable_context_keys) {
+                        // Undecidable: neither an Allow nor a Deny can be
+                        // attributed to this statement.
+                        continue;
+                    }
+                    let outcome = evaluate_condition_block(cond, context);
+                    (outcome.matched, outcome.missing_keys)
+                }
             };
 
             all_missing_keys.extend(missing_keys);
@@ -117,6 +147,36 @@ pub fn evaluate(
             missing_context_keys: all_missing_keys,
         }
     }
+}
+
+fn principal_applies(stmt: &Statement, mode: PrincipalMode) -> bool {
+    match mode {
+        PrincipalMode::Ignore => true,
+        PrincipalMode::WildcardOnly => {
+            stmt.not_principal.is_none()
+                && stmt
+                    .principal
+                    .as_ref()
+                    .is_some_and(PrincipalSpec::is_wildcard)
+        }
+    }
+}
+
+/// Whether `cond` references a key matching one of the `unknowable` patterns
+/// that the context does not supply.
+fn references_unknowable_key(
+    cond: &ConditionBlock,
+    context: &SimulationContext,
+    unknowable: &[String],
+) -> bool {
+    if unknowable.is_empty() {
+        return false;
+    }
+    cond.values().flat_map(|keys| keys.keys()).any(|key| {
+        let key = key.to_ascii_lowercase();
+        !context.context_keys.contains_key(&key)
+            && unknowable.iter().any(|pattern| glob_match(pattern, &key))
+    })
 }
 
 // ── Tests ──────────────────────────────────────────────────────────────
@@ -440,5 +500,173 @@ mod tests {
             &default_ctx(),
         );
         assert_eq!(outcome.decision, EvalDecision::Allowed);
+    }
+
+    // ── evaluate_with_options ──────────────────────────────────────
+
+    fn resource_policy_options() -> EvalOptions {
+        EvalOptions {
+            condition_mode: ConditionMode::Evaluate,
+            principal_mode: PrincipalMode::WildcardOnly,
+            unknowable_context_keys: vec!["aws:principalarn".to_owned()],
+        }
+    }
+
+    fn ctx_with(pairs: &[(&str, &str)]) -> SimulationContext {
+        let mut ctx = SimulationContext::default();
+        for (k, v) in pairs {
+            ctx.context_keys
+                .entry((*k).to_owned())
+                .or_default()
+                .push((*v).to_owned());
+        }
+        ctx
+    }
+
+    fn decide(json: &str, ctx: &SimulationContext, options: &EvalOptions) -> EvalDecision {
+        evaluate_with_options(
+            &[(parse_policy(json), source("p"))],
+            "s3:PutObject",
+            "arn:aws:s3:::b/k",
+            ctx,
+            options,
+        )
+        .decision
+    }
+
+    #[test]
+    fn default_options_keep_conditions_and_principals_inert() {
+        // The IAM Simulate* callers go through `evaluate`: a condition that
+        // could never hold and a foreign principal must not change the result.
+        let json = r#"{"Statement": [{
+            "Effect": "Deny",
+            "Principal": {"AWS": "arn:aws:iam::111122223333:root"},
+            "Action": "s3:PutObject",
+            "Resource": "*",
+            "Condition": {"StringEquals": {"aws:RequestedRegion": "nowhere"}}
+        }]}"#;
+        let outcome = evaluate(
+            &[(parse_policy(json), source("p"))],
+            "s3:PutObject",
+            "arn:aws:s3:::b/k",
+            &default_ctx(),
+        );
+        assert_eq!(outcome.decision, EvalDecision::ExplicitDenied);
+        assert!(outcome.missing_context_keys.is_empty());
+        assert_eq!(
+            decide(json, &default_ctx(), &EvalOptions::default()),
+            EvalDecision::ExplicitDenied
+        );
+    }
+
+    #[test]
+    fn wildcard_only_principal_mode() {
+        let options = resource_policy_options();
+        let stmt = |principal: &str| {
+            format!(
+                r#"{{"Statement": [{{"Effect": "Deny", {principal} "Action": "s3:PutObject", "Resource": "*"}}]}}"#
+            )
+        };
+        let ctx = default_ctx();
+        assert_eq!(
+            decide(&stmt(r#""Principal": "*","#), &ctx, &options),
+            EvalDecision::ExplicitDenied
+        );
+        assert_eq!(
+            decide(&stmt(r#""Principal": {"AWS": "*"},"#), &ctx, &options),
+            EvalDecision::ExplicitDenied
+        );
+        assert_eq!(
+            decide(
+                &stmt(r#""Principal": {"AWS": "arn:aws:iam::111122223333:root"},"#),
+                &ctx,
+                &options
+            ),
+            EvalDecision::ImplicitDenied
+        );
+        assert_eq!(
+            decide(
+                &stmt(r#""NotPrincipal": {"AWS": "arn:aws:iam::111122223333:root"},"#),
+                &ctx,
+                &options
+            ),
+            EvalDecision::ImplicitDenied
+        );
+        assert_eq!(
+            decide(&stmt(""), &ctx, &options),
+            EvalDecision::ImplicitDenied
+        );
+    }
+
+    #[test]
+    fn evaluated_condition_gates_the_statement() {
+        let options = resource_policy_options();
+        let json = r#"{"Statement": [{
+            "Effect": "Deny", "Principal": "*", "Action": "s3:*", "Resource": "*",
+            "Condition": {"Bool": {"aws:SecureTransport": "false"}}
+        }]}"#;
+        assert_eq!(
+            decide(
+                json,
+                &ctx_with(&[("aws:securetransport", "false")]),
+                &options
+            ),
+            EvalDecision::ExplicitDenied
+        );
+        assert_eq!(
+            decide(
+                json,
+                &ctx_with(&[("aws:securetransport", "true")]),
+                &options
+            ),
+            EvalDecision::ImplicitDenied
+        );
+        // Missing key with a positive operator: no match, and it is reported.
+        let outcome = evaluate_with_options(
+            &[(parse_policy(json), source("p"))],
+            "s3:PutObject",
+            "arn:aws:s3:::b/k",
+            &default_ctx(),
+            &options,
+        );
+        assert_eq!(outcome.decision, EvalDecision::ImplicitDenied);
+        assert_eq!(outcome.missing_context_keys, vec!["aws:SecureTransport"]);
+    }
+
+    #[test]
+    fn unknowable_key_skips_the_statement_unless_supplied() {
+        let options = resource_policy_options();
+        let json = r#"{"Statement": [{
+            "Effect": "Deny", "Principal": "*", "Action": "s3:*", "Resource": "*",
+            "Condition": {"ArnNotLike": {"aws:PrincipalArn": "arn:aws:iam::111122223333:role/app"}}
+        }]}"#;
+        // Under plain missing-key rules the negated operator would match.
+        assert_eq!(
+            decide(json, &default_ctx(), &options),
+            EvalDecision::ImplicitDenied
+        );
+        let mut plain = resource_policy_options();
+        plain.unknowable_context_keys.clear();
+        assert_eq!(
+            decide(json, &default_ctx(), &plain),
+            EvalDecision::ExplicitDenied
+        );
+        // Once the caller supplies the key it is evaluated normally.
+        assert_eq!(
+            decide(
+                json,
+                &ctx_with(&[("aws:principalarn", "arn:aws:iam::111122223333:role/other")]),
+                &options
+            ),
+            EvalDecision::ExplicitDenied
+        );
+        assert_eq!(
+            decide(
+                json,
+                &ctx_with(&[("aws:principalarn", "arn:aws:iam::111122223333:role/app")]),
+                &options
+            ),
+            EvalDecision::ImplicitDenied
+        );
     }
 }

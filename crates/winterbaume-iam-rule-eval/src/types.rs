@@ -8,6 +8,10 @@ use serde::{Deserialize, Serialize};
 
 /// A value that can be deserialised from either a single JSON string or an
 /// array of strings.
+///
+/// JSON booleans and numbers are accepted wherever a string is and are kept in
+/// their canonical string form, because IAM admits both `"false"` and `false`
+/// ( and both `"10"` and `10` ) as condition values.
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct StringOrVec(pub Vec<String>);
 
@@ -32,16 +36,71 @@ impl<'de> Deserialize<'de> for StringOrVec {
                 Ok(StringOrVec(vec![v.to_owned()]))
             }
 
+            fn visit_bool<E: de::Error>(self, v: bool) -> Result<Self::Value, E> {
+                Ok(StringOrVec(vec![v.to_string()]))
+            }
+
+            fn visit_i64<E: de::Error>(self, v: i64) -> Result<Self::Value, E> {
+                Ok(StringOrVec(vec![v.to_string()]))
+            }
+
+            fn visit_u64<E: de::Error>(self, v: u64) -> Result<Self::Value, E> {
+                Ok(StringOrVec(vec![v.to_string()]))
+            }
+
+            fn visit_f64<E: de::Error>(self, v: f64) -> Result<Self::Value, E> {
+                Ok(StringOrVec(vec![v.to_string()]))
+            }
+
             fn visit_seq<A: de::SeqAccess<'de>>(self, mut seq: A) -> Result<Self::Value, A::Error> {
                 let mut v = Vec::new();
-                while let Some(s) = seq.next_element::<String>()? {
-                    v.push(s);
+                while let Some(s) = seq.next_element::<ScalarString>()? {
+                    v.push(s.0);
                 }
                 Ok(StringOrVec(v))
             }
         }
 
         deserializer.deserialize_any(SoVVisitor)
+    }
+}
+
+/// One scalar policy value: a string, or a boolean / number rendered as one.
+struct ScalarString(String);
+
+impl<'de> Deserialize<'de> for ScalarString {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        struct ScalarVisitor;
+
+        impl Visitor<'_> for ScalarVisitor {
+            type Value = ScalarString;
+
+            fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                f.write_str("a string, boolean or number")
+            }
+
+            fn visit_str<E: de::Error>(self, v: &str) -> Result<Self::Value, E> {
+                Ok(ScalarString(v.to_owned()))
+            }
+
+            fn visit_bool<E: de::Error>(self, v: bool) -> Result<Self::Value, E> {
+                Ok(ScalarString(v.to_string()))
+            }
+
+            fn visit_i64<E: de::Error>(self, v: i64) -> Result<Self::Value, E> {
+                Ok(ScalarString(v.to_string()))
+            }
+
+            fn visit_u64<E: de::Error>(self, v: u64) -> Result<Self::Value, E> {
+                Ok(ScalarString(v.to_string()))
+            }
+
+            fn visit_f64<E: de::Error>(self, v: f64) -> Result<Self::Value, E> {
+                Ok(ScalarString(v.to_string()))
+            }
+        }
+
+        deserializer.deserialize_any(ScalarVisitor)
     }
 }
 
@@ -97,6 +156,19 @@ impl<'de> Deserialize<'de> for PrincipalSpec {
     }
 }
 
+impl PrincipalSpec {
+    /// Whether this principal element names every caller: the bare `"*"`, or
+    /// an `AWS` entry containing `"*"` ( `{"AWS": "*"}` ).
+    pub fn is_wildcard(&self) -> bool {
+        match self {
+            PrincipalSpec::Wildcard => true,
+            PrincipalSpec::Map(map) => map
+                .get("AWS")
+                .is_some_and(|values| values.iter().any(|v| v == "*")),
+        }
+    }
+}
+
 // ── ConditionBlock ─────────────────────────────────────────────────────
 
 /// Outer key: operator name (e.g. `"StringEquals"`).
@@ -144,7 +216,25 @@ pub struct PolicyDocument {
     #[serde(default)]
     pub version: Option<String>,
 
+    /// IAM admits both a single statement object and an array of statements.
+    #[serde(deserialize_with = "deserialize_statements")]
     pub statement: Vec<Statement>,
+}
+
+fn deserialize_statements<'de, D: Deserializer<'de>>(
+    deserializer: D,
+) -> Result<Vec<Statement>, D::Error> {
+    #[derive(Deserialize)]
+    #[serde(untagged)]
+    enum OneOrMany {
+        Many(Vec<Statement>),
+        One(Box<Statement>),
+    }
+
+    Ok(match OneOrMany::deserialize(deserializer)? {
+        OneOrMany::Many(statements) => statements,
+        OneOrMany::One(statement) => vec![*statement],
+    })
 }
 
 // ── PolicySource ───────────────────────────────────────────────────────
@@ -167,6 +257,51 @@ pub struct SimulationContext {
     pub context_keys: HashMap<String, Vec<String>>,
     /// Key → type name for type-aware condition comparison.
     pub context_key_types: HashMap<String, String>,
+}
+
+// ── EvalOptions ────────────────────────────────────────────────────────
+
+/// How `Condition` blocks are treated during evaluation.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum ConditionMode {
+    /// Every `Condition` block is treated as satisfied. This is the behaviour
+    /// of [`crate::evaluate`] and what the IAM `Simulate*` handlers rely on.
+    #[default]
+    AssumeSatisfied,
+    /// `Condition` blocks are evaluated against
+    /// [`SimulationContext::context_keys`] with IAM's operator semantics. See
+    /// [`crate::condition::evaluate_condition_block`].
+    Evaluate,
+}
+
+/// How `Principal` / `NotPrincipal` are treated during evaluation.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum PrincipalMode {
+    /// The elements are not consulted ( identity-policy evaluation ).
+    #[default]
+    Ignore,
+    /// Resource-policy evaluation for a caller whose identity is unknown: a
+    /// statement applies only when it carries a wildcard `Principal`
+    /// ( see [`PrincipalSpec::is_wildcard`] ) and no `NotPrincipal`. Statements
+    /// naming specific principals, using `NotPrincipal`, or carrying no
+    /// `Principal` at all are skipped, because whether they cover the caller
+    /// cannot be decided.
+    WildcardOnly,
+}
+
+/// Knobs for [`crate::evaluate_with_options`]. The default reproduces
+/// [`crate::evaluate`].
+#[derive(Debug, Clone, Default)]
+pub struct EvalOptions {
+    pub condition_mode: ConditionMode,
+    pub principal_mode: PrincipalMode,
+    /// Lower-cased glob patterns ( `*`, `?` ) of condition keys whose value the
+    /// caller of the engine cannot determine, as opposed to keys that are
+    /// genuinely absent from the request. With [`ConditionMode::Evaluate`], a
+    /// statement whose `Condition` references such a key that is not present
+    /// in [`SimulationContext::context_keys`] is skipped as undecidable rather
+    /// than run through IAM's missing-key rules.
+    pub unknowable_context_keys: Vec<String>,
 }
 
 // ── EvalDecision / EvalOutcome / MatchedStatement ──────────────────────
@@ -337,6 +472,43 @@ mod tests {
             &["iam:*", "sts:*"]
         );
         assert_eq!(stmt.not_resource.as_ref().unwrap().as_slice(), &["*"]);
+    }
+
+    #[test]
+    fn deserialize_string_or_vec_scalars() {
+        let s: StringOrVec = serde_json::from_str("false").unwrap();
+        assert_eq!(s.as_slice(), &["false"]);
+        let s: StringOrVec = serde_json::from_str("10").unwrap();
+        assert_eq!(s.as_slice(), &["10"]);
+        let s: StringOrVec = serde_json::from_str(r#"[true, 5, "x"]"#).unwrap();
+        assert_eq!(s.as_slice(), &["true", "5", "x"]);
+    }
+
+    #[test]
+    fn deserialize_single_statement_object() {
+        let doc: PolicyDocument = serde_json::from_str(
+            r#"{"Statement": {"Effect": "Deny", "Action": "s3:*", "Resource": "*"}}"#,
+        )
+        .unwrap();
+        assert_eq!(doc.statement.len(), 1);
+        assert_eq!(doc.statement[0].effect, Effect::Deny);
+    }
+
+    #[test]
+    fn principal_wildcard_forms() {
+        let p: PrincipalSpec = serde_json::from_str(r#""*""#).unwrap();
+        assert!(p.is_wildcard());
+        let p: PrincipalSpec = serde_json::from_str(r#"{"AWS": "*"}"#).unwrap();
+        assert!(p.is_wildcard());
+        let p: PrincipalSpec =
+            serde_json::from_str(r#"{"AWS": ["arn:aws:iam::1:root", "*"]}"#).unwrap();
+        assert!(p.is_wildcard());
+        let p: PrincipalSpec =
+            serde_json::from_str(r#"{"AWS": "arn:aws:iam::123456789012:root"}"#).unwrap();
+        assert!(!p.is_wildcard());
+        let p: PrincipalSpec =
+            serde_json::from_str(r#"{"Service": "cloudtrail.amazonaws.com"}"#).unwrap();
+        assert!(!p.is_wildcard());
     }
 
     #[test]
