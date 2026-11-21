@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
@@ -178,6 +179,95 @@ impl S3Service {
     /// Returns sorted `(account_id, region)` pairs that have state.
     pub fn scopes_with_state(&self) -> Vec<(String, String)> {
         self.state.scopes_with_state()
+    }
+
+    /// Region of the state scope that holds `bucket_name` for `account_id`.
+    ///
+    /// A general purpose bucket ARN (`arn:aws:s3:::bucket`) carries no Region,
+    /// so callers that only have the ARN cannot name the scope themselves.
+    async fn find_bucket_scope(&self, account_id: &str, bucket_name: &str) -> Option<String> {
+        for (scope_account, region) in self.state.scopes_with_state() {
+            if scope_account != account_id {
+                continue;
+            }
+            let state = self.state.get(&scope_account, &region);
+            if state.read().await.buckets.contains_key(bucket_name) {
+                return Some(region);
+            }
+        }
+        None
+    }
+
+    /// Tags of a general purpose bucket, or `None` when the account has no
+    /// such bucket.
+    ///
+    /// This is the tag set `GetBucketTagging` reports. It exists so that the
+    /// S3 Control tagging API (`ListTagsForResource` on a bucket ARN) can
+    /// serve the same tags.
+    pub async fn bucket_tags(
+        &self,
+        account_id: &str,
+        bucket_name: &str,
+    ) -> Option<HashMap<String, String>> {
+        let region = self.find_bucket_scope(account_id, bucket_name).await?;
+        let state = self.state.get(account_id, &region);
+        let guard = state.read().await;
+        guard.buckets.get(bucket_name).map(|bs| bs.tags.clone())
+    }
+
+    /// Add or overwrite tags on a general purpose bucket, keeping the tags
+    /// that are not named (S3 Control `TagResource` semantics). Returns
+    /// `false` when the account has no such bucket.
+    pub async fn tag_bucket(
+        &self,
+        account_id: &str,
+        bucket_name: &str,
+        tags: HashMap<String, String>,
+    ) -> bool {
+        self.update_bucket_tags(account_id, bucket_name, |existing| existing.extend(tags))
+            .await
+    }
+
+    /// Remove the named tags from a general purpose bucket (S3 Control
+    /// `UntagResource` semantics). Returns `false` when the account has no
+    /// such bucket.
+    pub async fn untag_bucket(
+        &self,
+        account_id: &str,
+        bucket_name: &str,
+        tag_keys: &[String],
+    ) -> bool {
+        self.update_bucket_tags(account_id, bucket_name, |existing| {
+            for key in tag_keys {
+                existing.remove(key);
+            }
+        })
+        .await
+    }
+
+    async fn update_bucket_tags(
+        &self,
+        account_id: &str,
+        bucket_name: &str,
+        update: impl FnOnce(&mut HashMap<String, String>),
+    ) -> bool {
+        let Some(region) = self.find_bucket_scope(account_id, bucket_name).await else {
+            return false;
+        };
+        let state = self.state.get(account_id, &region);
+        {
+            let mut guard = state.write().await;
+            let Some(bs) = guard.buckets.get_mut(bucket_name) else {
+                return false;
+            };
+            update(&mut bs.tags);
+        }
+        // Same follow-up as a successful `PutBucketTagging`.
+        self.notify_state_changed(account_id, &region).await;
+        let blobs = self.blobs.get(account_id, &region);
+        self.persist_bucket_config(&blobs, &state, bucket_name)
+            .await;
+        true
     }
 }
 
@@ -591,7 +681,7 @@ impl S3Service {
                     .await
                 } else {
                     // PUT /{Bucket} - CreateBucket
-                    self.handle_create_bucket(&blobs, &state, bucket, region)
+                    self.handle_create_bucket(&blobs, &state, bucket, region, &query, &request)
                         .await
                 }
             }
@@ -1057,9 +1147,26 @@ impl S3Service {
         state: &Arc<tokio::sync::RwLock<S3State>>,
         bucket_name: &str,
         region: &str,
+        query: &std::collections::HashMap<String, String>,
+        request: &MockRequest,
     ) -> MockResponse {
+        let input = match deserialize_s3_request(
+            wire::deserialize_create_bucket_request(request, &[("Bucket", bucket_name)], query),
+            &request.uri,
+        ) {
+            Ok(input) => input,
+            Err(response) => return response,
+        };
+        let configuration = input.create_bucket_configuration.unwrap_or_default();
+        // `LocationConstraint` names the Region the bucket lives in; `EU` is the
+        // legacy alias of `eu-west-1`. Without it the request's Region applies.
+        let bucket_region = match configuration.location_constraint.as_deref() {
+            Some("EU") => "eu-west-1",
+            Some(constraint) if !constraint.is_empty() => constraint,
+            _ => region,
+        };
         let mut state = state.write().await;
-        match state.create_bucket(bucket_name, region) {
+        match state.create_bucket(bucket_name, bucket_region) {
             Ok(_) => {
                 let mut headers = http::HeaderMap::new();
                 headers.insert("Location", format!("/{bucket_name}").parse().unwrap());
@@ -1067,7 +1174,26 @@ impl S3Service {
                     http::header::CONTENT_TYPE,
                     "application/xml".parse().unwrap(),
                 );
-                if let Some(bs) = state.buckets.get(bucket_name) {
+                if let Some(bs) = state.buckets.get_mut(bucket_name) {
+                    if let Some(tags) = configuration.tags {
+                        bs.tags = tags
+                            .items
+                            .into_iter()
+                            .map(|tag| (tag.key, tag.value))
+                            .collect();
+                    }
+                    // `x-amz-object-ownership` replaces the `BucketOwnerEnforced`
+                    // rule every new bucket starts with.
+                    if let Some(object_ownership) = input.object_ownership {
+                        bs.ownership_controls = Some(object_ownership);
+                    }
+                    // Object Lock can only work on a versioned bucket, so S3
+                    // turns versioning on together with it.
+                    if input.object_lock_enabled_for_bucket == Some(true) {
+                        bs.object_lock_configuration =
+                            Some(OBJECT_LOCK_ENABLED_CONFIGURATION.to_string());
+                        bs.versioning_status = Some("Enabled".to_string());
+                    }
                     let meta = crate::stored::StoredBucketConfig::from_state(bucket_name, bs);
                     drop(state);
                     if let Ok(v) = serde_json::to_value(&meta) {
@@ -2756,11 +2882,19 @@ impl S3Service {
         let state = state.read().await;
         match state.head_bucket(bucket_name) {
             Ok(bucket) => {
-                let result = wire::GetBucketLocationOutput {
-                    location_constraint: (bucket.region != "us-east-1")
-                        .then(|| bucket.region.clone()),
+                // The generated serialiser nests a second `LocationConstraint`
+                // element inside the root, which SDKs cannot decode; S3 puts
+                // the Region directly in the root element ( empty for
+                // us-east-1 ).
+                let body = if bucket.region == "us-east-1" {
+                    format!(r#"<LocationConstraint xmlns="{S3_XML_NAMESPACE}"/>"#)
+                } else {
+                    format!(
+                        r#"<LocationConstraint xmlns="{S3_XML_NAMESPACE}">{}</LocationConstraint>"#,
+                        xml_escape(&bucket.region)
+                    )
                 };
-                wire::serialize_get_bucket_location_response(&result)
+                MockResponse::xml(200, body)
             }
             Err(err) => s3_error_response(&err),
         }
@@ -3880,10 +4014,13 @@ impl S3Service {
             Some(bs) => bs,
             None => return s3_error_response(&no_such_bucket(bucket_name)),
         };
-        let object_ownership = bs
-            .ownership_controls
-            .as_deref()
-            .unwrap_or("BucketOwnerEnforced");
+        // A bucket only lacks ownership controls once they have been deleted
+        // ( or when it predates them ); `create_bucket` seeds the default rule.
+        let Some(object_ownership) = bs.ownership_controls.as_deref() else {
+            return s3_error_response(&S3Error::OwnershipControlsNotFoundError {
+                resource: format!("/{bucket_name}?ownershipControls"),
+            });
+        };
         wire::serialize_get_bucket_ownership_controls_response(&wire::OwnershipControls {
             rules: vec![wire::OwnershipControlsRule {
                 object_ownership: object_ownership.to_string(),
@@ -5105,6 +5242,17 @@ fn deserialize_s3_request<T>(result: Result<T, String>, resource: &str) -> Resul
     })
 }
 
+const S3_XML_NAMESPACE: &str = "http://s3.amazonaws.com/doc/2006-03-01/";
+
+/// Object Lock configuration of a bucket created with
+/// `x-amz-bucket-object-lock-enabled: true`, as `GetObjectLockConfiguration`
+/// reports it before any default retention rule is set.
+const OBJECT_LOCK_ENABLED_CONFIGURATION: &str = concat!(
+    r#"<?xml version="1.0" encoding="UTF-8"?>"#,
+    r#"<ObjectLockConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/">"#,
+    "<ObjectLockEnabled>Enabled</ObjectLockEnabled></ObjectLockConfiguration>"
+);
+
 /// Lifecycle configuration header carried by `PutBucketLifecycleConfiguration`
 /// requests and by the Put/Get responses.
 const TRANSITION_DEFAULT_MINIMUM_OBJECT_SIZE_HEADER: &str =
@@ -5147,6 +5295,7 @@ fn s3_error_response(err: &S3Error) -> MockResponse {
             (404, "ReplicationConfigurationNotFoundError")
         }
         S3Error::NoSuchWebsiteConfiguration { .. } => (404, "NoSuchWebsiteConfiguration"),
+        S3Error::OwnershipControlsNotFoundError { .. } => (404, "OwnershipControlsNotFoundError"),
         S3Error::NoSuchPublicAccessBlockConfiguration { .. } => {
             (404, "NoSuchPublicAccessBlockConfiguration")
         }

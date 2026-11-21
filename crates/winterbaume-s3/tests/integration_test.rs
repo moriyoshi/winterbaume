@@ -2800,22 +2800,207 @@ async fn test_put_get_delete_bucket_ownership_controls() {
         .await
         .expect("delete_bucket_ownership_controls should succeed");
 
-    // After delete, default BucketOwnerEnforced should be returned again
-    let resp2 = client
+    // Regression for issue #50: after the delete the bucket has no ownership
+    // controls at all, rather than falling back to a synthesised default.
+    let err = client
         .get_bucket_ownership_controls()
         .bucket("ownership-crud-bucket")
         .send()
         .await
-        .expect("get_bucket_ownership_controls should succeed after delete");
-
-    let rules2 = resp2
-        .ownership_controls()
-        .map(|oc| oc.rules())
-        .unwrap_or_default();
+        .expect_err("get_bucket_ownership_controls should fail after delete");
+    assert_eq!(err.raw_response().map(|r| r.status().as_u16()), Some(404));
     assert_eq!(
-        rules2[0].object_ownership(),
-        &aws_sdk_s3::types::ObjectOwnership::BucketOwnerEnforced,
-        "after delete, should revert to BucketOwnerEnforced default"
+        err.into_service_error().meta().code(),
+        Some("OwnershipControlsNotFoundError")
+    );
+
+    // Deleting again is idempotent, and a later Put brings the rule back.
+    client
+        .delete_bucket_ownership_controls()
+        .bucket("ownership-crud-bucket")
+        .send()
+        .await
+        .expect("delete_bucket_ownership_controls should be idempotent");
+    client
+        .put_bucket_ownership_controls()
+        .bucket("ownership-crud-bucket")
+        .ownership_controls(
+            aws_sdk_s3::types::OwnershipControls::builder()
+                .rules(
+                    aws_sdk_s3::types::OwnershipControlsRule::builder()
+                        .object_ownership(aws_sdk_s3::types::ObjectOwnership::ObjectWriter)
+                        .build()
+                        .unwrap(),
+                )
+                .build()
+                .unwrap(),
+        )
+        .send()
+        .await
+        .expect("put_bucket_ownership_controls should succeed after delete");
+    let resp3 = client
+        .get_bucket_ownership_controls()
+        .bucket("ownership-crud-bucket")
+        .send()
+        .await
+        .expect("get_bucket_ownership_controls should succeed after re-put");
+    assert_eq!(
+        resp3.ownership_controls().unwrap().rules()[0].object_ownership(),
+        &aws_sdk_s3::types::ObjectOwnership::ObjectWriter
+    );
+}
+
+// -----------------------------------------------------------------------
+// CreateBucket request members ( issue #53 )
+// -----------------------------------------------------------------------
+
+#[tokio::test]
+async fn test_create_bucket_with_configuration_tags() {
+    let client = make_s3_client().await;
+
+    client
+        .create_bucket()
+        .bucket("create-tags-bucket")
+        .create_bucket_configuration(
+            aws_sdk_s3::types::CreateBucketConfiguration::builder()
+                .tags(
+                    aws_sdk_s3::types::Tag::builder()
+                        .key("app")
+                        .value("demo")
+                        .build()
+                        .unwrap(),
+                )
+                .tags(
+                    aws_sdk_s3::types::Tag::builder()
+                        .key("env")
+                        .value("test")
+                        .build()
+                        .unwrap(),
+                )
+                .build(),
+        )
+        .send()
+        .await
+        .expect("create_bucket with tags should succeed");
+
+    let resp = client
+        .get_bucket_tagging()
+        .bucket("create-tags-bucket")
+        .send()
+        .await
+        .expect("get_bucket_tagging should return the tags given at creation");
+    let tags: Vec<(&str, &str)> = resp
+        .tag_set()
+        .iter()
+        .map(|tag| (tag.key(), tag.value()))
+        .collect();
+    assert_eq!(tags, vec![("app", "demo"), ("env", "test")]);
+}
+
+#[tokio::test]
+async fn test_create_bucket_with_object_ownership_header() {
+    let client = make_s3_client().await;
+
+    client
+        .create_bucket()
+        .bucket("create-ownership-bucket")
+        .object_ownership(aws_sdk_s3::types::ObjectOwnership::BucketOwnerPreferred)
+        .send()
+        .await
+        .expect("create_bucket with object ownership should succeed");
+
+    let resp = client
+        .get_bucket_ownership_controls()
+        .bucket("create-ownership-bucket")
+        .send()
+        .await
+        .expect("get_bucket_ownership_controls should succeed");
+    assert_eq!(
+        resp.ownership_controls().unwrap().rules()[0].object_ownership(),
+        &aws_sdk_s3::types::ObjectOwnership::BucketOwnerPreferred
+    );
+}
+
+#[tokio::test]
+async fn test_create_bucket_with_object_lock_enabled() {
+    let client = make_s3_client().await;
+
+    client
+        .create_bucket()
+        .bucket("create-object-lock-bucket")
+        .object_lock_enabled_for_bucket(true)
+        .send()
+        .await
+        .expect("create_bucket with object lock should succeed");
+
+    let lock = client
+        .get_object_lock_configuration()
+        .bucket("create-object-lock-bucket")
+        .send()
+        .await
+        .expect("get_object_lock_configuration should succeed");
+    assert_eq!(
+        lock.object_lock_configuration()
+            .and_then(|c| c.object_lock_enabled()),
+        Some(&aws_sdk_s3::types::ObjectLockEnabled::Enabled)
+    );
+
+    let versioning = client
+        .get_bucket_versioning()
+        .bucket("create-object-lock-bucket")
+        .send()
+        .await
+        .expect("get_bucket_versioning should succeed");
+    assert_eq!(
+        versioning.status(),
+        Some(&aws_sdk_s3::types::BucketVersioningStatus::Enabled)
+    );
+
+    // A bucket created without the header has no Object Lock configuration.
+    client
+        .create_bucket()
+        .bucket("create-no-object-lock-bucket")
+        .object_lock_enabled_for_bucket(false)
+        .send()
+        .await
+        .unwrap();
+    let err = client
+        .get_object_lock_configuration()
+        .bucket("create-no-object-lock-bucket")
+        .send()
+        .await
+        .expect_err("object lock configuration should be absent");
+    assert_eq!(
+        err.into_service_error().meta().code(),
+        Some("ObjectLockConfigurationNotFoundError")
+    );
+}
+
+#[tokio::test]
+async fn test_create_bucket_with_location_constraint() {
+    let client = make_s3_client().await;
+
+    client
+        .create_bucket()
+        .bucket("create-location-bucket")
+        .create_bucket_configuration(
+            aws_sdk_s3::types::CreateBucketConfiguration::builder()
+                .location_constraint(aws_sdk_s3::types::BucketLocationConstraint::EuWest2)
+                .build(),
+        )
+        .send()
+        .await
+        .expect("create_bucket with a location constraint should succeed");
+
+    let resp = client
+        .get_bucket_location()
+        .bucket("create-location-bucket")
+        .send()
+        .await
+        .expect("get_bucket_location should succeed");
+    assert_eq!(
+        resp.location_constraint(),
+        Some(&aws_sdk_s3::types::BucketLocationConstraint::EuWest2)
     );
 }
 
