@@ -59,6 +59,14 @@ pub struct RuleView {
 }
 
 /// Serializable view of a rule target.
+///
+/// `Id`, `Arn`, `Input` and `InputPath` have dedicated fields. Every other
+/// `Target` API member is carried in `extra` as a JSON object keyed by the
+/// member's API name with the API's JSON shape, e.g.
+/// `{"RetryPolicy": {"MaximumRetryAttempts": 3}, "DeadLetterConfig": {"Arn": "..."}}`.
+/// Keys of `extra` that are not `Target` API members ( or whose value does not
+/// have the member's shape ) are preserved across restore/snapshot but are not
+/// surfaced by `ListTargetsByRule`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TargetView {
     pub id: String,
@@ -67,6 +75,24 @@ pub struct TargetView {
     pub input_path: Option<String>,
     #[serde(default)]
     pub extra: Option<serde_json::Value>,
+}
+
+/// `Target` API members that have a dedicated `TargetView` field and are
+/// therefore kept out of `TargetView::extra`.
+const TARGET_VIEW_FIELD_MEMBERS: [&str; 4] = ["Id", "Arn", "Input", "InputPath"];
+
+/// The API-shaped JSON object for the members of `spec` that live in
+/// `TargetView::extra`.
+fn target_extra_members(spec: &crate::model::Target) -> serde_json::Map<String, serde_json::Value> {
+    match serde_json::to_value(spec) {
+        Ok(serde_json::Value::Object(mut members)) => {
+            for key in TARGET_VIEW_FIELD_MEMBERS {
+                members.remove(key);
+            }
+            members
+        }
+        _ => serde_json::Map::new(),
+    }
 }
 
 /// Serializable view of a tag.
@@ -248,12 +274,25 @@ impl From<&Rule> for RuleView {
 
 impl From<&Target> for TargetView {
     fn from(t: &Target) -> Self {
+        let members = target_extra_members(&t.spec);
+        let extra = match &t.passthrough {
+            Some(serde_json::Value::Object(passthrough)) => {
+                let mut merged = passthrough.clone();
+                merged.extend(members);
+                Some(serde_json::Value::Object(merged))
+            }
+            // A non-object passthrough cannot be merged with members; it is
+            // only kept while the target has no member to put in `extra`.
+            Some(other) if members.is_empty() => Some(other.clone()),
+            _ if members.is_empty() => None,
+            _ => Some(serde_json::Value::Object(members)),
+        };
         TargetView {
-            id: t.id.clone(),
-            arn: t.arn.clone(),
-            input: t.input.clone(),
-            input_path: t.input_path.clone(),
-            extra: None,
+            id: t.spec.id.clone(),
+            arn: t.spec.arn.clone(),
+            input: t.spec.input.clone(),
+            input_path: t.spec.input_path.clone(),
+            extra,
         }
     }
 }
@@ -444,11 +483,61 @@ impl From<RuleView> for Rule {
 
 impl From<TargetView> for Target {
     fn from(v: TargetView) -> Self {
-        Target {
+        let base = crate::model::Target {
             id: v.id,
             arn: v.arn,
             input: v.input,
             input_path: v.input_path,
+            ..Default::default()
+        };
+        let mut extra = match v.extra {
+            Some(serde_json::Value::Object(extra)) => extra,
+            Some(serde_json::Value::Null) | None => {
+                return Target {
+                    spec: base,
+                    passthrough: None,
+                };
+            }
+            other => {
+                return Target {
+                    spec: base,
+                    passthrough: other,
+                };
+            }
+        };
+
+        // Read the API members out of `extra`. The dedicated view fields are
+        // authoritative for Id/Arn/Input/InputPath.
+        let mut candidate = extra.clone();
+        for key in TARGET_VIEW_FIELD_MEMBERS {
+            candidate.remove(key);
+        }
+        let spec = match serde_json::from_value::<crate::model::Target>(serde_json::Value::Object(
+            candidate,
+        )) {
+            Ok(parsed) => {
+                // Whatever the model understood is now owned by `spec`; the
+                // rest stays behind as opaque passthrough.
+                for key in target_extra_members(&parsed).keys() {
+                    extra.remove(key);
+                }
+                crate::model::Target {
+                    id: base.id,
+                    arn: base.arn,
+                    input: base.input,
+                    input_path: base.input_path,
+                    ..parsed
+                }
+            }
+            // A member with an unexpected shape: keep all of `extra` opaque
+            // so that nothing is lost on the next snapshot.
+            Err(_) => base,
+        };
+        Target {
+            spec,
+            passthrough: Some(extra)
+                .filter(|m| !m.is_empty())
+                .map(serde_json::Value::Object),
         }
     }
 }

@@ -50,6 +50,8 @@ pub struct EventTargetTfModel {
     pub input_path: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub event_bus_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub role_arn: Option<String>,
 }
 
 /// Auto-generated TF-shaped projection of the `aws_cloudwatch_event_api_destination` resource.

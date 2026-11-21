@@ -3275,3 +3275,657 @@ async fn test_put_multiple_targets_and_remove_one() {
     assert!(ids.contains(&"t3"));
     assert!(!ids.contains(&"t2"));
 }
+
+// ---------------------------------------------------------------------------
+// Issue #47: PutTargets must store every modelled Target member and
+// ListTargetsByRule must return it exactly as sent.
+// ---------------------------------------------------------------------------
+
+/// Creates a rule, puts `targets` on it, and returns what ListTargetsByRule reports.
+async fn put_and_list_targets(
+    client: &aws_sdk_eventbridge::Client,
+    rule: &str,
+    targets: Vec<aws_sdk_eventbridge::types::Target>,
+) -> Vec<aws_sdk_eventbridge::types::Target> {
+    client
+        .put_rule()
+        .name(rule)
+        .schedule_expression("rate(1 hour)")
+        .send()
+        .await
+        .unwrap();
+    let put = client
+        .put_targets()
+        .rule(rule)
+        .set_targets(Some(targets))
+        .send()
+        .await
+        .expect("put_targets should succeed");
+    assert_eq!(put.failed_entry_count(), 0);
+    client
+        .list_targets_by_rule()
+        .rule(rule)
+        .send()
+        .await
+        .expect("list_targets_by_rule should succeed")
+        .targets()
+        .to_vec()
+}
+
+#[tokio::test]
+async fn test_put_targets_round_trips_retry_policy_and_dead_letter_config() {
+    use aws_sdk_eventbridge::types::{DeadLetterConfig, RetryPolicy, Target};
+
+    let client = make_events_client().await;
+    let sent = Target::builder()
+        .id("t1")
+        .arn("arn:aws:lambda:us-east-1:123456789012:function:wb-fn-a")
+        .input(r#"{"job":"x"}"#)
+        .retry_policy(
+            RetryPolicy::builder()
+                .maximum_retry_attempts(3)
+                .maximum_event_age_in_seconds(3600)
+                .build(),
+        )
+        .dead_letter_config(
+            DeadLetterConfig::builder()
+                .arn("arn:aws:sqs:us-east-1:123456789012:wb-q-b")
+                .build(),
+        )
+        .build()
+        .unwrap();
+
+    let listed = put_and_list_targets(&client, "wb-rule", vec![sent.clone()]).await;
+
+    assert_eq!(listed.len(), 1);
+    let got = &listed[0];
+    assert_eq!(got.id(), "t1");
+    assert_eq!(
+        got.arn(),
+        "arn:aws:lambda:us-east-1:123456789012:function:wb-fn-a"
+    );
+    assert_eq!(got.input(), Some(r#"{"job":"x"}"#));
+    let retry = got.retry_policy().expect("RetryPolicy must be returned");
+    assert_eq!(retry.maximum_retry_attempts(), Some(3));
+    assert_eq!(retry.maximum_event_age_in_seconds(), Some(3600));
+    let dlq = got
+        .dead_letter_config()
+        .expect("DeadLetterConfig must be returned");
+    assert_eq!(dlq.arn(), Some("arn:aws:sqs:us-east-1:123456789012:wb-q-b"));
+    assert_eq!(got, &sent);
+}
+
+#[tokio::test]
+async fn test_put_targets_same_id_replaces_whole_target() {
+    use aws_sdk_eventbridge::types::{
+        DeadLetterConfig, InputTransformer, RetryPolicy, SqsParameters, Target,
+    };
+
+    let client = make_events_client().await;
+    let first = Target::builder()
+        .id("t1")
+        .arn("arn:aws:sqs:us-east-1:123456789012:wb-q-a.fifo")
+        .role_arn("arn:aws:iam::123456789012:role/wb-role-a")
+        .input_transformer(
+            InputTransformer::builder()
+                .input_paths_map("src", "$.source")
+                .input_template(r#"{"from":<src>}"#)
+                .build()
+                .unwrap(),
+        )
+        .sqs_parameters(SqsParameters::builder().message_group_id("grp-a").build())
+        .retry_policy(
+            RetryPolicy::builder()
+                .maximum_retry_attempts(7)
+                .maximum_event_age_in_seconds(120)
+                .build(),
+        )
+        .dead_letter_config(
+            DeadLetterConfig::builder()
+                .arn("arn:aws:sqs:us-east-1:123456789012:wb-dlq")
+                .build(),
+        )
+        .build()
+        .unwrap();
+    let listed = put_and_list_targets(&client, "replace-rule", vec![first.clone()]).await;
+    assert_eq!(listed, vec![first]);
+
+    // Re-put the same Id with only a different Arn and a RetryPolicy that sets one member.
+    let second = Target::builder()
+        .id("t1")
+        .arn("arn:aws:sqs:us-east-1:123456789012:wb-q-b")
+        .retry_policy(RetryPolicy::builder().maximum_retry_attempts(1).build())
+        .build()
+        .unwrap();
+    client
+        .put_targets()
+        .rule("replace-rule")
+        .targets(second.clone())
+        .send()
+        .await
+        .unwrap();
+    let listed = client
+        .list_targets_by_rule()
+        .rule("replace-rule")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(listed.targets().len(), 1);
+    let got = &listed.targets()[0];
+    assert_eq!(got.arn(), "arn:aws:sqs:us-east-1:123456789012:wb-q-b");
+    assert!(got.role_arn().is_none());
+    assert!(got.input_transformer().is_none());
+    assert!(got.sqs_parameters().is_none());
+    assert!(got.dead_letter_config().is_none());
+    let retry = got.retry_policy().unwrap();
+    assert_eq!(retry.maximum_retry_attempts(), Some(1));
+    assert_eq!(retry.maximum_event_age_in_seconds(), None);
+    assert_eq!(got, &second);
+
+    // Re-put once more with no optional member at all: everything is gone.
+    let third = Target::builder()
+        .id("t1")
+        .arn("arn:aws:sqs:us-east-1:123456789012:wb-q-b")
+        .build()
+        .unwrap();
+    client
+        .put_targets()
+        .rule("replace-rule")
+        .targets(third.clone())
+        .send()
+        .await
+        .unwrap();
+    let listed = client
+        .list_targets_by_rule()
+        .rule("replace-rule")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(listed.targets().len(), 1);
+    assert!(listed.targets()[0].retry_policy().is_none());
+    assert_eq!(listed.targets()[0], third);
+}
+
+#[tokio::test]
+async fn test_put_targets_round_trips_input_members_and_role_arn() {
+    use aws_sdk_eventbridge::types::{InputTransformer, Target};
+
+    let client = make_events_client().await;
+    let with_path = Target::builder()
+        .id("path")
+        .arn("arn:aws:states:us-east-1:123456789012:stateMachine:wb-sm")
+        .role_arn("arn:aws:iam::123456789012:role/wb-invoke-sm")
+        .input_path("$.detail.payload")
+        .build()
+        .unwrap();
+    let with_transformer = Target::builder()
+        .id("transformer")
+        .arn("arn:aws:sns:us-east-1:123456789012:wb-topic")
+        .input_transformer(
+            InputTransformer::builder()
+                .input_paths_map("instance", "$.detail.instance-id")
+                .input_paths_map("state", "$.detail.state")
+                .input_template(r#""<instance> is now <state>""#)
+                .build()
+                .unwrap(),
+        )
+        .build()
+        .unwrap();
+
+    let listed = put_and_list_targets(
+        &client,
+        "input-rule",
+        vec![with_path.clone(), with_transformer.clone()],
+    )
+    .await;
+
+    assert_eq!(listed.len(), 2);
+    assert_eq!(
+        listed[0].role_arn(),
+        Some("arn:aws:iam::123456789012:role/wb-invoke-sm")
+    );
+    assert_eq!(listed[0].input_path(), Some("$.detail.payload"));
+    let transformer = listed[1].input_transformer().unwrap();
+    assert_eq!(
+        transformer.input_template(),
+        r#""<instance> is now <state>""#
+    );
+    let paths = transformer.input_paths_map().unwrap();
+    assert_eq!(paths.len(), 2);
+    assert_eq!(paths["instance"], "$.detail.instance-id");
+    assert_eq!(paths["state"], "$.detail.state");
+    assert_eq!(listed, vec![with_path, with_transformer]);
+}
+
+#[tokio::test]
+async fn test_put_targets_round_trips_service_specific_parameters() {
+    use aws_sdk_eventbridge::types::{
+        AppSyncParameters, AwsVpcConfiguration, BatchArrayProperties, BatchParameters,
+        BatchRetryStrategy, CapacityProviderStrategyItem, EcsParameters, HttpParameters,
+        KinesisParameters, NetworkConfiguration, PlacementConstraint, PlacementStrategy,
+        RedshiftDataParameters, RunCommandParameters, RunCommandTarget, SageMakerPipelineParameter,
+        SageMakerPipelineParameters, SqsParameters, Tag, Target,
+    };
+
+    let client = make_events_client().await;
+    let role = "arn:aws:iam::123456789012:role/wb-target-role";
+
+    let kinesis = Target::builder()
+        .id("kinesis")
+        .arn("arn:aws:kinesis:us-east-1:123456789012:stream/wb-stream")
+        .role_arn(role)
+        .kinesis_parameters(
+            KinesisParameters::builder()
+                .partition_key_path("$.detail.tenant")
+                .build()
+                .unwrap(),
+        )
+        .build()
+        .unwrap();
+    let run_command = Target::builder()
+        .id("run-command")
+        .arn("arn:aws:ssm:us-east-1::document/AWS-RunShellScript")
+        .role_arn(role)
+        .run_command_parameters(
+            RunCommandParameters::builder()
+                .run_command_targets(
+                    RunCommandTarget::builder()
+                        .key("tag:Env")
+                        .values("staging")
+                        .values("canary")
+                        .build()
+                        .unwrap(),
+                )
+                .run_command_targets(
+                    RunCommandTarget::builder()
+                        .key("InstanceIds")
+                        .values("i-0123456789abcdef0")
+                        .build()
+                        .unwrap(),
+                )
+                .build()
+                .unwrap(),
+        )
+        .build()
+        .unwrap();
+    let ecs = Target::builder()
+        .id("ecs")
+        .arn("arn:aws:ecs:us-east-1:123456789012:cluster/wb-cluster")
+        .role_arn(role)
+        .ecs_parameters(
+            EcsParameters::builder()
+                .task_definition_arn("arn:aws:ecs:us-east-1:123456789012:task-definition/wb-td:4")
+                .task_count(3)
+                .platform_version("1.4.0")
+                .group("wb-group")
+                .network_configuration(
+                    NetworkConfiguration::builder()
+                        .awsvpc_configuration(
+                            AwsVpcConfiguration::builder()
+                                .subnets("subnet-0a1b2c3d")
+                                .subnets("subnet-4e5f6a7b")
+                                .security_groups("sg-0123abcd")
+                                .assign_public_ip("ENABLED".into())
+                                .build()
+                                .unwrap(),
+                        )
+                        .build(),
+                )
+                .capacity_provider_strategy(
+                    CapacityProviderStrategyItem::builder()
+                        .capacity_provider("FARGATE_SPOT")
+                        .weight(2)
+                        .base(1)
+                        .build()
+                        .unwrap(),
+                )
+                .enable_ecs_managed_tags(true)
+                .enable_execute_command(true)
+                .placement_constraints(
+                    PlacementConstraint::builder()
+                        .r#type("memberOf".into())
+                        .expression("attribute:ecs.instance-type =~ t3.*")
+                        .build(),
+                )
+                .placement_strategy(
+                    PlacementStrategy::builder()
+                        .r#type("spread".into())
+                        .field("attribute:ecs.availability-zone")
+                        .build(),
+                )
+                .propagate_tags("TASK_DEFINITION".into())
+                .reference_id("wb-ref-1")
+                .tags(Tag::builder().key("team").value("wb").build().unwrap())
+                .build()
+                .unwrap(),
+        )
+        .build()
+        .unwrap();
+    let batch = Target::builder()
+        .id("batch")
+        .arn("arn:aws:batch:us-east-1:123456789012:job-queue/wb-queue")
+        .role_arn(role)
+        .batch_parameters(
+            BatchParameters::builder()
+                .job_definition("arn:aws:batch:us-east-1:123456789012:job-definition/wb-jd:2")
+                .job_name("wb-job")
+                .array_properties(BatchArrayProperties::builder().size(5).build())
+                .retry_strategy(BatchRetryStrategy::builder().attempts(4).build())
+                .build()
+                .unwrap(),
+        )
+        .build()
+        .unwrap();
+    let sqs = Target::builder()
+        .id("sqs")
+        .arn("arn:aws:sqs:us-east-1:123456789012:wb-queue.fifo")
+        .sqs_parameters(SqsParameters::builder().message_group_id("grp-7").build())
+        .build()
+        .unwrap();
+    let http = Target::builder()
+        .id("http")
+        .arn("arn:aws:execute-api:us-east-1:123456789012:abc123/prod/POST/orders/*")
+        .role_arn(role)
+        .http_parameters(
+            HttpParameters::builder()
+                .path_parameter_values("order-42")
+                .header_parameters("X-Wb-Source", "eventbridge")
+                .query_string_parameters("dryRun", "true")
+                .build(),
+        )
+        .build()
+        .unwrap();
+    let redshift = Target::builder()
+        .id("redshift")
+        .arn("arn:aws:redshift:us-east-1:123456789012:cluster:wb-cluster")
+        .role_arn(role)
+        .redshift_data_parameters(
+            RedshiftDataParameters::builder()
+                .database("wbdb")
+                .db_user("wb_user")
+                .secret_manager_arn(
+                    "arn:aws:secretsmanager:us-east-1:123456789012:secret:wb-redshift",
+                )
+                .sqls("select 1")
+                .sqls("select 2")
+                .statement_name("wb-statement")
+                .with_event(true)
+                .build()
+                .unwrap(),
+        )
+        .build()
+        .unwrap();
+    let sagemaker = Target::builder()
+        .id("sagemaker")
+        .arn("arn:aws:sagemaker:us-east-1:123456789012:pipeline/wb-pipeline")
+        .role_arn(role)
+        .sage_maker_pipeline_parameters(
+            SageMakerPipelineParameters::builder()
+                .pipeline_parameter_list(
+                    SageMakerPipelineParameter::builder()
+                        .name("InputUri")
+                        .value("s3://wb-bucket/input")
+                        .build()
+                        .unwrap(),
+                )
+                .build(),
+        )
+        .build()
+        .unwrap();
+    let appsync = Target::builder()
+        .id("appsync")
+        .arn("arn:aws:appsync:us-east-1:123456789012:endpoints/graphql-api/wbapi")
+        .role_arn(role)
+        .app_sync_parameters(
+            AppSyncParameters::builder()
+                .graph_ql_operation("mutation Publish($id: ID!) { publish(id: $id) { id } }")
+                .build(),
+        )
+        .build()
+        .unwrap();
+
+    // AWS allows five targets per rule, so spread them over two rules.
+    let first = vec![kinesis, run_command, ecs, batch, sqs];
+    let second = vec![http, redshift, sagemaker, appsync];
+    let listed = put_and_list_targets(&client, "params-rule-a", first.clone()).await;
+    assert_eq!(listed, first);
+    let listed = put_and_list_targets(&client, "params-rule-b", second.clone()).await;
+    assert_eq!(listed, second);
+
+    // Spot-check values through the getters as well as whole-struct equality.
+    let listed_a = client
+        .list_targets_by_rule()
+        .rule("params-rule-a")
+        .send()
+        .await
+        .unwrap();
+    let by_id = |id: &str| {
+        listed_a
+            .targets()
+            .iter()
+            .find(|t| t.id() == id)
+            .unwrap_or_else(|| panic!("target {id} missing"))
+    };
+    assert_eq!(
+        by_id("kinesis")
+            .kinesis_parameters()
+            .unwrap()
+            .partition_key_path(),
+        "$.detail.tenant"
+    );
+    assert_eq!(
+        by_id("run-command")
+            .run_command_parameters()
+            .unwrap()
+            .run_command_targets()[0]
+            .values(),
+        ["staging", "canary"]
+    );
+    let ecs = by_id("ecs").ecs_parameters().unwrap();
+    assert_eq!(ecs.task_count(), Some(3));
+    assert_eq!(
+        ecs.network_configuration()
+            .unwrap()
+            .awsvpc_configuration()
+            .unwrap()
+            .subnets(),
+        ["subnet-0a1b2c3d", "subnet-4e5f6a7b"]
+    );
+    assert_eq!(ecs.capacity_provider_strategy()[0].weight(), 2);
+    let batch = by_id("batch").batch_parameters().unwrap();
+    assert_eq!(batch.array_properties().unwrap().size(), 5);
+    assert_eq!(batch.retry_strategy().unwrap().attempts(), 4);
+    assert_eq!(
+        by_id("sqs").sqs_parameters().unwrap().message_group_id(),
+        Some("grp-7")
+    );
+}
+
+#[tokio::test]
+async fn test_target_members_survive_snapshot_and_restore() {
+    use aws_sdk_eventbridge::types::{DeadLetterConfig, KinesisParameters, RetryPolicy, Target};
+    use winterbaume_core::StatefulService;
+
+    let source_handle = std::sync::Arc::new(EventBridgeService::new());
+    let mock = MockAws::builder()
+        .with_service(source_handle.clone())
+        .build();
+    let config = aws_config::defaults(BehaviorVersion::latest())
+        .http_client(mock.http_client())
+        .credentials_provider(mock.credentials_provider())
+        .region(aws_sdk_eventbridge::config::Region::new("us-east-1"))
+        .load()
+        .await;
+    let client = aws_sdk_eventbridge::Client::new(&config);
+
+    let sent = Target::builder()
+        .id("t1")
+        .arn("arn:aws:kinesis:us-east-1:123456789012:stream/wb-stream")
+        .role_arn("arn:aws:iam::123456789012:role/wb-role")
+        .input_path("$.detail")
+        .kinesis_parameters(
+            KinesisParameters::builder()
+                .partition_key_path("$.id")
+                .build()
+                .unwrap(),
+        )
+        .retry_policy(
+            RetryPolicy::builder()
+                .maximum_retry_attempts(9)
+                .maximum_event_age_in_seconds(900)
+                .build(),
+        )
+        .dead_letter_config(
+            DeadLetterConfig::builder()
+                .arn("arn:aws:sqs:us-east-1:123456789012:wb-dlq")
+                .build(),
+        )
+        .build()
+        .unwrap();
+    let listed = put_and_list_targets(&client, "snap-rule", vec![sent.clone()]).await;
+    assert_eq!(listed, vec![sent.clone()]);
+
+    // The snapshot carries the members in `extra`, keyed by their API names.
+    let view = source_handle.snapshot("123456789012", "us-east-1").await;
+    let target_view = &view.rules["snap-rule"].targets[0];
+    assert_eq!(target_view.id, "t1");
+    assert_eq!(target_view.input_path.as_deref(), Some("$.detail"));
+    assert_eq!(
+        target_view.extra,
+        Some(serde_json::json!({
+            "RoleArn": "arn:aws:iam::123456789012:role/wb-role",
+            "KinesisParameters": {"PartitionKeyPath": "$.id"},
+            "RetryPolicy": {"MaximumRetryAttempts": 9, "MaximumEventAgeInSeconds": 900},
+            "DeadLetterConfig": {"Arn": "arn:aws:sqs:us-east-1:123456789012:wb-dlq"},
+        }))
+    );
+
+    // A serialised snapshot restored into a fresh service lists the same target.
+    let json = serde_json::to_string(&view).unwrap();
+    let restored_view: winterbaume_eventbridge::EventsStateView =
+        serde_json::from_str(&json).unwrap();
+    let restored = EventBridgeService::new();
+    restored
+        .restore("123456789012", "us-east-1", restored_view)
+        .await
+        .unwrap();
+    let mock = MockAws::builder().with_service(restored).build();
+    let config = aws_config::defaults(BehaviorVersion::latest())
+        .http_client(mock.http_client())
+        .credentials_provider(mock.credentials_provider())
+        .region(aws_sdk_eventbridge::config::Region::new("us-east-1"))
+        .load()
+        .await;
+    let client = aws_sdk_eventbridge::Client::new(&config);
+    let listed = client
+        .list_targets_by_rule()
+        .rule("snap-rule")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(listed.targets(), [sent]);
+}
+
+#[tokio::test]
+async fn test_target_view_stays_compatible_with_older_snapshots() {
+    use winterbaume_core::StatefulService;
+    use winterbaume_eventbridge::EventsStateView;
+
+    // `plain` predates `extra` altogether; `tf` carries the Terraform-shaped
+    // blocks the aws_cloudwatch_event_target converter writes, which are not
+    // API members and must pass through untouched; `mixed` has both kinds.
+    let json = serde_json::json!({
+        "rules": {
+            "old-rule": {
+                "name": "old-rule",
+                "arn": "arn:aws:events:us-east-1:123456789012:rule/old-rule",
+                "event_pattern": null,
+                "schedule_expression": "rate(1 hour)",
+                "state": "ENABLED",
+                "description": null,
+                "event_bus_name": "default",
+                "targets": [
+                    {
+                        "id": "plain",
+                        "arn": "arn:aws:sqs:us-east-1:123456789012:q-plain",
+                        "input": "{\"a\":1}",
+                        "input_path": null
+                    },
+                    {
+                        "id": "tf",
+                        "arn": "arn:aws:sqs:us-east-1:123456789012:q-tf",
+                        "input": null,
+                        "input_path": null,
+                        "extra": {
+                            "dead_letter_config": [{"arn": "arn:aws:sqs:us-east-1:123456789012:tf-dlq"}],
+                            "sqs_target": [{"message_group_id": "tf-grp"}]
+                        }
+                    },
+                    {
+                        "id": "mixed",
+                        "arn": "arn:aws:sqs:us-east-1:123456789012:q-mixed",
+                        "input": null,
+                        "input_path": "$.detail",
+                        "extra": {
+                            "ecs_target": [],
+                            "RetryPolicy": {"MaximumRetryAttempts": 2}
+                        }
+                    }
+                ],
+                "tags": []
+            }
+        }
+    });
+    let view: EventsStateView = serde_json::from_value(json).unwrap();
+
+    let svc = std::sync::Arc::new(EventBridgeService::new());
+    let handle = svc.clone();
+    svc.restore("123456789012", "us-east-1", view)
+        .await
+        .unwrap();
+
+    let snap = handle.snapshot("123456789012", "us-east-1").await;
+    let targets = &snap.rules["old-rule"].targets;
+    assert_eq!(targets[0].extra, None);
+    assert_eq!(
+        targets[1].extra,
+        Some(serde_json::json!({
+            "dead_letter_config": [{"arn": "arn:aws:sqs:us-east-1:123456789012:tf-dlq"}],
+            "sqs_target": [{"message_group_id": "tf-grp"}]
+        }))
+    );
+    assert_eq!(
+        targets[2].extra,
+        Some(serde_json::json!({
+            "ecs_target": [],
+            "RetryPolicy": {"MaximumRetryAttempts": 2}
+        }))
+    );
+
+    let mock = MockAws::builder().with_service(svc).build();
+    let config = aws_config::defaults(BehaviorVersion::latest())
+        .http_client(mock.http_client())
+        .credentials_provider(mock.credentials_provider())
+        .region(aws_sdk_eventbridge::config::Region::new("us-east-1"))
+        .load()
+        .await;
+    let client = aws_sdk_eventbridge::Client::new(&config);
+    let listed = client
+        .list_targets_by_rule()
+        .rule("old-rule")
+        .send()
+        .await
+        .unwrap();
+    let targets = listed.targets();
+    assert_eq!(targets.len(), 3);
+    assert_eq!(targets[0].input(), Some("{\"a\":1}"));
+    assert!(targets[0].retry_policy().is_none());
+    // Terraform-shaped blocks are not surfaced as API members.
+    assert!(targets[1].dead_letter_config().is_none());
+    assert!(targets[1].sqs_parameters().is_none());
+    assert_eq!(targets[2].input_path(), Some("$.detail"));
+    assert_eq!(
+        targets[2].retry_policy().unwrap().maximum_retry_attempts(),
+        Some(2)
+    );
+}

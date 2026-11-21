@@ -36,12 +36,22 @@ impl RuleState {
 }
 
 /// A rule target.
-#[derive(Debug, Clone)]
+///
+/// The target is kept exactly as `PutTargets` received it, as the
+/// Smithy-derived wire structure, so that every modelled member
+/// ( `RetryPolicy`, `DeadLetterConfig`, `RoleArn`, `InputTransformer`, the
+/// service-specific `*Parameters` blocks, and whatever the model gains later )
+/// is stored and echoed by `ListTargetsByRule` without per-member plumbing.
+#[derive(Debug, Clone, Default)]
 pub struct Target {
-    pub id: String,
-    pub arn: String,
-    pub input: Option<String>,
-    pub input_path: Option<String>,
+    /// The target as sent to `PutTargets`.
+    pub spec: crate::model::Target,
+    /// Snapshot-only data from `TargetView::extra` that is not an API member
+    /// ( e.g. Terraform-shaped blocks written by a state injector ). It is
+    /// never surfaced through the API; it only round-trips through
+    /// snapshot/restore. A `PutTargets` for the same Id replaces the whole
+    /// target and therefore clears it.
+    pub passthrough: Option<serde_json::Value>,
 }
 
 /// A tag key-value pair.

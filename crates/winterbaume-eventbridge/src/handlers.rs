@@ -333,11 +333,11 @@ impl EventBridgeService {
             .targets
             .into_iter()
             .filter(|t| !t.id.is_empty() && !t.arn.is_empty())
-            .map(|t| Target {
-                id: t.id,
-                arn: t.arn,
-                input: t.input,
-                input_path: t.input_path,
+            // Store the whole wire target: every modelled member must come
+            // back from ListTargetsByRule exactly as it was sent.
+            .map(|spec| Target {
+                spec,
+                passthrough: None,
             })
             .collect();
 
@@ -390,16 +390,7 @@ impl EventBridgeService {
         let state = state.read().await;
         match state.list_targets_by_rule(&input.rule) {
             Ok(targets) => {
-                let entries: Vec<wire::Target> = targets
-                    .iter()
-                    .map(|t| wire::Target {
-                        id: t.id.clone(),
-                        arn: t.arn.clone(),
-                        input: t.input.clone(),
-                        input_path: t.input_path.clone(),
-                        ..Default::default()
-                    })
-                    .collect();
+                let entries: Vec<wire::Target> = targets.iter().map(|t| t.spec.clone()).collect();
                 wire::serialize_list_targets_by_rule_response(&wire::ListTargetsByRuleResponse {
                     targets: Some(entries),
                     next_token: None,
