@@ -25,6 +25,8 @@ pub struct TableTfModel {
     pub stream_enabled: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub stream_view_type: Option<String>,
+    #[serde(default = "default_table_deletion_protection_enabled")]
+    pub deletion_protection_enabled: bool,
 }
 
 fn default_table_read_capacity() -> i64 {
@@ -36,6 +38,10 @@ fn default_table_write_capacity() -> i64 {
 }
 
 fn default_table_stream_enabled() -> bool {
+    false
+}
+
+fn default_table_deletion_protection_enabled() -> bool {
     false
 }
 

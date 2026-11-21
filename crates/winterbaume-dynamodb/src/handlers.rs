@@ -431,12 +431,19 @@ impl DynamoDbService {
 
         let gsi_defs = gsi_defs_from_wire(input.global_secondary_indexes.as_deref().unwrap_or(&[]));
         let lsi_defs = lsi_defs_from_wire(input.local_secondary_indexes.as_deref().unwrap_or(&[]));
+        let settings_update = table_settings_update_from_wire(
+            input.deletion_protection_enabled,
+            input.s_s_e_specification.as_ref(),
+            &account_id,
+            &region,
+        );
+        let table_name = input.table_name.clone();
 
-        match self
+        let table = match self
             .backend
             .create_table(
-                account_id,
-                region,
+                account_id.clone(),
+                region.clone(),
                 input.table_name,
                 key_schema,
                 attr_defs,
@@ -449,13 +456,39 @@ impl DynamoDbService {
             )
             .await
         {
-            Ok(table) => {
-                let output = wire::CreateTableOutput {
-                    table_description: Some(table_to_wire_description(&table)),
-                };
-                wire::serialize_create_table_response(&output)
-            }
-            Err(e) => dynamodb_error_response(&e),
+            Ok(table) => table,
+            Err(e) => return dynamodb_error_response(&e),
+        };
+        let settings = match self
+            .apply_table_settings_update(account_id, region, table_name, settings_update)
+            .await
+        {
+            Ok(settings) => settings,
+            Err(e) => return dynamodb_error_response(&e),
+        };
+        let output = wire::CreateTableOutput {
+            table_description: Some(table_to_wire_description_with_settings(&table, &settings)),
+        };
+        wire::serialize_create_table_response(&output)
+    }
+
+    /// Store a table settings update and return the table's resulting
+    /// settings. An empty update only reads the current settings.
+    async fn apply_table_settings_update(
+        &self,
+        account_id: String,
+        region: String,
+        table_name: String,
+        update: TableSettingsUpdate,
+    ) -> Result<TableSettings, DynamoDbError> {
+        if update.is_empty() {
+            self.backend
+                .describe_table_settings(account_id, region, table_name)
+                .await
+        } else {
+            self.backend
+                .update_table_settings(account_id, region, table_name, update)
+                .await
         }
     }
 
@@ -483,13 +516,23 @@ impl DynamoDbService {
             );
         }
 
+        // Read the settings first: they are dropped together with the table.
+        let settings = match self
+            .backend
+            .describe_table_settings(account_id.clone(), region.clone(), input.table_name.clone())
+            .await
+        {
+            Ok(settings) => settings,
+            Err(e) => return dynamodb_error_response(&e),
+        };
+
         match self
             .backend
             .delete_table(account_id, region, input.table_name)
             .await
         {
             Ok(table) => {
-                let desc = table_to_wire_description(&table);
+                let desc = table_to_wire_description_with_settings(&table, &settings);
                 let output = wire::DeleteTableOutput {
                     table_description: Some(desc),
                 };
@@ -523,19 +566,26 @@ impl DynamoDbService {
             );
         }
 
-        match self
+        let table = match self
             .backend
-            .describe_table(account_id, region, input.table_name)
+            .describe_table(account_id.clone(), region.clone(), input.table_name.clone())
             .await
         {
-            Ok(table) => {
-                let output = wire::DescribeTableOutput {
-                    table: Some(table_to_wire_description(&table)),
-                };
-                wire::serialize_describe_table_response(&output)
-            }
-            Err(e) => dynamodb_error_response(&e),
-        }
+            Ok(table) => table,
+            Err(e) => return dynamodb_error_response(&e),
+        };
+        let settings = match self
+            .backend
+            .describe_table_settings(account_id, region, input.table_name)
+            .await
+        {
+            Ok(settings) => settings,
+            Err(e) => return dynamodb_error_response(&e),
+        };
+        let output = wire::DescribeTableOutput {
+            table: Some(table_to_wire_description_with_settings(&table, &settings)),
+        };
+        wire::serialize_describe_table_response(&output)
     }
 
     async fn handle_put_item(
@@ -1402,19 +1452,38 @@ impl DynamoDbService {
             }
         }
 
-        match self
+        let settings_update = table_settings_update_from_wire(
+            input.deletion_protection_enabled,
+            input.s_s_e_specification.as_ref(),
+            &account_id,
+            &region,
+        );
+
+        let table = match self
             .backend
-            .update_table(account_id, region, table_name, billing_mode, provisioned)
+            .update_table(
+                account_id.clone(),
+                region.clone(),
+                table_name.clone(),
+                billing_mode,
+                provisioned,
+            )
             .await
         {
-            Ok(table) => {
-                let output = wire::UpdateTableOutput {
-                    table_description: Some(table_to_wire_description(&table)),
-                };
-                wire::serialize_update_table_response(&output)
-            }
-            Err(e) => dynamodb_error_response(&e),
-        }
+            Ok(table) => table,
+            Err(e) => return dynamodb_error_response(&e),
+        };
+        let settings = match self
+            .apply_table_settings_update(account_id, region, table_name, settings_update)
+            .await
+        {
+            Ok(settings) => settings,
+            Err(e) => return dynamodb_error_response(&e),
+        };
+        let output = wire::UpdateTableOutput {
+            table_description: Some(table_to_wire_description_with_settings(&table, &settings)),
+        };
+        wire::serialize_update_table_response(&output)
     }
 
     async fn handle_create_backup(
@@ -4199,7 +4268,71 @@ fn convert_items_to_wire(items: &[Item]) -> Vec<HashMap<String, wire::AttributeV
     items.iter().map(convert_item_to_wire).collect()
 }
 
-/// Convert a types::Table to a wire::TableDescription.
+/// Translate the `DeletionProtectionEnabled` and `SSESpecification` members
+/// of a `CreateTable` / `UpdateTable` request into a settings update.
+///
+/// An `SSESpecification` whose `Enabled` is false or absent selects the AWS
+/// owned key, which is reported with no `SSEDescription`.
+fn table_settings_update_from_wire(
+    deletion_protection_enabled: Option<bool>,
+    sse_specification: Option<&wire::SSESpecification>,
+    account_id: &str,
+    region: &str,
+) -> TableSettingsUpdate {
+    TableSettingsUpdate {
+        deletion_protection_enabled,
+        sse: sse_specification.map(|spec| {
+            if spec.enabled == Some(true) {
+                SseUpdate::Kms {
+                    kms_master_key_arn: kms_key_arn(
+                        spec.k_m_s_master_key_id.as_deref(),
+                        account_id,
+                        region,
+                    ),
+                }
+            } else {
+                SseUpdate::Disabled
+            }
+        }),
+    }
+}
+
+/// Resolve `SSESpecification.KMSMasterKeyId` ( a key id, key ARN, alias name
+/// or alias ARN ) to the ARN reported as `SSEDescription.KMSMasterKeyArn`.
+/// Without a key the table uses the AWS managed key `alias/aws/dynamodb`.
+fn kms_key_arn(key_id: Option<&str>, account_id: &str, region: &str) -> String {
+    match key_id.map(str::trim).filter(|k| !k.is_empty()) {
+        Some(arn) if arn.starts_with("arn:") => arn.to_string(),
+        Some(alias) if alias.starts_with("alias/") => {
+            format!("arn:aws:kms:{region}:{account_id}:{alias}")
+        }
+        Some(id) => format!("arn:aws:kms:{region}:{account_id}:key/{id}"),
+        None => aws_managed_kms_key_arn(account_id, region),
+    }
+}
+
+/// Convert a types::Table and its settings to a wire::TableDescription.
+fn table_to_wire_description_with_settings(
+    table: &Table,
+    settings: &TableSettings,
+) -> wire::TableDescription {
+    let mut desc = table_to_wire_description(table);
+    desc.deletion_protection_enabled = Some(settings.deletion_protection_enabled);
+    desc.s_s_e_description =
+        settings
+            .sse_kms_master_key_arn
+            .as_ref()
+            .map(|arn| wire::SSEDescription {
+                status: Some("ENABLED".to_string()),
+                s_s_e_type: Some("KMS".to_string()),
+                k_m_s_master_key_arn: Some(arn.clone()),
+                ..Default::default()
+            });
+    desc
+}
+
+/// Convert a types::Table to a wire::TableDescription with default settings
+/// ( no deletion protection, AWS owned encryption key ).
 fn table_to_wire_description(table: &Table) -> wire::TableDescription {
     let key_schema: Vec<wire::KeySchemaElement> = table
         .key_schema

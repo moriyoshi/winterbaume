@@ -9,6 +9,7 @@
 //! | `ddb:{acct}:{rgn}:tables` | Set | Table names |
 //! | `ddb:{acct}:{rgn}:table:{name}` | String | JSON `StoredTable` |
 //! | `ddb:{acct}:{rgn}:table:{name}:items` | Hash | `{b64(hash_val)}|{b64(range_val)}` → JSON Item |
+//! | `ddb:{acct}:{rgn}:table_settings:{name}` | String | JSON `StoredTableSettings`; absent for default settings |
 //! | `ddb:{acct}:{rgn}:backup_ctr` | String | Monotonic counter for backup IDs |
 //! | `ddb:{acct}:{rgn}:backups` | Set | Backup ARNs |
 //! | `ddb:{acct}:{rgn}:backup:{arn_b64}` | String | JSON `StoredBackup` |
@@ -34,11 +35,11 @@ use redis::AsyncCommands;
 use redis::aio::ConnectionManager;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use winterbaume_dynamodb::state::{DynamoDbError, QueryResult};
+use winterbaume_dynamodb::state::{DynamoDbError, QueryResult, deletion_protected_error};
 use winterbaume_dynamodb::types::{StreamChangeRecord, StreamSummary, *};
 use winterbaume_dynamodb::views::{
     AttributeDefinitionView, DynamoDbTagView, KeySchemaElementView, ProvisionedThroughputView,
-    TableStateView, TtlConfigView,
+    TableSettingsView, TableStateView, TtlConfigView,
 };
 use winterbaume_dynamodb::{DynamoDbBackend, DynamodbStateView, StateViewError};
 
@@ -78,6 +79,9 @@ fn k_table(acct: &str, rgn: &str, name: &str) -> String {
 }
 fn k_items(acct: &str, rgn: &str, name: &str) -> String {
     format!("ddb:{acct}:{rgn}:table:{name}:items")
+}
+fn k_table_settings(acct: &str, rgn: &str, name: &str) -> String {
+    format!("ddb:{acct}:{rgn}:table_settings:{name}")
 }
 fn k_backup_ctr(acct: &str, rgn: &str) -> String {
     format!("ddb:{acct}:{rgn}:backup_ctr")
@@ -563,6 +567,35 @@ impl TryFrom<StoredTable> for Table {
     }
 }
 
+/// Table settings ( deletion protection, server-side encryption ), kept under
+/// their own key so that rewriting a `StoredTable` never loses them and so
+/// that tables stored before the settings existed simply have none.
+#[derive(Serialize, Deserialize, Clone, Default)]
+struct StoredTableSettings {
+    #[serde(default)]
+    deletion_protection_enabled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    sse_kms_master_key_arn: Option<String>,
+}
+
+impl From<&TableSettings> for StoredTableSettings {
+    fn from(s: &TableSettings) -> Self {
+        Self {
+            deletion_protection_enabled: s.deletion_protection_enabled,
+            sse_kms_master_key_arn: s.sse_kms_master_key_arn.clone(),
+        }
+    }
+}
+
+impl From<StoredTableSettings> for TableSettings {
+    fn from(s: StoredTableSettings) -> Self {
+        TableSettings {
+            deletion_protection_enabled: s.deletion_protection_enabled,
+            sse_kms_master_key_arn: s.sse_kms_master_key_arn,
+        }
+    }
+}
+
 fn table_parse_err(e: chrono::ParseError) -> DynamoDbError {
     DynamoDbError::InternalError(format!("Failed to parse stored table: {e}"))
 }
@@ -880,6 +913,43 @@ async fn save_table(
     Ok(())
 }
 
+/// Load the settings stored for a table; a table without any has the defaults.
+async fn load_table_settings(
+    conn: &mut ConnectionManager,
+    acct: &str,
+    rgn: &str,
+    name: &str,
+) -> Result<TableSettings, DynamoDbError> {
+    let raw: Option<String> = conn
+        .get(k_table_settings(acct, rgn, name))
+        .await
+        .map_err(redis_err)?;
+    match raw {
+        None => Ok(TableSettings::default()),
+        Some(s) => serde_json::from_str::<StoredTableSettings>(&s)
+            .map(TableSettings::from)
+            .map_err(json_err),
+    }
+}
+
+/// Store a table's settings; default settings are stored as no key at all.
+async fn save_table_settings(
+    conn: &mut ConnectionManager,
+    acct: &str,
+    rgn: &str,
+    name: &str,
+    settings: &TableSettings,
+) -> Result<(), redis::RedisError> {
+    let key = k_table_settings(acct, rgn, name);
+    if settings.is_default() {
+        conn.del::<_, ()>(key).await
+    } else {
+        let json = serde_json::to_string(&StoredTableSettings::from(settings))
+            .expect("StoredTableSettings serialises to JSON");
+        conn.set::<_, _, ()>(key, json).await
+    }
+}
+
 async fn load_all_items(
     conn: &mut ConnectionManager,
     acct: &str,
@@ -1008,8 +1078,49 @@ impl DynamoDbBackend for RedisDynamoDbBackend {
                 local_secondary_indexes,
             };
 
+            // A new table starts from default settings, whatever may have
+            // been left behind under the same name.
+            conn.del::<_, ()>(k_table_settings(acct, rgn, &name))
+                .await
+                .map_err(redis_err)?;
             save_table(&mut conn, acct, rgn, &table).await?;
             Ok(table)
+        })
+    }
+
+    fn describe_table_settings(
+        &self,
+        account_id: String,
+        region: String,
+        name: String,
+    ) -> Pin<Box<dyn Future<Output = Result<TableSettings, DynamoDbError>> + Send>> {
+        let mut conn = self.conn.clone();
+        Box::pin(async move {
+            let acct = &account_id;
+            let rgn = &region;
+            load_table(&mut conn, acct, rgn, &name).await?;
+            load_table_settings(&mut conn, acct, rgn, &name).await
+        })
+    }
+
+    fn update_table_settings(
+        &self,
+        account_id: String,
+        region: String,
+        name: String,
+        update: TableSettingsUpdate,
+    ) -> Pin<Box<dyn Future<Output = Result<TableSettings, DynamoDbError>> + Send>> {
+        let mut conn = self.conn.clone();
+        Box::pin(async move {
+            let acct = &account_id;
+            let rgn = &region;
+            load_table(&mut conn, acct, rgn, &name).await?;
+            let mut settings = load_table_settings(&mut conn, acct, rgn, &name).await?;
+            update.apply_to(&mut settings);
+            save_table_settings(&mut conn, acct, rgn, &name, &settings)
+                .await
+                .map_err(redis_err)?;
+            Ok(settings)
         })
     }
 
@@ -1025,8 +1136,17 @@ impl DynamoDbBackend for RedisDynamoDbBackend {
             let rgn = &region;
             let stored = load_table(&mut conn, acct, rgn, &name).await?;
             let mut table = Table::try_from(stored).map_err(table_parse_err)?;
+            if load_table_settings(&mut conn, acct, rgn, &name)
+                .await?
+                .deletion_protection_enabled
+            {
+                return Err(deletion_protected_error());
+            }
 
             conn.del::<_, ()>(k_table(acct, rgn, &name))
+                .await
+                .map_err(redis_err)?;
+            conn.del::<_, ()>(k_table_settings(acct, rgn, &name))
                 .await
                 .map_err(redis_err)?;
             conn.del::<_, ()>(k_items(acct, rgn, &name))
@@ -2712,10 +2832,21 @@ impl DynamoDbBackend for RedisDynamoDbBackend {
                 }
             }
 
+            // Load table settings ( only non-default ones are stored )
+            let mut table_settings = HashMap::new();
+            for name in tables.keys() {
+                if let Ok(settings) = load_table_settings(&mut conn, acct, rgn, name).await {
+                    if !settings.is_default() {
+                        table_settings.insert(name.clone(), TableSettingsView::from(&settings));
+                    }
+                }
+            }
+
             DynamodbStateView {
                 tables,
                 tags,
                 ttl_configs,
+                table_settings,
                 ..Default::default()
             }
         })
@@ -2748,6 +2879,10 @@ impl DynamoDbBackend for RedisDynamoDbBackend {
                 let arn_b64 = b64(&arn);
                 let _: () = conn.del(k_tags(acct, rgn, &arn_b64)).await.unwrap_or(());
                 let _: () = conn.del(k_ttl(acct, rgn, name)).await.unwrap_or(());
+                let _: () = conn
+                    .del(k_table_settings(acct, rgn, name))
+                    .await
+                    .unwrap_or(());
             }
 
             // Write new state
@@ -2892,6 +3027,14 @@ async fn write_view_to_redis(
         }))
         .map_err(|e| StateViewError::Invalid(e.to_string()))?;
         conn.set::<_, _, ()>(k_ttl(acct, rgn, &table_name), json)
+            .await
+            .map_err(|e| StateViewError::Invalid(e.to_string()))?;
+    }
+
+    // Write table settings. A table the view has no settings for keeps the
+    // ones it already has, as with the in-memory backend's merge.
+    for (table_name, settings) in view.table_settings {
+        save_table_settings(conn, acct, rgn, &table_name, &TableSettings::from(settings))
             .await
             .map_err(|e| StateViewError::Invalid(e.to_string()))?;
     }
