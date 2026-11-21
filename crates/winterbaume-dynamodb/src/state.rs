@@ -219,9 +219,10 @@ impl DynamoDbState {
             local_secondary_indexes,
         };
 
-        // A new table starts from default settings, whatever a restored
-        // snapshot may have left behind under the same name.
+        // A new table starts from default settings and without tags, whatever
+        // a restored snapshot may have left behind under the same name.
         self.table_settings.remove(name);
+        self.tags.remove(&table.arn);
         self.tables.insert(
             name.to_string(),
             TableState {
@@ -249,6 +250,8 @@ impl DynamoDbState {
         self.table_settings.remove(name);
         match self.tables.remove(name) {
             Some(mut ts) => {
+                // Tags are dropped with the table.
+                self.tags.remove(&ts.table.arn);
                 ts.table.table_status = "DELETING".to_string();
                 Ok(ts.table)
             }
@@ -869,6 +872,8 @@ impl DynamoDbState {
         table.item_count = backup.items.values().map(|m| m.len()).sum();
 
         let items = backup.items.clone();
+        // A restored table carries no tags.
+        self.tags.remove(&table.arn);
 
         self.tables.insert(
             target_table_name.to_string(),
@@ -910,6 +915,8 @@ impl DynamoDbState {
 
         let items = source.items.clone();
         table.item_count = items.values().map(|m| m.len()).sum();
+        // A restored table carries no tags.
+        self.tags.remove(&table.arn);
 
         self.tables.insert(
             target_table_name.to_string(),
