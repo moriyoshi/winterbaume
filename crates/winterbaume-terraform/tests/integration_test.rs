@@ -1030,6 +1030,125 @@ async fn test_inject_dynamodb_table() {
     assert_eq!(view.tables["users"].name, "users");
 }
 
+/// `deletion_protection_enabled` and `server_side_encryption` are carried
+/// into the table's settings on inject and back out on extract.
+#[tokio::test]
+async fn test_dynamodb_table_settings_inject_and_extract() {
+    use winterbaume_dynamodb::DynamoDbService;
+    use winterbaume_terraform::converters::dynamodb::AwsDynamodbTableConverter;
+
+    let ddb = Arc::new(DynamoDbService::new());
+    let ctx = default_ctx();
+    let mut injector = TerraformInjector::new();
+    injector.register(AwsDynamodbTableConverter::new(Arc::clone(&ddb)));
+
+    let key_arn = "arn:aws:kms:us-east-1:123456789012:key/1234abcd-12ab-34cd-56ef-1234567890ab";
+    let table = |name: &str, extra: serde_json::Value| {
+        let mut attrs = json!({
+            "name": name,
+            "billing_mode": "PAY_PER_REQUEST",
+            "hash_key": "pk",
+            "attribute": [{"name": "pk", "type": "S"}],
+        });
+        attrs
+            .as_object_mut()
+            .unwrap()
+            .extend(extra.as_object().unwrap().clone());
+        make_resource("aws_dynamodb_table", name, attrs)
+    };
+
+    let tfstate = make_tfstate(vec![
+        table(
+            "guarded",
+            json!({
+                "deletion_protection_enabled": true,
+                "server_side_encryption": [{"enabled": true, "kms_key_arn": key_arn}],
+            }),
+        ),
+        // SSE enabled with the AWS managed key: no key ARN recorded.
+        table(
+            "managed",
+            json!({"server_side_encryption": [{"enabled": true, "kms_key_arn": ""}]}),
+        ),
+        table(
+            "disabled",
+            json!({
+                "deletion_protection_enabled": false,
+                "server_side_encryption": [{"enabled": false, "kms_key_arn": key_arn}],
+            }),
+        ),
+        table("plain", json!({})),
+    ]);
+    let report = injector.inject_all(&tfstate, &ctx).await;
+    assert!(report.is_success(), "errors: {:?}", report.errors);
+
+    let view = ddb.snapshot(&ctx.default_account_id, "us-east-1").await;
+    let guarded = &view.table_settings["guarded"];
+    assert!(guarded.deletion_protection_enabled);
+    assert_eq!(guarded.sse_kms_master_key_arn.as_deref(), Some(key_arn));
+    let managed = &view.table_settings["managed"];
+    assert!(!managed.deletion_protection_enabled);
+    let managed_arn = managed
+        .sse_kms_master_key_arn
+        .clone()
+        .expect("SSE with the AWS managed key still reports a key ARN");
+    assert!(
+        managed_arn.starts_with(&format!(
+            "arn:aws:kms:us-east-1:{}:key/",
+            ctx.default_account_id
+        )),
+        "{managed_arn}"
+    );
+    // Default settings are not stored at all.
+    assert!(!view.table_settings.contains_key("disabled"));
+    assert!(!view.table_settings.contains_key("plain"));
+
+    // Extract writes the settings back in Terraform's shape.
+    let converter = AwsDynamodbTableConverter::new(Arc::clone(&ddb));
+    let extracted = converter.extract(&ctx).await.unwrap();
+    let attrs_of = |name: &str| {
+        extracted
+            .iter()
+            .find(|r| r.name == name)
+            .unwrap_or_else(|| panic!("{name} was not extracted"))
+            .attributes
+            .clone()
+    };
+    let attrs = attrs_of("guarded");
+    assert_eq!(attrs["deletion_protection_enabled"], json!(true));
+    assert_eq!(
+        attrs["server_side_encryption"],
+        json!([{"enabled": true, "kms_key_arn": key_arn}])
+    );
+    let attrs = attrs_of("managed");
+    assert_eq!(attrs["deletion_protection_enabled"], json!(false));
+    assert_eq!(
+        attrs["server_side_encryption"],
+        json!([{"enabled": true, "kms_key_arn": managed_arn}])
+    );
+    for name in ["disabled", "plain"] {
+        let attrs = attrs_of(name);
+        assert_eq!(attrs["deletion_protection_enabled"], json!(false), "{name}");
+        assert_eq!(
+            attrs["server_side_encryption"],
+            json!([{"enabled": false}]),
+            "{name}"
+        );
+    }
+
+    // Re-injecting a table replaces its settings rather than keeping the
+    // ones it had.
+    let tfstate = make_tfstate(vec![table(
+        "guarded",
+        json!({"deletion_protection_enabled": false}),
+    )]);
+    let report = injector.inject_all(&tfstate, &ctx).await;
+    assert!(report.is_success(), "errors: {:?}", report.errors);
+    let view = ddb.snapshot(&ctx.default_account_id, "us-east-1").await;
+    assert!(!view.table_settings.contains_key("guarded"));
+    assert!(view.table_settings.contains_key("managed"));
+}
+
 // ---------------------------------------------------------------------------
 // ECR injection tests
 // ---------------------------------------------------------------------------
@@ -1151,6 +1270,629 @@ async fn test_inject_eventbridge_rule_and_target() {
     assert!(view.rules.contains_key("daily-job"));
     assert_eq!(view.rules["daily-job"].targets.len(), 1);
     assert_eq!(view.rules["daily-job"].targets[0].id, "MyLambdaTarget");
+}
+
+/// A tfstate target carrying every nested block the converter reshapes.
+fn eventbridge_full_target_attributes() -> serde_json::Value {
+    json!({
+        "rule": "fan-out",
+        "target_id": "Everything",
+        "arn": "arn:aws:ecs:us-east-1:123456789012:cluster/main",
+        "event_bus_name": "default",
+        "role_arn": "arn:aws:iam::123456789012:role/events-invoke",
+        "input": null,
+        "input_path": null,
+        "retry_policy": [{
+            "maximum_event_age_in_seconds": 3600,
+            "maximum_retry_attempts": 3,
+        }],
+        "dead_letter_config": [{"arn": "arn:aws:sqs:us-east-1:123456789012:dlq"}],
+        "input_transformer": [{
+            "input_paths": {"instance": "$.detail.instance"},
+            "input_template": "\"<instance> changed\"",
+        }],
+        "sqs_target": [{"message_group_id": "group-7"}],
+        "http_target": [{
+            "header_parameters": {"X-Trace": "on"},
+            "path_parameter_values": ["v2", "orders"],
+            "query_string_parameters": {"dry": "1"},
+        }],
+        "kinesis_target": [{"partition_key_path": "$.detail.id"}],
+        "ecs_target": [{
+            "task_definition_arn": "arn:aws:ecs:us-east-1:123456789012:task-definition/job:4",
+            "task_count": 2,
+            "launch_type": "FARGATE",
+            "platform_version": "1.4.0",
+            "group": "nightly",
+            "propagate_tags": "TASK_DEFINITION",
+            "enable_ecs_managed_tags": true,
+            "enable_execute_command": false,
+            "tags": {"team": "data", "env": "prod"},
+            "network_configuration": [{
+                "assign_public_ip": true,
+                "security_groups": ["sg-1"],
+                "subnets": ["subnet-a", "subnet-b"],
+            }],
+            "capacity_provider_strategy": [{
+                "base": 1,
+                "capacity_provider": "FARGATE_SPOT",
+                "weight": 5,
+            }],
+            "ordered_placement_strategy": [{"field": "cpu", "type": "binpack"}],
+            "placement_constraint": [{
+                "expression": "attribute:ecs.instance-type =~ t3.*",
+                "type": "memberOf",
+            }],
+        }],
+        "batch_target": [{
+            "job_definition": "arn:aws:batch:us-east-1:123456789012:job-definition/crunch:2",
+            "job_name": "crunch",
+            "array_size": 16,
+            "job_attempts": 4,
+        }],
+        "run_command_targets": [
+            {"key": "tag:Role", "values": ["web", "api"]},
+            {"key": "InstanceIds", "values": ["i-0123456789abcdef0"]},
+        ],
+        "redshift_target": [{
+            "database": "analytics",
+            "db_user": "loader",
+            "secrets_manager_arn": "arn:aws:secretsmanager:us-east-1:123456789012:secret:rs",
+            "sql": "CALL refresh()",
+            "statement_name": "refresh",
+            "with_event": true,
+        }],
+        "sagemaker_pipeline_target": [{
+            "pipeline_parameter_list": [{"name": "Epochs", "value": "12"}],
+        }],
+        "appsync_target": [{
+            "graphql_operation": "mutation Publish { publish { id } }",
+        }],
+    })
+}
+
+#[tokio::test]
+async fn test_inject_eventbridge_target_blocks_visible_through_list_targets_by_rule() {
+    use aws_sdk_eventbridge::types::{AssignPublicIp, LaunchType, PropagateTags};
+    use winterbaume_eventbridge::EventBridgeService;
+    use winterbaume_terraform::converters::events::{
+        AwsCloudwatchEventRuleConverter, AwsCloudwatchEventTargetConverter,
+    };
+
+    let events = Arc::new(EventBridgeService::new());
+    let ctx = default_ctx();
+
+    let mut injector = TerraformInjector::new();
+    injector.register(AwsCloudwatchEventRuleConverter::new(Arc::clone(&events)));
+    injector.register(AwsCloudwatchEventTargetConverter::new(Arc::clone(&events)));
+
+    let tfstate = make_tfstate(vec![
+        make_resource(
+            "aws_cloudwatch_event_rule",
+            "fan_out",
+            json!({
+                "name": "fan-out",
+                "arn": "arn:aws:events:us-east-1:123456789012:rule/fan-out",
+                "schedule_expression": "rate(5 minutes)",
+                "state": "ENABLED",
+                "event_bus_name": "default",
+            }),
+        ),
+        make_resource(
+            "aws_cloudwatch_event_target",
+            "everything",
+            eventbridge_full_target_attributes(),
+        ),
+    ]);
+    let report = injector.inject_all(&tfstate, &ctx).await;
+    assert!(report.is_success(), "errors: {:?}", report.errors);
+
+    // The view carries API-shaped members, not Terraform-shaped blocks.
+    let view = events.snapshot(&ctx.default_account_id, "us-east-1").await;
+    let extra = view.rules["fan-out"].targets[0]
+        .extra
+        .as_ref()
+        .expect("extra should hold the API members");
+    assert_eq!(
+        extra["RetryPolicy"],
+        json!({"MaximumEventAgeInSeconds": 3600, "MaximumRetryAttempts": 3})
+    );
+    assert!(
+        extra
+            .as_object()
+            .unwrap()
+            .keys()
+            .all(|k| k.starts_with(|c: char| c.is_ascii_uppercase())),
+        "unexpected Terraform-shaped key in {extra}"
+    );
+
+    let mock = MockAws::builder().with_service(Arc::clone(&events)).build();
+    let config = mock.sdk_config("us-east-1").await;
+    let client = aws_sdk_eventbridge::Client::new(&config);
+    let resp = client
+        .list_targets_by_rule()
+        .rule("fan-out")
+        .send()
+        .await
+        .expect("ListTargetsByRule should succeed");
+    let targets = resp.targets();
+    assert_eq!(targets.len(), 1);
+    let t = &targets[0];
+    assert_eq!(t.id(), "Everything");
+    assert_eq!(
+        t.role_arn(),
+        Some("arn:aws:iam::123456789012:role/events-invoke")
+    );
+
+    let retry = t.retry_policy().expect("RetryPolicy");
+    assert_eq!(retry.maximum_retry_attempts(), Some(3));
+    assert_eq!(retry.maximum_event_age_in_seconds(), Some(3600));
+    assert_eq!(
+        t.dead_letter_config().and_then(|d| d.arn()),
+        Some("arn:aws:sqs:us-east-1:123456789012:dlq")
+    );
+
+    let transformer = t.input_transformer().expect("InputTransformer");
+    assert_eq!(transformer.input_template(), "\"<instance> changed\"");
+    assert_eq!(
+        transformer
+            .input_paths_map()
+            .and_then(|m| m.get("instance"))
+            .map(String::as_str),
+        Some("$.detail.instance")
+    );
+
+    assert_eq!(
+        t.sqs_parameters().and_then(|p| p.message_group_id()),
+        Some("group-7")
+    );
+    let http = t.http_parameters().expect("HttpParameters");
+    assert_eq!(http.path_parameter_values(), ["v2", "orders"]);
+    assert_eq!(
+        http.header_parameters()
+            .and_then(|m| m.get("X-Trace"))
+            .map(String::as_str),
+        Some("on")
+    );
+    assert_eq!(
+        http.query_string_parameters()
+            .and_then(|m| m.get("dry"))
+            .map(String::as_str),
+        Some("1")
+    );
+    assert_eq!(
+        t.kinesis_parameters().map(|p| p.partition_key_path()),
+        Some("$.detail.id")
+    );
+
+    let ecs = t.ecs_parameters().expect("EcsParameters");
+    assert_eq!(
+        ecs.task_definition_arn(),
+        "arn:aws:ecs:us-east-1:123456789012:task-definition/job:4"
+    );
+    assert_eq!(ecs.task_count(), Some(2));
+    assert_eq!(ecs.launch_type(), Some(&LaunchType::Fargate));
+    assert_eq!(ecs.platform_version(), Some("1.4.0"));
+    assert_eq!(ecs.group(), Some("nightly"));
+    assert_eq!(ecs.propagate_tags(), Some(&PropagateTags::TaskDefinition));
+    assert!(ecs.enable_ecs_managed_tags());
+    assert!(!ecs.enable_execute_command());
+    let vpc = ecs
+        .network_configuration()
+        .and_then(|n| n.awsvpc_configuration())
+        .expect("awsvpcConfiguration");
+    assert_eq!(vpc.assign_public_ip(), Some(&AssignPublicIp::Enabled));
+    assert_eq!(vpc.security_groups(), ["sg-1"]);
+    assert_eq!(vpc.subnets(), ["subnet-a", "subnet-b"]);
+    let strategy = &ecs.capacity_provider_strategy()[0];
+    assert_eq!(strategy.capacity_provider(), "FARGATE_SPOT");
+    assert_eq!(strategy.base(), 1);
+    assert_eq!(strategy.weight(), 5);
+    assert_eq!(ecs.placement_strategy()[0].field(), Some("cpu"));
+    assert_eq!(
+        ecs.placement_strategy()[0].r#type().map(|t| t.as_str()),
+        Some("binpack")
+    );
+    assert_eq!(
+        ecs.placement_constraints()[0].expression(),
+        Some("attribute:ecs.instance-type =~ t3.*")
+    );
+    assert_eq!(
+        ecs.placement_constraints()[0].r#type().map(|t| t.as_str()),
+        Some("memberOf")
+    );
+    let tags: Vec<(&str, &str)> = ecs.tags().iter().map(|t| (t.key(), t.value())).collect();
+    assert_eq!(tags, [("env", "prod"), ("team", "data")]);
+
+    let batch = t.batch_parameters().expect("BatchParameters");
+    assert_eq!(batch.job_name(), "crunch");
+    assert_eq!(
+        batch.job_definition(),
+        "arn:aws:batch:us-east-1:123456789012:job-definition/crunch:2"
+    );
+    assert_eq!(batch.array_properties().map(|a| a.size()), Some(16));
+    assert_eq!(batch.retry_strategy().map(|r| r.attempts()), Some(4));
+
+    let run_command = t.run_command_parameters().expect("RunCommandParameters");
+    let run_targets: Vec<(&str, &[String])> = run_command
+        .run_command_targets()
+        .iter()
+        .map(|t| (t.key(), t.values()))
+        .collect();
+    assert_eq!(run_targets.len(), 2);
+    assert_eq!(run_targets[0].0, "tag:Role");
+    assert_eq!(run_targets[0].1, ["web", "api"]);
+    assert_eq!(run_targets[1].0, "InstanceIds");
+
+    let redshift = t
+        .redshift_data_parameters()
+        .expect("RedshiftDataParameters");
+    assert_eq!(redshift.database(), "analytics");
+    assert_eq!(redshift.db_user(), Some("loader"));
+    assert_eq!(
+        redshift.secret_manager_arn(),
+        Some("arn:aws:secretsmanager:us-east-1:123456789012:secret:rs")
+    );
+    assert_eq!(redshift.sql(), Some("CALL refresh()"));
+    assert_eq!(redshift.statement_name(), Some("refresh"));
+    assert!(redshift.with_event());
+
+    let pipeline = t
+        .sage_maker_pipeline_parameters()
+        .expect("SageMakerPipelineParameters");
+    assert_eq!(pipeline.pipeline_parameter_list()[0].name(), "Epochs");
+    assert_eq!(pipeline.pipeline_parameter_list()[0].value(), "12");
+    assert_eq!(
+        t.app_sync_parameters().and_then(|p| p.graph_ql_operation()),
+        Some("mutation Publish { publish { id } }")
+    );
+
+    // Inject followed by extract gives the blocks back in Terraform shape.
+    let converter = AwsCloudwatchEventTargetConverter::new(Arc::clone(&events));
+    let extracted = converter.extract(&ctx).await.expect("extract");
+    assert_eq!(extracted.len(), 1);
+    let attrs = &extracted[0].attributes;
+    let original = eventbridge_full_target_attributes();
+    for key in [
+        "role_arn",
+        "retry_policy",
+        "dead_letter_config",
+        "input_transformer",
+        "sqs_target",
+        "http_target",
+        "kinesis_target",
+        "ecs_target",
+        "batch_target",
+        "run_command_targets",
+        "redshift_target",
+        "sagemaker_pipeline_target",
+        "appsync_target",
+    ] {
+        assert_eq!(attrs[key], original[key], "round trip of {key}");
+    }
+}
+
+#[tokio::test]
+async fn test_extract_eventbridge_target_created_through_put_targets() {
+    use aws_sdk_eventbridge::types::{
+        AppSyncParameters, AssignPublicIp, AwsVpcConfiguration, BatchArrayProperties,
+        BatchParameters, BatchRetryStrategy, CapacityProviderStrategyItem, DeadLetterConfig,
+        EcsParameters, HttpParameters, InputTransformer, KinesisParameters, LaunchType,
+        NetworkConfiguration, PlacementConstraint, PlacementConstraintType, PlacementStrategy,
+        PlacementStrategyType, PropagateTags, RedshiftDataParameters, RetryPolicy,
+        RunCommandParameters, RunCommandTarget, SageMakerPipelineParameter,
+        SageMakerPipelineParameters, SqsParameters, Tag, Target,
+    };
+    use winterbaume_eventbridge::EventBridgeService;
+    use winterbaume_terraform::converters::events::AwsCloudwatchEventTargetConverter;
+
+    let events = Arc::new(EventBridgeService::new());
+    let ctx = default_ctx();
+    let mock = MockAws::builder().with_service(Arc::clone(&events)).build();
+    let config = mock.sdk_config(&ctx.default_region).await;
+    let client = aws_sdk_eventbridge::Client::new(&config);
+
+    client
+        .put_rule()
+        .name("api-made")
+        .schedule_expression("rate(1 hour)")
+        .send()
+        .await
+        .expect("PutRule should succeed");
+
+    let ecs = EcsParameters::builder()
+        .task_definition_arn("arn:aws:ecs:us-east-1:123456789012:task-definition/etl:9")
+        .task_count(3)
+        .launch_type(LaunchType::Fargate)
+        .platform_version("LATEST")
+        .group("etl")
+        .propagate_tags(PropagateTags::TaskDefinition)
+        .enable_ecs_managed_tags(true)
+        .enable_execute_command(true)
+        .network_configuration(
+            NetworkConfiguration::builder()
+                .awsvpc_configuration(
+                    AwsVpcConfiguration::builder()
+                        .subnets("subnet-x")
+                        .security_groups("sg-9")
+                        .assign_public_ip(AssignPublicIp::Disabled)
+                        .build()
+                        .unwrap(),
+                )
+                .build(),
+        )
+        .capacity_provider_strategy(
+            CapacityProviderStrategyItem::builder()
+                .capacity_provider("FARGATE")
+                .base(2)
+                .weight(7)
+                .build()
+                .unwrap(),
+        )
+        .placement_strategy(
+            PlacementStrategy::builder()
+                .field("memory")
+                .r#type(PlacementStrategyType::Spread)
+                .build(),
+        )
+        .placement_constraints(
+            PlacementConstraint::builder()
+                .expression("attribute:zone == a")
+                .r#type(PlacementConstraintType::MemberOf)
+                .build(),
+        )
+        .tags(Tag::builder().key("owner").value("etl").build().unwrap())
+        .build()
+        .unwrap();
+
+    let target = Target::builder()
+        .id("FromApi")
+        .arn("arn:aws:ecs:us-east-1:123456789012:cluster/etl")
+        .role_arn("arn:aws:iam::123456789012:role/api-events")
+        .retry_policy(
+            RetryPolicy::builder()
+                .maximum_retry_attempts(7)
+                .maximum_event_age_in_seconds(900)
+                .build(),
+        )
+        .dead_letter_config(
+            DeadLetterConfig::builder()
+                .arn("arn:aws:sqs:us-east-1:123456789012:api-dlq")
+                .build(),
+        )
+        .input_transformer(
+            InputTransformer::builder()
+                .input_paths_map("who", "$.detail.user")
+                .input_template("\"hello <who>\"")
+                .build()
+                .unwrap(),
+        )
+        .sqs_parameters(SqsParameters::builder().message_group_id("g-42").build())
+        .http_parameters(
+            HttpParameters::builder()
+                .path_parameter_values("a")
+                .header_parameters("X-Env", "stage")
+                .query_string_parameters("page", "3")
+                .build(),
+        )
+        .kinesis_parameters(
+            KinesisParameters::builder()
+                .partition_key_path("$.id")
+                .build()
+                .unwrap(),
+        )
+        .ecs_parameters(ecs)
+        .batch_parameters(
+            BatchParameters::builder()
+                .job_definition("jobdef:3")
+                .job_name("nightly")
+                .array_properties(BatchArrayProperties::builder().size(8).build())
+                .retry_strategy(BatchRetryStrategy::builder().attempts(5).build())
+                .build()
+                .unwrap(),
+        )
+        .run_command_parameters(
+            RunCommandParameters::builder()
+                .run_command_targets(
+                    RunCommandTarget::builder()
+                        .key("tag:Tier")
+                        .values("db")
+                        .build()
+                        .unwrap(),
+                )
+                .build()
+                .unwrap(),
+        )
+        .redshift_data_parameters(
+            RedshiftDataParameters::builder()
+                .database("dw")
+                .db_user("etl")
+                .secret_manager_arn("arn:aws:secretsmanager:us-east-1:123456789012:secret:dw")
+                .sql("VACUUM")
+                .statement_name("vacuum")
+                .with_event(true)
+                .build()
+                .unwrap(),
+        )
+        .sage_maker_pipeline_parameters(
+            SageMakerPipelineParameters::builder()
+                .pipeline_parameter_list(
+                    SageMakerPipelineParameter::builder()
+                        .name("Rate")
+                        .value("0.5")
+                        .build()
+                        .unwrap(),
+                )
+                .build(),
+        )
+        .app_sync_parameters(
+            AppSyncParameters::builder()
+                .graph_ql_operation("mutation M { m }")
+                .build(),
+        )
+        .build()
+        .unwrap();
+
+    let put = client
+        .put_targets()
+        .rule("api-made")
+        .targets(target)
+        .send()
+        .await
+        .expect("PutTargets should succeed");
+    assert_eq!(put.failed_entry_count(), 0, "{:?}", put.failed_entries());
+
+    let converter = AwsCloudwatchEventTargetConverter::new(Arc::clone(&events));
+    let extracted = converter.extract(&ctx).await.expect("extract");
+    assert_eq!(extracted.len(), 1);
+    let attrs = &extracted[0].attributes;
+
+    assert_eq!(attrs["id"], "api-made/FromApi");
+    assert_eq!(attrs["rule"], "api-made");
+    assert_eq!(attrs["target_id"], "FromApi");
+    assert_eq!(
+        attrs["role_arn"],
+        "arn:aws:iam::123456789012:role/api-events"
+    );
+    assert_eq!(
+        attrs["retry_policy"],
+        json!([{"maximum_event_age_in_seconds": 900, "maximum_retry_attempts": 7}])
+    );
+    assert_eq!(
+        attrs["dead_letter_config"],
+        json!([{"arn": "arn:aws:sqs:us-east-1:123456789012:api-dlq"}])
+    );
+    assert_eq!(
+        attrs["input_transformer"],
+        json!([{
+            "input_paths": {"who": "$.detail.user"},
+            "input_template": "\"hello <who>\"",
+        }])
+    );
+    assert_eq!(attrs["sqs_target"], json!([{"message_group_id": "g-42"}]));
+    assert_eq!(
+        attrs["http_target"],
+        json!([{
+            "header_parameters": {"X-Env": "stage"},
+            "path_parameter_values": ["a"],
+            "query_string_parameters": {"page": "3"},
+        }])
+    );
+    assert_eq!(
+        attrs["kinesis_target"],
+        json!([{"partition_key_path": "$.id"}])
+    );
+    assert_eq!(
+        attrs["ecs_target"],
+        json!([{
+            "task_definition_arn": "arn:aws:ecs:us-east-1:123456789012:task-definition/etl:9",
+            "task_count": 3,
+            "launch_type": "FARGATE",
+            "platform_version": "LATEST",
+            "group": "etl",
+            "propagate_tags": "TASK_DEFINITION",
+            "enable_ecs_managed_tags": true,
+            "enable_execute_command": true,
+            "tags": {"owner": "etl"},
+            "network_configuration": [{
+                "assign_public_ip": false,
+                "security_groups": ["sg-9"],
+                "subnets": ["subnet-x"],
+            }],
+            "capacity_provider_strategy": [{
+                "base": 2,
+                "capacity_provider": "FARGATE",
+                "weight": 7,
+            }],
+            "ordered_placement_strategy": [{"field": "memory", "type": "spread"}],
+            "placement_constraint": [{
+                "expression": "attribute:zone == a",
+                "type": "memberOf",
+            }],
+        }])
+    );
+    assert_eq!(
+        attrs["batch_target"],
+        json!([{
+            "job_definition": "jobdef:3",
+            "job_name": "nightly",
+            "array_size": 8,
+            "job_attempts": 5,
+        }])
+    );
+    assert_eq!(
+        attrs["run_command_targets"],
+        json!([{"key": "tag:Tier", "values": ["db"]}])
+    );
+    assert_eq!(
+        attrs["redshift_target"],
+        json!([{
+            "database": "dw",
+            "db_user": "etl",
+            "secrets_manager_arn": "arn:aws:secretsmanager:us-east-1:123456789012:secret:dw",
+            "sql": "VACUUM",
+            "statement_name": "vacuum",
+            "with_event": true,
+        }])
+    );
+    assert_eq!(
+        attrs["sagemaker_pipeline_target"],
+        json!([{"pipeline_parameter_list": [{"name": "Rate", "value": "0.5"}]}])
+    );
+    assert_eq!(
+        attrs["appsync_target"],
+        json!([{"graphql_operation": "mutation M { m }"}])
+    );
+}
+
+#[tokio::test]
+async fn test_extract_eventbridge_plain_target_has_empty_blocks() {
+    use aws_sdk_eventbridge::types::Target;
+    use winterbaume_eventbridge::EventBridgeService;
+    use winterbaume_terraform::converters::events::AwsCloudwatchEventTargetConverter;
+
+    let events = Arc::new(EventBridgeService::new());
+    let ctx = default_ctx();
+    let mock = MockAws::builder().with_service(Arc::clone(&events)).build();
+    let config = mock.sdk_config(&ctx.default_region).await;
+    let client = aws_sdk_eventbridge::Client::new(&config);
+    client
+        .put_rule()
+        .name("plain")
+        .schedule_expression("rate(1 hour)")
+        .send()
+        .await
+        .expect("PutRule should succeed");
+    client
+        .put_targets()
+        .rule("plain")
+        .targets(
+            Target::builder()
+                .id("Bare")
+                .arn("arn:aws:lambda:us-east-1:123456789012:function:f")
+                .build()
+                .unwrap(),
+        )
+        .send()
+        .await
+        .expect("PutTargets should succeed");
+
+    let converter = AwsCloudwatchEventTargetConverter::new(Arc::clone(&events));
+    let extracted = converter.extract(&ctx).await.expect("extract");
+    assert_eq!(extracted.len(), 1);
+    let attrs = &extracted[0].attributes;
+    assert!(attrs["role_arn"].is_null());
+    for key in [
+        "retry_policy",
+        "dead_letter_config",
+        "input_transformer",
+        "ecs_target",
+        "batch_target",
+        "run_command_targets",
+        "sqs_target",
+    ] {
+        assert_eq!(attrs[key], json!([]), "{key} should be an empty block list");
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -3651,6 +4393,347 @@ async fn test_inject_lambda_event_source_mapping() {
         Some("arn:aws:sqs:us-east-1:123456789012:my-queue")
     );
     assert_eq!(esm.batch_size, Some(10));
+}
+
+#[tokio::test]
+async fn test_inject_lambda_permission_conditions_visible_through_get_policy() {
+    use winterbaume_lambda::LambdaService;
+    use winterbaume_terraform::converters::lambda::{
+        AwsLambdaFunctionConverter, AwsLambdaPermissionConverter,
+    };
+
+    let lambda = Arc::new(LambdaService::new());
+    let ctx = default_ctx();
+    let mut injector = TerraformInjector::new();
+    injector.register(AwsLambdaFunctionConverter::new(Arc::clone(&lambda)));
+    injector.register(AwsLambdaPermissionConverter::new(Arc::clone(&lambda)));
+
+    let tfstate = make_tfstate(vec![
+        lambda_function_resource("fn", "cond-fn"),
+        make_resource(
+            "aws_lambda_permission",
+            "org",
+            json!({
+                "statement_id": "OrgUrlInvoke",
+                "action": "lambda:InvokeFunctionUrl",
+                "function_name": "cond-fn",
+                "principal": "*",
+                "principal_org_id": "o-abc123def4",
+                "event_source_token": "amzn1.ask.skill.1234",
+                "function_url_auth_type": "AWS_IAM",
+                "invoked_via_function_url": true,
+            }),
+        ),
+    ]);
+    let report = injector.inject_all(&tfstate, &ctx).await;
+    assert!(report.is_success(), "errors: {:?}", report.errors);
+
+    let view = lambda.snapshot(&ctx.default_account_id, "us-east-1").await;
+    let perm = &view.function_permissions["cond-fn"][0];
+    assert_eq!(perm.principal_org_id.as_deref(), Some("o-abc123def4"));
+    assert_eq!(
+        perm.event_source_token.as_deref(),
+        Some("amzn1.ask.skill.1234")
+    );
+    assert_eq!(perm.function_url_auth_type.as_deref(), Some("AWS_IAM"));
+    assert_eq!(perm.invoked_via_function_url, Some(true));
+
+    let mock = MockAws::builder().with_service(Arc::clone(&lambda)).build();
+    let config = mock.sdk_config("us-east-1").await;
+    let client = aws_sdk_lambda::Client::new(&config);
+    let resp = client
+        .get_policy()
+        .function_name("cond-fn")
+        .send()
+        .await
+        .expect("GetPolicy should succeed");
+    let policy: serde_json::Value = serde_json::from_str(resp.policy().unwrap()).unwrap();
+    let condition = &policy["Statement"][0]["Condition"];
+    assert_eq!(
+        condition["StringEquals"]["aws:PrincipalOrgID"],
+        "o-abc123def4"
+    );
+    assert_eq!(
+        condition["StringEquals"]["lambda:EventSourceToken"],
+        "amzn1.ask.skill.1234"
+    );
+    assert_eq!(
+        condition["StringEquals"]["lambda:FunctionUrlAuthType"],
+        "AWS_IAM"
+    );
+    assert_eq!(condition["Bool"]["lambda:InvokedViaFunctionUrl"], "true");
+}
+
+#[tokio::test]
+async fn test_extract_lambda_permission_created_through_add_permission() {
+    use aws_sdk_lambda::types::FunctionUrlAuthType;
+    use winterbaume_lambda::LambdaService;
+    use winterbaume_terraform::converters::lambda::{
+        AwsLambdaFunctionConverter, AwsLambdaPermissionConverter,
+    };
+
+    let lambda = Arc::new(LambdaService::new());
+    let ctx = default_ctx();
+    let mut injector = TerraformInjector::new();
+    injector.register(AwsLambdaFunctionConverter::new(Arc::clone(&lambda)));
+    let tfstate = make_tfstate(vec![lambda_function_resource("fn", "api-perm-fn")]);
+    let report = injector.inject_all(&tfstate, &ctx).await;
+    assert!(report.is_success(), "errors: {:?}", report.errors);
+
+    let mock = MockAws::builder().with_service(Arc::clone(&lambda)).build();
+    let config = mock.sdk_config(&ctx.default_region).await;
+    let client = aws_sdk_lambda::Client::new(&config);
+    client
+        .add_permission()
+        .function_name("api-perm-fn")
+        .statement_id("ApiMade")
+        .action("lambda:InvokeFunctionUrl")
+        .principal("*")
+        .principal_org_id("o-zyx987wvu6")
+        .event_source_token("token-55")
+        .function_url_auth_type(FunctionUrlAuthType::None)
+        .invoked_via_function_url(true)
+        .source_account("210987654321")
+        .send()
+        .await
+        .expect("AddPermission should succeed");
+
+    let converter = AwsLambdaPermissionConverter::new(Arc::clone(&lambda));
+    let extracted = converter.extract(&ctx).await.expect("extract");
+    assert_eq!(extracted.len(), 1);
+    let attrs = &extracted[0].attributes;
+    assert_eq!(attrs["statement_id"], "ApiMade");
+    assert_eq!(attrs["function_name"], "api-perm-fn");
+    assert_eq!(attrs["principal_org_id"], "o-zyx987wvu6");
+    assert_eq!(attrs["event_source_token"], "token-55");
+    assert_eq!(attrs["function_url_auth_type"], "NONE");
+    assert_eq!(attrs["invoked_via_function_url"], true);
+    assert_eq!(attrs["source_account"], "210987654321");
+}
+
+#[tokio::test]
+async fn test_inject_lambda_event_source_mapping_settings_visible_through_api() {
+    use aws_sdk_lambda::types::FunctionResponseType;
+    use winterbaume_lambda::LambdaService;
+    use winterbaume_terraform::converters::lambda::{
+        AwsLambdaEventSourceMappingConverter, AwsLambdaFunctionConverter,
+    };
+
+    let lambda = Arc::new(LambdaService::new());
+    let ctx = default_ctx();
+    let mut injector = TerraformInjector::new();
+    injector.register(AwsLambdaFunctionConverter::new(Arc::clone(&lambda)));
+    injector.register(AwsLambdaEventSourceMappingConverter::new(Arc::clone(
+        &lambda,
+    )));
+
+    let stream_uuid = "11111111-2222-3333-4444-555555555555";
+    let queue_uuid = "66666666-7777-8888-9999-000000000000";
+    let tfstate = make_tfstate(vec![
+        lambda_function_resource("fn", "esm-fn"),
+        make_resource(
+            "aws_lambda_event_source_mapping",
+            "stream",
+            json!({
+                "uuid": stream_uuid,
+                "function_name": "esm-fn",
+                "event_source_arn": "arn:aws:kinesis:us-east-1:123456789012:stream/clicks",
+                "batch_size": 250,
+                "enabled": true,
+                "starting_position": "AT_TIMESTAMP",
+                "starting_position_timestamp": "2026-01-02T03:04:05Z",
+                "bisect_batch_on_function_error": true,
+                "function_response_types": ["ReportBatchItemFailures"],
+                "kms_key_arn": "arn:aws:kms:us-east-1:123456789012:key/abcd",
+                "maximum_batching_window_in_seconds": 45,
+                "maximum_record_age_in_seconds": 7200,
+                "maximum_retry_attempts": 9,
+                "parallelization_factor": 6,
+                "tumbling_window_in_seconds": 120,
+                "queues": null,
+                "topics": ["orders", "refunds"],
+                "scaling_config": [],
+            }),
+        ),
+        // What the provider records for an SQS mapping: placeholders for the
+        // stream-only settings, which must not turn into API members.
+        make_resource(
+            "aws_lambda_event_source_mapping",
+            "queue",
+            json!({
+                "uuid": queue_uuid,
+                "function_name": "esm-fn",
+                "event_source_arn": "arn:aws:sqs:us-east-1:123456789012:jobs",
+                "batch_size": 5,
+                "enabled": true,
+                "starting_position": null,
+                "starting_position_timestamp": null,
+                "bisect_batch_on_function_error": null,
+                "function_response_types": null,
+                "kms_key_arn": "",
+                "maximum_batching_window_in_seconds": null,
+                "maximum_record_age_in_seconds": 0,
+                "maximum_retry_attempts": null,
+                "parallelization_factor": 0,
+                "tumbling_window_in_seconds": null,
+                "queues": ["jobs"],
+                "topics": null,
+                "scaling_config": [{"maximum_concurrency": 17}],
+            }),
+        ),
+    ]);
+    let report = injector.inject_all(&tfstate, &ctx).await;
+    assert!(report.is_success(), "errors: {:?}", report.errors);
+
+    let mock = MockAws::builder().with_service(Arc::clone(&lambda)).build();
+    let config = mock.sdk_config("us-east-1").await;
+    let client = aws_sdk_lambda::Client::new(&config);
+
+    let stream = client
+        .get_event_source_mapping()
+        .uuid(stream_uuid)
+        .send()
+        .await
+        .expect("GetEventSourceMapping should succeed");
+    assert_eq!(stream.bisect_batch_on_function_error(), Some(true));
+    assert_eq!(
+        stream.function_response_types(),
+        [FunctionResponseType::ReportBatchItemFailures]
+    );
+    assert_eq!(
+        stream.kms_key_arn(),
+        Some("arn:aws:kms:us-east-1:123456789012:key/abcd")
+    );
+    assert_eq!(stream.maximum_batching_window_in_seconds(), Some(45));
+    assert_eq!(stream.maximum_record_age_in_seconds(), Some(7200));
+    assert_eq!(stream.maximum_retry_attempts(), Some(9));
+    assert_eq!(stream.parallelization_factor(), Some(6));
+    assert_eq!(stream.tumbling_window_in_seconds(), Some(120));
+    assert_eq!(stream.topics(), ["orders", "refunds"]);
+    assert!(stream.queues().is_empty());
+    assert!(stream.scaling_config().is_none());
+    assert_eq!(
+        stream.starting_position_timestamp().map(|t| t.secs()),
+        Some(1767323045)
+    );
+
+    let queue = client
+        .get_event_source_mapping()
+        .uuid(queue_uuid)
+        .send()
+        .await
+        .expect("GetEventSourceMapping should succeed");
+    assert_eq!(
+        queue.scaling_config().and_then(|c| c.maximum_concurrency()),
+        Some(17)
+    );
+    assert_eq!(queue.queues(), ["jobs"]);
+    assert_eq!(queue.parallelization_factor(), None);
+    assert_eq!(queue.maximum_record_age_in_seconds(), None);
+    assert_eq!(queue.maximum_retry_attempts(), None);
+    assert_eq!(queue.kms_key_arn(), None);
+    assert_eq!(queue.bisect_batch_on_function_error(), None);
+    assert!(queue.function_response_types().is_empty());
+    assert!(queue.starting_position_timestamp().is_none());
+}
+
+#[tokio::test]
+async fn test_extract_lambda_event_source_mapping_created_through_api() {
+    use aws_sdk_lambda::primitives::DateTime;
+    use aws_sdk_lambda::types::{EventSourcePosition, FunctionResponseType, ScalingConfig};
+    use winterbaume_lambda::LambdaService;
+    use winterbaume_terraform::converters::lambda::{
+        AwsLambdaEventSourceMappingConverter, AwsLambdaFunctionConverter,
+    };
+
+    let lambda = Arc::new(LambdaService::new());
+    let ctx = default_ctx();
+    let mut injector = TerraformInjector::new();
+    injector.register(AwsLambdaFunctionConverter::new(Arc::clone(&lambda)));
+    let tfstate = make_tfstate(vec![lambda_function_resource("fn", "api-esm-fn")]);
+    let report = injector.inject_all(&tfstate, &ctx).await;
+    assert!(report.is_success(), "errors: {:?}", report.errors);
+
+    let mock = MockAws::builder().with_service(Arc::clone(&lambda)).build();
+    let config = mock.sdk_config(&ctx.default_region).await;
+    let client = aws_sdk_lambda::Client::new(&config);
+
+    let created = client
+        .create_event_source_mapping()
+        .function_name("api-esm-fn")
+        .event_source_arn("arn:aws:kinesis:us-east-1:123456789012:stream/api-made")
+        .batch_size(77)
+        .starting_position(EventSourcePosition::AtTimestamp)
+        .starting_position_timestamp(DateTime::from_secs(1767323045))
+        .bisect_batch_on_function_error(true)
+        .function_response_types(FunctionResponseType::ReportBatchItemFailures)
+        .kms_key_arn("arn:aws:kms:us-east-1:123456789012:key/api")
+        .maximum_batching_window_in_seconds(30)
+        .maximum_record_age_in_seconds(3600)
+        .maximum_retry_attempts(4)
+        .parallelization_factor(3)
+        .tumbling_window_in_seconds(60)
+        .queues("q-one")
+        .topics("t-one")
+        .scaling_config(ScalingConfig::builder().maximum_concurrency(12).build())
+        .send()
+        .await
+        .expect("CreateEventSourceMapping should succeed");
+    let uuid = created.uuid().expect("uuid").to_string();
+
+    // A second mapping that supplies none of the settings.
+    let bare = client
+        .create_event_source_mapping()
+        .function_name("api-esm-fn")
+        .event_source_arn("arn:aws:sqs:us-east-1:123456789012:bare")
+        .send()
+        .await
+        .expect("CreateEventSourceMapping should succeed");
+    let bare_uuid = bare.uuid().expect("uuid").to_string();
+
+    let converter = AwsLambdaEventSourceMappingConverter::new(Arc::clone(&lambda));
+    let extracted = converter.extract(&ctx).await.expect("extract");
+    assert_eq!(extracted.len(), 2);
+    let attrs = &extracted
+        .iter()
+        .find(|r| r.name == uuid)
+        .expect("extracted mapping")
+        .attributes;
+    assert_eq!(attrs["batch_size"], 77);
+    assert_eq!(attrs["starting_position"], "AT_TIMESTAMP");
+    assert_eq!(attrs["starting_position_timestamp"], "2026-01-02T03:04:05Z");
+    assert_eq!(attrs["bisect_batch_on_function_error"], true);
+    assert_eq!(
+        attrs["function_response_types"],
+        json!(["ReportBatchItemFailures"])
+    );
+    assert_eq!(
+        attrs["kms_key_arn"],
+        "arn:aws:kms:us-east-1:123456789012:key/api"
+    );
+    assert_eq!(attrs["maximum_batching_window_in_seconds"], 30);
+    assert_eq!(attrs["maximum_record_age_in_seconds"], 3600);
+    assert_eq!(attrs["maximum_retry_attempts"], 4);
+    assert_eq!(attrs["parallelization_factor"], 3);
+    assert_eq!(attrs["tumbling_window_in_seconds"], 60);
+    assert_eq!(attrs["queues"], json!(["q-one"]));
+    assert_eq!(attrs["topics"], json!(["t-one"]));
+    assert_eq!(
+        attrs["scaling_config"],
+        json!([{"maximum_concurrency": 12}])
+    );
+
+    let bare_attrs = &extracted
+        .iter()
+        .find(|r| r.name == bare_uuid)
+        .expect("extracted bare mapping")
+        .attributes;
+    assert_eq!(bare_attrs["scaling_config"], json!([]));
+    assert_eq!(bare_attrs["function_response_types"], json!([]));
+    assert!(bare_attrs["kms_key_arn"].is_null());
+    assert!(bare_attrs["queues"].is_null());
+    assert!(bare_attrs["starting_position_timestamp"].is_null());
+    assert_eq!(bare_attrs["bisect_batch_on_function_error"], false);
 }
 
 // ---------------------------------------------------------------------------
