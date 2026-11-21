@@ -4736,6 +4736,162 @@ async fn test_extract_lambda_event_source_mapping_created_through_api() {
     assert_eq!(bare_attrs["bisect_batch_on_function_error"], false);
 }
 
+#[tokio::test]
+async fn test_inject_lambda_event_source_mapping_tags_visible_through_api() {
+    use winterbaume_lambda::LambdaService;
+    use winterbaume_terraform::converters::lambda::{
+        AwsLambdaEventSourceMappingConverter, AwsLambdaFunctionConverter,
+    };
+
+    let lambda = Arc::new(LambdaService::new());
+    let ctx = default_ctx();
+    let mut injector = TerraformInjector::new();
+    injector.register(AwsLambdaFunctionConverter::new(Arc::clone(&lambda)));
+    injector.register(AwsLambdaEventSourceMappingConverter::new(Arc::clone(
+        &lambda,
+    )));
+    let tagged_uuid = "5a1b2c3d-0000-4000-8000-000000000001";
+    let untagged_uuid = "5a1b2c3d-0000-4000-8000-000000000002";
+    let tagged_arn =
+        format!("arn:aws:lambda:us-east-1:123456789012:event-source-mapping:{tagged_uuid}");
+    let untagged_arn =
+        format!("arn:aws:lambda:us-east-1:123456789012:event-source-mapping:{untagged_uuid}");
+    let tfstate = make_tfstate(vec![
+        lambda_function_resource("fn", "esm-tags-fn"),
+        make_resource(
+            "aws_lambda_event_source_mapping",
+            "tagged",
+            json!({
+                "uuid": tagged_uuid,
+                "id": tagged_uuid,
+                "arn": tagged_arn,
+                "function_name": "esm-tags-fn",
+                "event_source_arn": "arn:aws:sqs:us-east-1:123456789012:tagged",
+                "tags": {"app": "demo"},
+                // The provider's default_tags show up in tags_all only.
+                "tags_all": {"app": "demo", "team": "platform"},
+            }),
+        ),
+        make_resource(
+            "aws_lambda_event_source_mapping",
+            "untagged",
+            json!({
+                "uuid": untagged_uuid,
+                "function_name": "esm-tags-fn",
+                "event_source_arn": "arn:aws:sqs:us-east-1:123456789012:untagged",
+                "tags": null,
+                "tags_all": {},
+            }),
+        ),
+    ]);
+    let report = injector.inject_all(&tfstate, &ctx).await;
+    assert!(report.is_success(), "errors: {:?}", report.errors);
+
+    let mock = MockAws::builder().with_service(Arc::clone(&lambda)).build();
+    let config = mock.sdk_config(&ctx.default_region).await;
+    let client = aws_sdk_lambda::Client::new(&config);
+
+    let got = client
+        .get_event_source_mapping()
+        .uuid(tagged_uuid)
+        .send()
+        .await
+        .expect("GetEventSourceMapping should succeed");
+    assert_eq!(got.event_source_mapping_arn(), Some(tagged_arn.as_str()));
+
+    let tags = client
+        .list_tags()
+        .resource(&tagged_arn)
+        .send()
+        .await
+        .expect("ListTags should accept the mapping ARN");
+    let tags = tags.tags().expect("Tags");
+    assert_eq!(tags.len(), 2);
+    assert_eq!(tags.get("app").map(String::as_str), Some("demo"));
+    assert_eq!(tags.get("team").map(String::as_str), Some("platform"));
+
+    let tags = client
+        .list_tags()
+        .resource(&untagged_arn)
+        .send()
+        .await
+        .expect("ListTags should accept the untagged mapping ARN");
+    assert!(tags.tags().is_none_or(|t| t.is_empty()));
+}
+
+#[tokio::test]
+async fn test_extract_lambda_event_source_mapping_arn_and_tags() {
+    use winterbaume_lambda::LambdaService;
+    use winterbaume_terraform::converters::lambda::{
+        AwsLambdaEventSourceMappingConverter, AwsLambdaFunctionConverter,
+    };
+
+    let lambda = Arc::new(LambdaService::new());
+    let ctx = default_ctx();
+    let mut injector = TerraformInjector::new();
+    injector.register(AwsLambdaFunctionConverter::new(Arc::clone(&lambda)));
+    let tfstate = make_tfstate(vec![lambda_function_resource("fn", "esm-tags-out-fn")]);
+    let report = injector.inject_all(&tfstate, &ctx).await;
+    assert!(report.is_success(), "errors: {:?}", report.errors);
+
+    let mock = MockAws::builder().with_service(Arc::clone(&lambda)).build();
+    let config = mock.sdk_config(&ctx.default_region).await;
+    let client = aws_sdk_lambda::Client::new(&config);
+
+    let created = client
+        .create_event_source_mapping()
+        .function_name("esm-tags-out-fn")
+        .event_source_arn("arn:aws:sqs:us-east-1:123456789012:tagged-out")
+        .tags("app", "demo")
+        .send()
+        .await
+        .expect("CreateEventSourceMapping should succeed");
+    let uuid = created.uuid().expect("uuid").to_string();
+    let arn = created
+        .event_source_mapping_arn()
+        .expect("EventSourceMappingArn")
+        .to_string();
+    client
+        .tag_resource()
+        .resource(&arn)
+        .tags("env", "prod")
+        .send()
+        .await
+        .expect("TagResource should succeed");
+
+    let bare = client
+        .create_event_source_mapping()
+        .function_name("esm-tags-out-fn")
+        .event_source_arn("arn:aws:sqs:us-east-1:123456789012:bare-out")
+        .send()
+        .await
+        .expect("CreateEventSourceMapping should succeed");
+    let bare_uuid = bare.uuid().expect("uuid").to_string();
+
+    let converter = AwsLambdaEventSourceMappingConverter::new(Arc::clone(&lambda));
+    let extracted = converter.extract(&ctx).await.expect("extract");
+    let attrs = &extracted
+        .iter()
+        .find(|r| r.name == uuid)
+        .expect("extracted mapping")
+        .attributes;
+    assert_eq!(attrs["arn"], arn);
+    assert_eq!(attrs["tags"], json!({"app": "demo", "env": "prod"}));
+    assert_eq!(attrs["tags_all"], json!({"app": "demo", "env": "prod"}));
+
+    let bare_attrs = &extracted
+        .iter()
+        .find(|r| r.name == bare_uuid)
+        .expect("extracted bare mapping")
+        .attributes;
+    assert_eq!(
+        bare_attrs["arn"],
+        format!("arn:aws:lambda:us-east-1:123456789012:event-source-mapping:{bare_uuid}")
+    );
+    assert_eq!(bare_attrs["tags"], json!({}));
+    assert_eq!(bare_attrs["tags_all"], json!({}));
+}
+
 // ---------------------------------------------------------------------------
 // SESv2 configuration set and dedicated IP pool injection tests
 // ---------------------------------------------------------------------------

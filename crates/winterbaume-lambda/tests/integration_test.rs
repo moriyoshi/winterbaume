@@ -6405,3 +6405,316 @@ async fn test_list_event_source_mappings_combines_both_filters() {
         .unwrap();
     assert!(resp.event_source_mappings().is_empty());
 }
+
+// ========== Issue #54: event source mapping ARN and tags ==========
+
+const ESM_TAG_QUEUE: &str = "arn:aws:sqs:us-east-1:123456789012:wb-q-t";
+
+/// A function plus one mapping created with `Tags = {app: demo}`; returns
+/// `(uuid, mapping ARN)`.
+async fn create_tagged_esm(client: &aws_sdk_lambda::Client) -> (String, String) {
+    create_test_function(client, "wb-fn-t").await;
+    let created = client
+        .create_event_source_mapping()
+        .function_name("wb-fn-t")
+        .event_source_arn(ESM_TAG_QUEUE)
+        .tags("app", "demo")
+        .send()
+        .await
+        .expect("create_event_source_mapping should succeed");
+    let uuid = created.uuid().expect("UUID").to_string();
+    let arn = created
+        .event_source_mapping_arn()
+        .expect("EventSourceMappingArn")
+        .to_string();
+    (uuid, arn)
+}
+
+async fn esm_tags(
+    client: &aws_sdk_lambda::Client,
+    arn: &str,
+) -> std::collections::HashMap<String, String> {
+    client
+        .list_tags()
+        .resource(arn)
+        .send()
+        .await
+        .expect("list_tags should succeed")
+        .tags()
+        .cloned()
+        .unwrap_or_default()
+}
+
+fn tag_map(pairs: &[(&str, &str)]) -> std::collections::HashMap<String, String> {
+    pairs
+        .iter()
+        .map(|(k, v)| (k.to_string(), v.to_string()))
+        .collect()
+}
+
+#[tokio::test]
+async fn test_event_source_mapping_created_with_tags_reports_arn_and_tags() {
+    let client = make_lambda_client().await;
+    let (uuid, arn) = create_tagged_esm(&client).await;
+
+    assert_eq!(
+        arn,
+        format!("arn:aws:lambda:us-east-1:123456789012:event-source-mapping:{uuid}")
+    );
+    assert_eq!(esm_tags(&client, &arn).await, tag_map(&[("app", "demo")]));
+}
+
+#[tokio::test]
+async fn test_event_source_mapping_arn_on_every_operation() {
+    let client = make_lambda_client().await;
+    let (uuid, arn) = create_tagged_esm(&client).await;
+
+    let got = client
+        .get_event_source_mapping()
+        .uuid(&uuid)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(got.event_source_mapping_arn(), Some(arn.as_str()));
+
+    let updated = client
+        .update_event_source_mapping()
+        .uuid(&uuid)
+        .batch_size(5)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(updated.event_source_mapping_arn(), Some(arn.as_str()));
+
+    let listed = client.list_event_source_mappings().send().await.unwrap();
+    assert_eq!(listed.event_source_mappings().len(), 1);
+    assert_eq!(
+        listed.event_source_mappings()[0].event_source_mapping_arn(),
+        Some(arn.as_str())
+    );
+
+    let deleted = client
+        .delete_event_source_mapping()
+        .uuid(&uuid)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(deleted.event_source_mapping_arn(), Some(arn.as_str()));
+}
+
+#[tokio::test]
+async fn test_event_source_mapping_tag_untag_list() {
+    let client = make_lambda_client().await;
+    let (uuid, arn) = create_tagged_esm(&client).await;
+
+    client
+        .tag_resource()
+        .resource(&arn)
+        .tags("env", "prod")
+        .tags("app", "changed")
+        .send()
+        .await
+        .expect("tag_resource should accept a mapping ARN");
+    assert_eq!(
+        esm_tags(&client, &arn).await,
+        tag_map(&[("app", "changed"), ("env", "prod")])
+    );
+
+    // UpdateEventSourceMapping must not disturb the tags.
+    client
+        .update_event_source_mapping()
+        .uuid(&uuid)
+        .enabled(false)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        esm_tags(&client, &arn).await,
+        tag_map(&[("app", "changed"), ("env", "prod")])
+    );
+
+    client
+        .untag_resource()
+        .resource(&arn)
+        .tag_keys("app")
+        .tag_keys("absent")
+        .send()
+        .await
+        .expect("untag_resource should accept a mapping ARN");
+    assert_eq!(esm_tags(&client, &arn).await, tag_map(&[("env", "prod")]));
+
+    // The function's own tags are a separate set.
+    let function_tags = esm_tags(
+        &client,
+        "arn:aws:lambda:us-east-1:123456789012:function:wb-fn-t",
+    )
+    .await;
+    assert!(!function_tags.contains_key("env"));
+}
+
+#[tokio::test]
+async fn test_event_source_mapping_tags_removed_with_mapping() {
+    let client = make_lambda_client().await;
+    let (uuid, arn) = create_tagged_esm(&client).await;
+
+    client
+        .delete_event_source_mapping()
+        .uuid(&uuid)
+        .send()
+        .await
+        .unwrap();
+
+    let err = client
+        .list_tags()
+        .resource(&arn)
+        .send()
+        .await
+        .expect_err("tags must go away with the mapping");
+    assert!(
+        err.into_service_error().is_resource_not_found_exception(),
+        "expected ResourceNotFoundException"
+    );
+}
+
+#[tokio::test]
+async fn test_tag_operations_on_unknown_event_source_mapping_not_found() {
+    let client = make_lambda_client().await;
+    create_test_function(&client, "wb-fn-t").await;
+    let arn = "arn:aws:lambda:us-east-1:123456789012:event-source-mapping:\
+               00000000-0000-4000-8000-000000000000";
+
+    let err = client
+        .list_tags()
+        .resource(arn)
+        .send()
+        .await
+        .expect_err("list_tags on unknown mapping");
+    assert!(err.into_service_error().is_resource_not_found_exception());
+
+    let err = client
+        .tag_resource()
+        .resource(arn)
+        .tags("k", "v")
+        .send()
+        .await
+        .expect_err("tag_resource on unknown mapping");
+    assert!(err.into_service_error().is_resource_not_found_exception());
+
+    let err = client
+        .untag_resource()
+        .resource(arn)
+        .tag_keys("k")
+        .send()
+        .await
+        .expect_err("untag_resource on unknown mapping");
+    assert!(err.into_service_error().is_resource_not_found_exception());
+}
+
+#[tokio::test]
+async fn test_code_signing_config_tags_round_trip() {
+    let client = make_lambda_client().await;
+    let created = client
+        .create_code_signing_config()
+        .allowed_publishers(
+            aws_sdk_lambda::types::AllowedPublishers::builder()
+                .signing_profile_version_arns(
+                    "arn:aws:signer:us-east-1:123456789012:/signing-profiles/MyProfile",
+                )
+                .build()
+                .unwrap(),
+        )
+        .tags("app", "demo")
+        .send()
+        .await
+        .unwrap();
+    let arn = created
+        .code_signing_config()
+        .expect("CodeSigningConfig")
+        .code_signing_config_arn()
+        .to_string();
+
+    assert_eq!(esm_tags(&client, &arn).await, tag_map(&[("app", "demo")]));
+
+    client
+        .tag_resource()
+        .resource(&arn)
+        .tags("env", "prod")
+        .send()
+        .await
+        .expect("tag_resource should accept a code signing config ARN");
+    client
+        .untag_resource()
+        .resource(&arn)
+        .tag_keys("app")
+        .send()
+        .await
+        .expect("untag_resource should accept a code signing config ARN");
+    assert_eq!(esm_tags(&client, &arn).await, tag_map(&[("env", "prod")]));
+
+    let err = client
+        .tag_resource()
+        .resource("arn:aws:lambda:us-east-1:123456789012:code-signing-config:csc-0000000000000dead")
+        .tags("k", "v")
+        .send()
+        .await
+        .expect_err("tag_resource on unknown code signing config");
+    assert!(err.into_service_error().is_resource_not_found_exception());
+}
+
+#[tokio::test]
+async fn test_capacity_provider_tags_round_trip() {
+    let client = make_lambda_client().await;
+    let created = client
+        .create_capacity_provider()
+        .capacity_provider_name("wb-cp-t")
+        .vpc_config(
+            aws_sdk_lambda::types::CapacityProviderVpcConfig::builder()
+                .subnet_ids("subnet-0123456789abcdef0")
+                .security_group_ids("sg-0123456789abcdef0")
+                .build()
+                .unwrap(),
+        )
+        .permissions_config(
+            aws_sdk_lambda::types::CapacityProviderPermissionsConfig::builder()
+                .capacity_provider_operator_role_arn(
+                    "arn:aws:iam::123456789012:role/wb-cp-operator",
+                )
+                .build()
+                .unwrap(),
+        )
+        .tags("app", "demo")
+        .send()
+        .await
+        .unwrap();
+    let arn = created
+        .capacity_provider()
+        .expect("CapacityProvider")
+        .capacity_provider_arn()
+        .to_string();
+
+    assert_eq!(esm_tags(&client, &arn).await, tag_map(&[("app", "demo")]));
+
+    client
+        .tag_resource()
+        .resource(&arn)
+        .tags("env", "prod")
+        .send()
+        .await
+        .expect("tag_resource should accept a capacity provider ARN");
+    client
+        .untag_resource()
+        .resource(&arn)
+        .tag_keys("app")
+        .send()
+        .await
+        .expect("untag_resource should accept a capacity provider ARN");
+    assert_eq!(esm_tags(&client, &arn).await, tag_map(&[("env", "prod")]));
+
+    let err = client
+        .list_tags()
+        .resource("arn:aws:lambda:us-east-1:123456789012:capacity-provider:wb-cp-absent")
+        .send()
+        .await
+        .expect_err("list_tags on unknown capacity provider");
+    assert!(err.into_service_error().is_resource_not_found_exception());
+}

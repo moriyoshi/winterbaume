@@ -216,7 +216,9 @@ impl LambdaService {
                 self.dispatch_2021_11_15(&state, method, &segments[1..], &request, &query_map)
                     .await
             }
-            "2022-10-31" => {
+            // Capacity provider operations are modelled under 2025-11-30; the
+            // older prefix is kept for callers that relied on it.
+            "2022-10-31" | "2025-11-30" => {
                 self.dispatch_capacity_providers(
                     &state,
                     method,
@@ -1677,6 +1679,7 @@ impl LambdaService {
                 starting_position_timestamp: input.starting_position_timestamp,
                 topics: input.topics,
                 tumbling_window_in_seconds: input.tumbling_window_in_seconds,
+                tags: input.tags.unwrap_or_default(),
             },
         ) {
             Ok(esm) => {
@@ -1743,6 +1746,8 @@ impl LambdaService {
                 starting_position_timestamp: None,
                 topics: None,
                 tumbling_window_in_seconds: input.tumbling_window_in_seconds,
+                // Tags change through TagResource / UntagResource only.
+                tags: HashMap::new(),
             },
         ) {
             Ok(esm) => {
@@ -2862,6 +2867,7 @@ impl LambdaService {
             input.description.as_deref(),
             allowed_publishers,
             untrusted,
+            input.tags.unwrap_or_default(),
         );
         let resp = model::CreateCodeSigningConfigResponse {
             code_signing_config: Some(csc_entry_to_model(entry)),
@@ -3207,7 +3213,10 @@ impl LambdaService {
             return rest_json_error(400, "ValidationException", "Missing 'CapacityProviderName'");
         }
         let mut state = state.write().await;
-        let entry = state.create_capacity_provider(&input.capacity_provider_name);
+        let entry = state.create_capacity_provider(
+            &input.capacity_provider_name,
+            input.tags.unwrap_or_default(),
+        );
         let resp = model::CreateCapacityProviderResponse {
             capacity_provider: Some(model::CapacityProvider {
                 capacity_provider_arn: Some(entry.capacity_provider_arn.clone()),
@@ -3884,6 +3893,7 @@ fn esm_configuration_from(
     let settings = &esm.settings;
     model::EventSourceMappingConfiguration {
         u_u_i_d: Some(esm.uuid.clone()),
+        event_source_mapping_arn: Some(esm.arn()),
         event_source_arn: esm.event_source_arn.clone(),
         function_arn: Some(esm.function_arn.clone()),
         batch_size: esm.batch_size,

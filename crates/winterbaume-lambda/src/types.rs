@@ -84,6 +84,31 @@ pub struct EventSourceMapping {
     pub settings: EventSourceMappingSettings,
 }
 
+impl EventSourceMapping {
+    /// `EventSourceMappingArn` as returned by every mapping operation.
+    pub fn arn(&self) -> String {
+        event_source_mapping_arn(&self.function_arn, &self.uuid)
+    }
+}
+
+/// Derive `arn:aws:lambda:<region>:<account>:event-source-mapping:<uuid>`.
+///
+/// The ARN is never stored: a mapping always lives in the account and region
+/// of the function it targets, so both are read off the function ARN.  That
+/// keeps snapshots written before the ARN was reported loadable as they are.
+pub fn event_source_mapping_arn(function_arn: &str, uuid: &str) -> String {
+    let parts: Vec<&str> = function_arn.split(':').collect();
+    let (partition, region, account_id) = match parts.as_slice() {
+        ["arn", partition, "lambda", region, account_id, ..]
+            if !region.is_empty() && !account_id.is_empty() =>
+        {
+            (*partition, *region, *account_id)
+        }
+        _ => ("aws", "us-east-1", "123456789012"),
+    };
+    format!("arn:{partition}:lambda:{region}:{account_id}:event-source-mapping:{uuid}")
+}
+
 /// Store-and-echo settings of an event source mapping.
 ///
 /// Every member is optional: `None` means "never supplied", so the member is
@@ -118,10 +143,17 @@ pub struct EventSourceMappingSettings {
     pub topics: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tumbling_window_in_seconds: Option<i32>,
+    /// Resource tags of the mapping ( `Tags` on create, then `TagResource` /
+    /// `UntagResource` ).  Kept here rather than on the mapping view so that
+    /// older snapshots load unchanged; [`Self::merge`] never touches them,
+    /// because `UpdateEventSourceMapping` cannot change tags.
+    #[serde(skip_serializing_if = "HashMap::is_empty")]
+    pub tags: HashMap<String, String>,
 }
 
 impl EventSourceMappingSettings {
     /// Overwrite every member that `patch` supplies, leaving the rest alone.
+    /// `tags` are not a patchable setting and are left as they are.
     pub fn merge(&mut self, patch: EventSourceMappingSettings) {
         fn set<T>(slot: &mut Option<T>, value: Option<T>) {
             if value.is_some() {
@@ -270,6 +302,8 @@ pub struct CodeSigningConfigEntry {
     /// Function names linked to this config
     #[serde(default)]
     pub functions: Vec<String>,
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
+    pub tags: HashMap<String, String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -284,6 +318,8 @@ pub struct CapacityProviderEntry {
     pub capacity_provider_arn: String,
     pub state: String,
     pub last_modified: String,
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
+    pub tags: HashMap<String, String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

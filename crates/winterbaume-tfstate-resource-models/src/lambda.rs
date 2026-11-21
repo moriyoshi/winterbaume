@@ -73,6 +73,8 @@ pub struct LambdaEventSourceMappingTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub uuid: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub event_source_arn: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub starting_position: Option<String>,
