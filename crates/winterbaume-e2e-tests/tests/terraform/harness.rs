@@ -161,9 +161,15 @@ pub async fn start_server(services: Vec<Arc<dyn MockService>>) -> u16 {
 
 /// Create the set of services for terraform testing.
 pub fn test_services() -> Vec<Arc<dyn MockService>> {
+    // The AWS provider reads and writes `aws_s3_bucket` tags through the
+    // S3 Control tagging API, so S3 Control must see the S3 buckets.
+    let s3 = Arc::new(winterbaume_s3::S3Service::new());
     vec![
         Arc::new(winterbaume_sts::StsService::new()),
-        Arc::new(winterbaume_s3::S3Service::new()),
+        Arc::new(winterbaume_s3control::S3ControlService::with_s3_service(
+            Arc::clone(&s3),
+        )),
+        s3,
         Arc::new(winterbaume_iam::IamService::new()),
         Arc::new(winterbaume_sqs::SqsService::new()),
         Arc::new(winterbaume_dynamodb::DynamoDbService::new()),

@@ -16,6 +16,7 @@ path = "tests/terraform/main.rs"
 winterbaume-core = { workspace = true }
 winterbaume-sts = { workspace = true }
 winterbaume-s3 = { workspace = true }
+winterbaume-s3control = { workspace = true }
 winterbaume-iam = { workspace = true }
 winterbaume-sqs = { workspace = true }
 winterbaume-dynamodb = { workspace = true }

@@ -19,6 +19,8 @@ const S3CONTROL_XMLNS: &str = "http://awss3control.amazonaws.com/doc/2018-08-20/
 pub struct S3ControlService {
     pub(crate) state: Arc<BackendState<S3ControlState>>,
     pub(crate) notifier: StateChangeNotifier<S3ControlStateView>,
+    /// The S3 service that owns general purpose buckets, when one is attached.
+    pub(crate) s3: Option<Arc<winterbaume_s3::S3Service>>,
 }
 
 impl S3ControlService {
@@ -26,8 +28,60 @@ impl S3ControlService {
         Self {
             state: Arc::new(BackendState::new()),
             notifier: StateChangeNotifier::new(),
+            s3: None,
         }
     }
+
+    /// Create an S3 Control service that serves the tags of general purpose
+    /// buckets from `s3`.
+    ///
+    /// Pass the same `Arc` that is registered with `MockAws` or the server.
+    /// `ListTagsForResource`, `TagResource` and `UntagResource` on a bucket
+    /// ARN ( `arn:aws:s3:::bucket` ) then read and write the tag set that
+    /// S3 `CreateBucket`, `GetBucketTagging`, `PutBucketTagging` and
+    /// `DeleteBucketTagging` use, and report `NoSuchBucket` for a bucket S3
+    /// does not have. Without an attached S3 service ( [`Self::new`] ) bucket
+    /// ARNs are tagged in S3 Control's own ARN-keyed map like any other ARN.
+    pub fn with_s3_service(s3: Arc<winterbaume_s3::S3Service>) -> Self {
+        Self {
+            s3: Some(s3),
+            ..Self::new()
+        }
+    }
+
+    /// The attached S3 service and the bucket name, when `resource_arn` names
+    /// a general purpose bucket and an S3 service is attached.
+    fn s3_bucket_target<'a>(
+        &self,
+        resource_arn: &'a str,
+    ) -> Option<(&winterbaume_s3::S3Service, &'a str)> {
+        let s3 = self.s3.as_deref()?;
+        Some((s3, general_purpose_bucket_name(resource_arn)?))
+    }
+}
+
+/// Bucket name of a general purpose bucket ARN ( `arn:aws:s3:::bucket` ).
+///
+/// Every other S3 ARN that the tagging API accepts carries a Region and an
+/// account ID ( access points, Storage Lens groups, Access Grants ) or uses
+/// the `s3express` service ( directory buckets ).
+fn general_purpose_bucket_name(resource_arn: &str) -> Option<&str> {
+    let mut parts = resource_arn.splitn(6, ':');
+    let (arn, _partition, service, region, account, resource) = (
+        parts.next()?,
+        parts.next()?,
+        parts.next()?,
+        parts.next()?,
+        parts.next()?,
+        parts.next()?,
+    );
+    (arn == "arn"
+        && service == "s3"
+        && region.is_empty()
+        && account.is_empty()
+        && !resource.is_empty()
+        && !resource.contains(['/', ':']))
+    .then_some(resource)
 }
 
 impl Default for S3ControlService {
@@ -45,6 +99,12 @@ impl MockService for S3ControlService {
         vec![
             r"https?://([0-9]+)\.s3-control\.(.+)\.amazonaws\.com",
             r"https?://s3-outposts\..+\.amazonaws\.com",
+            // A custom endpoint ( `endpoints { s3control = "http://localhost:4566" }` )
+            // has no `s3-control` host label, and S3 Control signs with the
+            // `s3` service name, so the credential scope would route the
+            // request to S3. The API version path prefix is what identifies
+            // S3 Control there.
+            r"^https?://[^/]+/v20180820/",
         ]
     }
 
@@ -698,7 +758,8 @@ impl S3ControlService {
             // GET /v20180820/tags/{ResourceArn+}
             ("GET", [_v, "tags", rest @ ..]) if !rest.is_empty() => {
                 let arn = percent_decode_path(&rest.join("/"));
-                self.handle_list_tags_for_resource(&state, &arn).await
+                self.handle_list_tags_for_resource(&state, &account_id, &arn)
+                    .await
             }
             // POST /v20180820/tags/{ResourceArn+}
             ("POST", [_v, "tags", rest @ ..]) if !rest.is_empty() => {
@@ -711,12 +772,13 @@ impl S3ControlService {
                     Ok(i) => i,
                     Err(e) => return s3control_error_response(400, "InvalidRequest", &e),
                 };
-                self.handle_tag_resource(&state, &arn, input).await
+                self.handle_tag_resource(&state, &account_id, &arn, input)
+                    .await
             }
             // DELETE /v20180820/tags/{ResourceArn+}
             ("DELETE", [_v, "tags", rest @ ..]) if !rest.is_empty() => {
                 let arn = percent_decode_path(&rest.join("/"));
-                let input = match wire::deserialize_untag_resource_request(
+                let mut input = match wire::deserialize_untag_resource_request(
                     &request,
                     &[("ResourceArn", &arn)],
                     &query,
@@ -724,7 +786,12 @@ impl S3ControlService {
                     Ok(i) => i,
                     Err(e) => return s3control_error_response(400, "InvalidRequest", &e),
                 };
-                self.handle_untag_resource(&state, &arn, input).await
+                // SDKs repeat the parameter ( `tagKeys=a&tagKeys=b` ) and
+                // percent-encode each key; the single-valued query map keeps
+                // only the last one, undecoded.
+                input.tag_keys.items = query_values(&request.uri, "tagKeys");
+                self.handle_untag_resource(&state, &account_id, &arn, input)
+                    .await
             }
 
             _ => s3control_error_response(
@@ -2352,14 +2419,26 @@ impl S3ControlService {
     async fn handle_list_tags_for_resource(
         &self,
         state: &Arc<tokio::sync::RwLock<S3ControlState>>,
+        account_id: &str,
         resource_arn: &str,
     ) -> MockResponse {
-        let s = state.read().await;
-        let tags_map = s.list_tags_for_resource(resource_arn);
-        let tags: Vec<wire::Tag> = tags_map
+        let tags_map = if let Some((s3, bucket)) = self.s3_bucket_target(resource_arn) {
+            match s3.bucket_tags(account_id, bucket).await {
+                Some(tags) => tags,
+                None => {
+                    return s3control_state_error_response(&S3ControlError::NoSuchBucket(
+                        bucket.to_string(),
+                    ));
+                }
+            }
+        } else {
+            state.read().await.list_tags_for_resource(resource_arn)
+        };
+        let mut tags: Vec<wire::Tag> = tags_map
             .into_iter()
             .map(|(k, v)| wire::Tag { key: k, value: v })
             .collect();
+        tags.sort_by(|left, right| left.key.cmp(&right.key));
         wire::serialize_list_tags_for_resource_response(&wire::ListTagsForResourceResult {
             tags: if tags.is_empty() {
                 None
@@ -2372,6 +2451,7 @@ impl S3ControlService {
     async fn handle_tag_resource(
         &self,
         state: &Arc<tokio::sync::RwLock<S3ControlState>>,
+        account_id: &str,
         resource_arn: &str,
         input: crate::model::TagResourceRequest,
     ) -> MockResponse {
@@ -2381,6 +2461,13 @@ impl S3ControlService {
             .into_iter()
             .map(|t| (t.key, t.value))
             .collect();
+        if let Some((s3, bucket)) = self.s3_bucket_target(resource_arn) {
+            return if s3.tag_bucket(account_id, bucket, tags).await {
+                wire::serialize_tag_resource_response()
+            } else {
+                s3control_state_error_response(&S3ControlError::NoSuchBucket(bucket.to_string()))
+            };
+        }
         let mut s = state.write().await;
         s.tag_resource(resource_arn, tags);
         wire::serialize_tag_resource_response()
@@ -2389,10 +2476,18 @@ impl S3ControlService {
     async fn handle_untag_resource(
         &self,
         state: &Arc<tokio::sync::RwLock<S3ControlState>>,
+        account_id: &str,
         resource_arn: &str,
         input: crate::model::UntagResourceRequest,
     ) -> MockResponse {
         let keys: Vec<String> = input.tag_keys.items;
+        if let Some((s3, bucket)) = self.s3_bucket_target(resource_arn) {
+            return if s3.untag_bucket(account_id, bucket, &keys).await {
+                wire::serialize_untag_resource_response()
+            } else {
+                s3control_state_error_response(&S3ControlError::NoSuchBucket(bucket.to_string()))
+            };
+        }
         let mut s = state.write().await;
         s.untag_resource(resource_arn, &keys);
         wire::serialize_untag_resource_response()
@@ -2702,12 +2797,19 @@ fn s3control_state_error_response(err: &S3ControlError) -> MockResponse {
     s3control_error_response(status, error_type, &err.to_string())
 }
 
+/// S3 Control error body.
+///
+/// Unlike S3, the S3 Control restXml protocol wraps the error: the root is
+/// `ErrorResponse` and `Code` / `Message` sit in a nested `Error` element.
+/// SDKs read no error code from a bare `<Error>` root.
 fn s3control_error_response(status: u16, code: &str, message: &str) -> MockResponse {
     xml_response(
         &ErrorResponseXml {
             xmlns: S3CONTROL_XMLNS,
-            code: code.to_string(),
-            message: message.to_string(),
+            error: ErrorXml {
+                code: code.to_string(),
+                message: message.to_string(),
+            },
             request_id: uuid::Uuid::new_v4().to_string(),
             host_id: uuid::Uuid::new_v4().to_string(),
         },
@@ -2720,18 +2822,24 @@ fn xml_response<T: Serialize>(value: &T, status: u16) -> MockResponse {
 }
 
 #[derive(Serialize)]
-#[serde(rename = "Error")]
+#[serde(rename = "ErrorResponse")]
 struct ErrorResponseXml {
     #[serde(rename = "@xmlns")]
     xmlns: &'static str,
-    #[serde(rename = "Code")]
-    code: String,
-    #[serde(rename = "Message")]
-    message: String,
+    #[serde(rename = "Error")]
+    error: ErrorXml,
     #[serde(rename = "RequestId")]
     request_id: String,
     #[serde(rename = "HostId")]
     host_id: String,
+}
+
+#[derive(Serialize)]
+struct ErrorXml {
+    #[serde(rename = "Code")]
+    code: String,
+    #[serde(rename = "Message")]
+    message: String,
 }
 
 // -------------------------------------------------------------------------
@@ -2763,6 +2871,40 @@ fn parse_query_from_uri(uri: &str) -> HashMap<String, String> {
         }
     }
     map
+}
+
+/// Every percent-decoded value of the query parameter `name`, in request order.
+fn query_values(uri: &str, name: &str) -> Vec<String> {
+    let Some((_, query_string)) = uri.split_once('?') else {
+        return Vec::new();
+    };
+    query_string
+        .split('&')
+        .filter_map(|pair| {
+            let (key, value) = pair.split_once('=').unwrap_or((pair, ""));
+            (percent_decode_query(key) == name).then(|| percent_decode_query(value))
+        })
+        .filter(|value| !value.is_empty())
+        .collect()
+}
+
+fn percent_decode_query(s: &str) -> String {
+    let bytes = s.as_bytes();
+    let mut decoded = Vec::with_capacity(bytes.len());
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] == b'%'
+            && let Some(hex) = bytes.get(i + 1..i + 3)
+            && let Ok(byte) = u8::from_str_radix(std::str::from_utf8(hex).unwrap_or(""), 16)
+        {
+            decoded.push(byte);
+            i += 3;
+            continue;
+        }
+        decoded.push(bytes[i]);
+        i += 1;
+    }
+    String::from_utf8_lossy(&decoded).into_owned()
 }
 
 fn percent_decode_path(s: &str) -> String {
