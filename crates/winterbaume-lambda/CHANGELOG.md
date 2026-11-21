@@ -1,5 +1,17 @@
 # Changelog
 
+## v2.1.0 - 2026-11-21
+
+### Fixed
+- `AddPermission` keeps `FunctionUrlAuthType`, `InvokedViaFunctionUrl`, `SourceAccount`, `PrincipalOrgID` and `EventSourceToken` as one merged `Condition`, in the response and in `GetPolicy`. A function-URL-only grant used to read back as unconditional (#44, #55).
+- Event source mappings keep `FunctionResponseTypes`, `ScalingConfig` and eleven other settings across create, get, update, list and delete; an update changes only the members it supplies (#45, #55).
+- `ListEventSourceMappings` applies `FunctionName` ( name, ARN, partial or qualified ) and `EventSourceArn` (#46, #55).
+- Event source mappings return `EventSourceMappingArn` and keep their creation `Tags`. `ListTags`, `TagResource` and `UntagResource` accept function, event source mapping, code signing config and capacity provider ARNs (#54, #59).
+- Capacity provider operations are reachable under the API version prefix the SDK sends (#59).
+
+### Internal
+- Uses the shared percent-decoders in `winterbaume-core` in place of a private copy (#60).
+
 ## v2.0.0 - 2026-07-03
 
 ### Internal

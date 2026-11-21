@@ -1,0 +1,10 @@
+# Release plan overrides for the 2026-11-21 cut.
+#
+# The 2026-10-27 cut ( winterbaume-cloudcontrol 1.1.0, winterbaume-ssm 0.3.0,
+# winterbaume-server 0.2.8, winterbaume-terraform 0.2.6 ) was published to
+# crates.io but never tagged, so `plan` measures those crates from their
+# previous tags. For winterbaume-ssm that turns a dependency-only release into
+# a minor one: the new public item it finds ( `SsmService::shared_state` ) was
+# already released in 0.3.0. Delete this file once the 2026-10-27 tags exist.
+[bumps]
+winterbaume-ssm = "0.3.1"

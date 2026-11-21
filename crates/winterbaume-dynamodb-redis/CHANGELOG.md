@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.2.2 - 2026-11-21
+
+### Fixed
+- Index reads match the in-memory backend: `Scan` with `IndexName` returns only the index's items and pages with `LastEvaluatedKey`, plain `Scan` pages, `Query` on an index without a sort key resumes from `ExclusiveStartKey`, and an unknown index is a `ValidationException` instead of a 500 (#39, #40).
+- Deletion protection and SSE settings are stored, survive snapshot and restore, and are enforced by `DeleteTable` (#42, #43, #55).
+- `Tags` given to `CreateTable` are stored, and are removed with their table (#51, #59).
+
 ## v0.2.1 - 2026-08-17
 
 ### Fixed

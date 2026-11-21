@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.2.9 - 2026-11-21
+
+### Added
+- `--s3-enforce-bucket-policies`, `WB_S3_ENFORCE_BUCKET_POLICIES` or `[s3] enforce_bucket_policies` turns on S3 bucket policy enforcement; off by default (#56).
+
+### Changed
+- Requests are passed to services with `x-forwarded-proto: http` and `x-forwarded-for` set when absent, so policy conditions such as `aws:SecureTransport` and `aws:SourceIp` see the real transport (#56).
+- Cloud Control is linked to the CloudFront service (#40), and S3 Control to the S3 service (#59).
+- Picks up the fixes in this release's service crates.
+
 ## v0.2.8 - 2026-10-27
 
 ### Internal

@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.2.7 - 2026-11-21
+
+### Terraform
+- `aws_lambda_permission` carries `principal_org_id`, `event_source_token`, `function_url_auth_type` and `invoked_via_function_url` in both directions (#55).
+- `aws_lambda_event_source_mapping` carries its settings ( `function_response_types`, `scaling_config`, batching, retry, `queues`, `topics` and the rest ) in both directions, and `arn`, `tags` and `tags_all` (#55, #59).
+- `aws_lambda_code_signing_config` carries its tags (#59).
+- `aws_cloudwatch_event_target` translates `retry_policy`, `dead_letter_config`, `role_arn`, `input_transformer` and the target parameter blocks to and from the API members, so injected targets are visible through `ListTargetsByRule` (#55).
+- `aws_dynamodb_table` carries `deletion_protection_enabled` and `server_side_encryption` in both directions (#55).
+- `aws_cloudfront_function` with `publish = true` injects the function's `LIVE` stage (#40).
+
 ## v0.2.6 - 2026-10-27
 
 ### Internal

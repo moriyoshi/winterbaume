@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.0.1 - 2026-11-21
+
+### Internal
+- Four ID filters rewritten to satisfy `clippy::needless_bool`; no change in behaviour (#55).
+
 ## v0.3.0 - 2026-05-18
 
 ### Added
