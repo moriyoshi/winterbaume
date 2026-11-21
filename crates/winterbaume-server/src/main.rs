@@ -82,6 +82,15 @@ struct ConfigFile {
     region: Option<String>,
     tfstate: Option<String>,
     backends: Option<BackendsConfig>,
+    s3: Option<S3Config>,
+}
+
+/// `[s3]` section of the config file.
+#[derive(Debug, Default, Deserialize)]
+struct S3Config {
+    /// Evaluate bucket policies on S3 data-plane requests and answer
+    /// `AccessDenied` for explicit denies. Off by default.
+    enforce_bucket_policies: Option<bool>,
 }
 
 #[derive(Debug, Default, Deserialize)]
@@ -109,6 +118,15 @@ struct ServerOptions {
     default_region: String,
     tfstate_path: Option<String>,
     backends: BackendOptions,
+    behaviours: BehaviourOptions,
+}
+
+/// Opt-in behaviours that make the emulator stricter or more active than its
+/// permissive defaults.
+#[derive(Debug, Clone, Default)]
+struct BehaviourOptions {
+    /// Enforce explicit `Deny` statements of S3 bucket policies.
+    s3_enforce_bucket_policies: bool,
 }
 
 /// Backend selection options.  Fields are always present; features gate whether
@@ -215,6 +233,19 @@ async fn handle_request(
     let mut headers = http::HeaderMap::new();
     for (name, value) in req.headers() {
         headers.insert(name.clone(), value.clone());
+    }
+    // Services see an `https://` URI whatever the real transport was, because
+    // the routing patterns are written against AWS endpoint URLs. The
+    // listener itself is plain HTTP, so say so unless a TLS-terminating proxy
+    // in front has already recorded the original scheme. Policy conditions
+    // such as `aws:SecureTransport` and `aws:SourceIp` read these.
+    if !headers.contains_key("x-forwarded-proto") {
+        headers.insert("x-forwarded-proto", http::HeaderValue::from_static("http"));
+    }
+    if !headers.contains_key("x-forwarded-for")
+        && let Ok(value) = http::HeaderValue::from_str(&remote_addr.ip().to_string())
+    {
+        headers.insert("x-forwarded-for", value);
     }
 
     // Read body
@@ -425,6 +456,7 @@ struct InjectableServices {
 
 async fn register_all_services(
     opts: &BackendOptions,
+    behaviours: &BehaviourOptions,
 ) -> Result<(Vec<Arc<dyn MockService>>, InjectableServices), Box<dyn std::error::Error + Send + Sync>>
 {
     // --- VFS (S3, Glacier, EBS blob storage) --------------------------------
@@ -463,10 +495,16 @@ async fn register_all_services(
 
     // --- S3 -----------------------------------------------------------------
 
-    let s3: Arc<winterbaume_s3::S3Service> = Arc::new(match &shared_vfs {
-        Some(vfs) => winterbaume_s3::S3Service::recover_with_vfs(Arc::clone(vfs)).await?,
-        None => winterbaume_s3::S3Service::new(),
-    });
+    let s3: Arc<winterbaume_s3::S3Service> = Arc::new(
+        match &shared_vfs {
+            Some(vfs) => winterbaume_s3::S3Service::recover_with_vfs(Arc::clone(vfs)).await?,
+            None => winterbaume_s3::S3Service::new(),
+        }
+        .with_bucket_policy_enforcement(behaviours.s3_enforce_bucket_policies),
+    );
+    if behaviours.s3_enforce_bucket_policies {
+        tracing::info!("S3 bucket policy enforcement is enabled (explicit Deny only)");
+    }
 
     // --- IAM ----------------------------------------------------------------
 
@@ -4924,6 +4962,18 @@ struct CliArgs {
     /// feature).
     #[arg(long, value_name = "PATH", env = "WB_SQLENGINE_DUCKDB")]
     sqlengine_duckdb: Option<String>,
+
+    /// Enforce S3 bucket policies: a data-plane request matched by an
+    /// explicit `Deny` statement is answered with 403 `AccessDenied`. Off by
+    /// default; `Allow` statements and identity policies are not evaluated.
+    #[arg(
+        long,
+        value_name = "BOOL",
+        env = "WB_S3_ENFORCE_BUCKET_POLICIES",
+        num_args = 0..=1,
+        default_missing_value = "true"
+    )]
+    s3_enforce_bucket_policies: Option<bool>,
 }
 
 /// Builds the "Compiled-in backend features" block shown after `--help`.
@@ -5008,6 +5058,12 @@ fn parse_options() -> ServerOptions {
     let vfs_dir = cli.vfs_dir.or(file_backends.vfs_dir);
     let sqlengine_duckdb = cli.sqlengine_duckdb.or(file_backends.sqlengine_duckdb);
 
+    let file_s3 = file_cfg.s3.unwrap_or_default();
+    let s3_enforce_bucket_policies = cli
+        .s3_enforce_bucket_policies
+        .or(file_s3.enforce_bucket_policies)
+        .unwrap_or(false);
+
     ServerOptions {
         host,
         port,
@@ -5019,6 +5075,9 @@ fn parse_options() -> ServerOptions {
             dynamodb_backend,
             vfs_dir,
             sqlengine_duckdb,
+        },
+        behaviours: BehaviourOptions {
+            s3_enforce_bucket_policies,
         },
     }
 }
@@ -5048,7 +5107,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let addr: SocketAddr = format!("{}:{}", opts.host, opts.port).parse()?;
     let listener = TcpListener::bind(addr).await?;
 
-    let (services, injectable) = register_all_services(&opts.backends).await?;
+    let (services, injectable) = register_all_services(&opts.backends, &opts.behaviours).await?;
 
     // Load terraform state if provided
     if let Some(ref path) = opts.tfstate_path {
