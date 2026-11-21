@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 use http::header::HeaderName;
 use serde_json::json;
+use winterbaume_core::percent_decode;
 use winterbaume_core::{
     BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
     default_account_id,
@@ -82,33 +83,6 @@ fn extract_path(uri: &str) -> &str {
 
 fn extract_query_string(uri: &str) -> &str {
     uri.find('?').map(|i| &uri[i + 1..]).unwrap_or("")
-}
-
-fn url_decode(s: &str) -> String {
-    let mut result = String::with_capacity(s.len());
-    let mut chars = s.bytes();
-    while let Some(b) = chars.next() {
-        if b == b'%' {
-            let hi = chars.next().unwrap_or(b'0');
-            let lo = chars.next().unwrap_or(b'0');
-            let val = hex_val(hi) * 16 + hex_val(lo);
-            result.push(val as char);
-        } else if b == b'+' {
-            result.push(' ');
-        } else {
-            result.push(b as char);
-        }
-    }
-    result
-}
-
-fn hex_val(b: u8) -> u8 {
-    match b {
-        b'0'..=b'9' => b - b'0',
-        b'a'..=b'f' => b - b'a' + 10,
-        b'A'..=b'F' => b - b'A' + 10,
-        _ => 0,
-    }
 }
 
 fn tags_from_wire(tags: Option<Vec<wire::Tag>>) -> Vec<crate::types::Tag> {
@@ -266,7 +240,7 @@ impl RolesAnywhereService {
             .trim_start_matches('/')
             .split('/')
             .filter(|s| !s.is_empty())
-            .map(url_decode)
+            .map(percent_decode)
             .collect();
         let segments_ref: Vec<&str> = segments.iter().map(|s| s.as_str()).collect();
 

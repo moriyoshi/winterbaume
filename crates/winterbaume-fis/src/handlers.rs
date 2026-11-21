@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 use http::header::HeaderName;
 use serde_json::json;
+use winterbaume_core::percent_decode_path;
 use winterbaume_core::{
     BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
     default_account_id, extract_path, extract_query_string, parse_query_string, rest_json_error,
@@ -679,11 +680,7 @@ fn wire_update_stop_conditions_to_internal(
 }
 
 fn decode_resource_arn(encoded: &str) -> String {
-    encoded
-        .replace("%3A", ":")
-        .replace("%2F", "/")
-        .replace("%3a", ":")
-        .replace("%2f", "/")
+    percent_decode_path(encoded)
 }
 
 fn fis_error_response(err: &FisError) -> MockResponse {

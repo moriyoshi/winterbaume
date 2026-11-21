@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 use http::header::HeaderName;
 use tokio::sync;
+use winterbaume_core::percent_decode_path;
 use winterbaume_core::{
     BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
     default_account_id,
@@ -106,7 +107,7 @@ impl ApiGatewayV2Service {
         }
         let decoded_segments: Vec<String> = raw_segments[1..]
             .iter()
-            .map(|s| percent_decode(s))
+            .map(|s| percent_decode_path(s))
             .collect();
         let segments: Vec<&str> = decoded_segments.iter().map(|s| s.as_str()).collect();
 
@@ -2172,33 +2173,6 @@ impl ApiGatewayV2Service {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-/// URL-percent-decode a single path segment (e.g. `%24default` → `$default`).
-fn percent_decode(s: &str) -> String {
-    let mut result = String::with_capacity(s.len());
-    let mut chars = s.chars().peekable();
-    while let Some(c) = chars.next() {
-        if c == '%' {
-            let h1 = chars.next();
-            let h2 = chars.next();
-            if let (Some(h1), Some(h2)) = (h1, h2) {
-                if let Ok(byte) = u8::from_str_radix(&format!("{h1}{h2}"), 16) {
-                    result.push(byte as char);
-                    continue;
-                }
-                // Not a valid hex sequence — push the raw characters back
-                result.push('%');
-                result.push(h1);
-                result.push(h2);
-            } else {
-                result.push('%');
-            }
-        } else {
-            result.push(c);
-        }
-    }
-    result
-}
 
 fn extract_path(uri: &str) -> &str {
     let without_scheme = if let Some(pos) = uri.find("://") {

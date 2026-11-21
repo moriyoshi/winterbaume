@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 use http::header::HeaderName;
 use serde_json::json;
+use winterbaume_core::percent_decode_path;
 use winterbaume_core::{
     BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
     default_account_id, extract_path, parse_query_string, rest_json_error,
@@ -77,12 +78,7 @@ impl OutpostsService {
             .trim_start_matches('/')
             .split('/')
             .filter(|s| !s.is_empty())
-            .map(|s| {
-                s.replace("%3A", ":")
-                    .replace("%2F", "/")
-                    .replace("%3a", ":")
-                    .replace("%2f", "/")
-            })
+            .map(percent_decode_path)
             .collect();
 
         let query_str = winterbaume_core::extract_query_string(&request.uri);

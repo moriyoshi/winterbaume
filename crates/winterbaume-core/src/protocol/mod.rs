@@ -12,7 +12,8 @@ pub mod json;
 pub mod xml;
 
 pub use common::{
-    extract_path, extract_query_string, hex_val, parse_query_string, percent_decode, urldecode,
+    extract_path, extract_query_string, hex_val, parse_query_string, percent_decode,
+    percent_decode_path, urldecode,
 };
 pub use json::{body_has_top_level_field, json_error_response, rest_json_error};
 pub use xml::{aws_query_error_response, aws_query_response, xml_escape};

@@ -4,6 +4,7 @@ use std::pin::Pin;
 use std::sync::Arc;
 
 use serde::Serialize;
+use winterbaume_core::percent_decode_path;
 use winterbaume_core::{
     BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
     default_account_id,
@@ -2882,52 +2883,11 @@ fn query_values(uri: &str, name: &str) -> Vec<String> {
         .split('&')
         .filter_map(|pair| {
             let (key, value) = pair.split_once('=').unwrap_or((pair, ""));
-            (percent_decode_query(key) == name).then(|| percent_decode_query(value))
+            (percent_decode_path(key) == name).then(|| percent_decode_path(value))
         })
         .filter(|value| !value.is_empty())
         .collect()
 }
-
-fn percent_decode_query(s: &str) -> String {
-    let bytes = s.as_bytes();
-    let mut decoded = Vec::with_capacity(bytes.len());
-    let mut i = 0;
-    while i < bytes.len() {
-        if bytes[i] == b'%'
-            && let Some(hex) = bytes.get(i + 1..i + 3)
-            && let Ok(byte) = u8::from_str_radix(std::str::from_utf8(hex).unwrap_or(""), 16)
-        {
-            decoded.push(byte);
-            i += 3;
-            continue;
-        }
-        decoded.push(bytes[i]);
-        i += 1;
-    }
-    String::from_utf8_lossy(&decoded).into_owned()
-}
-
-fn percent_decode_path(s: &str) -> String {
-    // Simple percent-decode for ARNs in paths
-    let mut result = String::new();
-    let bytes = s.as_bytes();
-    let mut i = 0;
-    while i < bytes.len() {
-        if bytes[i] == b'%'
-            && i + 2 < bytes.len()
-            && let Ok(c) =
-                u8::from_str_radix(std::str::from_utf8(&bytes[i + 1..i + 3]).unwrap_or(""), 16)
-        {
-            result.push(c as char);
-            i += 3;
-            continue;
-        }
-        result.push(bytes[i] as char);
-        i += 1;
-    }
-    result
-}
-
 fn determine_job_operation_type(operation: &crate::model::JobOperation) -> String {
     if operation.s3_put_object_copy.is_some() {
         "S3PutObjectCopy".to_string()

@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 use http::header::HeaderName;
 use serde_json::json;
+use winterbaume_core::percent_decode_path;
 use winterbaume_core::{
     BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
     default_account_id, extract_path, rest_json_error,
@@ -495,11 +496,7 @@ fn archive_rule_to_wire(r: &crate::types::ArchiveRule) -> wire::ArchiveRuleSumma
 }
 
 fn decode_resource_arn(encoded: &str) -> String {
-    encoded
-        .replace("%3A", ":")
-        .replace("%2F", "/")
-        .replace("%3a", ":")
-        .replace("%2f", "/")
+    percent_decode_path(encoded)
 }
 
 fn extract_tag_keys_from_uri(uri: &str) -> Vec<String> {
@@ -510,13 +507,7 @@ fn extract_tag_keys_from_uri(uri: &str) -> Vec<String> {
             .filter_map(|param| {
                 let (key, value) = param.split_once('=')?;
                 if key == "tagKeys" {
-                    Some(
-                        value
-                            .replace("%3A", ":")
-                            .replace("%2F", "/")
-                            .replace("%3a", ":")
-                            .replace("%2f", "/"),
-                    )
+                    Some(percent_decode_path(value))
                 } else {
                     None
                 }

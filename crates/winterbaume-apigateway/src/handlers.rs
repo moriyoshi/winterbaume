@@ -6,6 +6,7 @@ use std::sync::Arc;
 use http::header::HeaderName;
 use serde_json::Value;
 use tokio::sync::RwLock;
+use winterbaume_core::percent_decode_path;
 use winterbaume_core::{
     BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
     default_account_id,
@@ -100,22 +101,22 @@ impl ApiGatewayService {
             ("GET", ["restapis"]) => self.handle_get_rest_apis(&state).await,
             // GET /restapis/{restApiId} — GetRestApi
             ("GET", ["restapis", api_id]) => {
-                let api_id_decoded = percent_decode(api_id);
+                let api_id_decoded = percent_decode_path(api_id);
                 let labels: &[(&str, &str)] = &[("restApiId", api_id_decoded.as_str())];
                 self.handle_get_rest_api(&state, &request, labels, &query_map)
                     .await
             }
             // DELETE /restapis/{restApiId} — DeleteRestApi
             ("DELETE", ["restapis", api_id]) => {
-                let api_id_decoded = percent_decode(api_id);
+                let api_id_decoded = percent_decode_path(api_id);
                 let labels: &[(&str, &str)] = &[("restApiId", api_id_decoded.as_str())];
                 self.handle_delete_rest_api(&state, &request, labels, &query_map)
                     .await
             }
             // POST /restapis/{restApiId}/resources/{parentId} — CreateResource
             ("POST", ["restapis", api_id, "resources", parent_id]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let parent_id_decoded = percent_decode(parent_id);
+                let api_id_decoded = percent_decode_path(api_id);
+                let parent_id_decoded = percent_decode_path(parent_id);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("parentId", parent_id_decoded.as_str()),
@@ -125,15 +126,15 @@ impl ApiGatewayService {
             }
             // GET /restapis/{restApiId}/resources — GetResources
             ("GET", ["restapis", api_id, "resources"]) => {
-                let api_id_decoded = percent_decode(api_id);
+                let api_id_decoded = percent_decode_path(api_id);
                 let labels: &[(&str, &str)] = &[("restApiId", api_id_decoded.as_str())];
                 self.handle_get_resources(&state, &request, labels, &query_map)
                     .await
             }
             // GET /restapis/{restApiId}/resources/{resourceId} — GetResource
             ("GET", ["restapis", api_id, "resources", resource_id]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let resource_id_decoded = percent_decode(resource_id);
+                let api_id_decoded = percent_decode_path(api_id);
+                let resource_id_decoded = percent_decode_path(resource_id);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("resourceId", resource_id_decoded.as_str()),
@@ -143,8 +144,8 @@ impl ApiGatewayService {
             }
             // DELETE /restapis/{restApiId}/resources/{resourceId} — DeleteResource
             ("DELETE", ["restapis", api_id, "resources", resource_id]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let resource_id_decoded = percent_decode(resource_id);
+                let api_id_decoded = percent_decode_path(api_id);
+                let resource_id_decoded = percent_decode_path(resource_id);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("resourceId", resource_id_decoded.as_str()),
@@ -154,22 +155,22 @@ impl ApiGatewayService {
             }
             // POST /restapis/{restApiId}/stages — CreateStage
             ("POST", ["restapis", api_id, "stages"]) => {
-                let api_id_decoded = percent_decode(api_id);
+                let api_id_decoded = percent_decode_path(api_id);
                 let labels: &[(&str, &str)] = &[("restApiId", api_id_decoded.as_str())];
                 self.handle_create_stage(&state, &request, labels, &query_map)
                     .await
             }
             // GET /restapis/{restApiId}/stages — GetStages
             ("GET", ["restapis", api_id, "stages"]) => {
-                let api_id_decoded = percent_decode(api_id);
+                let api_id_decoded = percent_decode_path(api_id);
                 let labels: &[(&str, &str)] = &[("restApiId", api_id_decoded.as_str())];
                 self.handle_get_stages(&state, &request, labels, &query_map)
                     .await
             }
             // GET /restapis/{restApiId}/stages/{stageName} — GetStage
             ("GET", ["restapis", api_id, "stages", stage_name]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let stage_name_decoded = percent_decode(stage_name);
+                let api_id_decoded = percent_decode_path(api_id);
+                let stage_name_decoded = percent_decode_path(stage_name);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("stageName", stage_name_decoded.as_str()),
@@ -179,8 +180,8 @@ impl ApiGatewayService {
             }
             // DELETE /restapis/{restApiId}/stages/{stageName} — DeleteStage
             ("DELETE", ["restapis", api_id, "stages", stage_name]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let stage_name_decoded = percent_decode(stage_name);
+                let api_id_decoded = percent_decode_path(api_id);
+                let stage_name_decoded = percent_decode_path(stage_name);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("stageName", stage_name_decoded.as_str()),
@@ -190,8 +191,8 @@ impl ApiGatewayService {
             }
             // PATCH /restapis/{restApiId}/stages/{stageName} — UpdateStage
             ("PATCH", ["restapis", api_id, "stages", stage_name]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let stage_name_decoded = percent_decode(stage_name);
+                let api_id_decoded = percent_decode_path(api_id);
+                let stage_name_decoded = percent_decode_path(stage_name);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("stageName", stage_name_decoded.as_str()),
@@ -201,8 +202,8 @@ impl ApiGatewayService {
             }
             // DELETE /restapis/{restApiId}/stages/{stageName}/cache/data — FlushStageCache
             ("DELETE", ["restapis", api_id, "stages", stage_name, "cache", "data"]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let stage_name_decoded = percent_decode(stage_name);
+                let api_id_decoded = percent_decode_path(api_id);
+                let stage_name_decoded = percent_decode_path(stage_name);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("stageName", stage_name_decoded.as_str()),
@@ -212,22 +213,22 @@ impl ApiGatewayService {
             }
             // POST /restapis/{restApiId}/deployments — CreateDeployment
             ("POST", ["restapis", api_id, "deployments"]) => {
-                let api_id_decoded = percent_decode(api_id);
+                let api_id_decoded = percent_decode_path(api_id);
                 let labels: &[(&str, &str)] = &[("restApiId", api_id_decoded.as_str())];
                 self.handle_create_deployment(&state, &request, labels, &query_map)
                     .await
             }
             // GET /restapis/{restApiId}/deployments — GetDeployments
             ("GET", ["restapis", api_id, "deployments"]) => {
-                let api_id_decoded = percent_decode(api_id);
+                let api_id_decoded = percent_decode_path(api_id);
                 let labels: &[(&str, &str)] = &[("restApiId", api_id_decoded.as_str())];
                 self.handle_get_deployments(&state, &request, labels, &query_map)
                     .await
             }
             // GET /restapis/{restApiId}/deployments/{deploymentId} — GetDeployment
             ("GET", ["restapis", api_id, "deployments", deployment_id]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let deployment_id_decoded = percent_decode(deployment_id);
+                let api_id_decoded = percent_decode_path(api_id);
+                let deployment_id_decoded = percent_decode_path(deployment_id);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("deploymentId", deployment_id_decoded.as_str()),
@@ -237,8 +238,8 @@ impl ApiGatewayService {
             }
             // DELETE /restapis/{restApiId}/deployments/{deploymentId} — DeleteDeployment
             ("DELETE", ["restapis", api_id, "deployments", deployment_id]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let deployment_id_decoded = percent_decode(deployment_id);
+                let api_id_decoded = percent_decode_path(api_id);
+                let deployment_id_decoded = percent_decode_path(deployment_id);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("deploymentId", deployment_id_decoded.as_str()),
@@ -258,9 +259,9 @@ impl ApiGatewayService {
                     http_method,
                 ],
             ) => {
-                let api_id_decoded = percent_decode(api_id);
-                let resource_id_decoded = percent_decode(resource_id);
-                let http_method_decoded = percent_decode(http_method);
+                let api_id_decoded = percent_decode_path(api_id);
+                let resource_id_decoded = percent_decode_path(resource_id);
+                let http_method_decoded = percent_decode_path(http_method);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("resourceId", resource_id_decoded.as_str()),
@@ -281,9 +282,9 @@ impl ApiGatewayService {
                     http_method,
                 ],
             ) => {
-                let api_id_decoded = percent_decode(api_id);
-                let resource_id_decoded = percent_decode(resource_id);
-                let http_method_decoded = percent_decode(http_method);
+                let api_id_decoded = percent_decode_path(api_id);
+                let resource_id_decoded = percent_decode_path(resource_id);
+                let http_method_decoded = percent_decode_path(http_method);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("resourceId", resource_id_decoded.as_str()),
@@ -304,9 +305,9 @@ impl ApiGatewayService {
                     http_method,
                 ],
             ) => {
-                let api_id_decoded = percent_decode(api_id);
-                let resource_id_decoded = percent_decode(resource_id);
-                let http_method_decoded = percent_decode(http_method);
+                let api_id_decoded = percent_decode_path(api_id);
+                let resource_id_decoded = percent_decode_path(resource_id);
+                let http_method_decoded = percent_decode_path(http_method);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("resourceId", resource_id_decoded.as_str()),
@@ -329,10 +330,10 @@ impl ApiGatewayService {
                     status_code,
                 ],
             ) => {
-                let api_id_decoded = percent_decode(api_id);
-                let resource_id_decoded = percent_decode(resource_id);
-                let http_method_decoded = percent_decode(http_method);
-                let status_code_decoded = percent_decode(status_code);
+                let api_id_decoded = percent_decode_path(api_id);
+                let resource_id_decoded = percent_decode_path(resource_id);
+                let http_method_decoded = percent_decode_path(http_method);
+                let status_code_decoded = percent_decode_path(status_code);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("resourceId", resource_id_decoded.as_str()),
@@ -356,10 +357,10 @@ impl ApiGatewayService {
                     status_code,
                 ],
             ) => {
-                let api_id_decoded = percent_decode(api_id);
-                let resource_id_decoded = percent_decode(resource_id);
-                let http_method_decoded = percent_decode(http_method);
-                let status_code_decoded = percent_decode(status_code);
+                let api_id_decoded = percent_decode_path(api_id);
+                let resource_id_decoded = percent_decode_path(resource_id);
+                let http_method_decoded = percent_decode_path(http_method);
+                let status_code_decoded = percent_decode_path(status_code);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("resourceId", resource_id_decoded.as_str()),
@@ -383,10 +384,10 @@ impl ApiGatewayService {
                     status_code,
                 ],
             ) => {
-                let api_id_decoded = percent_decode(api_id);
-                let resource_id_decoded = percent_decode(resource_id);
-                let http_method_decoded = percent_decode(http_method);
-                let status_code_decoded = percent_decode(status_code);
+                let api_id_decoded = percent_decode_path(api_id);
+                let resource_id_decoded = percent_decode_path(resource_id);
+                let http_method_decoded = percent_decode_path(http_method);
+                let status_code_decoded = percent_decode_path(status_code);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("resourceId", resource_id_decoded.as_str()),
@@ -409,9 +410,9 @@ impl ApiGatewayService {
                     "integration",
                 ],
             ) => {
-                let api_id_decoded = percent_decode(api_id);
-                let resource_id_decoded = percent_decode(resource_id);
-                let http_method_decoded = percent_decode(http_method);
+                let api_id_decoded = percent_decode_path(api_id);
+                let resource_id_decoded = percent_decode_path(resource_id);
+                let http_method_decoded = percent_decode_path(http_method);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("resourceId", resource_id_decoded.as_str()),
@@ -433,9 +434,9 @@ impl ApiGatewayService {
                     "integration",
                 ],
             ) => {
-                let api_id_decoded = percent_decode(api_id);
-                let resource_id_decoded = percent_decode(resource_id);
-                let http_method_decoded = percent_decode(http_method);
+                let api_id_decoded = percent_decode_path(api_id);
+                let resource_id_decoded = percent_decode_path(resource_id);
+                let http_method_decoded = percent_decode_path(http_method);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("resourceId", resource_id_decoded.as_str()),
@@ -457,9 +458,9 @@ impl ApiGatewayService {
                     "integration",
                 ],
             ) => {
-                let api_id_decoded = percent_decode(api_id);
-                let resource_id_decoded = percent_decode(resource_id);
-                let http_method_decoded = percent_decode(http_method);
+                let api_id_decoded = percent_decode_path(api_id);
+                let resource_id_decoded = percent_decode_path(resource_id);
+                let http_method_decoded = percent_decode_path(http_method);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("resourceId", resource_id_decoded.as_str()),
@@ -483,10 +484,10 @@ impl ApiGatewayService {
                     status_code,
                 ],
             ) => {
-                let api_id_decoded = percent_decode(api_id);
-                let resource_id_decoded = percent_decode(resource_id);
-                let http_method_decoded = percent_decode(http_method);
-                let status_code_decoded = percent_decode(status_code);
+                let api_id_decoded = percent_decode_path(api_id);
+                let resource_id_decoded = percent_decode_path(resource_id);
+                let http_method_decoded = percent_decode_path(http_method);
+                let status_code_decoded = percent_decode_path(status_code);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("resourceId", resource_id_decoded.as_str()),
@@ -511,10 +512,10 @@ impl ApiGatewayService {
                     status_code,
                 ],
             ) => {
-                let api_id_decoded = percent_decode(api_id);
-                let resource_id_decoded = percent_decode(resource_id);
-                let http_method_decoded = percent_decode(http_method);
-                let status_code_decoded = percent_decode(status_code);
+                let api_id_decoded = percent_decode_path(api_id);
+                let resource_id_decoded = percent_decode_path(resource_id);
+                let http_method_decoded = percent_decode_path(http_method);
+                let status_code_decoded = percent_decode_path(status_code);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("resourceId", resource_id_decoded.as_str()),
@@ -539,10 +540,10 @@ impl ApiGatewayService {
                     status_code,
                 ],
             ) => {
-                let api_id_decoded = percent_decode(api_id);
-                let resource_id_decoded = percent_decode(resource_id);
-                let http_method_decoded = percent_decode(http_method);
-                let status_code_decoded = percent_decode(status_code);
+                let api_id_decoded = percent_decode_path(api_id);
+                let resource_id_decoded = percent_decode_path(resource_id);
+                let http_method_decoded = percent_decode_path(http_method);
+                let status_code_decoded = percent_decode_path(status_code);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("resourceId", resource_id_decoded.as_str()),
@@ -554,22 +555,22 @@ impl ApiGatewayService {
             }
             // POST /restapis/{restApiId}/models — CreateModel
             ("POST", ["restapis", api_id, "models"]) => {
-                let api_id_decoded = percent_decode(api_id);
+                let api_id_decoded = percent_decode_path(api_id);
                 let labels: &[(&str, &str)] = &[("restApiId", api_id_decoded.as_str())];
                 self.handle_create_model(&state, &request, labels, &query_map)
                     .await
             }
             // GET /restapis/{restApiId}/models — GetModels
             ("GET", ["restapis", api_id, "models"]) => {
-                let api_id_decoded = percent_decode(api_id);
+                let api_id_decoded = percent_decode_path(api_id);
                 let labels: &[(&str, &str)] = &[("restApiId", api_id_decoded.as_str())];
                 self.handle_get_models(&state, &request, labels, &query_map)
                     .await
             }
             // GET /restapis/{restApiId}/models/{modelName} — GetModel
             ("GET", ["restapis", api_id, "models", model_name]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let model_name_decoded = percent_decode(model_name);
+                let api_id_decoded = percent_decode_path(api_id);
+                let model_name_decoded = percent_decode_path(model_name);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("modelName", model_name_decoded.as_str()),
@@ -579,8 +580,8 @@ impl ApiGatewayService {
             }
             // DELETE /restapis/{restApiId}/models/{modelName} — DeleteModel
             ("DELETE", ["restapis", api_id, "models", model_name]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let model_name_decoded = percent_decode(model_name);
+                let api_id_decoded = percent_decode_path(api_id);
+                let model_name_decoded = percent_decode_path(model_name);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("modelName", model_name_decoded.as_str()),
@@ -590,22 +591,22 @@ impl ApiGatewayService {
             }
             // POST /restapis/{restApiId}/authorizers — CreateAuthorizer
             ("POST", ["restapis", api_id, "authorizers"]) => {
-                let api_id_decoded = percent_decode(api_id);
+                let api_id_decoded = percent_decode_path(api_id);
                 let labels: &[(&str, &str)] = &[("restApiId", api_id_decoded.as_str())];
                 self.handle_create_authorizer(&state, &request, labels, &query_map)
                     .await
             }
             // GET /restapis/{restApiId}/authorizers — GetAuthorizers
             ("GET", ["restapis", api_id, "authorizers"]) => {
-                let api_id_decoded = percent_decode(api_id);
+                let api_id_decoded = percent_decode_path(api_id);
                 let labels: &[(&str, &str)] = &[("restApiId", api_id_decoded.as_str())];
                 self.handle_get_authorizers(&state, &request, labels, &query_map)
                     .await
             }
             // GET /restapis/{restApiId}/authorizers/{authorizerId} — GetAuthorizer
             ("GET", ["restapis", api_id, "authorizers", authorizer_id]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let authorizer_id_decoded = percent_decode(authorizer_id);
+                let api_id_decoded = percent_decode_path(api_id);
+                let authorizer_id_decoded = percent_decode_path(authorizer_id);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("authorizerId", authorizer_id_decoded.as_str()),
@@ -615,8 +616,8 @@ impl ApiGatewayService {
             }
             // DELETE /restapis/{restApiId}/authorizers/{authorizerId} — DeleteAuthorizer
             ("DELETE", ["restapis", api_id, "authorizers", authorizer_id]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let authorizer_id_decoded = percent_decode(authorizer_id);
+                let api_id_decoded = percent_decode_path(api_id);
+                let authorizer_id_decoded = percent_decode_path(authorizer_id);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("authorizerId", authorizer_id_decoded.as_str()),
@@ -626,8 +627,8 @@ impl ApiGatewayService {
             }
             // PATCH /restapis/{restApiId}/authorizers/{authorizerId} — UpdateAuthorizer
             ("PATCH", ["restapis", api_id, "authorizers", authorizer_id]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let authorizer_id_decoded = percent_decode(authorizer_id);
+                let api_id_decoded = percent_decode_path(api_id);
+                let authorizer_id_decoded = percent_decode_path(authorizer_id);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("authorizerId", authorizer_id_decoded.as_str()),
@@ -637,14 +638,14 @@ impl ApiGatewayService {
             }
             // PATCH /restapis/{restApiId} — UpdateRestApi
             ("PATCH", ["restapis", api_id]) => {
-                let api_id_decoded = percent_decode(api_id);
+                let api_id_decoded = percent_decode_path(api_id);
                 let labels: &[(&str, &str)] = &[("restApiId", api_id_decoded.as_str())];
                 self.handle_update_rest_api(&state, &request, labels, &query_map)
                     .await
             }
             // PUT /restapis/{restApiId} — PutRestApi
             ("PUT", ["restapis", api_id]) => {
-                let api_id_decoded = percent_decode(api_id);
+                let api_id_decoded = percent_decode_path(api_id);
                 let labels: &[(&str, &str)] = &[("restApiId", api_id_decoded.as_str())];
                 self.handle_put_rest_api(&state, &request, labels, &query_map)
                     .await
@@ -667,21 +668,21 @@ impl ApiGatewayService {
             }
             // GET /apikeys/{apiKey} — GetApiKey
             ("GET", ["apikeys", key_id]) => {
-                let key_id_decoded = percent_decode(key_id);
+                let key_id_decoded = percent_decode_path(key_id);
                 let labels: &[(&str, &str)] = &[("apiKey", key_id_decoded.as_str())];
                 self.handle_get_api_key(&state, &request, labels, &query_map)
                     .await
             }
             // DELETE /apikeys/{apiKey} — DeleteApiKey
             ("DELETE", ["apikeys", key_id]) => {
-                let key_id_decoded = percent_decode(key_id);
+                let key_id_decoded = percent_decode_path(key_id);
                 let labels: &[(&str, &str)] = &[("apiKey", key_id_decoded.as_str())];
                 self.handle_delete_api_key(&state, &request, labels, &query_map)
                     .await
             }
             // PATCH /apikeys/{apiKey} — UpdateApiKey
             ("PATCH", ["apikeys", key_id]) => {
-                let key_id_decoded = percent_decode(key_id);
+                let key_id_decoded = percent_decode_path(key_id);
                 let labels: &[(&str, &str)] = &[("apiKey", key_id_decoded.as_str())];
                 self.handle_update_api_key(&state, &request, labels, &query_map)
                     .await
@@ -699,14 +700,14 @@ impl ApiGatewayService {
             }
             // GET /domainnames/{domainName} — GetDomainName
             ("GET", ["domainnames", domain_name]) => {
-                let domain_name_decoded = percent_decode(domain_name);
+                let domain_name_decoded = percent_decode_path(domain_name);
                 let labels: &[(&str, &str)] = &[("domainName", domain_name_decoded.as_str())];
                 self.handle_get_domain_name(&state, &request, labels, &query_map)
                     .await
             }
             // DELETE /domainnames/{domainName} — DeleteDomainName
             ("DELETE", ["domainnames", domain_name]) => {
-                let domain_name_decoded = percent_decode(domain_name);
+                let domain_name_decoded = percent_decode_path(domain_name);
                 let labels: &[(&str, &str)] = &[("domainName", domain_name_decoded.as_str())];
                 self.handle_delete_domain_name(&state, &request, labels, &query_map)
                     .await
@@ -714,22 +715,22 @@ impl ApiGatewayService {
             // ---- Base Path Mapping routes ----
             // POST /domainnames/{domainName}/basepathmappings — CreateBasePathMapping
             ("POST", ["domainnames", domain_name, "basepathmappings"]) => {
-                let domain_name_decoded = percent_decode(domain_name);
+                let domain_name_decoded = percent_decode_path(domain_name);
                 let labels: &[(&str, &str)] = &[("domainName", domain_name_decoded.as_str())];
                 self.handle_create_base_path_mapping(&state, &request, labels, &query_map)
                     .await
             }
             // GET /domainnames/{domainName}/basepathmappings — GetBasePathMappings
             ("GET", ["domainnames", domain_name, "basepathmappings"]) => {
-                let domain_name_decoded = percent_decode(domain_name);
+                let domain_name_decoded = percent_decode_path(domain_name);
                 let labels: &[(&str, &str)] = &[("domainName", domain_name_decoded.as_str())];
                 self.handle_get_base_path_mappings(&state, &request, labels, &query_map)
                     .await
             }
             // GET /domainnames/{domainName}/basepathmappings/{basePath} — GetBasePathMapping
             ("GET", ["domainnames", domain_name, "basepathmappings", base_path]) => {
-                let domain_name_decoded = percent_decode(domain_name);
-                let base_path_decoded = percent_decode(base_path);
+                let domain_name_decoded = percent_decode_path(domain_name);
+                let base_path_decoded = percent_decode_path(base_path);
                 let labels: &[(&str, &str)] = &[
                     ("domainName", domain_name_decoded.as_str()),
                     ("basePath", base_path_decoded.as_str()),
@@ -739,8 +740,8 @@ impl ApiGatewayService {
             }
             // DELETE /domainnames/{domainName}/basepathmappings/{basePath} — DeleteBasePathMapping
             ("DELETE", ["domainnames", domain_name, "basepathmappings", base_path]) => {
-                let domain_name_decoded = percent_decode(domain_name);
-                let base_path_decoded = percent_decode(base_path);
+                let domain_name_decoded = percent_decode_path(domain_name);
+                let base_path_decoded = percent_decode_path(base_path);
                 let labels: &[(&str, &str)] = &[
                     ("domainName", domain_name_decoded.as_str()),
                     ("basePath", base_path_decoded.as_str()),
@@ -750,8 +751,8 @@ impl ApiGatewayService {
             }
             // PATCH /domainnames/{domainName}/basepathmappings/{basePath} — UpdateBasePathMapping
             ("PATCH", ["domainnames", domain_name, "basepathmappings", base_path]) => {
-                let domain_name_decoded = percent_decode(domain_name);
-                let base_path_decoded = percent_decode(base_path);
+                let domain_name_decoded = percent_decode_path(domain_name);
+                let base_path_decoded = percent_decode_path(base_path);
                 let labels: &[(&str, &str)] = &[
                     ("domainName", domain_name_decoded.as_str()),
                     ("basePath", base_path_decoded.as_str()),
@@ -762,15 +763,15 @@ impl ApiGatewayService {
             // ---- Gateway Response routes ----
             // GET /restapis/{restApiId}/gatewayresponses — GetGatewayResponses
             ("GET", ["restapis", api_id, "gatewayresponses"]) => {
-                let api_id_decoded = percent_decode(api_id);
+                let api_id_decoded = percent_decode_path(api_id);
                 let labels: &[(&str, &str)] = &[("restApiId", api_id_decoded.as_str())];
                 self.handle_get_gateway_responses(&state, &request, labels, &query_map)
                     .await
             }
             // GET /restapis/{restApiId}/gatewayresponses/{responseType} — GetGatewayResponse
             ("GET", ["restapis", api_id, "gatewayresponses", response_type]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let response_type_decoded = percent_decode(response_type);
+                let api_id_decoded = percent_decode_path(api_id);
+                let response_type_decoded = percent_decode_path(response_type);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("responseType", response_type_decoded.as_str()),
@@ -780,8 +781,8 @@ impl ApiGatewayService {
             }
             // PUT /restapis/{restApiId}/gatewayresponses/{responseType} — PutGatewayResponse
             ("PUT", ["restapis", api_id, "gatewayresponses", response_type]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let response_type_decoded = percent_decode(response_type);
+                let api_id_decoded = percent_decode_path(api_id);
+                let response_type_decoded = percent_decode_path(response_type);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("responseType", response_type_decoded.as_str()),
@@ -791,8 +792,8 @@ impl ApiGatewayService {
             }
             // DELETE /restapis/{restApiId}/gatewayresponses/{responseType} — DeleteGatewayResponse
             ("DELETE", ["restapis", api_id, "gatewayresponses", response_type]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let response_type_decoded = percent_decode(response_type);
+                let api_id_decoded = percent_decode_path(api_id);
+                let response_type_decoded = percent_decode_path(response_type);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("responseType", response_type_decoded.as_str()),
@@ -803,22 +804,22 @@ impl ApiGatewayService {
             // ---- Request Validator routes ----
             // POST /restapis/{restApiId}/requestvalidators — CreateRequestValidator
             ("POST", ["restapis", api_id, "requestvalidators"]) => {
-                let api_id_decoded = percent_decode(api_id);
+                let api_id_decoded = percent_decode_path(api_id);
                 let labels: &[(&str, &str)] = &[("restApiId", api_id_decoded.as_str())];
                 self.handle_create_request_validator(&state, &request, labels, &query_map)
                     .await
             }
             // GET /restapis/{restApiId}/requestvalidators — GetRequestValidators
             ("GET", ["restapis", api_id, "requestvalidators"]) => {
-                let api_id_decoded = percent_decode(api_id);
+                let api_id_decoded = percent_decode_path(api_id);
                 let labels: &[(&str, &str)] = &[("restApiId", api_id_decoded.as_str())];
                 self.handle_get_request_validators(&state, &request, labels, &query_map)
                     .await
             }
             // GET /restapis/{restApiId}/requestvalidators/{requestValidatorId} — GetRequestValidator
             ("GET", ["restapis", api_id, "requestvalidators", validator_id]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let validator_id_decoded = percent_decode(validator_id);
+                let api_id_decoded = percent_decode_path(api_id);
+                let validator_id_decoded = percent_decode_path(validator_id);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("requestValidatorId", validator_id_decoded.as_str()),
@@ -828,8 +829,8 @@ impl ApiGatewayService {
             }
             // DELETE /restapis/{restApiId}/requestvalidators/{requestValidatorId} — DeleteRequestValidator
             ("DELETE", ["restapis", api_id, "requestvalidators", validator_id]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let validator_id_decoded = percent_decode(validator_id);
+                let api_id_decoded = percent_decode_path(api_id);
+                let validator_id_decoded = percent_decode_path(validator_id);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("requestValidatorId", validator_id_decoded.as_str()),
@@ -839,8 +840,8 @@ impl ApiGatewayService {
             }
             // PATCH /restapis/{restApiId}/requestvalidators/{requestValidatorId} — UpdateRequestValidator
             ("PATCH", ["restapis", api_id, "requestvalidators", validator_id]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let validator_id_decoded = percent_decode(validator_id);
+                let api_id_decoded = percent_decode_path(api_id);
+                let validator_id_decoded = percent_decode_path(validator_id);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("requestValidatorId", validator_id_decoded.as_str()),
@@ -861,43 +862,43 @@ impl ApiGatewayService {
             }
             // GET /usageplans/{usagePlanId} — GetUsagePlan
             ("GET", ["usageplans", plan_id]) => {
-                let plan_id_decoded = percent_decode(plan_id);
+                let plan_id_decoded = percent_decode_path(plan_id);
                 let labels: &[(&str, &str)] = &[("usagePlanId", plan_id_decoded.as_str())];
                 self.handle_get_usage_plan(&state, &request, labels, &query_map)
                     .await
             }
             // DELETE /usageplans/{usagePlanId} — DeleteUsagePlan
             ("DELETE", ["usageplans", plan_id]) => {
-                let plan_id_decoded = percent_decode(plan_id);
+                let plan_id_decoded = percent_decode_path(plan_id);
                 let labels: &[(&str, &str)] = &[("usagePlanId", plan_id_decoded.as_str())];
                 self.handle_delete_usage_plan(&state, &request, labels, &query_map)
                     .await
             }
             // PATCH /usageplans/{usagePlanId} — UpdateUsagePlan
             ("PATCH", ["usageplans", plan_id]) => {
-                let plan_id_decoded = percent_decode(plan_id);
+                let plan_id_decoded = percent_decode_path(plan_id);
                 let labels: &[(&str, &str)] = &[("usagePlanId", plan_id_decoded.as_str())];
                 self.handle_update_usage_plan(&state, &request, labels, &query_map)
                     .await
             }
             // POST /usageplans/{usagePlanId}/keys — CreateUsagePlanKey
             ("POST", ["usageplans", plan_id, "keys"]) => {
-                let plan_id_decoded = percent_decode(plan_id);
+                let plan_id_decoded = percent_decode_path(plan_id);
                 let labels: &[(&str, &str)] = &[("usagePlanId", plan_id_decoded.as_str())];
                 self.handle_create_usage_plan_key(&state, &request, labels, &query_map)
                     .await
             }
             // GET /usageplans/{usagePlanId}/keys — GetUsagePlanKeys
             ("GET", ["usageplans", plan_id, "keys"]) => {
-                let plan_id_decoded = percent_decode(plan_id);
+                let plan_id_decoded = percent_decode_path(plan_id);
                 let labels: &[(&str, &str)] = &[("usagePlanId", plan_id_decoded.as_str())];
                 self.handle_get_usage_plan_keys(&state, &request, labels, &query_map)
                     .await
             }
             // GET /usageplans/{usagePlanId}/keys/{keyId} — GetUsagePlanKey
             ("GET", ["usageplans", plan_id, "keys", key_id]) => {
-                let plan_id_decoded = percent_decode(plan_id);
-                let key_id_decoded = percent_decode(key_id);
+                let plan_id_decoded = percent_decode_path(plan_id);
+                let key_id_decoded = percent_decode_path(key_id);
                 let labels: &[(&str, &str)] = &[
                     ("usagePlanId", plan_id_decoded.as_str()),
                     ("keyId", key_id_decoded.as_str()),
@@ -907,8 +908,8 @@ impl ApiGatewayService {
             }
             // DELETE /usageplans/{usagePlanId}/keys/{keyId} — DeleteUsagePlanKey
             ("DELETE", ["usageplans", plan_id, "keys", key_id]) => {
-                let plan_id_decoded = percent_decode(plan_id);
-                let key_id_decoded = percent_decode(key_id);
+                let plan_id_decoded = percent_decode_path(plan_id);
+                let key_id_decoded = percent_decode_path(key_id);
                 let labels: &[(&str, &str)] = &[
                     ("usagePlanId", plan_id_decoded.as_str()),
                     ("keyId", key_id_decoded.as_str()),
@@ -929,14 +930,14 @@ impl ApiGatewayService {
             }
             // GET /vpclinks/{vpcLinkId} — GetVpcLink
             ("GET", ["vpclinks", link_id]) => {
-                let link_id_decoded = percent_decode(link_id);
+                let link_id_decoded = percent_decode_path(link_id);
                 let labels: &[(&str, &str)] = &[("vpcLinkId", link_id_decoded.as_str())];
                 self.handle_get_vpc_link(&state, &request, labels, &query_map)
                     .await
             }
             // DELETE /vpclinks/{vpcLinkId} — DeleteVpcLink
             ("DELETE", ["vpclinks", link_id]) => {
-                let link_id_decoded = percent_decode(link_id);
+                let link_id_decoded = percent_decode_path(link_id);
                 let labels: &[(&str, &str)] = &[("vpcLinkId", link_id_decoded.as_str())];
                 self.handle_delete_vpc_link(&state, &request, labels, &query_map)
                     .await
@@ -954,21 +955,21 @@ impl ApiGatewayService {
             }
             // GET /clientcertificates/{clientCertificateId} — GetClientCertificate
             ("GET", ["clientcertificates", cert_id]) => {
-                let cert_id_decoded = percent_decode(cert_id);
+                let cert_id_decoded = percent_decode_path(cert_id);
                 let labels: &[(&str, &str)] = &[("clientCertificateId", cert_id_decoded.as_str())];
                 self.handle_get_client_certificate(&state, &request, labels, &query_map)
                     .await
             }
             // DELETE /clientcertificates/{clientCertificateId} — DeleteClientCertificate
             ("DELETE", ["clientcertificates", cert_id]) => {
-                let cert_id_decoded = percent_decode(cert_id);
+                let cert_id_decoded = percent_decode_path(cert_id);
                 let labels: &[(&str, &str)] = &[("clientCertificateId", cert_id_decoded.as_str())];
                 self.handle_delete_client_certificate(&state, &request, labels, &query_map)
                     .await
             }
             // PATCH /clientcertificates/{clientCertificateId} — UpdateClientCertificate
             ("PATCH", ["clientcertificates", cert_id]) => {
-                let cert_id_decoded = percent_decode(cert_id);
+                let cert_id_decoded = percent_decode_path(cert_id);
                 let labels: &[(&str, &str)] = &[("clientCertificateId", cert_id_decoded.as_str())];
                 self.handle_update_client_certificate(&state, &request, labels, &query_map)
                     .await
@@ -976,22 +977,22 @@ impl ApiGatewayService {
             // ---- Documentation Part routes ----
             // POST /restapis/{restApiId}/documentation/parts — CreateDocumentationPart
             ("POST", ["restapis", api_id, "documentation", "parts"]) => {
-                let api_id_decoded = percent_decode(api_id);
+                let api_id_decoded = percent_decode_path(api_id);
                 let labels: &[(&str, &str)] = &[("restApiId", api_id_decoded.as_str())];
                 self.handle_create_documentation_part(&state, &request, labels, &query_map)
                     .await
             }
             // GET /restapis/{restApiId}/documentation/parts — GetDocumentationParts
             ("GET", ["restapis", api_id, "documentation", "parts"]) => {
-                let api_id_decoded = percent_decode(api_id);
+                let api_id_decoded = percent_decode_path(api_id);
                 let labels: &[(&str, &str)] = &[("restApiId", api_id_decoded.as_str())];
                 self.handle_get_documentation_parts(&state, &request, labels, &query_map)
                     .await
             }
             // GET /restapis/{restApiId}/documentation/parts/{documentationPartId} — GetDocumentationPart
             ("GET", ["restapis", api_id, "documentation", "parts", part_id]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let part_id_decoded = percent_decode(part_id);
+                let api_id_decoded = percent_decode_path(api_id);
+                let part_id_decoded = percent_decode_path(part_id);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("documentationPartId", part_id_decoded.as_str()),
@@ -1001,8 +1002,8 @@ impl ApiGatewayService {
             }
             // DELETE /restapis/{restApiId}/documentation/parts/{documentationPartId} — DeleteDocumentationPart
             ("DELETE", ["restapis", api_id, "documentation", "parts", part_id]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let part_id_decoded = percent_decode(part_id);
+                let api_id_decoded = percent_decode_path(api_id);
+                let part_id_decoded = percent_decode_path(part_id);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("documentationPartId", part_id_decoded.as_str()),
@@ -1012,8 +1013,8 @@ impl ApiGatewayService {
             }
             // PATCH /restapis/{restApiId}/documentation/parts/{documentationPartId} — UpdateDocumentationPart
             ("PATCH", ["restapis", api_id, "documentation", "parts", part_id]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let part_id_decoded = percent_decode(part_id);
+                let api_id_decoded = percent_decode_path(api_id);
+                let part_id_decoded = percent_decode_path(part_id);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("documentationPartId", part_id_decoded.as_str()),
@@ -1023,7 +1024,7 @@ impl ApiGatewayService {
             }
             // PUT /restapis/{restApiId}/documentation/parts — ImportDocumentationParts
             ("PUT", ["restapis", api_id, "documentation", "parts"]) => {
-                let api_id_decoded = percent_decode(api_id);
+                let api_id_decoded = percent_decode_path(api_id);
                 let labels: &[(&str, &str)] = &[("restApiId", api_id_decoded.as_str())];
                 self.handle_import_documentation_parts(&state, &request, labels, &query_map)
                     .await
@@ -1031,22 +1032,22 @@ impl ApiGatewayService {
             // ---- Documentation Version routes ----
             // POST /restapis/{restApiId}/documentation/versions — CreateDocumentationVersion
             ("POST", ["restapis", api_id, "documentation", "versions"]) => {
-                let api_id_decoded = percent_decode(api_id);
+                let api_id_decoded = percent_decode_path(api_id);
                 let labels: &[(&str, &str)] = &[("restApiId", api_id_decoded.as_str())];
                 self.handle_create_documentation_version(&state, &request, labels, &query_map)
                     .await
             }
             // GET /restapis/{restApiId}/documentation/versions — GetDocumentationVersions
             ("GET", ["restapis", api_id, "documentation", "versions"]) => {
-                let api_id_decoded = percent_decode(api_id);
+                let api_id_decoded = percent_decode_path(api_id);
                 let labels: &[(&str, &str)] = &[("restApiId", api_id_decoded.as_str())];
                 self.handle_get_documentation_versions(&state, &request, labels, &query_map)
                     .await
             }
             // GET /restapis/{restApiId}/documentation/versions/{documentationVersion} — GetDocumentationVersion
             ("GET", ["restapis", api_id, "documentation", "versions", doc_version]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let doc_version_decoded = percent_decode(doc_version);
+                let api_id_decoded = percent_decode_path(api_id);
+                let doc_version_decoded = percent_decode_path(doc_version);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("documentationVersion", doc_version_decoded.as_str()),
@@ -1056,8 +1057,8 @@ impl ApiGatewayService {
             }
             // DELETE /restapis/{restApiId}/documentation/versions/{documentationVersion} — DeleteDocumentationVersion
             ("DELETE", ["restapis", api_id, "documentation", "versions", doc_version]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let doc_version_decoded = percent_decode(doc_version);
+                let api_id_decoded = percent_decode_path(api_id);
+                let doc_version_decoded = percent_decode_path(doc_version);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("documentationVersion", doc_version_decoded.as_str()),
@@ -1067,8 +1068,8 @@ impl ApiGatewayService {
             }
             // PATCH /restapis/{restApiId}/documentation/versions/{documentationVersion} — UpdateDocumentationVersion
             ("PATCH", ["restapis", api_id, "documentation", "versions", doc_version]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let doc_version_decoded = percent_decode(doc_version);
+                let api_id_decoded = percent_decode_path(api_id);
+                let doc_version_decoded = percent_decode_path(doc_version);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("documentationVersion", doc_version_decoded.as_str()),
@@ -1089,8 +1090,8 @@ impl ApiGatewayService {
                     "authorizers",
                 ],
             ) => {
-                let api_id_decoded = percent_decode(api_id);
-                let stage_name_decoded = percent_decode(stage_name);
+                let api_id_decoded = percent_decode_path(api_id);
+                let stage_name_decoded = percent_decode_path(stage_name);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("stageName", stage_name_decoded.as_str()),
@@ -1103,15 +1104,15 @@ impl ApiGatewayService {
             ("GET", ["sdktypes"]) => self.handle_get_sdk_types().await,
             // GET /sdktypes/{id} — GetSdkType
             ("GET", ["sdktypes", sdk_type_id]) => {
-                let sdk_type_id_decoded = percent_decode(sdk_type_id);
+                let sdk_type_id_decoded = percent_decode_path(sdk_type_id);
                 let labels: &[(&str, &str)] = &[("id", sdk_type_id_decoded.as_str())];
                 self.handle_get_sdk_type(&request, labels, &query_map).await
             }
             // GET /restapis/{restApiId}/stages/{stageName}/sdks/{sdkType} — GetSdk
             ("GET", ["restapis", api_id, "stages", stage_name, "sdks", sdk_type]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let stage_name_decoded = percent_decode(stage_name);
-                let sdk_type_decoded = percent_decode(sdk_type);
+                let api_id_decoded = percent_decode_path(api_id);
+                let stage_name_decoded = percent_decode_path(stage_name);
+                let sdk_type_decoded = percent_decode_path(sdk_type);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("stageName", stage_name_decoded.as_str()),
@@ -1133,9 +1134,9 @@ impl ApiGatewayService {
                     export_type,
                 ],
             ) => {
-                let api_id_decoded = percent_decode(api_id);
-                let stage_name_decoded = percent_decode(stage_name);
-                let export_type_decoded = percent_decode(export_type);
+                let api_id_decoded = percent_decode_path(api_id);
+                let stage_name_decoded = percent_decode_path(stage_name);
+                let export_type_decoded = percent_decode_path(export_type);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("stageName", stage_name_decoded.as_str()),
@@ -1147,8 +1148,8 @@ impl ApiGatewayService {
             // ---- Model template route ----
             // GET /restapis/{restApiId}/models/{modelName}/default_template — GetModelTemplate
             ("GET", ["restapis", api_id, "models", model_name, "default_template"]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let model_name_decoded = percent_decode(model_name);
+                let api_id_decoded = percent_decode_path(api_id);
+                let model_name_decoded = percent_decode_path(model_name);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("modelName", model_name_decoded.as_str()),
@@ -1159,21 +1160,21 @@ impl ApiGatewayService {
             // ---- Tag routes ----
             // GET /tags/{resourceArn} — GetTags
             ("GET", ["tags", resource_arn]) => {
-                let resource_arn_decoded = percent_decode(resource_arn);
+                let resource_arn_decoded = percent_decode_path(resource_arn);
                 let labels: &[(&str, &str)] = &[("resourceArn", resource_arn_decoded.as_str())];
                 self.handle_get_tags(&state, &request, labels, &query_map)
                     .await
             }
             // PUT /tags/{resourceArn} — TagResource
             ("PUT", ["tags", resource_arn]) => {
-                let resource_arn_decoded = percent_decode(resource_arn);
+                let resource_arn_decoded = percent_decode_path(resource_arn);
                 let labels: &[(&str, &str)] = &[("resourceArn", resource_arn_decoded.as_str())];
                 self.handle_tag_resource(&state, &request, labels, &query_map)
                     .await
             }
             // DELETE /tags/{resourceArn} — UntagResource
             ("DELETE", ["tags", resource_arn]) => {
-                let resource_arn_decoded = percent_decode(resource_arn);
+                let resource_arn_decoded = percent_decode_path(resource_arn);
                 let labels: &[(&str, &str)] = &[("resourceArn", resource_arn_decoded.as_str())];
                 self.handle_untag_resource(&state, &request, labels, &query_map, query_string)
                     .await
@@ -1181,7 +1182,7 @@ impl ApiGatewayService {
             // ---- Usage route ----
             // GET /usageplans/{usagePlanId}/usage — GetUsage
             ("GET", ["usageplans", plan_id, "usage"]) => {
-                let plan_id_decoded = percent_decode(plan_id);
+                let plan_id_decoded = percent_decode_path(plan_id);
                 let labels: &[(&str, &str)] = &[("usagePlanId", plan_id_decoded.as_str())];
                 self.handle_get_usage(&state, &request, labels, &query_map)
                     .await
@@ -1205,7 +1206,7 @@ impl ApiGatewayService {
             }
             // DELETE /domainnameaccessassociations/{domainNameAccessAssociationArn} — DeleteDomainNameAccessAssociation
             ("DELETE", ["domainnameaccessassociations", assoc_arn]) => {
-                let assoc_arn_decoded = percent_decode(assoc_arn);
+                let assoc_arn_decoded = percent_decode_path(assoc_arn);
                 let labels: &[(&str, &str)] =
                     &[("domainNameAccessAssociationArn", assoc_arn_decoded.as_str())];
                 self.handle_delete_domain_name_access_association(
@@ -1221,8 +1222,8 @@ impl ApiGatewayService {
             // ---- Update routes ----
             // PATCH /restapis/{restApiId}/deployments/{deploymentId} — UpdateDeployment
             ("PATCH", ["restapis", api_id, "deployments", deployment_id]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let deployment_id_decoded = percent_decode(deployment_id);
+                let api_id_decoded = percent_decode_path(api_id);
+                let deployment_id_decoded = percent_decode_path(deployment_id);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("deploymentId", deployment_id_decoded.as_str()),
@@ -1232,15 +1233,15 @@ impl ApiGatewayService {
             }
             // PATCH /domainnames/{domainName} — UpdateDomainName
             ("PATCH", ["domainnames", domain_name]) => {
-                let domain_name_decoded = percent_decode(domain_name);
+                let domain_name_decoded = percent_decode_path(domain_name);
                 let labels: &[(&str, &str)] = &[("domainName", domain_name_decoded.as_str())];
                 self.handle_update_domain_name(&state, &request, labels, &query_map)
                     .await
             }
             // PATCH /restapis/{restApiId}/gatewayresponses/{responseType} — UpdateGatewayResponse
             ("PATCH", ["restapis", api_id, "gatewayresponses", response_type]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let response_type_decoded = percent_decode(response_type);
+                let api_id_decoded = percent_decode_path(api_id);
+                let response_type_decoded = percent_decode_path(response_type);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("responseType", response_type_decoded.as_str()),
@@ -1250,8 +1251,8 @@ impl ApiGatewayService {
             }
             // PATCH /restapis/{restApiId}/models/{modelName} — UpdateModel
             ("PATCH", ["restapis", api_id, "models", model_name]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let model_name_decoded = percent_decode(model_name);
+                let api_id_decoded = percent_decode_path(api_id);
+                let model_name_decoded = percent_decode_path(model_name);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("modelName", model_name_decoded.as_str()),
@@ -1261,15 +1262,15 @@ impl ApiGatewayService {
             }
             // PATCH /vpclinks/{vpcLinkId} — UpdateVpcLink
             ("PATCH", ["vpclinks", link_id]) => {
-                let link_id_decoded = percent_decode(link_id);
+                let link_id_decoded = percent_decode_path(link_id);
                 let labels: &[(&str, &str)] = &[("vpcLinkId", link_id_decoded.as_str())];
                 self.handle_update_vpc_link(&state, &request, labels, &query_map)
                     .await
             }
             // PATCH /usageplans/{usagePlanId}/keys/{keyId}/usage — UpdateUsage
             ("PATCH", ["usageplans", plan_id, "keys", key_id, "usage"]) => {
-                let plan_id_decoded = percent_decode(plan_id);
-                let key_id_decoded = percent_decode(key_id);
+                let plan_id_decoded = percent_decode_path(plan_id);
+                let key_id_decoded = percent_decode_path(key_id);
                 let labels: &[(&str, &str)] = &[
                     ("usagePlanId", plan_id_decoded.as_str()),
                     ("keyId", key_id_decoded.as_str()),
@@ -1279,8 +1280,8 @@ impl ApiGatewayService {
             }
             // PATCH /restapis/{restApiId}/resources/{resourceId} — UpdateResource
             ("PATCH", ["restapis", api_id, "resources", resource_id]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let resource_id_decoded = percent_decode(resource_id);
+                let api_id_decoded = percent_decode_path(api_id);
+                let resource_id_decoded = percent_decode_path(resource_id);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("resourceId", resource_id_decoded.as_str()),
@@ -1300,9 +1301,9 @@ impl ApiGatewayService {
                     http_method,
                 ],
             ) => {
-                let api_id_decoded = percent_decode(api_id);
-                let resource_id_decoded = percent_decode(resource_id);
-                let http_method_decoded = percent_decode(http_method);
+                let api_id_decoded = percent_decode_path(api_id);
+                let resource_id_decoded = percent_decode_path(resource_id);
+                let http_method_decoded = percent_decode_path(http_method);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("resourceId", resource_id_decoded.as_str()),
@@ -1325,10 +1326,10 @@ impl ApiGatewayService {
                     status_code,
                 ],
             ) => {
-                let api_id_decoded = percent_decode(api_id);
-                let resource_id_decoded = percent_decode(resource_id);
-                let http_method_decoded = percent_decode(http_method);
-                let status_code_decoded = percent_decode(status_code);
+                let api_id_decoded = percent_decode_path(api_id);
+                let resource_id_decoded = percent_decode_path(resource_id);
+                let http_method_decoded = percent_decode_path(http_method);
+                let status_code_decoded = percent_decode_path(status_code);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("resourceId", resource_id_decoded.as_str()),
@@ -1351,9 +1352,9 @@ impl ApiGatewayService {
                     "integration",
                 ],
             ) => {
-                let api_id_decoded = percent_decode(api_id);
-                let resource_id_decoded = percent_decode(resource_id);
-                let http_method_decoded = percent_decode(http_method);
+                let api_id_decoded = percent_decode_path(api_id);
+                let resource_id_decoded = percent_decode_path(resource_id);
+                let http_method_decoded = percent_decode_path(http_method);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("resourceId", resource_id_decoded.as_str()),
@@ -1377,10 +1378,10 @@ impl ApiGatewayService {
                     status_code,
                 ],
             ) => {
-                let api_id_decoded = percent_decode(api_id);
-                let resource_id_decoded = percent_decode(resource_id);
-                let http_method_decoded = percent_decode(http_method);
-                let status_code_decoded = percent_decode(status_code);
+                let api_id_decoded = percent_decode_path(api_id);
+                let resource_id_decoded = percent_decode_path(resource_id);
+                let http_method_decoded = percent_decode_path(http_method);
+                let status_code_decoded = percent_decode_path(status_code);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("resourceId", resource_id_decoded.as_str()),
@@ -1393,8 +1394,8 @@ impl ApiGatewayService {
             // ---- TestInvoke routes ----
             // POST /restapis/{restApiId}/authorizers/{authorizerId} — TestInvokeAuthorizer
             ("POST", ["restapis", api_id, "authorizers", authorizer_id]) => {
-                let api_id_decoded = percent_decode(api_id);
-                let authorizer_id_decoded = percent_decode(authorizer_id);
+                let api_id_decoded = percent_decode_path(api_id);
+                let authorizer_id_decoded = percent_decode_path(authorizer_id);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("authorizerId", authorizer_id_decoded.as_str()),
@@ -1414,9 +1415,9 @@ impl ApiGatewayService {
                     http_method,
                 ],
             ) => {
-                let api_id_decoded = percent_decode(api_id);
-                let resource_id_decoded = percent_decode(resource_id);
-                let http_method_decoded = percent_decode(http_method);
+                let api_id_decoded = percent_decode_path(api_id);
+                let resource_id_decoded = percent_decode_path(resource_id);
+                let http_method_decoded = percent_decode_path(http_method);
                 let labels: &[(&str, &str)] = &[
                     ("restApiId", api_id_decoded.as_str()),
                     ("resourceId", resource_id_decoded.as_str()),
@@ -4218,7 +4219,7 @@ impl ApiGatewayService {
         let mut tag_keys: Vec<String> = query_string
             .split('&')
             .filter_map(|part| part.strip_prefix("tagKeys="))
-            .map(percent_decode)
+            .map(percent_decode_path)
             .collect();
         if tag_keys.is_empty() {
             tag_keys = input.tag_keys;
@@ -5316,33 +5317,5 @@ fn extract_path(uri: &str) -> &str {
         &without_host[..pos]
     } else {
         without_host
-    }
-}
-
-fn percent_decode(s: &str) -> String {
-    let bytes = s.as_bytes();
-    let mut result = Vec::with_capacity(bytes.len());
-    let mut i = 0;
-    while i < bytes.len() {
-        if bytes[i] == b'%'
-            && i + 2 < bytes.len()
-            && let (Some(h), Some(l)) = (hex_val(bytes[i + 1]), hex_val(bytes[i + 2]))
-        {
-            result.push((h << 4) | l);
-            i += 3;
-            continue;
-        }
-        result.push(bytes[i]);
-        i += 1;
-    }
-    String::from_utf8_lossy(&result).into_owned()
-}
-
-fn hex_val(b: u8) -> Option<u8> {
-    match b {
-        b'0'..=b'9' => Some(b - b'0'),
-        b'a'..=b'f' => Some(b - b'a' + 10),
-        b'A'..=b'F' => Some(b - b'A' + 10),
-        _ => None,
     }
 }

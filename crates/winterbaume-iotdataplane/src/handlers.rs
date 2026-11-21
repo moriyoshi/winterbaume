@@ -5,6 +5,7 @@ use std::sync::Arc;
 use base64::Engine as _;
 use http::header::HeaderName;
 use serde_json::json;
+use winterbaume_core::percent_decode;
 use winterbaume_core::{
     BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, default_account_id,
 };
@@ -103,7 +104,7 @@ impl IotDataPlaneService {
             }
             // POST /topics/{topic} - Publish
             "POST" if segments.len() >= 2 && segments[0] == "topics" => {
-                let topic = urlencoding_decode(&segments[1..].join("/"));
+                let topic = percent_decode(&segments[1..].join("/"));
                 let qos = extract_query_param(&query_string, "qos")
                     .and_then(|v| v.parse::<i32>().ok())
                     .unwrap_or(0);
@@ -127,7 +128,7 @@ impl IotDataPlaneService {
             }
             // GET /retainedMessage/{topic+} - GetRetainedMessage
             "GET" if segments.len() >= 2 && segments[0] == "retainedMessage" => {
-                let topic = urlencoding_decode(&segments[1..].join("/"));
+                let topic = percent_decode(&segments[1..].join("/"));
                 self.handle_get_retained_message(&state, &topic).await
             }
             _ => {
@@ -311,31 +312,10 @@ fn extract_query_param(query: &str, key: &str) -> Option<String> {
         if let (Some(k), Some(v)) = (parts.next(), parts.next())
             && k == key
         {
-            return Some(urlencoding_decode(v));
+            return Some(percent_decode(v));
         }
     }
     None
-}
-
-fn urlencoding_decode(s: &str) -> String {
-    let mut result = String::with_capacity(s.len());
-    let mut chars = s.chars();
-    while let Some(c) = chars.next() {
-        if c == '%' {
-            let hex: String = chars.by_ref().take(2).collect();
-            if let Ok(byte) = u8::from_str_radix(&hex, 16) {
-                result.push(byte as char);
-            } else {
-                result.push('%');
-                result.push_str(&hex);
-            }
-        } else if c == '+' {
-            result.push(' ');
-        } else {
-            result.push(c);
-        }
-    }
-    result
 }
 
 /// Convert a list of shadow names to a ListNamedShadowsForThingResponse wire type.

@@ -4,6 +4,7 @@ use std::sync::Arc;
 
 use http::header::HeaderName;
 use serde_json::json;
+use winterbaume_core::percent_decode_path;
 use winterbaume_core::{
     BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
     default_account_id,
@@ -72,17 +73,17 @@ impl ApiGatewayManagementService {
         let response = match (method, conn_idx) {
             // GET /{stage}/@connections/{connectionId}
             ("GET", Some(idx)) if idx + 1 < segments.len() => {
-                let connection_id = percent_decode(segments[idx + 1]);
+                let connection_id = percent_decode_path(segments[idx + 1]);
                 self.handle_get_connection(&state, &connection_id).await
             }
             // DELETE /{stage}/@connections/{connectionId}
             ("DELETE", Some(idx)) if idx + 1 < segments.len() => {
-                let connection_id = percent_decode(segments[idx + 1]);
+                let connection_id = percent_decode_path(segments[idx + 1]);
                 self.handle_delete_connection(&state, &connection_id).await
             }
             // POST /{stage}/@connections/{connectionId}
             ("POST", Some(idx)) if idx + 1 < segments.len() => {
-                let connection_id = percent_decode(segments[idx + 1]);
+                let connection_id = percent_decode_path(segments[idx + 1]);
                 self.handle_post_to_connection(&state, &connection_id, request.body.to_vec())
                     .await
             }
@@ -145,24 +146,6 @@ fn extract_path(uri: &str) -> String {
         }
     }
     without_query.to_string()
-}
-
-fn percent_decode(s: &str) -> String {
-    let mut result = String::new();
-    let mut chars = s.chars();
-    while let Some(c) = chars.next() {
-        if c == '%' {
-            let h1 = chars.next().unwrap_or('0');
-            let h2 = chars.next().unwrap_or('0');
-            let hex = format!("{}{}", h1, h2);
-            if let Ok(b) = u8::from_str_radix(&hex, 16) {
-                result.push(b as char);
-            }
-        } else {
-            result.push(c);
-        }
-    }
-    result
 }
 
 fn error_response(err: ApiGatewayManagementApiError) -> MockResponse {

@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 use http::header::HeaderName;
 use serde_json::json;
+use winterbaume_core::percent_decode;
 use winterbaume_core::{
     BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
     default_account_id,
@@ -566,34 +567,6 @@ fn extract_path(uri: &str) -> String {
         }
     } else {
         uri.split('?').next().unwrap_or(uri).to_string()
-    }
-}
-
-fn percent_decode(s: &str) -> String {
-    let mut result = String::with_capacity(s.len());
-    let mut bytes = s.bytes();
-    while let Some(b) = bytes.next() {
-        match b {
-            b'%' => {
-                let hi = bytes.next().and_then(hex_val);
-                let lo = bytes.next().and_then(hex_val);
-                if let (Some(hi), Some(lo)) = (hi, lo) {
-                    result.push((hi << 4 | lo) as char);
-                }
-            }
-            b'+' => result.push(' '),
-            _ => result.push(b as char),
-        }
-    }
-    result
-}
-
-fn hex_val(b: u8) -> Option<u8> {
-    match b {
-        b'0'..=b'9' => Some(b - b'0'),
-        b'a'..=b'f' => Some(b - b'a' + 10),
-        b'A'..=b'F' => Some(b - b'A' + 10),
-        _ => None,
     }
 }
 

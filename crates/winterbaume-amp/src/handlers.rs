@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 use http::header::HeaderName;
 use serde_json::json;
+use winterbaume_core::percent_decode_path;
 use winterbaume_core::{
     BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
     default_account_id,
@@ -79,7 +80,7 @@ impl AmpService {
 
         // Routes for /tags/{resourceArn}
         if segments[0] == "tags" && segments.len() >= 2 {
-            let resource_arn = percent_decode(&segments[1..].join("/"));
+            let resource_arn = percent_decode_path(&segments[1..].join("/"));
             let labels: &[(&str, &str)] = &[("resourceArn", resource_arn.as_str())];
             let response = match method {
                 "GET" => {
@@ -682,30 +683,6 @@ fn rule_groups_namespace_summary_wire(
     }
 }
 
-fn percent_decode(s: &str) -> String {
-    let mut result = String::new();
-    let mut chars = s.bytes();
-    while let Some(b) = chars.next() {
-        if b == b'%' {
-            let hi = chars.next().unwrap_or(b'0');
-            let lo = chars.next().unwrap_or(b'0');
-            let hex = [hi, lo];
-            if let Ok(s) = std::str::from_utf8(&hex)
-                && let Ok(val) = u8::from_str_radix(s, 16)
-            {
-                result.push(val as char);
-                continue;
-            }
-            result.push('%');
-            result.push(hi as char);
-            result.push(lo as char);
-        } else {
-            result.push(b as char);
-        }
-    }
-    result
-}
-
 fn extract_query_param_list(query: &str, key: &str) -> Vec<String> {
     let mut results = vec![];
     if query.is_empty() {
@@ -715,7 +692,7 @@ fn extract_query_param_list(query: &str, key: &str) -> Vec<String> {
         if let Some((k, v)) = pair.split_once('=')
             && k == key
         {
-            results.push(percent_decode(v));
+            results.push(percent_decode_path(v));
         }
     }
     results

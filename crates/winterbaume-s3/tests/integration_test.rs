@@ -4840,3 +4840,691 @@ mod blob_backed {
         assert!(collector.blobs.is_empty());
     }
 }
+
+// ============================================================================
+// Non-ASCII and special-character object keys (issue #58)
+//
+// Object keys are sequences of Unicode characters whose UTF-8 encoding is
+// percent-encoded in the request path, the query string and the
+// `x-amz-copy-source` header. Every one of those must decode back to the key
+// the client wrote, not to the Latin-1 reading of its UTF-8 bytes.
+// ============================================================================
+
+/// Percent-encode a value the way a client must for `x-amz-copy-source`.
+fn utf8_percent_encode_for_test(s: &str) -> String {
+    s.bytes()
+        .map(|b| match b {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' | b'/' => {
+                (b as char).to_string()
+            }
+            _ => format!("%{b:02X}"),
+        })
+        .collect()
+}
+
+async fn make_bucket_with_keys(bucket: &str, keys: &[&str]) -> aws_sdk_s3::Client {
+    let client = make_s3_client().await;
+    client.create_bucket().bucket(bucket).send().await.unwrap();
+    for key in keys {
+        client
+            .put_object()
+            .bucket(bucket)
+            .key(*key)
+            .body(ByteStream::from(key.as_bytes().to_vec()))
+            .send()
+            .await
+            .unwrap_or_else(|e| panic!("put_object {key:?} should succeed: {e:?}"));
+    }
+    client
+}
+
+fn listed_keys(contents: &[aws_sdk_s3::types::Object]) -> Vec<&str> {
+    contents.iter().filter_map(|o| o.key()).collect()
+}
+
+async fn get_body(client: &aws_sdk_s3::Client, bucket: &str, key: &str) -> Vec<u8> {
+    client
+        .get_object()
+        .bucket(bucket)
+        .key(key)
+        .send()
+        .await
+        .unwrap_or_else(|e| panic!("get_object {key:?} should succeed: {e:?}"))
+        .body
+        .collect()
+        .await
+        .unwrap()
+        .into_bytes()
+        .to_vec()
+}
+
+// The scenario from issue #58: keys written with non-ASCII characters must be
+// listed exactly as written.
+#[tokio::test]
+async fn test_issue_58_non_ascii_keys_are_listed_as_written() {
+    let client = make_bucket_with_keys("wb-utf8", &["p/é.txt", "p/日本.txt"]).await;
+
+    let resp = client
+        .list_objects_v2()
+        .bucket("wb-utf8")
+        .prefix("p/")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(listed_keys(resp.contents()), ["p/é.txt", "p/日本.txt"]);
+
+    let head = client
+        .head_object()
+        .bucket("wb-utf8")
+        .key("p/é.txt")
+        .send()
+        .await
+        .expect("head_object by the original key should succeed");
+    assert_eq!(head.content_length(), Some("p/é.txt".len() as i64));
+}
+
+#[tokio::test]
+async fn test_non_ascii_keys_list_v2_in_utf8_byte_order_across_pages() {
+    // UTF-8 byte order: a < z < é (C3) < 日 (E6) < ｱ (EF) < 😀 (F0).
+    // UTF-16 code-unit order would put 😀 (D83D) before ｱ (FF71).
+    let expected = ["k/a", "k/z", "k/é", "k/日", "k/ｱ", "k/😀"];
+    let client =
+        make_bucket_with_keys("utf8-order", &["k/😀", "k/ｱ", "k/日", "k/é", "k/z", "k/a"]).await;
+
+    let mut seen: Vec<String> = Vec::new();
+    let mut token: Option<String> = None;
+    let mut pages = 0;
+    loop {
+        let resp = client
+            .list_objects_v2()
+            .bucket("utf8-order")
+            .prefix("k/")
+            .max_keys(2)
+            .set_continuation_token(token.clone())
+            .send()
+            .await
+            .unwrap();
+        pages += 1;
+        assert!(pages <= 10, "pagination did not terminate: {seen:?}");
+        assert!(resp.contents().len() <= 2);
+        seen.extend(listed_keys(resp.contents()).into_iter().map(String::from));
+        if resp.is_truncated() == Some(true) {
+            token = Some(resp.next_continuation_token().unwrap().to_string());
+        } else {
+            break;
+        }
+    }
+    assert_eq!(pages, 3);
+    assert_eq!(seen, expected);
+
+    // start-after built from a listed non-ASCII key.
+    let resp = client
+        .list_objects_v2()
+        .bucket("utf8-order")
+        .start_after("k/é")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(listed_keys(resp.contents()), ["k/日", "k/ｱ", "k/😀"]);
+}
+
+#[tokio::test]
+async fn test_non_ascii_prefix_and_delimiter_list_v2() {
+    let client = make_bucket_with_keys(
+        "utf8-prefix",
+        &[
+            "写真/2024/春.jpg",
+            "写真/2025/夏.jpg",
+            "写真/表紙.jpg",
+            "文書/メモ.txt",
+            "plain.txt",
+            "区・切り",
+            "区・別",
+        ],
+    )
+    .await;
+
+    // Non-ASCII prefix.
+    let resp = client
+        .list_objects_v2()
+        .bucket("utf8-prefix")
+        .prefix("写真/")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        listed_keys(resp.contents()),
+        ["写真/2024/春.jpg", "写真/2025/夏.jpg", "写真/表紙.jpg"]
+    );
+    assert_eq!(resp.prefix(), Some("写真/"));
+
+    // Non-ASCII prefix with a delimiter: common prefixes come back in UTF-8.
+    let resp = client
+        .list_objects_v2()
+        .bucket("utf8-prefix")
+        .prefix("写真/")
+        .delimiter("/")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(listed_keys(resp.contents()), ["写真/表紙.jpg"]);
+    let prefixes: Vec<&str> = resp
+        .common_prefixes()
+        .iter()
+        .filter_map(|p| p.prefix())
+        .collect();
+    assert_eq!(prefixes, ["写真/2024/", "写真/2025/"]);
+
+    // Top-level delimiter listing.
+    let resp = client
+        .list_objects_v2()
+        .bucket("utf8-prefix")
+        .delimiter("/")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        listed_keys(resp.contents()),
+        ["plain.txt", "区・切り", "区・別"]
+    );
+    let prefixes: Vec<&str> = resp
+        .common_prefixes()
+        .iter()
+        .filter_map(|p| p.prefix())
+        .collect();
+    assert_eq!(prefixes, ["写真/", "文書/"]);
+
+    // A non-ASCII delimiter.
+    let resp = client
+        .list_objects_v2()
+        .bucket("utf8-prefix")
+        .prefix("区")
+        .delimiter("・")
+        .send()
+        .await
+        .unwrap();
+    assert!(resp.contents().is_empty());
+    let prefixes: Vec<&str> = resp
+        .common_prefixes()
+        .iter()
+        .filter_map(|p| p.prefix())
+        .collect();
+    assert_eq!(prefixes, ["区・"]);
+}
+
+#[tokio::test]
+async fn test_non_ascii_keys_list_objects_v1_and_versions() {
+    let client = make_bucket_with_keys("utf8-v1", &[]).await;
+    client
+        .put_bucket_versioning()
+        .bucket("utf8-v1")
+        .versioning_configuration(
+            aws_sdk_s3::types::VersioningConfiguration::builder()
+                .status(aws_sdk_s3::types::BucketVersioningStatus::Enabled)
+                .build(),
+        )
+        .send()
+        .await
+        .unwrap();
+    for key in ["d/é", "d/日本", "d/😀", "e/other"] {
+        client
+            .put_object()
+            .bucket("utf8-v1")
+            .key(key)
+            .body(ByteStream::from_static(b"v"))
+            .send()
+            .await
+            .unwrap();
+    }
+
+    // ListObjects (v1) with a non-ASCII marker and prefix.
+    let resp = client
+        .list_objects()
+        .bucket("utf8-v1")
+        .prefix("d/")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(listed_keys(resp.contents()), ["d/é", "d/日本", "d/😀"]);
+
+    let resp = client
+        .list_objects()
+        .bucket("utf8-v1")
+        .prefix("d/")
+        .max_keys(1)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(listed_keys(resp.contents()), ["d/é"]);
+    assert_eq!(resp.is_truncated(), Some(true));
+    assert_eq!(resp.next_marker(), Some("d/é"));
+
+    let resp = client
+        .list_objects()
+        .bucket("utf8-v1")
+        .prefix("d/")
+        .marker("d/é")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(listed_keys(resp.contents()), ["d/日本", "d/😀"]);
+    assert_eq!(resp.marker(), Some("d/é"));
+
+    // ListObjectVersions with a non-ASCII prefix.
+    let resp = client
+        .list_object_versions()
+        .bucket("utf8-v1")
+        .prefix("d/日")
+        .send()
+        .await
+        .unwrap();
+    let version_keys: Vec<&str> = resp.versions().iter().filter_map(|v| v.key()).collect();
+    assert_eq!(version_keys, ["d/日本"]);
+    assert_eq!(resp.prefix(), Some("d/日"));
+
+    let resp = client
+        .list_object_versions()
+        .bucket("utf8-v1")
+        .send()
+        .await
+        .unwrap();
+    let mut version_keys: Vec<&str> = resp.versions().iter().filter_map(|v| v.key()).collect();
+    version_keys.sort_unstable();
+    assert_eq!(version_keys, ["d/é", "d/日本", "d/😀", "e/other"]);
+
+    // A delete marker on a non-ASCII key is reported under the same key.
+    client
+        .delete_object()
+        .bucket("utf8-v1")
+        .key("d/日本")
+        .send()
+        .await
+        .unwrap();
+    let resp = client
+        .list_object_versions()
+        .bucket("utf8-v1")
+        .prefix("d/日")
+        .send()
+        .await
+        .unwrap();
+    let marker_keys: Vec<&str> = resp
+        .delete_markers()
+        .iter()
+        .filter_map(|m| m.key())
+        .collect();
+    assert_eq!(marker_keys, ["d/日本"]);
+}
+
+#[tokio::test]
+async fn test_non_ascii_key_get_head_delete() {
+    let key = "フォルダ/ファイル é 😀.txt";
+    let client = make_bucket_with_keys("utf8-crud", &[key]).await;
+
+    assert_eq!(get_body(&client, "utf8-crud", key).await, key.as_bytes());
+    let head = client
+        .head_object()
+        .bucket("utf8-crud")
+        .key(key)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(head.content_length(), Some(key.len() as i64));
+
+    // The mojibake reading of the key must not resolve to the object.
+    let mojibake: String = key.bytes().map(|b| b as char).collect();
+    assert!(
+        client
+            .head_object()
+            .bucket("utf8-crud")
+            .key(&mojibake)
+            .send()
+            .await
+            .is_err()
+    );
+
+    client
+        .delete_object()
+        .bucket("utf8-crud")
+        .key(key)
+        .send()
+        .await
+        .unwrap();
+    let err = client
+        .get_object()
+        .bucket("utf8-crud")
+        .key(key)
+        .send()
+        .await
+        .expect_err("object should be gone");
+    assert!(format!("{err:?}").contains("NoSuchKey"), "{err:?}");
+    let resp = client
+        .list_objects_v2()
+        .bucket("utf8-crud")
+        .send()
+        .await
+        .unwrap();
+    assert!(resp.contents().is_empty());
+}
+
+// DeleteObjects carries its keys in the XML body ( plain UTF-8 ), so they only
+// match keys that were stored from the path if the path was decoded properly.
+#[tokio::test]
+async fn test_non_ascii_keys_delete_objects() {
+    let client =
+        make_bucket_with_keys("utf8-bulk", &["削除/é.txt", "削除/日本.txt", "残す/😀.txt"]).await;
+
+    let resp = client
+        .delete_objects()
+        .bucket("utf8-bulk")
+        .delete(
+            aws_sdk_s3::types::Delete::builder()
+                .objects(
+                    aws_sdk_s3::types::ObjectIdentifier::builder()
+                        .key("削除/é.txt")
+                        .build()
+                        .unwrap(),
+                )
+                .objects(
+                    aws_sdk_s3::types::ObjectIdentifier::builder()
+                        .key("削除/日本.txt")
+                        .build()
+                        .unwrap(),
+                )
+                .build()
+                .unwrap(),
+        )
+        .send()
+        .await
+        .expect("delete_objects should succeed");
+    let mut deleted: Vec<&str> = resp.deleted().iter().filter_map(|d| d.key()).collect();
+    deleted.sort_unstable();
+    assert_eq!(deleted, ["削除/é.txt", "削除/日本.txt"]);
+    assert!(resp.errors().is_empty());
+
+    let resp = client
+        .list_objects_v2()
+        .bucket("utf8-bulk")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(listed_keys(resp.contents()), ["残す/😀.txt"]);
+}
+
+#[tokio::test]
+async fn test_non_ascii_key_copy_object() {
+    let src = "元/ファイル é.txt";
+    let dst = "先/コピー 😀.txt";
+    let client = make_bucket_with_keys("utf8-copy", &[src]).await;
+
+    client
+        .copy_object()
+        .bucket("utf8-copy")
+        .key(dst)
+        .copy_source(utf8_percent_encode_for_test(&format!("utf8-copy/{src}")))
+        .send()
+        .await
+        .expect("copy_object with a percent-encoded non-ASCII source should succeed");
+
+    assert_eq!(get_body(&client, "utf8-copy", dst).await, src.as_bytes());
+    let resp = client
+        .list_objects_v2()
+        .bucket("utf8-copy")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(listed_keys(resp.contents()), [src, dst]);
+
+    // A source that does not exist is still reported as missing.
+    let err = client
+        .copy_object()
+        .bucket("utf8-copy")
+        .key("x")
+        .copy_source(utf8_percent_encode_for_test("utf8-copy/元/ない.txt"))
+        .send()
+        .await
+        .expect_err("missing source should fail");
+    assert!(format!("{err:?}").contains("NoSuchKey"), "{err:?}");
+}
+
+#[tokio::test]
+async fn test_non_ascii_key_multipart_upload() {
+    let key = "大きい/ファイル é 😀.bin";
+    let client = make_bucket_with_keys("utf8-mpu", &[]).await;
+
+    let created = client
+        .create_multipart_upload()
+        .bucket("utf8-mpu")
+        .key(key)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(created.key(), Some(key));
+    let upload_id = created.upload_id().unwrap().to_string();
+
+    let uploads = client
+        .list_multipart_uploads()
+        .bucket("utf8-mpu")
+        .send()
+        .await
+        .unwrap();
+    let upload_keys: Vec<&str> = uploads.uploads().iter().filter_map(|u| u.key()).collect();
+    assert_eq!(upload_keys, [key]);
+
+    let part1 = client
+        .upload_part()
+        .bucket("utf8-mpu")
+        .key(key)
+        .upload_id(&upload_id)
+        .part_number(1)
+        .body(ByteStream::from_static(b"hello "))
+        .send()
+        .await
+        .unwrap();
+    let part2 = client
+        .upload_part()
+        .bucket("utf8-mpu")
+        .key(key)
+        .upload_id(&upload_id)
+        .part_number(2)
+        .body(ByteStream::from_static(b"world"))
+        .send()
+        .await
+        .unwrap();
+
+    let parts = client
+        .list_parts()
+        .bucket("utf8-mpu")
+        .key(key)
+        .upload_id(&upload_id)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(parts.parts().len(), 2);
+    assert_eq!(parts.key(), Some(key));
+
+    let completed = client
+        .complete_multipart_upload()
+        .bucket("utf8-mpu")
+        .key(key)
+        .upload_id(&upload_id)
+        .multipart_upload(
+            aws_sdk_s3::types::CompletedMultipartUpload::builder()
+                .parts(
+                    aws_sdk_s3::types::CompletedPart::builder()
+                        .part_number(1)
+                        .e_tag(part1.e_tag().unwrap_or_default())
+                        .build(),
+                )
+                .parts(
+                    aws_sdk_s3::types::CompletedPart::builder()
+                        .part_number(2)
+                        .e_tag(part2.e_tag().unwrap_or_default())
+                        .build(),
+                )
+                .build(),
+        )
+        .send()
+        .await
+        .expect("complete_multipart_upload should succeed");
+    assert_eq!(completed.key(), Some(key));
+
+    assert_eq!(get_body(&client, "utf8-mpu", key).await, b"hello world");
+    let resp = client
+        .list_objects_v2()
+        .bucket("utf8-mpu")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(listed_keys(resp.contents()), [key]);
+}
+
+#[tokio::test]
+async fn test_non_ascii_key_object_tagging() {
+    let key = "タグ/対象 é.txt";
+    let client = make_bucket_with_keys("utf8-tags", &[key]).await;
+
+    client
+        .put_object_tagging()
+        .bucket("utf8-tags")
+        .key(key)
+        .tagging(
+            aws_sdk_s3::types::Tagging::builder()
+                .tag_set(
+                    aws_sdk_s3::types::Tag::builder()
+                        .key("部署")
+                        .value("開発 é")
+                        .build()
+                        .unwrap(),
+                )
+                .build()
+                .unwrap(),
+        )
+        .send()
+        .await
+        .expect("put_object_tagging should succeed");
+
+    let resp = client
+        .get_object_tagging()
+        .bucket("utf8-tags")
+        .key(key)
+        .send()
+        .await
+        .expect("get_object_tagging should succeed");
+    let tags: Vec<(&str, &str)> = resp
+        .tag_set()
+        .iter()
+        .map(|t| (t.key(), t.value()))
+        .collect();
+    assert_eq!(tags, [("部署", "開発 é")]);
+
+    client
+        .delete_object_tagging()
+        .bucket("utf8-tags")
+        .key(key)
+        .send()
+        .await
+        .expect("delete_object_tagging should succeed");
+    let resp = client
+        .get_object_tagging()
+        .bucket("utf8-tags")
+        .key(key)
+        .send()
+        .await
+        .unwrap();
+    assert!(resp.tag_set().is_empty());
+}
+
+// The SDKs percent-encode `+` ( `%2B` ), space ( `%20` ) and `%` ( `%25` ) in
+// the request path and query string, so these keys must round-trip exactly
+// and stay distinct from one another.
+#[tokio::test]
+async fn test_keys_with_plus_space_percent_and_non_ascii_round_trip() {
+    let keys = [
+        "s/a b",
+        "s/a%20b",
+        "s/a%2Bb",
+        "s/a+b",
+        "s/100% é+日本 😀",
+        "s/%E3%81%82",
+        "s/あ",
+    ];
+    let client = make_bucket_with_keys("special-keys", &keys).await;
+
+    let resp = client
+        .list_objects_v2()
+        .bucket("special-keys")
+        .prefix("s/")
+        .send()
+        .await
+        .unwrap();
+    let mut expected = keys.to_vec();
+    expected.sort_unstable();
+    assert_eq!(listed_keys(resp.contents()), expected);
+
+    for key in keys {
+        assert_eq!(
+            get_body(&client, "special-keys", key).await,
+            key.as_bytes(),
+            "{key:?}"
+        );
+    }
+
+    // Prefix and start-after containing `+`, space and `%`.
+    for (prefix, want) in [
+        ("s/a+", vec!["s/a+b"]),
+        ("s/a ", vec!["s/a b"]),
+        ("s/a%", vec!["s/a%20b", "s/a%2Bb"]),
+        ("s/100% é+", vec!["s/100% é+日本 😀"]),
+    ] {
+        let resp = client
+            .list_objects_v2()
+            .bucket("special-keys")
+            .prefix(prefix)
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(listed_keys(resp.contents()), want, "prefix {prefix:?}");
+    }
+    let resp = client
+        .list_objects_v2()
+        .bucket("special-keys")
+        .start_after("s/a+b")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(listed_keys(resp.contents()), ["s/あ"]);
+
+    // Copy from and to such keys; the source is percent-encoded by the caller.
+    client
+        .copy_object()
+        .bucket("special-keys")
+        .key("t/copy of a+b %")
+        .copy_source(utf8_percent_encode_for_test("special-keys/s/a+b"))
+        .send()
+        .await
+        .expect("copy_object should succeed");
+    assert_eq!(
+        get_body(&client, "special-keys", "t/copy of a+b %").await,
+        b"s/a+b"
+    );
+
+    // Deleting one of the look-alike keys leaves the others in place.
+    client
+        .delete_object()
+        .bucket("special-keys")
+        .key("s/a+b")
+        .send()
+        .await
+        .unwrap();
+    let resp = client
+        .list_objects_v2()
+        .bucket("special-keys")
+        .prefix("s/a")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        listed_keys(resp.contents()),
+        ["s/a b", "s/a%20b", "s/a%2Bb"]
+    );
+}

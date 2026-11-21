@@ -15,8 +15,8 @@ pub use mock_aws::MockAws;
 pub use mock_client::MockAwsClient;
 pub use protocol::{
     aws_query_response, body_has_top_level_field, extract_path, extract_query_string,
-    json_error_response, parse_query_string, percent_decode, rest_json_error, urldecode,
-    xml_escape,
+    json_error_response, parse_query_string, percent_decode, percent_decode_path, rest_json_error,
+    urldecode, xml_escape,
 };
 pub use service::{MockRequest, MockResponse, MockService, StubService};
 pub use state::{BackendState, DEFAULT_ACCOUNT_ID, default_account_id, set_default_account_id};

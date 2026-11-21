@@ -2621,3 +2621,75 @@ async fn test_reputation_entities_lifecycle() {
         "get_reputation_entity for missing entity should fail"
     );
 }
+
+// Regression test for issue #58: a REST path label carries non-ASCII
+// characters as percent-encoded UTF-8. The name stored from the JSON body of
+// the create call must be reachable through the path label of the get /
+// update / delete calls.
+#[tokio::test]
+async fn test_email_template_with_non_ascii_name_in_path_label() {
+    let client = make_ses_client().await;
+    let name = "ようこそ-é 😀+1";
+
+    client
+        .create_email_template()
+        .template_name(name)
+        .template_content(
+            aws_sdk_sesv2::types::EmailTemplateContent::builder()
+                .subject("件名")
+                .text("本文")
+                .build(),
+        )
+        .send()
+        .await
+        .expect("create_email_template should succeed");
+
+    let resp = client
+        .get_email_template()
+        .template_name(name)
+        .send()
+        .await
+        .expect("get_email_template by a non-ASCII name should succeed");
+    assert_eq!(resp.template_name(), name);
+    assert_eq!(
+        resp.template_content().and_then(|c| c.subject()),
+        Some("件名")
+    );
+
+    client
+        .update_email_template()
+        .template_name(name)
+        .template_content(
+            aws_sdk_sesv2::types::EmailTemplateContent::builder()
+                .subject("新しい件名")
+                .text("本文")
+                .build(),
+        )
+        .send()
+        .await
+        .expect("update_email_template by a non-ASCII name should succeed");
+    let resp = client
+        .get_email_template()
+        .template_name(name)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        resp.template_content().and_then(|c| c.subject()),
+        Some("新しい件名")
+    );
+
+    client
+        .delete_email_template()
+        .template_name(name)
+        .send()
+        .await
+        .expect("delete_email_template by a non-ASCII name should succeed");
+    let err = client
+        .get_email_template()
+        .template_name(name)
+        .send()
+        .await
+        .expect_err("template should be gone");
+    assert!(format!("{err:?}").contains("NotFoundException"), "{err:?}");
+}

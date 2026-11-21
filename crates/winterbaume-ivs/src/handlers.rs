@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 use http::header::HeaderName;
 use serde_json::{Value, json};
+use winterbaume_core::percent_decode_path;
 use winterbaume_core::{
     BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
     default_account_id, extract_path, rest_json_error,
@@ -1269,12 +1270,7 @@ fn extract_string_array(body: &Value, key: &str) -> Vec<String> {
 
 /// Decode a percent-encoded ARN from the URL path.
 fn decode_resource_arn(encoded: &str) -> String {
-    // Simple percent-decode for %3A (colon) and %2F (slash) which appear in ARNs
-    encoded
-        .replace("%3A", ":")
-        .replace("%2F", "/")
-        .replace("%3a", ":")
-        .replace("%2f", "/")
+    percent_decode_path(encoded)
 }
 
 /// Extract `tagKeys` query params from a URI like `/tags/arn?tagKeys=key1&tagKeys=key2`.
@@ -1286,7 +1282,7 @@ fn extract_tag_keys_from_uri(uri: &str) -> Vec<String> {
             .filter_map(|param| {
                 let (key, value) = param.split_once('=')?;
                 if key == "tagKeys" {
-                    Some(value.replace("%3A", ":").replace("%2F", "/"))
+                    Some(percent_decode_path(value))
                 } else {
                     None
                 }

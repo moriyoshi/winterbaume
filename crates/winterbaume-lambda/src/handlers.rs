@@ -7,6 +7,7 @@ use base64::Engine as _;
 use http::header::HeaderName;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
+use winterbaume_core::percent_decode_path;
 use winterbaume_core::{
     BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, default_account_id,
     urldecode,
@@ -100,7 +101,10 @@ impl LambdaService {
             .split('/')
             .filter(|s| !s.is_empty())
             .collect();
-        let segments: Vec<String> = raw_segments.iter().map(|s| percent_decode(s)).collect();
+        let segments: Vec<String> = raw_segments
+            .iter()
+            .map(|s| percent_decode_path(s))
+            .collect();
 
         let query_map: HashMap<String, String> = winterbaume_core::parse_query_string(&query);
 
@@ -4077,7 +4081,7 @@ fn parse_tag_keys_from_query(query: &str) -> Vec<String> {
         .filter_map(|param| {
             let parts: Vec<&str> = param.splitn(2, '=').collect();
             if parts.len() == 2 && parts[0] == "tagKeys" {
-                Some(percent_decode(parts[1]))
+                Some(percent_decode_path(parts[1]))
             } else {
                 None
             }
@@ -4121,32 +4125,12 @@ fn lambda_error_response(err: &LambdaError) -> MockResponse {
     resp
 }
 
-fn percent_decode(s: &str) -> String {
-    let mut result = Vec::new();
-    let bytes = s.as_bytes();
-    let mut i = 0;
-    while i < bytes.len() {
-        if bytes[i] == b'%'
-            && i + 2 < bytes.len()
-            && let Ok(byte) =
-                u8::from_str_radix(std::str::from_utf8(&bytes[i + 1..i + 3]).unwrap_or(""), 16)
-        {
-            result.push(byte);
-            i += 3;
-            continue;
-        }
-        result.push(bytes[i]);
-        i += 1;
-    }
-    String::from_utf8(result).unwrap_or_else(|_| s.to_string())
-}
-
 fn parse_query_param(query: &str, key: &str) -> Option<String> {
     for param in query.split('&') {
         let mut parts = param.splitn(2, '=');
         if let (Some(k), Some(v)) = (parts.next(), parts.next()) {
             if k == key {
-                return Some(percent_decode(v));
+                return Some(percent_decode_path(v));
             }
         }
     }

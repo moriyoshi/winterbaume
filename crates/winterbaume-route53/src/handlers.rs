@@ -4,6 +4,7 @@ use std::pin::Pin;
 use std::sync::Arc;
 
 use serde::Serialize;
+use winterbaume_core::percent_decode;
 use winterbaume_core::{
     BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
     default_account_id,
@@ -2209,31 +2210,6 @@ fn parse_query_from_uri(uri: &str) -> HashMap<String, String> {
         }
     }
     map
-}
-
-fn percent_decode(value: &str) -> String {
-    let mut result = String::with_capacity(value.len());
-    let mut bytes = value.bytes();
-    while let Some(byte) = bytes.next() {
-        match byte {
-            b'%' => {
-                let hi = bytes.next();
-                let lo = bytes.next();
-                if let (Some(hi), Some(lo)) = (hi, lo) {
-                    if let Ok(decoded) =
-                        u8::from_str_radix(std::str::from_utf8(&[hi, lo]).unwrap_or(""), 16)
-                    {
-                        result.push(decoded as char);
-                        continue;
-                    }
-                }
-                result.push('%');
-            }
-            b'+' => result.push(' '),
-            _ => result.push(byte as char),
-        }
-    }
-    result
 }
 
 fn extract_path(uri: &str) -> String {
