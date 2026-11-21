@@ -11,6 +11,7 @@ use winterbaume_lambda::LambdaService;
 use winterbaume_lambda::types::{
     CodeSigningConfigEntry, EventSourceMappingScalingSettings, EventSourceMappingSettings,
     FunctionRecursionConfig, ProvisionedConcurrencyConfig, RuntimeManagementConfig,
+    event_source_mapping_arn,
 };
 use winterbaume_lambda::views::{
     AliasView, EventSourceMappingView, FunctionEventInvokeConfigView, FunctionUrlConfigView,
@@ -125,22 +126,7 @@ impl AwsLambdaFunctionConverter {
             })
             .unwrap_or_default();
 
-        // Tags: original semantics insert tags_all first, then tags overrides.
-        let mut tags: HashMap<String, String> = HashMap::new();
-        if let Some(obj) = attrs.get("tags_all").and_then(|v| v.as_object()) {
-            for (k, v) in obj {
-                if let Some(s) = v.as_str() {
-                    tags.insert(k.clone(), s.to_string());
-                }
-            }
-        }
-        if let Some(obj) = attrs.get("tags").and_then(|v| v.as_object()) {
-            for (k, v) in obj {
-                if let Some(s) = v.as_str() {
-                    tags.insert(k.clone(), s.to_string());
-                }
-            }
-        }
+        let tags = tags_from_tf(attrs);
 
         let fn_view = LambdaFunctionView {
             function_name: function_name.clone(),
@@ -522,6 +508,26 @@ impl AwsLambdaPermissionConverter {
 // aws_lambda_event_source_mapping
 // ---------------------------------------------------------------------------
 
+/// Resource tags recorded in a Terraform state instance.
+///
+/// `tags_all` ( the resource's own tags merged with the provider's
+/// `default_tags` ) is what the provider sends to the API, so it goes in
+/// first; `tags` then overrides. Both may be null, which is why they are read
+/// raw rather than through the typed model.
+fn tags_from_tf(attrs: &serde_json::Value) -> HashMap<String, String> {
+    let mut tags = HashMap::new();
+    for key in ["tags_all", "tags"] {
+        if let Some(obj) = attrs.get(key).and_then(|v| v.as_object()) {
+            for (k, v) in obj {
+                if let Some(s) = v.as_str() {
+                    tags.insert(k.clone(), s.to_string());
+                }
+            }
+        }
+    }
+    tags
+}
+
 /// Build the store-and-echo settings of an event source mapping from the raw
 /// Terraform attributes whose types fall outside the spec vocabulary.
 ///
@@ -641,11 +647,13 @@ impl AwsLambdaEventSourceMappingConverter {
             serde_json::from_value(attrs.clone())
                 .map_err(|e| classify_deserialize_error("aws_lambda_event_source_mapping", e))?;
 
-        // Additional fields for coverage (TF-only / not stored in state).
-        let _ = attrs.get("tags_all");
+        // `arn` is derived from the function ARN and the UUID on every read,
+        // so the recorded value needs no storage.
+        let _ = &model.arn;
 
         // Store-and-echo settings surfaced by Get/ListEventSourceMappings.
         let mut settings = esm_settings_from_tf(attrs);
+        settings.tags = tags_from_tf(attrs);
         settings.kms_key_arn = model.kms_key_arn.filter(|s| !s.is_empty());
         settings.starting_position_timestamp = model
             .starting_position_timestamp
@@ -750,6 +758,7 @@ impl AwsLambdaEventSourceMappingConverter {
             let mut attrs = serde_json::json!({
                 "id": esm.uuid,
                 "uuid": esm.uuid,
+                "arn": event_source_mapping_arn(&esm.function_arn, &esm.uuid),
                 "function_name": esm.function_arn,
                 "function_arn": esm.function_arn,
                 "event_source_arn": esm.event_source_arn,
@@ -760,7 +769,8 @@ impl AwsLambdaEventSourceMappingConverter {
                 "last_modified": esm.last_modified,
                 "state_transition_reason": "USER_INITIATED",
                 "maximum_retry_attempts": settings.maximum_retry_attempts.unwrap_or(-1),
-                "tags_all": {},
+                "tags": settings.tags,
+                "tags_all": settings.tags,
                 "bisect_batch_on_function_error": settings
                     .bisect_batch_on_function_error
                     .unwrap_or(false),
@@ -875,9 +885,7 @@ impl AwsLambdaCodeSigningConfigConverter {
             serde_json::from_value(attrs.clone())
                 .map_err(|e| classify_deserialize_error("aws_lambda_code_signing_config", e))?;
 
-        // TF-only / nested blocks not part of the strongly-typed model.
-        let _ = attrs.get("tags");
-        let _ = attrs.get("tags_all");
+        // Nested blocks not part of the strongly-typed model.
         let _ = attrs.get("allowed_publishers");
         let _ = attrs.get("policies");
 
@@ -923,6 +931,7 @@ impl AwsLambdaCodeSigningConfigConverter {
             untrusted_artifact_on_deployment,
             last_modified: Utc::now().to_rfc3339(),
             functions: vec![],
+            tags: tags_from_tf(attrs),
         };
 
         let mut state_view = self
@@ -962,8 +971,8 @@ impl AwsLambdaCodeSigningConfigConverter {
                 "policies": [{
                     "untrusted_artifact_on_deployment": entry.untrusted_artifact_on_deployment,
                 }],
-                "tags": {},
-                "tags_all": {},
+                "tags": entry.tags,
+                "tags_all": entry.tags,
             });
             results.push(ExtractedResource {
                 name: entry.code_signing_config_id.clone(),

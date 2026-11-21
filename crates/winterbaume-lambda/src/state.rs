@@ -1140,50 +1140,62 @@ impl LambdaState {
         arn: &str,
         tags: HashMap<String, String>,
     ) -> Result<(), LambdaError> {
-        // Extract function name from ARN
-        let func_name = self.extract_function_name_from_arn(arn)?;
-        let func = self
-            .functions
-            .get_mut(&func_name)
-            .ok_or_else(|| LambdaError::ResourceNotFound(arn.to_string()))?;
-        func.tags.extend(tags);
+        self.resource_tags_mut(arn)?.extend(tags);
         Ok(())
     }
 
     pub fn untag_resource(&mut self, arn: &str, tag_keys: &[String]) -> Result<(), LambdaError> {
-        let func_name = self.extract_function_name_from_arn(arn)?;
-        let func = self
-            .functions
-            .get_mut(&func_name)
-            .ok_or_else(|| LambdaError::ResourceNotFound(arn.to_string()))?;
+        let tags = self.resource_tags_mut(arn)?;
         for key in tag_keys {
-            func.tags.remove(key);
+            tags.remove(key);
         }
         Ok(())
     }
 
     pub fn list_tags(&self, arn: &str) -> Result<&HashMap<String, String>, LambdaError> {
-        // FIX(terraform-e2e): provider calls ListTags with code-signing-config ARNs
-        //   (e.g. "arn:aws:lambda:…:code-signing-config:csc-xxx") but the handler was
-        //   only looking up function ARNs, causing 404 for code signing configs.
-        if arn.contains(":code-signing-config:") {
-            // Code signing configs do not carry tags in the mock; return empty tags if
-            // the config exists, or ResourceNotFound if it does not.
-            let exists = self
+        let not_found = || LambdaError::ResourceNotFound(arn.to_string());
+        match TaggableResource::parse(arn) {
+            TaggableResource::Function(name) => self.functions.get(name).map(|f| &f.tags),
+            TaggableResource::EventSourceMapping(uuid) => self
+                .event_source_mappings
+                .get(uuid)
+                .map(|m| &m.settings.tags),
+            // FIX(terraform-e2e): the provider calls ListTags with
+            //   code-signing-config ARNs right after creating one.
+            TaggableResource::CodeSigningConfig => self
                 .code_signing_configs
                 .values()
-                .any(|c| c.code_signing_config_arn == arn);
-            if exists {
-                return Ok(&self.empty_tags);
+                .find(|c| c.code_signing_config_arn == arn)
+                .map(|c| &c.tags),
+            TaggableResource::CapacityProvider(name) => {
+                self.capacity_providers.get(name).map(|c| &c.tags)
             }
-            return Err(LambdaError::ResourceNotFound(arn.to_string()));
         }
-        let func_name = self.extract_function_name_from_arn(arn)?;
-        let func = self
-            .functions
-            .get(&func_name)
-            .ok_or_else(|| LambdaError::ResourceNotFound(arn.to_string()))?;
-        Ok(&func.tags)
+        .ok_or_else(not_found)
+    }
+
+    /// Mutable counterpart of [`Self::list_tags`]: the tag map of whichever
+    /// taggable resource `arn` names.
+    fn resource_tags_mut(
+        &mut self,
+        arn: &str,
+    ) -> Result<&mut HashMap<String, String>, LambdaError> {
+        match TaggableResource::parse(arn) {
+            TaggableResource::Function(name) => self.functions.get_mut(name).map(|f| &mut f.tags),
+            TaggableResource::EventSourceMapping(uuid) => self
+                .event_source_mappings
+                .get_mut(uuid)
+                .map(|m| &mut m.settings.tags),
+            TaggableResource::CodeSigningConfig => self
+                .code_signing_configs
+                .values_mut()
+                .find(|c| c.code_signing_config_arn == arn)
+                .map(|c| &mut c.tags),
+            TaggableResource::CapacityProvider(name) => {
+                self.capacity_providers.get_mut(name).map(|c| &mut c.tags)
+            }
+        }
+        .ok_or_else(|| LambdaError::ResourceNotFound(arn.to_string()))
     }
 
     // ========== Version operations ==========
@@ -1277,6 +1289,7 @@ impl LambdaState {
         description: Option<&str>,
         allowed_publishers: Vec<String>,
         untrusted_artifact_on_deployment: &str,
+        tags: HashMap<String, String>,
     ) -> &CodeSigningConfigEntry {
         self.csc_id_counter += 1;
         let id = format!("csc-{:016x}", self.csc_id_counter);
@@ -1299,6 +1312,7 @@ impl LambdaState {
             untrusted_artifact_on_deployment: untrusted_artifact_on_deployment.to_string(),
             last_modified: Utc::now().to_rfc3339(),
             functions: Vec::new(),
+            tags,
         };
         self.code_signing_configs.insert(id.clone(), entry);
         self.code_signing_configs.get(&id).unwrap()
@@ -1476,7 +1490,11 @@ impl LambdaState {
 
     // ========== Capacity Providers ==========
 
-    pub fn create_capacity_provider(&mut self, name: &str) -> &CapacityProviderEntry {
+    pub fn create_capacity_provider(
+        &mut self,
+        name: &str,
+        tags: HashMap<String, String>,
+    ) -> &CapacityProviderEntry {
         self.cp_id_counter += 1;
         let region = if self.region.is_empty() {
             "us-east-1"
@@ -1493,6 +1511,7 @@ impl LambdaState {
             capacity_provider_arn: arn,
             state: "Active".to_string(),
             last_modified: Utc::now().to_rfc3339(),
+            tags,
         };
         self.capacity_providers.insert(name.to_string(), entry);
         self.capacity_providers.get(name).unwrap()
@@ -1704,17 +1723,38 @@ impl LambdaState {
             name_or_arn.to_string()
         }
     }
+}
 
-    fn extract_function_name_from_arn(&self, arn: &str) -> Result<String, LambdaError> {
-        // ARN format: arn:aws:lambda:{region}:{account}:function:{name}
-        if arn.starts_with("arn:aws:lambda:") {
-            let parts: Vec<&str> = arn.split(':').collect();
-            if parts.len() >= 7 && parts[5] == "function" {
-                return Ok(parts[6].to_string());
+/// The resource a `ListTags` / `TagResource` / `UntagResource` ARN names.
+///
+/// Those operations accept functions, event source mappings, code signing
+/// configurations and capacity providers.
+enum TaggableResource<'a> {
+    /// Function name.
+    Function(&'a str),
+    /// Mapping UUID.
+    EventSourceMapping(&'a str),
+    /// Looked up by its whole ARN.
+    CodeSigningConfig,
+    /// Capacity provider name.
+    CapacityProvider(&'a str),
+}
+
+impl<'a> TaggableResource<'a> {
+    /// ARN format: `arn:aws:lambda:{region}:{account}:{resource-type}:{id}`.
+    /// Anything else is taken to be a bare function name.
+    fn parse(arn: &'a str) -> Self {
+        let parts: Vec<&str> = arn.split(':').collect();
+        if parts.len() >= 7 && parts[0] == "arn" && parts[2] == "lambda" {
+            match parts[5] {
+                "function" => return Self::Function(parts[6]),
+                "event-source-mapping" => return Self::EventSourceMapping(parts[6]),
+                "code-signing-config" => return Self::CodeSigningConfig,
+                "capacity-provider" => return Self::CapacityProvider(parts[6]),
+                _ => {}
             }
         }
-        // Might be just a function name
-        Ok(arn.to_string())
+        Self::Function(arn)
     }
 }
 

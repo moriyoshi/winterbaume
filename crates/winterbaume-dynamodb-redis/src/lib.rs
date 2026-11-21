@@ -1078,9 +1078,12 @@ impl DynamoDbBackend for RedisDynamoDbBackend {
                 local_secondary_indexes,
             };
 
-            // A new table starts from default settings, whatever may have
-            // been left behind under the same name.
+            // A new table starts from default settings and without tags,
+            // whatever may have been left behind under the same name.
             conn.del::<_, ()>(k_table_settings(acct, rgn, &name))
+                .await
+                .map_err(redis_err)?;
+            conn.del::<_, ()>(k_tags(acct, rgn, &b64(&table.arn)))
                 .await
                 .map_err(redis_err)?;
             save_table(&mut conn, acct, rgn, &table).await?;
@@ -1150,6 +1153,10 @@ impl DynamoDbBackend for RedisDynamoDbBackend {
                 .await
                 .map_err(redis_err)?;
             conn.del::<_, ()>(k_items(acct, rgn, &name))
+                .await
+                .map_err(redis_err)?;
+            // Tags are dropped with the table.
+            conn.del::<_, ()>(k_tags(acct, rgn, &b64(&table.arn)))
                 .await
                 .map_err(redis_err)?;
             conn.srem::<_, _, ()>(k_tables(acct, rgn), &name)
@@ -1863,6 +1870,10 @@ impl DynamoDbBackend for RedisDynamoDbBackend {
             new_table.creation_date_time = Utc::now();
             new_table.table_status = "ACTIVE".to_string();
 
+            // A restored table carries no tags.
+            conn.del::<_, ()>(k_tags(acct, rgn, &b64(&new_table.arn)))
+                .await
+                .map_err(redis_err)?;
             save_table(&mut conn, acct, rgn, &new_table).await?;
 
             // Restore items
@@ -1905,6 +1916,10 @@ impl DynamoDbBackend for RedisDynamoDbBackend {
             new_table.arn = new_arn;
             new_table.creation_date_time = Utc::now();
 
+            // A restored table carries no tags.
+            conn.del::<_, ()>(k_tags(acct, rgn, &b64(&new_table.arn)))
+                .await
+                .map_err(redis_err)?;
             save_table(&mut conn, acct, rgn, &new_table).await?;
 
             // Copy items

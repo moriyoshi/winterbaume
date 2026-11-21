@@ -10306,3 +10306,213 @@ async fn test_table_settings_survive_snapshot_restore() {
         .await
         .expect("no protection was recorded in the legacy snapshot");
 }
+
+// ---------------------------------------------------------------------------
+// Creation-time tags (issue #51)
+// ---------------------------------------------------------------------------
+
+fn tag(key: &str, value: &str) -> aws_sdk_dynamodb::types::Tag {
+    aws_sdk_dynamodb::types::Tag::builder()
+        .key(key)
+        .value(value)
+        .build()
+        .unwrap()
+}
+
+/// The tags of `arn` as `(key, value)` pairs sorted by key.
+async fn sorted_tags(client: &aws_sdk_dynamodb::Client, arn: &str) -> Vec<(String, String)> {
+    let resp = client
+        .list_tags_of_resource()
+        .resource_arn(arn)
+        .send()
+        .await
+        .expect("ListTagsOfResource should succeed");
+    let mut tags: Vec<(String, String)> = resp
+        .tags()
+        .iter()
+        .map(|t| (t.key().to_string(), t.value().to_string()))
+        .collect();
+    tags.sort();
+    tags
+}
+
+fn pairs(tags: &[(&str, &str)]) -> Vec<(String, String)> {
+    tags.iter()
+        .map(|(k, v)| (k.to_string(), v.to_string()))
+        .collect()
+}
+
+/// Tags given to `CreateTable` are returned by `ListTagsOfResource` and form
+/// one tag set with those added, replaced and removed afterwards.
+#[tokio::test]
+async fn create_table_tags_are_listed_and_merge_with_tag_resource() {
+    let client = make_dynamodb_client().await;
+    let created = on_demand_table(&client, "wb-tag")
+        .tags(tag("app", "demo"))
+        .tags(tag("env", "test"))
+        .send()
+        .await
+        .unwrap();
+    let arn = created
+        .table_description()
+        .unwrap()
+        .table_arn()
+        .unwrap()
+        .to_string();
+    assert_eq!(
+        sorted_tags(&client, &arn).await,
+        pairs(&[("app", "demo"), ("env", "test")])
+    );
+
+    // A later TagResource adds to the creation-time tags and replaces the
+    // value of a key that is already there.
+    client
+        .tag_resource()
+        .resource_arn(&arn)
+        .tags(tag("later", "x"))
+        .tags(tag("env", "prod"))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        sorted_tags(&client, &arn).await,
+        pairs(&[("app", "demo"), ("env", "prod"), ("later", "x")])
+    );
+
+    // Creation-time tags can be removed like any other.
+    client
+        .untag_resource()
+        .resource_arn(&arn)
+        .tag_keys("app")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        sorted_tags(&client, &arn).await,
+        pairs(&[("env", "prod"), ("later", "x")])
+    );
+
+    // A table created without tags has none.
+    let plain = on_demand_table(&client, "wb-untagged")
+        .send()
+        .await
+        .unwrap();
+    let plain_arn = plain.table_description().unwrap().table_arn().unwrap();
+    assert!(sorted_tags(&client, plain_arn).await.is_empty());
+}
+
+/// Tags are dropped with the table: a table re-created under the same name
+/// ( and so the same ARN ) carries only the tags of its own `CreateTable`.
+#[tokio::test]
+async fn tags_do_not_outlive_the_table() {
+    let client = make_dynamodb_client().await;
+    let created = on_demand_table(&client, "wb-tag-reuse")
+        .tags(tag("app", "demo"))
+        .send()
+        .await
+        .unwrap();
+    let arn = created
+        .table_description()
+        .unwrap()
+        .table_arn()
+        .unwrap()
+        .to_string();
+    client
+        .tag_resource()
+        .resource_arn(&arn)
+        .tags(tag("later", "x"))
+        .send()
+        .await
+        .unwrap();
+    client
+        .delete_table()
+        .table_name("wb-tag-reuse")
+        .send()
+        .await
+        .unwrap();
+
+    let recreated = on_demand_table(&client, "wb-tag-reuse")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        recreated.table_description().unwrap().table_arn(),
+        Some(arn.as_str())
+    );
+    assert!(
+        sorted_tags(&client, &arn).await.is_empty(),
+        "tags of the deleted table must not leak into its successor"
+    );
+
+    client
+        .delete_table()
+        .table_name("wb-tag-reuse")
+        .send()
+        .await
+        .unwrap();
+    on_demand_table(&client, "wb-tag-reuse")
+        .tags(tag("generation", "3"))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        sorted_tags(&client, &arn).await,
+        pairs(&[("generation", "3")])
+    );
+}
+
+/// Tags are not copied to a restored table ( AWS documents them as something
+/// to set up manually after a restore ), and the source keeps its own.
+#[tokio::test]
+async fn restored_tables_do_not_inherit_tags() {
+    let client = make_dynamodb_client().await;
+    let created = on_demand_table(&client, "wb-tag-src")
+        .tags(tag("app", "demo"))
+        .send()
+        .await
+        .unwrap();
+    let source_arn = created
+        .table_description()
+        .unwrap()
+        .table_arn()
+        .unwrap()
+        .to_string();
+
+    let backup = client
+        .create_backup()
+        .table_name("wb-tag-src")
+        .backup_name("wb-tag-backup")
+        .send()
+        .await
+        .unwrap();
+    let backup_arn = backup.backup_details().unwrap().backup_arn().to_string();
+    let from_backup = client
+        .restore_table_from_backup()
+        .target_table_name("wb-tag-from-backup")
+        .backup_arn(&backup_arn)
+        .send()
+        .await
+        .unwrap();
+    let from_backup_arn = from_backup
+        .table_description()
+        .unwrap()
+        .table_arn()
+        .unwrap();
+    assert!(sorted_tags(&client, from_backup_arn).await.is_empty());
+
+    let from_pitr = client
+        .restore_table_to_point_in_time()
+        .source_table_name("wb-tag-src")
+        .target_table_name("wb-tag-from-pitr")
+        .use_latest_restorable_time(true)
+        .send()
+        .await
+        .unwrap();
+    let from_pitr_arn = from_pitr.table_description().unwrap().table_arn().unwrap();
+    assert!(sorted_tags(&client, from_pitr_arn).await.is_empty());
+
+    assert_eq!(
+        sorted_tags(&client, &source_arn).await,
+        pairs(&[("app", "demo")])
+    );
+}

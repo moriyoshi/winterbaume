@@ -196,6 +196,39 @@ For each operation added or enhanced, record a request modifier inventory in the
 
 This inventory is review evidence, not a claim that static field searches prove semantics. Deferred rows must stay visible; a green build or test count cannot close them.
 
+### 5.4 Member-Level Audit
+
+§5.1 says a deserialised field must not be silently inert, and §5.3 asks for a request modifier inventory. Issues #41 – #47 and #50 – #54 arrived anyway, twelve reports in one month, and eleven of them were a modelled member the handler dropped: `Tags` on `CreateTable`, `CreateBucket` and `CreateEventSourceMapping`, `SSESpecification`, `DeletionProtectionEnabled`, `ScalingConfig`, `RetryPolicy`, the `ListEventSourceMappings` filters, `Role.Tags` and `EventSourceMappingArn` on the response side. The rules were right and did not bite, for reasons that are structural:
+
+- **Coverage is counted per operation.** An operation is "implemented" once a handler exists and "tested" once one test calls it. Neither count can see a member. Every affected operation was green in `API_COVERAGE.md`.
+- **The dossier does not list the members that were dropped.** `## Operation Detail Matrix` has a `Required input` column only, and `## HTTP Bindings` lists header, query and payload bindings only. An optional member of a JSON or XML body appears in neither, and no output member appears anywhere. The quality-gate skill scoped its §5.3 check to rows of `## HTTP Bindings`, so body members and responses were outside every checklist.
+- **§5.3 was forward-only.** It applies to "each operation added or enhanced". Operations written before it were never revisited: the fleet-wide `dossier-handler-binding-audit` was closed as "absorbed into recurring quality-gate" and so never ran as a sweep.
+- **Nothing mechanical looked.** The §5.1 grep finds comments that admit a drop. A drop nobody commented on produces no hit, and reading every operation against its AWS contract by hand does not scale to 220 crates.
+- **Tests were derived from the implementation and from moto.** A round-trip test asserts the members the handler already handles. Tags were tested through `TagResource`, never through the create call. `test_put_get_delete_bucket_ownership_controls` asserted the bug of issue #50 as the expected result.
+- **Handlers that bypass the generated code lose members on both sides.** `winterbaume-s3` routes most operations without calling the generated request deserialiser, and `winterbaume-iam` built `Role` XML by hand beside a correct shared helper.
+- **Terraform E2E rarely asserted the second plan.** A dropped member shows up as a diff on the next `terraform plan` and as a failed destroy poll, not as a failed apply.
+
+`.agents/bin/audit-wire-members.py <crate-suffix>` closes the mechanical gap. It reads the generated `model.rs` / `wire.rs` and the hand-written sources and reports:
+
+| Section | Reports | Catches |
+|---|---|---|
+| A | Request members the handler never reads through the deserialised input; a discarded input reports every member | #42 – #46, #51, #54 |
+| B | Operations whose generated request deserialiser is never called: unimplemented, or parsed by hand | #41, #53 |
+| C | Members of a response structure that no struct literal in the crate ever sets | #43, #47, #54 |
+| D | Members that some literals of a structure set and others leave defaulted | #52 |
+
+Run against the tree before those fixes, it lists every one of the eleven. On 2026-11-21 it reported, across the 220 service crates, about 7,000 unread request members in 2,100 operations. Those numbers are a worklist, not a defect count: an unsupported member is a legitimate row, and a member read through a helper that takes the whole input is not reported at all. What the report cannot see is a member that is read and then ignored, or a wrong state transition such as issue #50. §5.3's reading of the operation against its AWS contract remains the check; the script only makes sure no member escapes that reading.
+
+Gate checks:
+
+- [ ] `audit-wire-members.py` has been run for the crate, and every row for an operation added or changed in this piece of work has a §5.3 disposition: honoured with a non-default test, rejected with the AWS error, ignored because AWS ignores it ( with a source ), or filed in `TODO.md`. Rows for untouched operations go to the dossier's `## Member Audit` section, so that the backlog is recorded where the next reader will look.
+- [ ] The inventory covers body members and response members, not only the header and query rows of `## HTTP Bindings`.
+- [ ] Every create operation that takes `Tags` is tested by creating with tags and reading them back through the service's tag-listing operation and through each describe operation that carries them. Tagging after creation does not exercise this path.
+- [ ] A structure that several operations return ( `Role`, `TableDescription`, `EventSourceMappingConfiguration` ) is built by one shared function. Section D lists the structures where that is not yet so. Where AWS documents that a list operation omits members the get operation returns, the omission is deliberate, tested, and cited.
+- [ ] A handler that parses its request by hand ( section B ) either moves to the generated deserialiser or has every bound header, query parameter and body member accounted for in the inventory.
+- [ ] Every delete operation has a test that reads the resource back afterwards and asserts the typed not-found error or the documented default. A test that asserts a value survives its own delete is a defect report, not a regression test.
+- [ ] An expected value in a test comes from the AWS documentation or a captured AWS response, not from running the handler and copying its output.
+
 ## 6. Smithy Codegen and Protocol Boundaries
 
 `model.rs` and `wire.rs` are generated by `tools/smithy-codegen`. Never hand-edit generated files as a durable fix. Patch the generator, regenerate, and rerun affected tests.
@@ -291,6 +324,7 @@ Gate checks:
   ```
 - [ ] Integration test coverage is at or above 80% of implemented operations per crate, verified through `/api-coverage`.
 - [ ] Tests cover happy paths, error behaviour, idempotency, and edge cases.
+- [ ] Create-with-tags, read-after-delete, and the member rows from `audit-wire-members.py` for the operations under test are covered — see §5.4.
 - [ ] Service-specific tests pass. Workspace-wide `test --workspace` is reserved for explicit release or quality-audit work.
 
 ## 10. Terraform E2E and Converters
@@ -315,6 +349,9 @@ Gate checks:
 - [ ] Converter tests cover identifier id/name swaps: injected and extracted IDs must preserve provider names and AWS identifiers distinctly.
 - [ ] The conversion error variant is `ConversionError::MissingAttribute`.
 - [ ] Nested Terraform blocks are verified with apply plus no-drift plan, not only successful apply or converter unit tests.
+- [ ] Every E2E resource case ends with a no-drift plan after apply, and with a destroy that completes. A member the emulator drops shows up there and nowhere earlier: issues #45, #51, #52, #53 and #54 were all a diff on the second plan, and #41 and #50 were a provider poll that never converged.
+- [ ] At least one case per taggable resource type sets `tags`, and at least one module runs under provider `default_tags`, each followed by a no-drift plan. `tags_all` is where creation-time tag drops surface.
+- [ ] When a no-drift plan fails after the obvious fix, read the provider's debug log for the API it actually calls before changing more code. Provider 6.73 reads `aws_s3_bucket` tags through S3 Control `ListTagsForResource`, not `GetBucketTagging` ( issue #53 ).
 - [ ] Services requiring isolated servers, such as Kinesis, ECS, and EC2, do not use `batch_apply`.
 - [ ] New E2E modules are wired through crate dev-dependencies, `test_services()` registration, and provider endpoint override.
 - [ ] `write_provider_tf()` pins the AWS provider version so provider upgrades are deliberate.

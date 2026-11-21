@@ -1008,4 +1008,78 @@ mod tests {
         assert_eq!(perm.function_url_auth_type.as_deref(), Some("NONE"));
         assert_eq!(perm.invoked_via_function_url, Some(true));
     }
+
+    /// Snapshots written before issue #54 carry no tags on event source
+    /// mappings, code signing configs or capacity providers, and no mapping
+    /// ARN.  They must still load: tags empty, ARN derived.
+    #[test]
+    fn legacy_snapshot_without_mapping_tags_still_deserializes() {
+        let view: LambdaStateView = serde_json::from_value(serde_json::json!({
+            "event_source_mappings": {
+                "u-1": {
+                    "uuid": "u-1",
+                    "event_source_arn": "arn:aws:sqs:eu-west-1:111111111111:q",
+                    "function_arn": "arn:aws:lambda:eu-west-1:111111111111:function:f",
+                    "batch_size": 10,
+                    "enabled": true,
+                    "state": "Enabled",
+                    "last_modified": "2026-01-01T00:00:00+00:00",
+                    "starting_position": null,
+                    "settings": { "maximum_retry_attempts": 3 }
+                }
+            },
+            "code_signing_configs": {
+                "csc-1": {
+                    "code_signing_config_id": "csc-1",
+                    "code_signing_config_arn":
+                        "arn:aws:lambda:eu-west-1:111111111111:code-signing-config:csc-1",
+                    "description": null,
+                    "allowed_publishers": [],
+                    "untrusted_artifact_on_deployment": "Warn",
+                    "last_modified": "2026-01-01T00:00:00+00:00"
+                }
+            },
+            "capacity_providers": {
+                "cp": {
+                    "capacity_provider_arn":
+                        "arn:aws:lambda:eu-west-1:111111111111:capacity-provider:cp",
+                    "state": "Active",
+                    "last_modified": "2026-01-01T00:00:00+00:00"
+                }
+            }
+        }))
+        .expect("legacy snapshot must deserialize");
+
+        let settings = &view.event_source_mappings["u-1"].settings;
+        assert_eq!(settings.maximum_retry_attempts, Some(3));
+        assert!(settings.tags.is_empty());
+        assert!(view.code_signing_configs["csc-1"].tags.is_empty());
+        assert!(view.capacity_providers["cp"].tags.is_empty());
+
+        let state = view.into_state_for_scope("111111111111", "eu-west-1");
+        let mapping = &state.event_source_mappings["u-1"];
+        assert_eq!(
+            mapping.arn(),
+            "arn:aws:lambda:eu-west-1:111111111111:event-source-mapping:u-1"
+        );
+        assert!(state.list_tags(&mapping.arn()).unwrap().is_empty());
+    }
+
+    /// Mapping tags survive a snapshot round trip, and an untagged mapping
+    /// serializes without a `tags` member.
+    #[test]
+    fn mapping_tags_round_trip_through_snapshot_json() {
+        let mut settings = EventSourceMappingSettings::default();
+        assert!(
+            serde_json::to_value(&settings)
+                .unwrap()
+                .get("tags")
+                .is_none()
+        );
+        settings.tags.insert("app".to_string(), "demo".to_string());
+        let json = serde_json::to_value(&settings).unwrap();
+        assert_eq!(json["tags"], serde_json::json!({"app": "demo"}));
+        let back: EventSourceMappingSettings = serde_json::from_value(json).unwrap();
+        assert_eq!(back, settings);
+    }
 }

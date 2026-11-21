@@ -438,6 +438,15 @@ impl DynamoDbService {
             &region,
         );
         let table_name = input.table_name.clone();
+        let tags: Vec<DynamoDbTag> = input
+            .tags
+            .unwrap_or_default()
+            .into_iter()
+            .map(|t| DynamoDbTag {
+                key: t.key,
+                value: t.value,
+            })
+            .collect();
 
         let table = match self
             .backend
@@ -459,6 +468,17 @@ impl DynamoDbService {
             Ok(table) => table,
             Err(e) => return dynamodb_error_response(&e),
         };
+        // Creation-time tags go where TagResource puts them, keyed by the
+        // table ARN, so ListTagsOfResource and later TagResource calls see
+        // one tag set.
+        if !tags.is_empty()
+            && let Err(e) = self
+                .backend
+                .tag_resource(account_id.clone(), region.clone(), table.arn.clone(), tags)
+                .await
+        {
+            return dynamodb_error_response(&e);
+        }
         let settings = match self
             .apply_table_settings_update(account_id, region, table_name, settings_update)
             .await

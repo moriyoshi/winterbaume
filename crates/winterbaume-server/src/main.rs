@@ -774,7 +774,11 @@ async fn register_all_services(
     let resourcegroups = Arc::new(winterbaume_resourcegroups::ResourceGroupsService::new());
     let route53domains = Arc::new(winterbaume_route53domains::Route53DomainsService::new());
     let route53resolver = Arc::new(winterbaume_route53resolver::Route53ResolverService::new());
-    let s3control = Arc::new(winterbaume_s3control::S3ControlService::new());
+    // S3 Control serves the tags of general purpose buckets from the S3 service
+    // ( the AWS Terraform provider tags `aws_s3_bucket` through S3 Control ).
+    let s3control = Arc::new(winterbaume_s3control::S3ControlService::with_s3_service(
+        Arc::clone(&s3),
+    ));
     let s3tables = Arc::new(winterbaume_s3tables::S3TablesService::new());
     let securityhub = Arc::new(winterbaume_securityhub::SecurityHubService::new());
     let servicecatalogappregistry =

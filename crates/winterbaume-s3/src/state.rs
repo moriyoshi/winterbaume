@@ -198,6 +198,9 @@ pub enum S3Error {
     #[error("The specified bucket does not have a website configuration.")]
     NoSuchWebsiteConfiguration { resource: String },
 
+    #[error("The bucket ownership controls were not found")]
+    OwnershipControlsNotFoundError { resource: String },
+
     #[error("The public access block configuration was not found.")]
     NoSuchPublicAccessBlockConfiguration { resource: String },
 
@@ -258,6 +261,7 @@ impl S3Error {
             | S3Error::ObjectLockConfigurationNotFoundError { resource }
             | S3Error::ReplicationConfigurationNotFoundError { resource }
             | S3Error::NoSuchWebsiteConfiguration { resource }
+            | S3Error::OwnershipControlsNotFoundError { resource }
             | S3Error::NoSuchPublicAccessBlockConfiguration { resource }
             | S3Error::MissingAnalyticsConfigurationId { resource }
             | S3Error::NoSuchAnalyticsConfiguration { resource }
@@ -353,7 +357,9 @@ impl S3State {
                 object_lock_configuration: None,
                 website_configuration: None,
                 public_access_block: None,
-                ownership_controls: None,
+                // S3 applies `BucketOwnerEnforced` to every newly created
+                // bucket; only `DeleteBucketOwnershipControls` leaves none.
+                ownership_controls: Some("BucketOwnerEnforced".to_string()),
                 multipart_uploads: HashMap::new(),
                 analytics_configurations: HashMap::new(),
                 intelligent_tiering_configurations: HashMap::new(),

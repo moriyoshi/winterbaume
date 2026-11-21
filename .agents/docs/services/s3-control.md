@@ -42,6 +42,14 @@ Amazon Web Services S3 Control provides access to Amazon S3 control plane action
 - Documentation and model terms indicate cross-service dependencies or identifiers: `IAM`, `S3`, `KMS`, `CloudWatch`, `Lambda`, `EC2/VPC`, `STS`.
 - Some responses appear to be derived from telemetry, managed inventories, recommendations, or findings; seedable mock state may be required because real AWS derives these from external systems.
 
+## Bucket Tagging Through S3 Control
+
+- The Terraform AWS provider ( 6.73 ) never calls `GetBucketTagging` / `PutBucketTagging` for `aws_s3_bucket`. It sends tags in `CreateBucketConfiguration.Tags`, reads them with S3 Control `ListTagsForResource` on `arn:aws:s3:::<bucket>`, and changes them with S3 Control `TagResource` ( changed keys only ) and `UntagResource` ( repeated `tagKeys` query parameter ). Found from the provider debug log while fixing issue #53.
+- `S3ControlService::with_s3_service(Arc<S3Service>)` links the two services. With the link, the three tag operations on a general purpose bucket ARN read and write the bucket's own tag set, so both APIs see the same tags. Every other ARN, and every ARN when no S3 service is attached, uses S3 Control's own ARN-keyed map.
+- A bucket ARN carries no Region, so the bucket is looked up across the account's S3 scopes. A missing bucket is 404 `NoSuchBucket`; the AWS documentation does not name the code for this case, and `NoSuchResource` is the other candidate.
+- With a custom endpoint, S3 Control requests are signed as `s3` and the host has no `s3-control` label. `S3ControlService::url_patterns` therefore also claims `^https?://[^/]+/v20180820/`; before that, such requests reached a stub inside `winterbaume-s3` that answered every operation with an empty 200.
+- S3 Control errors use the wrapped envelope `<ErrorResponse><Error>...`. With a bare `<Error>` root the Rust SDK reports no error code.
+
 ## Current Network Resource Stub Semantics
 
 S3 Control currently stores access point VPC configuration on the access point record.

@@ -520,33 +520,19 @@ impl IamService {
             })
             .unwrap_or_default();
 
+        let permissions_boundary = input.permissions_boundary.as_deref();
+
         let mut state = state.write().await;
-        match state.create_user(account_id, &input.user_name, path, tags) {
-            Ok(user) => {
-                let xml = format!(
-                    r#"<CreateUserResponse xmlns="https://iam.amazonaws.com/doc/2010-05-08/">
-  <CreateUserResult>
-    <User>
-      <Path>{path}</Path>
-      <UserName>{user_name}</UserName>
-      <UserId>{user_id}</UserId>
-      <Arn>{arn}</Arn>
-      <CreateDate>{create_date}</CreateDate>
-    </User>
-  </CreateUserResult>
-  <ResponseMetadata>
-    <RequestId>{request_id}</RequestId>
-  </ResponseMetadata>
-</CreateUserResponse>"#,
-                    path = xml_escape(&user.path),
-                    user_name = xml_escape(&user.name),
-                    user_id = xml_escape(&user.user_id),
-                    arn = xml_escape(&user.arn),
-                    create_date = user.create_date.format("%Y-%m-%dT%H:%M:%SZ"),
-                    request_id = uuid::Uuid::new_v4(),
-                );
-                MockResponse::xml(200, xml)
-            }
+        match state.create_user(
+            account_id,
+            &input.user_name,
+            path,
+            tags,
+            permissions_boundary,
+        ) {
+            Ok(user) => wire::serialize_create_user_response(&wire::CreateUserResponse {
+                user: Some(make_wire_user(user)),
+            }),
             Err(e) => iam_error_response(&e),
         }
     }
@@ -567,31 +553,9 @@ impl IamService {
 
         let state = state.read().await;
         match state.get_user(user_name) {
-            Ok(user) => {
-                let xml = format!(
-                    r#"<GetUserResponse xmlns="https://iam.amazonaws.com/doc/2010-05-08/">
-  <GetUserResult>
-    <User>
-      <Path>{path}</Path>
-      <UserName>{user_name}</UserName>
-      <UserId>{user_id}</UserId>
-      <Arn>{arn}</Arn>
-      <CreateDate>{create_date}</CreateDate>
-    </User>
-  </GetUserResult>
-  <ResponseMetadata>
-    <RequestId>{request_id}</RequestId>
-  </ResponseMetadata>
-</GetUserResponse>"#,
-                    path = xml_escape(&user.path),
-                    user_name = xml_escape(&user.name),
-                    user_id = xml_escape(&user.user_id),
-                    arn = xml_escape(&user.arn),
-                    create_date = user.create_date.format("%Y-%m-%dT%H:%M:%SZ"),
-                    request_id = uuid::Uuid::new_v4(),
-                );
-                MockResponse::xml(200, xml)
-            }
+            Ok(user) => wire::serialize_get_user_response(&wire::GetUserResponse {
+                user: Some(make_wire_user(user)),
+            }),
             Err(e) => iam_error_response(&e),
         }
     }
@@ -1052,6 +1016,8 @@ impl IamService {
             })
             .unwrap_or_default();
 
+        let permissions_boundary = input.permissions_boundary.as_deref();
+
         let mut state = state.write().await;
         match state.create_role(
             account_id,
@@ -1061,36 +1027,11 @@ impl IamService {
             description,
             max_session_duration,
             tags,
+            permissions_boundary,
         ) {
-            Ok(role) => {
-                let xml = format!(
-                    r#"<CreateRoleResponse xmlns="https://iam.amazonaws.com/doc/2010-05-08/">
-  <CreateRoleResult>
-    <Role>
-      <Path>{path}</Path>
-      <RoleName>{role_name}</RoleName>
-      <RoleId>{role_id}</RoleId>
-      <Arn>{arn}</Arn>
-      <CreateDate>{create_date}</CreateDate>
-      <AssumeRolePolicyDocument>{policy_doc}</AssumeRolePolicyDocument>
-      <MaxSessionDuration>{max_session_duration}</MaxSessionDuration>
-    </Role>
-  </CreateRoleResult>
-  <ResponseMetadata>
-    <RequestId>{request_id}</RequestId>
-  </ResponseMetadata>
-</CreateRoleResponse>"#,
-                    path = xml_escape(&role.path),
-                    role_name = xml_escape(&role.name),
-                    role_id = xml_escape(&role.role_id),
-                    arn = xml_escape(&role.arn),
-                    create_date = role.create_date.format("%Y-%m-%dT%H:%M:%SZ"),
-                    policy_doc = xml_escape(&role.assume_role_policy_document),
-                    max_session_duration = role.max_session_duration,
-                    request_id = uuid::Uuid::new_v4(),
-                );
-                MockResponse::xml(200, xml)
-            }
+            Ok(role) => wire::serialize_create_role_response(&wire::CreateRoleResponse {
+                role: Some(make_wire_role(role)),
+            }),
             Err(e) => iam_error_response(&e),
         }
     }
@@ -1110,35 +1051,9 @@ impl IamService {
 
         let state = state.read().await;
         match state.get_role(&input.role_name) {
-            Ok(role) => {
-                let xml = format!(
-                    r#"<GetRoleResponse xmlns="https://iam.amazonaws.com/doc/2010-05-08/">
-  <GetRoleResult>
-    <Role>
-      <Path>{path}</Path>
-      <RoleName>{role_name}</RoleName>
-      <RoleId>{role_id}</RoleId>
-      <Arn>{arn}</Arn>
-      <CreateDate>{create_date}</CreateDate>
-      <AssumeRolePolicyDocument>{policy_doc}</AssumeRolePolicyDocument>
-      <MaxSessionDuration>{max_session_duration}</MaxSessionDuration>
-    </Role>
-  </GetRoleResult>
-  <ResponseMetadata>
-    <RequestId>{request_id}</RequestId>
-  </ResponseMetadata>
-</GetRoleResponse>"#,
-                    path = xml_escape(&role.path),
-                    role_name = xml_escape(&role.name),
-                    role_id = xml_escape(&role.role_id),
-                    arn = xml_escape(&role.arn),
-                    create_date = role.create_date.format("%Y-%m-%dT%H:%M:%SZ"),
-                    policy_doc = xml_escape(&role.assume_role_policy_document),
-                    max_session_duration = role.max_session_duration,
-                    request_id = uuid::Uuid::new_v4(),
-                );
-                MockResponse::xml(200, xml)
-            }
+            Ok(role) => wire::serialize_get_role_response(&wire::GetRoleResponse {
+                role: Some(make_wire_role(role)),
+            }),
             Err(e) => iam_error_response(&e),
         }
     }
@@ -4391,6 +4306,10 @@ impl IamService {
                         })
                         .collect(),
                 ),
+                permissions_boundary: make_wire_permissions_boundary(
+                    u.permissions_boundary.as_deref(),
+                ),
+                tags: Some(tags_to_wire(&u.tags)),
                 ..Default::default()
             })
             .collect();
@@ -4422,6 +4341,10 @@ impl IamService {
                         })
                         .collect(),
                 ),
+                permissions_boundary: make_wire_permissions_boundary(
+                    r.permissions_boundary.as_deref(),
+                ),
+                tags: Some(tags_to_wire(&r.tags)),
                 ..Default::default()
             })
             .collect();
@@ -5389,8 +5312,13 @@ impl IamService {
 
         wire::serialize_list_instance_profiles_response(&wire::ListInstanceProfilesResponse {
             instance_profiles: Some(
+                // AWS documents that ListInstanceProfiles does not return tags;
+                // GetInstanceProfile is the operation that does.
                 ips.iter()
-                    .map(|ip| make_wire_instance_profile(ip, &state))
+                    .map(|ip| wire::InstanceProfile {
+                        tags: None,
+                        ..make_wire_instance_profile(ip, &state)
+                    })
                     .collect(),
             ),
             is_truncated: Some(false),
@@ -6120,6 +6048,35 @@ fn tags_to_wire(tags: &[Tag]) -> wire::tagListType {
         .collect()
 }
 
+/// Convert a stored permissions boundary ARN to its wire representation.
+fn make_wire_permissions_boundary(arn: Option<&str>) -> Option<wire::AttachedPermissionsBoundary> {
+    arn.map(|arn| wire::AttachedPermissionsBoundary {
+        permissions_boundary_arn: Some(arn.to_string()),
+        permissions_boundary_type: Some("PermissionsBoundaryPolicy".to_string()),
+    })
+}
+
+/// Convert a domain User to a wire User, as returned by `CreateUser` and `GetUser`.
+///
+/// `ListUsers` deliberately does not use this: AWS documents that it omits
+/// `PermissionsBoundary` and `Tags`.
+fn make_wire_user(user: &crate::types::User) -> wire::User {
+    wire::User {
+        arn: Some(user.arn.clone()),
+        create_date: Some(user.create_date.format("%Y-%m-%dT%H:%M:%SZ").to_string()),
+        path: Some(user.path.clone()),
+        user_id: Some(user.user_id.clone()),
+        user_name: Some(user.name.clone()),
+        permissions_boundary: make_wire_permissions_boundary(user.permissions_boundary.as_deref()),
+        tags: if user.tags.is_empty() {
+            None
+        } else {
+            Some(tags_to_wire(&user.tags))
+        },
+        ..Default::default()
+    }
+}
+
 /// Convert a domain Role to a wire Role.
 fn make_wire_role(role: &crate::types::Role) -> wire::Role {
     wire::Role {
@@ -6135,12 +6092,7 @@ fn make_wire_role(role: &crate::types::Role) -> wire::Role {
             Some(role.description.clone())
         },
         max_session_duration: Some(role.max_session_duration),
-        permissions_boundary: role.permissions_boundary.as_ref().map(|pb| {
-            wire::AttachedPermissionsBoundary {
-                permissions_boundary_arn: Some(pb.clone()),
-                permissions_boundary_type: Some("Policy".to_string()),
-            }
-        }),
+        permissions_boundary: make_wire_permissions_boundary(role.permissions_boundary.as_deref()),
         tags: if role.tags.is_empty() {
             None
         } else {

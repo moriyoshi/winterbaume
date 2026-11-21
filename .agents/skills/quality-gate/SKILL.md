@@ -104,6 +104,11 @@ Audit each operation:
 - Pay extra attention to RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`). These are the most common silent-drop offenders.
 - The dossier's "Conditional-write/read coverage" trailer auto-enumerates every operation modelling RFC 7232 headers; cross-check it against the crate's actual enforcement.
 - Include ordinary read modifiers such as `Range`, part selection, response overrides, filters, ordering, and pagination. Do not restrict the audit to conditional headers or create/update fields. Issue #29 passed full-object tests while `GetObject.Range` was never consumed. For silent-ignore fixes, require §5.3's failed temporary-mutation regression followed by a passing run of the restored implementation.
+- Run the member audit and attach its output to the report:
+  ```bash
+  .agents/bin/audit-wire-members.py {service} > .agents-workspace/tmp/audit-wire-{service}.md
+  ```
+  It lists request members no handler reads ( A ), operations that bypass the generated deserialiser ( B ), response members never populated ( C ) and structures populated unevenly across operations ( D ). The `## HTTP Bindings` table covers header and query bindings only; optional body members and every response member appear in no dossier table, and that is where issues #41 – #47 and #51 – #54 lived. Classify each row per [QUALITY_GATE.md §5.4](../../docs/QUALITY_GATE.md): rows for operations in scope need a §5.3 disposition, the rest are recorded in the dossier's `## Member Audit` section. An unclassified row for an in-scope operation fails this check.
 
 ### Step 5: State error shaping (QG §3)
 
@@ -379,6 +384,7 @@ Use today's date. Keep the entry concise — the journal is a log, not a full re
 
 These are real, repeated failure patterns observed in past quality-gate sweeps. Check them explicitly during Phase A and add TODO items for any that apply.
 
+- **Accepted, then dropped.** The most frequent source of GitHub issues: a modelled request member is deserialised and never read, or a response member is never populated, while the operation counts as implemented and tested. Typical members: `Tags` on a create call, optional settings blocks, list filters, resource ARNs in responses. Operation coverage cannot see it; `.agents/bin/audit-wire-members.py` can. See QUALITY_GATE.md §5.4.
 - **Missing `chrono` dependency.** If any source file in the crate calls `chrono::Utc::now()` or any other `chrono::` API, verify the crate's `Cargo.toml` declares `chrono = { workspace = true }` before declaring the change done. Recurring failure mode caught manually in the 2026-04-28 sweep ( elasticbeanstalk, panorama, workspaces ) — agents added the call without the dep, cascading to compile-time errors only after they returned.
 - **State-view literal drift.** Every `*StateView` struct ( and its component view structs ) must `#[derive(Default)]`, and any literal construction in tests, converters, or backend wrappers should use `..Default::default()`. State-view literal drift is the largest cascade source in `/tackle-todos` sweeps; per-crate quality gates do not catch the breakage, only `winterbaume-terraform` integration tests do.
 - **State-shape change cascade.** When a state-field type changes ( e.g. `Vec<String>` → `HashMap<K, HashSet<V>>` for `inspector2`'s `enabled_resource_types` ), terraform converters that mirror that field also need updates. Per-crate quality gates do not catch the breakage; only `winterbaume-terraform` integration tests do. After changing a state-field type, grep the workspace for cross-crate consumers.

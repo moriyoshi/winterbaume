@@ -12494,6 +12494,7 @@ dependencies = [
  "winterbaume-redshift",
  "winterbaume-route53",
  "winterbaume-s3",
+ "winterbaume-s3control",
  "winterbaume-scheduler",
  "winterbaume-secretsmanager",
  "winterbaume-sfn",
@@ -14398,6 +14399,7 @@ version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
+ "aws-sdk-s3",
  "aws-sdk-s3control",
  "aws-smithy-runtime-api",
  "aws-smithy-types",
@@ -14412,6 +14414,7 @@ dependencies = [
  "tracing",
  "uuid",
  "winterbaume-core",
+ "winterbaume-s3",
 ]
 
 [[package]]
