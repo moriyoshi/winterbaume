@@ -38,6 +38,11 @@ pub struct BucketStateView {
     pub delete_markers: HashMap<String, Vec<DeleteMarkerView>>,
     /// Raw XML lifecycle configuration.
     pub lifecycle_configuration: Option<String>,
+    /// `x-amz-transition-default-minimum-object-size` applied to the lifecycle
+    /// configuration. Absent in older snapshots, in which case the S3 default
+    /// (`all_storage_classes_128K`) is reported.
+    #[serde(default)]
+    pub transition_default_minimum_object_size: Option<String>,
     /// Raw XML notification configuration.
     pub notification_configuration: Option<String>,
     /// Versioning status.
@@ -120,6 +125,7 @@ impl Default for BucketStateView {
             object_history: HashMap::new(),
             delete_markers: HashMap::new(),
             lifecycle_configuration: None,
+            transition_default_minimum_object_size: None,
             notification_configuration: None,
             versioning_status: None,
             tags: HashMap::new(),
@@ -283,6 +289,9 @@ impl S3Service {
                     object_history,
                     delete_markers: delete_markers_view,
                     lifecycle_configuration: bs.lifecycle_configuration.clone(),
+                    transition_default_minimum_object_size: bs
+                        .transition_default_minimum_object_size
+                        .clone(),
                     notification_configuration: bs.notification_configuration.clone(),
                     versioning_status: bs.versioning_status.clone(),
                     tags: bs.tags.clone(),
@@ -397,6 +406,9 @@ impl S3Service {
                     object_history,
                     delete_markers,
                     lifecycle_configuration: bv.lifecycle_configuration.clone(),
+                    transition_default_minimum_object_size: bv
+                        .transition_default_minimum_object_size
+                        .clone(),
                     notification_configuration: bv.notification_configuration.clone(),
                     versioning_status: bv.versioning_status.clone(),
                     tags: bv.tags.clone(),
@@ -479,6 +491,7 @@ impl StatefulService for S3Service {
             creation_date: chrono::DateTime<Utc>,
             objects: Vec<(String, Object)>,
             lifecycle: Option<String>,
+            transition_default_minimum_object_size: Option<String>,
             notification: Option<String>,
             versioning_status: Option<String>,
             tags: HashMap<String, String>,
@@ -547,6 +560,7 @@ impl StatefulService for S3Service {
                 creation_date,
                 objects,
                 lifecycle: bv.lifecycle_configuration,
+                transition_default_minimum_object_size: bv.transition_default_minimum_object_size,
                 notification: bv.notification_configuration,
                 versioning_status: bv.versioning_status,
                 tags: bv.tags,
@@ -589,6 +603,8 @@ impl StatefulService for S3Service {
                         object_history: HashMap::new(),
                         delete_markers: HashMap::new(),
                         lifecycle_configuration: upd.lifecycle,
+                        transition_default_minimum_object_size: upd
+                            .transition_default_minimum_object_size,
                         notification_configuration: upd.notification,
                         versioning_status: upd.versioning_status,
                         tags: upd.tags,

@@ -20,6 +20,9 @@ pub struct DynamoDbState {
     pub continuous_backups: HashMap<String, ContinuousBackupsConfig>,
     /// Resource policies keyed by resource ARN.
     pub resource_policies: HashMap<String, ResourcePolicy>,
+    /// Table settings ( deletion protection, server-side encryption ) keyed
+    /// by table name. Only non-default settings are stored.
+    pub table_settings: HashMap<String, TableSettings>,
     /// Counter for generating unique backup IDs.
     pub backup_counter: u64,
     /// Global tables keyed by global table name.
@@ -118,6 +121,16 @@ pub enum DynamoDbError {
     ImportNotFound(String),
 }
 
+/// The error `DeleteTable` returns for a table whose deletion protection is
+/// enabled. Shared so every [`crate::DynamoDbBackend`] reports the same text.
+pub fn deletion_protected_error() -> DynamoDbError {
+    DynamoDbError::ValidationError(
+        "Resource cannot be deleted as it is currently protected against deletion. \
+         Disable deletion protection first."
+            .to_string(),
+    )
+}
+
 /// Result of a query or scan.
 #[derive(Clone)]
 pub struct QueryResult {
@@ -206,6 +219,9 @@ impl DynamoDbState {
             local_secondary_indexes,
         };
 
+        // A new table starts from default settings, whatever a restored
+        // snapshot may have left behind under the same name.
+        self.table_settings.remove(name);
         self.tables.insert(
             name.to_string(),
             TableState {
@@ -220,6 +236,17 @@ impl DynamoDbState {
     }
 
     pub fn delete_table(&mut self, name: &str) -> Result<Table, DynamoDbError> {
+        if !self.tables.contains_key(name) {
+            return Err(resource_not_found(name));
+        }
+        if self
+            .table_settings
+            .get(name)
+            .is_some_and(|s| s.deletion_protection_enabled)
+        {
+            return Err(deletion_protected_error());
+        }
+        self.table_settings.remove(name);
         match self.tables.remove(name) {
             Some(mut ts) => {
                 ts.table.table_status = "DELETING".to_string();
@@ -227,6 +254,32 @@ impl DynamoDbState {
             }
             None => Err(resource_not_found(name)),
         }
+    }
+
+    /// The settings of an existing table ( defaults when none were stored ).
+    pub fn describe_table_settings(&self, name: &str) -> Result<TableSettings, DynamoDbError> {
+        if !self.tables.contains_key(name) {
+            return Err(resource_not_found(name));
+        }
+        Ok(self.table_settings.get(name).cloned().unwrap_or_default())
+    }
+
+    /// Apply a partial settings update to an existing table and return the
+    /// resulting settings.
+    pub fn update_table_settings(
+        &mut self,
+        name: &str,
+        update: TableSettingsUpdate,
+    ) -> Result<TableSettings, DynamoDbError> {
+        let mut settings = self.describe_table_settings(name)?;
+        update.apply_to(&mut settings);
+        if settings.is_default() {
+            self.table_settings.remove(name);
+        } else {
+            self.table_settings
+                .insert(name.to_string(), settings.clone());
+        }
+        Ok(settings)
     }
 
     pub fn describe_table(&self, name: &str) -> Result<&Table, DynamoDbError> {

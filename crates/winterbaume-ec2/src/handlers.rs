@@ -11917,12 +11917,7 @@ impl Ec2Service {
         let hosts: Vec<Host> = st
             .dedicated_hosts
             .values()
-            .filter(|h| {
-                if !host_id_params.is_empty() && !host_id_params.contains(&h.host_id) {
-                    return false;
-                }
-                true
-            })
+            .filter(|h| host_id_params.is_empty() || host_id_params.contains(&h.host_id))
             .map(|h| Host {
                 host_id: Some(h.host_id.clone()),
                 availability_zone: Some(h.availability_zone.clone()),
@@ -12034,12 +12029,7 @@ impl Ec2Service {
         let fleets: Vec<FleetData> = st
             .ec2_fleets
             .values()
-            .filter(|f| {
-                if !fleet_id_params.is_empty() && !fleet_id_params.contains(&f.fleet_id) {
-                    return false;
-                }
-                true
-            })
+            .filter(|f| fleet_id_params.is_empty() || fleet_id_params.contains(&f.fleet_id))
             .map(|f| FleetData {
                 fleet_id: Some(f.fleet_id.clone()),
                 fleet_state: Some(f.state.clone()),
@@ -12182,12 +12172,7 @@ impl Ec2Service {
         let items: Vec<ServiceConfiguration> = st
             .vpc_endpoint_service_configs
             .values()
-            .filter(|s| {
-                if !svc_id_params.is_empty() && !svc_id_params.contains(&s.service_id) {
-                    return false;
-                }
-                true
-            })
+            .filter(|s| svc_id_params.is_empty() || svc_id_params.contains(&s.service_id))
             .map(|s| ServiceConfiguration {
                 service_id: Some(s.service_id.clone()),
                 service_name: Some(s.service_name.clone()),
@@ -12783,12 +12768,7 @@ impl Ec2Service {
         let items: Vec<SpotFleetRequestConfig> = st
             .spot_fleet_requests
             .values()
-            .filter(|r| {
-                if !id_params.is_empty() && !id_params.contains(&r.spot_fleet_request_id) {
-                    return false;
-                }
-                true
-            })
+            .filter(|r| id_params.is_empty() || id_params.contains(&r.spot_fleet_request_id))
             .map(|r| SpotFleetRequestConfig {
                 spot_fleet_request_id: Some(r.spot_fleet_request_id.clone()),
                 spot_fleet_request_state: Some(r.spot_fleet_request_state.clone()),

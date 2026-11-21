@@ -9689,3 +9689,620 @@ async fn test_size_of_binary_counts_bytes() {
         );
     }
 }
+
+// ---------------------------------------------------------------------------
+// Table settings: deletion protection (issue #42) and server-side encryption
+// (issue #43)
+// ---------------------------------------------------------------------------
+
+/// A `CreateTable` builder for an on-demand table keyed by `pk` (S).
+fn on_demand_table(
+    client: &aws_sdk_dynamodb::Client,
+    table_name: &str,
+) -> aws_sdk_dynamodb::operation::create_table::builders::CreateTableFluentBuilder {
+    client
+        .create_table()
+        .table_name(table_name)
+        .key_schema(
+            KeySchemaElement::builder()
+                .attribute_name("pk")
+                .key_type(KeyType::Hash)
+                .build()
+                .unwrap(),
+        )
+        .attribute_definitions(
+            AttributeDefinition::builder()
+                .attribute_name("pk")
+                .attribute_type(ScalarAttributeType::S)
+                .build()
+                .unwrap(),
+        )
+        .billing_mode(aws_sdk_dynamodb::types::BillingMode::PayPerRequest)
+}
+
+/// Assert that `DeleteTable` on `table_name` is refused because of deletion
+/// protection, and that the table is still there afterwards.
+async fn assert_delete_refused_by_deletion_protection(
+    client: &aws_sdk_dynamodb::Client,
+    table_name: &str,
+) {
+    use aws_sdk_dynamodb::error::ProvideErrorMetadata;
+
+    let err = client
+        .delete_table()
+        .table_name(table_name)
+        .send()
+        .await
+        .expect_err("DeleteTable must be rejected while deletion protection is on")
+        .into_service_error();
+    assert_eq!(err.code(), Some("ValidationException"));
+    assert_eq!(
+        err.message(),
+        Some(
+            "Resource cannot be deleted as it is currently protected against deletion. \
+             Disable deletion protection first."
+        )
+    );
+
+    let table = client
+        .describe_table()
+        .table_name(table_name)
+        .send()
+        .await
+        .expect("a protected table must survive the rejected DeleteTable")
+        .table
+        .unwrap();
+    assert_eq!(
+        table.table_status(),
+        Some(&aws_sdk_dynamodb::types::TableStatus::Active)
+    );
+    assert_eq!(table.deletion_protection_enabled(), Some(true));
+    let names = client.list_tables().send().await.unwrap();
+    assert!(names.table_names().contains(&table_name.to_string()));
+}
+
+#[tokio::test]
+async fn test_deletion_protection_from_create_table_blocks_delete_table() {
+    let client = make_dynamodb_client().await;
+
+    let created = on_demand_table(&client, "dp-create")
+        .deletion_protection_enabled(true)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        created
+            .table_description()
+            .unwrap()
+            .deletion_protection_enabled(),
+        Some(true),
+        "CreateTable must echo DeletionProtectionEnabled"
+    );
+
+    client
+        .put_item()
+        .table_name("dp-create")
+        .item("pk", AttributeValue::S("kept".into()))
+        .send()
+        .await
+        .unwrap();
+
+    assert_delete_refused_by_deletion_protection(&client, "dp-create").await;
+
+    // The rejected delete left the data alone as well.
+    let item = client
+        .get_item()
+        .table_name("dp-create")
+        .key("pk", AttributeValue::S("kept".into()))
+        .send()
+        .await
+        .unwrap();
+    assert!(item.item().is_some());
+}
+
+#[tokio::test]
+async fn test_deletion_protection_turned_off_allows_delete_table() {
+    let client = make_dynamodb_client().await;
+
+    on_demand_table(&client, "dp-off")
+        .deletion_protection_enabled(true)
+        .send()
+        .await
+        .unwrap();
+    assert_delete_refused_by_deletion_protection(&client, "dp-off").await;
+
+    // An UpdateTable that carries nothing but the deletion protection flag.
+    let updated = client
+        .update_table()
+        .table_name("dp-off")
+        .deletion_protection_enabled(false)
+        .send()
+        .await
+        .expect("UpdateTable toggling only deletion protection must be accepted");
+    assert_eq!(
+        updated
+            .table_description()
+            .unwrap()
+            .deletion_protection_enabled(),
+        Some(false)
+    );
+
+    let deleted = client
+        .delete_table()
+        .table_name("dp-off")
+        .send()
+        .await
+        .expect("DeleteTable must succeed once deletion protection is off");
+    let desc = deleted.table_description().unwrap();
+    assert_eq!(
+        desc.table_status(),
+        Some(&aws_sdk_dynamodb::types::TableStatus::Deleting)
+    );
+    assert_eq!(desc.deletion_protection_enabled(), Some(false));
+
+    let err = client
+        .describe_table()
+        .table_name("dp-off")
+        .send()
+        .await
+        .expect_err("the table must be gone")
+        .into_service_error();
+    assert!(err.is_resource_not_found_exception());
+}
+
+#[tokio::test]
+async fn test_deletion_protection_enabled_through_update_table() {
+    let client = make_dynamodb_client().await;
+
+    let created = on_demand_table(&client, "dp-update").send().await.unwrap();
+    assert_eq!(
+        created
+            .table_description()
+            .unwrap()
+            .deletion_protection_enabled(),
+        Some(false),
+        "deletion protection is off unless requested"
+    );
+
+    let updated = client
+        .update_table()
+        .table_name("dp-update")
+        .deletion_protection_enabled(true)
+        .send()
+        .await
+        .expect("UpdateTable toggling only deletion protection must be accepted");
+    assert_eq!(
+        updated
+            .table_description()
+            .unwrap()
+            .deletion_protection_enabled(),
+        Some(true)
+    );
+
+    assert_delete_refused_by_deletion_protection(&client, "dp-update").await;
+
+    // An unrelated UpdateTable must not clear the flag.
+    client
+        .update_table()
+        .table_name("dp-update")
+        .billing_mode(aws_sdk_dynamodb::types::BillingMode::Provisioned)
+        .provisioned_throughput(
+            ProvisionedThroughput::builder()
+                .read_capacity_units(1)
+                .write_capacity_units(1)
+                .build()
+                .unwrap(),
+        )
+        .send()
+        .await
+        .unwrap();
+    assert_delete_refused_by_deletion_protection(&client, "dp-update").await;
+}
+
+/// A table deleted and re-created under the same name starts unprotected.
+#[tokio::test]
+async fn test_deletion_protection_does_not_outlive_the_table() {
+    let client = make_dynamodb_client().await;
+
+    on_demand_table(&client, "dp-reuse")
+        .deletion_protection_enabled(true)
+        .sse_specification(
+            aws_sdk_dynamodb::types::SseSpecification::builder()
+                .enabled(true)
+                .build(),
+        )
+        .send()
+        .await
+        .unwrap();
+    client
+        .update_table()
+        .table_name("dp-reuse")
+        .deletion_protection_enabled(false)
+        .send()
+        .await
+        .unwrap();
+    client
+        .delete_table()
+        .table_name("dp-reuse")
+        .send()
+        .await
+        .unwrap();
+
+    let recreated = on_demand_table(&client, "dp-reuse").send().await.unwrap();
+    let desc = recreated.table_description().unwrap();
+    assert_eq!(desc.deletion_protection_enabled(), Some(false));
+    assert!(desc.sse_description().is_none());
+    client
+        .delete_table()
+        .table_name("dp-reuse")
+        .send()
+        .await
+        .expect("the re-created table is not protected");
+}
+
+/// Assert an `SSEDescription` of an enabled KMS-encrypted table and return
+/// its key ARN.
+fn assert_sse_enabled(desc: &aws_sdk_dynamodb::types::TableDescription) -> String {
+    let sse = desc
+        .sse_description()
+        .expect("SSEDescription must be present when SSE is enabled");
+    assert_eq!(
+        sse.status(),
+        Some(&aws_sdk_dynamodb::types::SseStatus::Enabled)
+    );
+    assert_eq!(sse.sse_type(), Some(&aws_sdk_dynamodb::types::SseType::Kms));
+    sse.kms_master_key_arn()
+        .expect("KMSMasterKeyArn must be present")
+        .to_string()
+}
+
+#[tokio::test]
+async fn test_sse_enabled_without_key_reports_aws_managed_key() {
+    let client = make_dynamodb_client().await;
+    let sse_on = aws_sdk_dynamodb::types::SseSpecification::builder()
+        .enabled(true)
+        .build();
+
+    let created = on_demand_table(&client, "sse-managed")
+        .sse_specification(sse_on.clone())
+        .send()
+        .await
+        .unwrap();
+    let desc = created.table_description().unwrap();
+    let created_arn = assert_sse_enabled(desc);
+
+    // arn:aws:dynamodb:<region>:<account>:table/<name>
+    let table_arn = desc.table_arn().unwrap();
+    let account = table_arn.split(':').nth(4).unwrap();
+    let prefix = format!("arn:aws:kms:us-east-1:{account}:key/");
+    let key_id = created_arn
+        .strip_prefix(&prefix)
+        .unwrap_or_else(|| panic!("{created_arn} should start with {prefix}"));
+    let groups: Vec<usize> = key_id.split('-').map(str::len).collect();
+    assert_eq!(groups, [8, 4, 4, 4, 12], "key id {key_id} is UUID-shaped");
+    assert!(key_id.chars().all(|c| c == '-' || c.is_ascii_hexdigit()));
+
+    let described = client
+        .describe_table()
+        .table_name("sse-managed")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(assert_sse_enabled(described.table().unwrap()), created_arn);
+
+    // The AWS managed key is per account and region, not per table.
+    let other = on_demand_table(&client, "sse-managed-2")
+        .sse_specification(sse_on)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        assert_sse_enabled(other.table_description().unwrap()),
+        created_arn
+    );
+}
+
+#[tokio::test]
+async fn test_sse_enabled_with_explicit_key_reports_its_arn() {
+    let client = make_dynamodb_client().await;
+
+    let probe = on_demand_table(&client, "sse-probe").send().await.unwrap();
+    let account = probe
+        .table_description()
+        .unwrap()
+        .table_arn()
+        .unwrap()
+        .split(':')
+        .nth(4)
+        .unwrap()
+        .to_string();
+
+    let key_id = "1234abcd-12ab-34cd-56ef-1234567890ab";
+    let cases = [
+        (
+            "sse-key-id",
+            key_id.to_string(),
+            format!("arn:aws:kms:us-east-1:{account}:key/{key_id}"),
+        ),
+        (
+            "sse-key-arn",
+            format!("arn:aws:kms:eu-west-1:210987654321:key/{key_id}"),
+            format!("arn:aws:kms:eu-west-1:210987654321:key/{key_id}"),
+        ),
+        (
+            "sse-alias-name",
+            "alias/my-table-key".to_string(),
+            format!("arn:aws:kms:us-east-1:{account}:alias/my-table-key"),
+        ),
+        (
+            "sse-alias-arn",
+            format!("arn:aws:kms:us-east-1:{account}:alias/my-table-key"),
+            format!("arn:aws:kms:us-east-1:{account}:alias/my-table-key"),
+        ),
+    ];
+
+    for (table_name, key, expected_arn) in cases {
+        let created = on_demand_table(&client, table_name)
+            .sse_specification(
+                aws_sdk_dynamodb::types::SseSpecification::builder()
+                    .enabled(true)
+                    .sse_type(aws_sdk_dynamodb::types::SseType::Kms)
+                    .kms_master_key_id(key)
+                    .build(),
+            )
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(
+            assert_sse_enabled(created.table_description().unwrap()),
+            expected_arn,
+            "CreateTable {table_name}"
+        );
+
+        let described = client
+            .describe_table()
+            .table_name(table_name)
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(
+            assert_sse_enabled(described.table().unwrap()),
+            expected_arn,
+            "DescribeTable {table_name}"
+        );
+    }
+}
+
+#[tokio::test]
+async fn test_sse_description_absent_unless_enabled() {
+    let client = make_dynamodb_client().await;
+
+    // No SSESpecification at all.
+    let created = on_demand_table(&client, "sse-none").send().await.unwrap();
+    assert!(
+        created
+            .table_description()
+            .unwrap()
+            .sse_description()
+            .is_none()
+    );
+
+    // SSESpecification with Enabled = false: the AWS owned key.
+    let created = on_demand_table(&client, "sse-false")
+        .sse_specification(
+            aws_sdk_dynamodb::types::SseSpecification::builder()
+                .enabled(false)
+                .build(),
+        )
+        .send()
+        .await
+        .unwrap();
+    assert!(
+        created
+            .table_description()
+            .unwrap()
+            .sse_description()
+            .is_none()
+    );
+
+    for table_name in ["sse-none", "sse-false"] {
+        let described = client
+            .describe_table()
+            .table_name(table_name)
+            .send()
+            .await
+            .unwrap();
+        assert!(
+            described.table().unwrap().sse_description().is_none(),
+            "DescribeTable {table_name}"
+        );
+    }
+}
+
+#[tokio::test]
+async fn test_sse_changed_through_update_table() {
+    let client = make_dynamodb_client().await;
+    on_demand_table(&client, "sse-update").send().await.unwrap();
+
+    let key_arn = "arn:aws:kms:us-east-1:123456789012:key/1234abcd-12ab-34cd-56ef-1234567890ab";
+    let updated = client
+        .update_table()
+        .table_name("sse-update")
+        .sse_specification(
+            aws_sdk_dynamodb::types::SseSpecification::builder()
+                .enabled(true)
+                .kms_master_key_id(key_arn)
+                .build(),
+        )
+        .send()
+        .await
+        .expect("UpdateTable carrying only SSESpecification must be accepted");
+    assert_eq!(
+        assert_sse_enabled(updated.table_description().unwrap()),
+        key_arn
+    );
+
+    // An unrelated UpdateTable keeps the encryption setting.
+    let updated = client
+        .update_table()
+        .table_name("sse-update")
+        .deletion_protection_enabled(true)
+        .send()
+        .await
+        .unwrap();
+    let desc = updated.table_description().unwrap();
+    assert_eq!(assert_sse_enabled(desc), key_arn);
+    assert_eq!(desc.deletion_protection_enabled(), Some(true));
+
+    // Back to the AWS owned key; deletion protection is left alone.
+    let updated = client
+        .update_table()
+        .table_name("sse-update")
+        .sse_specification(
+            aws_sdk_dynamodb::types::SseSpecification::builder()
+                .enabled(false)
+                .build(),
+        )
+        .send()
+        .await
+        .unwrap();
+    let desc = updated.table_description().unwrap();
+    assert!(desc.sse_description().is_none());
+    assert_eq!(desc.deletion_protection_enabled(), Some(true));
+
+    let described = client
+        .describe_table()
+        .table_name("sse-update")
+        .send()
+        .await
+        .unwrap();
+    let desc = described.table().unwrap();
+    assert!(desc.sse_description().is_none());
+    assert_eq!(desc.deletion_protection_enabled(), Some(true));
+}
+
+#[tokio::test]
+async fn test_update_table_settings_on_missing_table_is_not_found() {
+    let client = make_dynamodb_client().await;
+
+    let err = client
+        .update_table()
+        .table_name("no-such-table")
+        .deletion_protection_enabled(true)
+        .send()
+        .await
+        .expect_err("UpdateTable on a missing table must fail")
+        .into_service_error();
+    assert!(err.is_resource_not_found_exception());
+
+    // The failed update must not leave settings behind for a later table.
+    let created = on_demand_table(&client, "no-such-table")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        created
+            .table_description()
+            .unwrap()
+            .deletion_protection_enabled(),
+        Some(false)
+    );
+}
+
+/// Table settings travel through the state view, and a snapshot taken before
+/// they were modelled still restores (as an unprotected, unencrypted table).
+#[tokio::test]
+async fn test_table_settings_survive_snapshot_restore() {
+    use winterbaume_core::StatefulService;
+    use winterbaume_dynamodb::views::DynamodbStateView;
+
+    async fn client_for(svc: DynamoDbService) -> aws_sdk_dynamodb::Client {
+        let mock = MockAws::builder().with_service(svc).build();
+        let config = aws_config::defaults(BehaviorVersion::latest())
+            .http_client(mock.http_client())
+            .credentials_provider(mock.credentials_provider())
+            .region(aws_sdk_dynamodb::config::Region::new("us-east-1"))
+            .load()
+            .await;
+        aws_sdk_dynamodb::Client::new(&config)
+    }
+
+    // Keep a handle on the service so its state can be snapshotted.
+    let source = std::sync::Arc::new(DynamoDbService::new());
+    let mock = MockAws::builder().with_service(source.clone()).build();
+    let config = aws_config::defaults(BehaviorVersion::latest())
+        .http_client(mock.http_client())
+        .credentials_provider(mock.credentials_provider())
+        .region(aws_sdk_dynamodb::config::Region::new("us-east-1"))
+        .load()
+        .await;
+    let client = aws_sdk_dynamodb::Client::new(&config);
+
+    let created = on_demand_table(&client, "snap-settings")
+        .deletion_protection_enabled(true)
+        .sse_specification(
+            aws_sdk_dynamodb::types::SseSpecification::builder()
+                .enabled(true)
+                .kms_master_key_id("alias/snap-key")
+                .build(),
+        )
+        .send()
+        .await
+        .unwrap();
+    let desc = created.table_description().unwrap();
+    let key_arn = assert_sse_enabled(desc);
+    let account = desc
+        .table_arn()
+        .unwrap()
+        .split(':')
+        .nth(4)
+        .unwrap()
+        .to_string();
+    on_demand_table(&client, "snap-plain").send().await.unwrap();
+
+    let view = source.snapshot(&account, "us-east-1").await;
+    let mut json = serde_json::to_value(&view).expect("serialize DynamodbStateView");
+    assert!(
+        json["table_settings"].get("snap-plain").is_none(),
+        "default settings are not written to the snapshot"
+    );
+
+    // Round trip through JSON into a fresh service.
+    let restored: DynamodbStateView = serde_json::from_value(json.clone()).unwrap();
+    let svc = DynamoDbService::new();
+    svc.restore(&account, "us-east-1", restored).await.unwrap();
+    let client = client_for(svc).await;
+    let described = client
+        .describe_table()
+        .table_name("snap-settings")
+        .send()
+        .await
+        .unwrap();
+    let desc = described.table().unwrap();
+    assert_eq!(desc.deletion_protection_enabled(), Some(true));
+    assert_eq!(assert_sse_enabled(desc), key_arn);
+    assert_delete_refused_by_deletion_protection(&client, "snap-settings").await;
+
+    // A snapshot from before the settings existed has no `table_settings`.
+    json.as_object_mut().unwrap().remove("table_settings");
+    let legacy: DynamodbStateView =
+        serde_json::from_value(json).expect("snapshots without table_settings still load");
+    let svc = DynamoDbService::new();
+    svc.restore(&account, "us-east-1", legacy).await.unwrap();
+    let client = client_for(svc).await;
+    let described = client
+        .describe_table()
+        .table_name("snap-settings")
+        .send()
+        .await
+        .unwrap();
+    let desc = described.table().unwrap();
+    assert_eq!(desc.deletion_protection_enabled(), Some(false));
+    assert!(desc.sse_description().is_none());
+    client
+        .delete_table()
+        .table_name("snap-settings")
+        .send()
+        .await
+        .expect("no protection was recorded in the legacy snapshot");
+}

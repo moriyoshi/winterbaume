@@ -11,7 +11,7 @@ use crate::state::{DynamoDbState, TableState};
 use crate::types::{
     AttributeDefinition, ContinuousBackupsConfig, ContributorInsightsConfig, DynamoDbTag,
     GlobalSecondaryIndexDef, GlobalTableInfo, Item, KeySchemaElement, KinesisStreamingDestination,
-    LocalSecondaryIndexDef, ProvisionedThroughput, ResourcePolicy, Table, TtlConfig,
+    LocalSecondaryIndexDef, ProvisionedThroughput, ResourcePolicy, Table, TableSettings, TtlConfig,
 };
 
 /// Serializable view of the entire DynamoDB state for one account/region.
@@ -41,6 +41,39 @@ pub struct DynamodbStateView {
     /// Contributor Insights keyed by "table_name" or "table_name/index_name".
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub contributor_insights: HashMap<String, ContributorInsightsConfigView>,
+    /// Table settings ( deletion protection, server-side encryption ) keyed
+    /// by table name. Absent for tables that only have default settings, and
+    /// absent from snapshots taken before the settings were modelled.
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
+    pub table_settings: HashMap<String, TableSettingsView>,
+}
+
+/// Serializable view of the settings stored beside a table.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct TableSettingsView {
+    #[serde(default)]
+    pub deletion_protection_enabled: bool,
+    /// ARN of the KMS key when server-side encryption with KMS is enabled.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sse_kms_master_key_arn: Option<String>,
+}
+
+impl From<&TableSettings> for TableSettingsView {
+    fn from(s: &TableSettings) -> Self {
+        TableSettingsView {
+            deletion_protection_enabled: s.deletion_protection_enabled,
+            sse_kms_master_key_arn: s.sse_kms_master_key_arn.clone(),
+        }
+    }
+}
+
+impl From<TableSettingsView> for TableSettings {
+    fn from(v: TableSettingsView) -> Self {
+        TableSettings {
+            deletion_protection_enabled: v.deletion_protection_enabled,
+            sse_kms_master_key_arn: v.sse_kms_master_key_arn,
+        }
+    }
 }
 
 /// Serializable view of a single DynamoDB table and its items.
@@ -222,6 +255,12 @@ impl From<&DynamoDbState> for DynamodbStateView {
                 .iter()
                 .map(|(k, v)| (k.clone(), ContributorInsightsConfigView::from(v)))
                 .collect(),
+            table_settings: state
+                .table_settings
+                .iter()
+                .filter(|(name, s)| !s.is_default() && state.tables.contains_key(*name))
+                .map(|(k, v)| (k.clone(), TableSettingsView::from(v)))
+                .collect(),
         }
     }
 }
@@ -397,6 +436,12 @@ impl From<DynamodbStateView> for DynamoDbState {
                 .map(|(k, v)| (k, TtlConfig::from(v)))
                 .collect(),
             backups: HashMap::new(),
+            table_settings: view
+                .table_settings
+                .into_iter()
+                .map(|(k, v)| (k, TableSettings::from(v)))
+                .filter(|(_, s)| !s.is_default())
+                .collect(),
             continuous_backups: view
                 .continuous_backups
                 .into_iter()

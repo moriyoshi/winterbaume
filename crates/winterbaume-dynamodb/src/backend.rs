@@ -90,6 +90,40 @@ pub trait DynamoDbBackend: Send + Sync {
         stream_view_type: Option<String>,
     ) -> Pin<Box<dyn Future<Output = Result<Table, DynamoDbError>> + Send>>;
 
+    /// Return the settings stored beside a table ( deletion protection and
+    /// server-side encryption ).
+    ///
+    /// The provided implementation is for backends that do not persist table
+    /// settings: it reports the defaults. A backend that overrides
+    /// [`Self::update_table_settings`] must override this as well, reject
+    /// `delete_table` with [`crate::state::deletion_protected_error`] while
+    /// deletion protection is enabled, drop the settings when the table is
+    /// deleted, and carry them through `snapshot` / `restore` / `merge` as
+    /// [`DynamodbStateView::table_settings`].
+    fn describe_table_settings(
+        &self,
+        _account_id: String,
+        _region: String,
+        _name: String,
+    ) -> Pin<Box<dyn Future<Output = Result<TableSettings, DynamoDbError>> + Send>> {
+        Box::pin(async { Ok(TableSettings::default()) })
+    }
+
+    /// Apply a partial update to a table's settings and return the result.
+    ///
+    /// The provided implementation is for backends that do not persist table
+    /// settings: it stores nothing and reports the defaults, so the requested
+    /// setting is not honoured. See [`Self::describe_table_settings`].
+    fn update_table_settings(
+        &self,
+        _account_id: String,
+        _region: String,
+        _name: String,
+        _update: TableSettingsUpdate,
+    ) -> Pin<Box<dyn Future<Output = Result<TableSettings, DynamoDbError>> + Send>> {
+        Box::pin(async { Ok(TableSettings::default()) })
+    }
+
     fn list_streams(
         &self,
         account_id: String,
@@ -667,6 +701,35 @@ impl DynamoDbBackend for InMemoryDynamoDbBackend {
             let mut s = lock.write().await;
             s.update_table(&name, billing_mode.as_deref(), provisioned_throughput)
                 .cloned()
+        })
+    }
+
+    fn describe_table_settings(
+        &self,
+        account_id: String,
+        region: String,
+        name: String,
+    ) -> Pin<Box<dyn Future<Output = Result<TableSettings, DynamoDbError>> + Send>> {
+        let state = Arc::clone(&self.state);
+        Box::pin(async move {
+            let lock = state.get(&account_id, &region);
+            let s = lock.read().await;
+            s.describe_table_settings(&name)
+        })
+    }
+
+    fn update_table_settings(
+        &self,
+        account_id: String,
+        region: String,
+        name: String,
+        update: TableSettingsUpdate,
+    ) -> Pin<Box<dyn Future<Output = Result<TableSettings, DynamoDbError>> + Send>> {
+        let state = Arc::clone(&self.state);
+        Box::pin(async move {
+            let lock = state.get(&account_id, &region);
+            let mut s = lock.write().await;
+            s.update_table_settings(&name, update)
         })
     }
 
@@ -1514,6 +1577,14 @@ impl DynamoDbBackend for InMemoryDynamoDbBackend {
                 guard
                     .tags
                     .insert(arn, tags.into_iter().map(DynamoDbTag::from).collect());
+            }
+            for (name, settings) in view.table_settings {
+                let settings = TableSettings::from(settings);
+                if settings.is_default() {
+                    guard.table_settings.remove(&name);
+                } else {
+                    guard.table_settings.insert(name, settings);
+                }
             }
             for (name, ttl) in view.ttl_configs {
                 guard.ttl_configs.insert(name, TtlConfig::from(ttl));

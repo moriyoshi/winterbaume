@@ -186,7 +186,11 @@ impl EventsState {
 
         for target in targets {
             // Replace existing target with same ID, or add new
-            if let Some(existing) = rule.targets.iter_mut().find(|t| t.id == target.id) {
+            if let Some(existing) = rule
+                .targets
+                .iter_mut()
+                .find(|t| t.spec.id == target.spec.id)
+            {
                 *existing = target;
             } else {
                 rule.targets.push(target);
@@ -201,7 +205,7 @@ impl EventsState {
             .get_mut(rule_name)
             .ok_or_else(|| not_found_error("Rule", rule_name))?;
 
-        rule.targets.retain(|t| !ids.contains(&t.id));
+        rule.targets.retain(|t| !ids.contains(&t.spec.id));
         Ok(())
     }
 
@@ -823,7 +827,7 @@ impl EventsState {
     pub fn list_rule_names_by_target(&self, target_arn: &str) -> Vec<String> {
         self.rules
             .values()
-            .filter(|r| r.targets.iter().any(|t| t.arn == target_arn))
+            .filter(|r| r.targets.iter().any(|t| t.spec.arn == target_arn))
             .map(|r| r.name.clone())
             .collect()
     }

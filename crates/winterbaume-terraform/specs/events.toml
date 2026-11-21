@@ -147,6 +147,15 @@ hcl = "event_bus_name"
 view = "event_bus_name"
 type = "string?"
 
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string?"
+
+# The nested target blocks ( retry_policy, dead_letter_config, input_transformer,
+# ecs_target, ... ) are read raw in converter and reshaped into the API-shaped
+# members of TargetView.extra.
+
 # ---------------------------------------------------------------------------
 # aws_cloudwatch_event_api_destination
 # ---------------------------------------------------------------------------

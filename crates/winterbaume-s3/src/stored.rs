@@ -180,6 +180,8 @@ pub struct StoredBucketConfig {
     pub intelligent_tiering_configurations: HashMap<String, String>,
     pub metrics_configurations: HashMap<String, String>,
     pub lifecycle_configuration: Option<String>,
+    #[serde(default)]
+    pub transition_default_minimum_object_size: Option<String>,
     pub notification_configuration: Option<String>,
     pub abac_status: Option<String>,
     pub metadata_table_configuration: Option<String>,
@@ -211,6 +213,9 @@ impl StoredBucketConfig {
             intelligent_tiering_configurations: bs.intelligent_tiering_configurations.clone(),
             metrics_configurations: bs.metrics_configurations.clone(),
             lifecycle_configuration: bs.lifecycle_configuration.clone(),
+            transition_default_minimum_object_size: bs
+                .transition_default_minimum_object_size
+                .clone(),
             notification_configuration: bs.notification_configuration.clone(),
             abac_status: bs.abac_status.clone(),
             metadata_table_configuration: bs.metadata_table_configuration.clone(),

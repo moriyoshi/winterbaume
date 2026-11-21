@@ -33,6 +33,94 @@ pub struct Table {
     pub local_secondary_indexes: Vec<LocalSecondaryIndexDef>,
 }
 
+/// Table-level settings stored beside the [`Table`] metadata rather than on
+/// it, so that backends and snapshot producers that build `Table` values
+/// field by field keep compiling when a setting is added.
+///
+/// A table with no stored settings has `TableSettings::default()`.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct TableSettings {
+    /// `DeletionProtectionEnabled`: `DeleteTable` is rejected while set.
+    pub deletion_protection_enabled: bool,
+    /// ARN of the KMS key used for server-side encryption. `Some` means the
+    /// table reports an `SSEDescription` ( `ENABLED` / `KMS` ); `None` means
+    /// it is encrypted with the AWS owned key and reports none.
+    pub sse_kms_master_key_arn: Option<String>,
+}
+
+impl TableSettings {
+    /// Whether these are the settings of a table that never had any stored.
+    pub fn is_default(&self) -> bool {
+        *self == TableSettings::default()
+    }
+}
+
+/// ARN reported for the AWS managed key `alias/aws/dynamodb`, used when
+/// server-side encryption with KMS is enabled without naming a key.
+///
+/// There is one such key per account and region; its key id is derived from
+/// the two, so every table in the same account and region reports the same
+/// ARN and the value does not change between builds.
+pub fn aws_managed_kms_key_arn(account_id: &str, region: &str) -> String {
+    /// 64-bit FNV-1a ( unlike `DefaultHasher`, its output is specified ).
+    fn fnv1a_64(bytes: &[u8], offset_basis: u64) -> u64 {
+        bytes.iter().fold(offset_basis, |h, b| {
+            (h ^ u64::from(*b)).wrapping_mul(0x0000_0100_0000_01b3)
+        })
+    }
+
+    let seed = format!("{account_id}/{region}/alias/aws/dynamodb");
+    let hi = fnv1a_64(seed.as_bytes(), 0xcbf2_9ce4_8422_2325);
+    let lo = fnv1a_64(seed.as_bytes(), hi);
+    // The 128 bits `hi:lo`, laid out as the 8-4-4-4-12 hex groups of a key id.
+    format!(
+        "arn:aws:kms:{region}:{account_id}:key/{:08x}-{:04x}-{:04x}-{:04x}-{:012x}",
+        hi >> 32,
+        (hi >> 16) & 0xffff,
+        hi & 0xffff,
+        lo >> 48,
+        lo & 0xffff_ffff_ffff,
+    )
+}
+
+/// A requested change to the server-side encryption of a table.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum SseUpdate {
+    /// `SSESpecification.Enabled = false`: back to the AWS owned key.
+    Disabled,
+    /// `SSESpecification.Enabled = true`, with the KMS key already resolved
+    /// to an ARN.
+    Kms { kms_master_key_arn: String },
+}
+
+/// A partial update to [`TableSettings`]; `None` leaves a setting untouched.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct TableSettingsUpdate {
+    pub deletion_protection_enabled: Option<bool>,
+    pub sse: Option<SseUpdate>,
+}
+
+impl TableSettingsUpdate {
+    /// Whether the update changes nothing.
+    pub fn is_empty(&self) -> bool {
+        self.deletion_protection_enabled.is_none() && self.sse.is_none()
+    }
+
+    /// Apply the update to `settings`.
+    pub fn apply_to(self, settings: &mut TableSettings) {
+        if let Some(enabled) = self.deletion_protection_enabled {
+            settings.deletion_protection_enabled = enabled;
+        }
+        match self.sse {
+            Some(SseUpdate::Kms { kms_master_key_arn }) => {
+                settings.sse_kms_master_key_arn = Some(kms_master_key_arn);
+            }
+            Some(SseUpdate::Disabled) => settings.sse_kms_master_key_arn = None,
+            None => {}
+        }
+    }
+}
+
 /// A global secondary index definition stored on the table.
 #[derive(Debug, Clone)]
 pub struct GlobalSecondaryIndexDef {
@@ -714,6 +802,30 @@ mod tests {
     fn binary_len_counts_decoded_bytes() {
         for (value, expected) in [("", 0), ("AQ==", 1), ("AQ", 1), ("AQI=", 2), ("AQID", 3)] {
             assert_eq!(binary_len(value), expected, "{value:?}");
+        }
+    }
+
+    /// The key id is derived, not random: pin one value so that a change to
+    /// the derivation or its formatting cannot silently move every table's
+    /// reported key. The groups carry leading zeros.
+    #[test]
+    fn aws_managed_kms_key_arn_is_stable() {
+        assert_eq!(
+            super::aws_managed_kms_key_arn("123456789012", "us-east-1"),
+            "arn:aws:kms:us-east-1:123456789012:key/bb88e535-d5a5-9272-320a-1352fe497d73"
+        );
+        for (account, region) in [
+            ("000000000000", "eu-west-1"),
+            ("210987654321", "ap-northeast-1"),
+        ] {
+            let arn = super::aws_managed_kms_key_arn(account, region);
+            let id = arn.rsplit('/').next().unwrap();
+            let groups: Vec<usize> = id.split('-').map(str::len).collect();
+            assert_eq!(groups, [8, 4, 4, 4, 12], "{arn}");
+            assert!(
+                id.chars().all(|c| c == '-' || c.is_ascii_hexdigit()),
+                "{arn}"
+            );
         }
     }
 }

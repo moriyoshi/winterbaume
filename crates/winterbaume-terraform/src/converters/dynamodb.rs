@@ -4,8 +4,10 @@
 //! template (with `id` fallback), the `attribute` /
 //! `global_secondary_index` / `local_secondary_index` / `replica`
 //! nested-block parsing, the merged tags_all+tags collection, the
-//! `import_table` / `on_demand_throughput` raw-JSON capture, and the
-//! `creation_date_time` / `table_status` constants are wired up here.
+//! `import_table` / `on_demand_throughput` raw-JSON capture, the
+//! `server_side_encryption` block ( stored with `deletion_protection_enabled`
+//! as the table's settings ), and the `creation_date_time` / `table_status`
+//! constants are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -15,11 +17,12 @@ use std::sync::Arc;
 use chrono::Utc;
 use winterbaume_core::StatefulService;
 use winterbaume_dynamodb::DynamoDbService;
-use winterbaume_dynamodb::types::AttributeValue;
+use winterbaume_dynamodb::types::{AttributeValue, aws_managed_kms_key_arn};
 use winterbaume_dynamodb::views::{
     AttributeDefinitionView, ContributorInsightsConfigView, DynamoDbTagView, DynamodbStateView,
     GlobalTableInfoView, KeySchemaElementView, KinesisStreamingDestinationView,
-    ProvisionedThroughputView, ResourcePolicyView, SecondaryIndexView, TableStateView,
+    ProvisionedThroughputView, ResourcePolicyView, SecondaryIndexView, TableSettingsView,
+    TableStateView,
 };
 use winterbaume_tfstate::ResourceInstance;
 
@@ -174,6 +177,13 @@ impl AwsDynamodbTableConverter {
             .get("on_demand_throughput")
             .and_then(|v| if v.is_null() { None } else { Some(v.clone()) });
 
+        // Table settings. An entry is always written, default or not, so that
+        // re-injecting a table replaces whatever settings it had before.
+        let table_settings = TableSettingsView {
+            deletion_protection_enabled: model.deletion_protection_enabled,
+            sse_kms_master_key_arn: parse_sse_kms_key_arn(attrs, &ctx.default_account_id, &region),
+        };
+
         let table_view = TableStateView {
             name: model.name.clone(),
             arn: arn.clone(),
@@ -202,6 +212,9 @@ impl AwsDynamodbTableConverter {
         let mut state_view = DynamodbStateView {
             ..Default::default()
         };
+        state_view
+            .table_settings
+            .insert(model.name.clone(), table_settings);
         state_view.tables.insert(model.name, table_view);
         if !tags.is_empty() {
             state_view.tags.insert(arn, tags);
@@ -246,10 +259,18 @@ impl AwsDynamodbTableConverter {
                 .iter()
                 .map(|a| serde_json::json!({"name": a.attribute_name, "type": a.attribute_type}))
                 .collect();
+            let settings = view.table_settings.get(&table.name);
+            let server_side_encryption =
+                match settings.and_then(|s| s.sse_kms_master_key_arn.as_deref()) {
+                    Some(arn) => serde_json::json!([{"enabled": true, "kms_key_arn": arn}]),
+                    None => serde_json::json!([{"enabled": false}]),
+                };
             let attrs = serde_json::json!({
                 "id": table.name,
                 "name": table.name,
                 "arn": table.arn,
+                "deletion_protection_enabled": settings
+                    .is_some_and(|s| s.deletion_protection_enabled),
                 "hash_key": table.hash_key_attr,
                 "range_key": table.range_key_attr,
                 "billing_mode": table.billing_mode,
@@ -262,7 +283,7 @@ impl AwsDynamodbTableConverter {
                 "tags_all": tags,
                 "point_in_time_recovery": [{"enabled": false}],
                 "ttl": [{"enabled": false, "attribute_name": ""}],
-                "server_side_encryption": [{"enabled": false}],
+                "server_side_encryption": server_side_encryption,
                 "table_class": "STANDARD",
                 "attribute": attribute_defs_json,
                 "global_secondary_index": table.global_secondary_index,
@@ -280,6 +301,33 @@ impl AwsDynamodbTableConverter {
         }
         Ok(results)
     }
+}
+
+/// Read the `server_side_encryption` block: `Some(key ARN)` when it is
+/// enabled, `None` when it is absent or disabled ( the AWS owned key ).
+///
+/// The provider records the key in `kms_key_arn`; when that is empty the
+/// table uses the AWS managed key `alias/aws/dynamodb`.
+fn parse_sse_kms_key_arn(
+    attrs: &serde_json::Value,
+    account_id: &str,
+    region: &str,
+) -> Option<String> {
+    let block = attrs
+        .get("server_side_encryption")
+        .and_then(|v| v.as_array())
+        .and_then(|blocks| blocks.first())?;
+    if block.get("enabled").and_then(|v| v.as_bool()) != Some(true) {
+        return None;
+    }
+    Some(
+        block
+            .get("kms_key_arn")
+            .and_then(|v| v.as_str())
+            .filter(|arn| !arn.is_empty())
+            .map(str::to_string)
+            .unwrap_or_else(|| aws_managed_kms_key_arn(account_id, region)),
+    )
 }
 
 fn parse_secondary_index_blocks(attrs: &serde_json::Value, field: &str) -> Vec<SecondaryIndexView> {

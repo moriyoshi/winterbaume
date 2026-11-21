@@ -80,6 +80,12 @@ hcl = "stream_view_type"
 view = "stream_view_type"
 type = "string?"
 
+[[resource.field]]
+hcl = "deletion_protection_enabled"
+view = "deletion_protection_enabled"
+type = "bool"
+default = false
+
 # ---------------------------------------------------------------------------
 # aws_dynamodb_contributor_insights
 # ---------------------------------------------------------------------------

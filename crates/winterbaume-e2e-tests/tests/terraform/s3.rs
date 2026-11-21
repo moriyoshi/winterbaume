@@ -196,3 +196,77 @@ resource "aws_s3_bucket_ownership_controls" "s3_bucket_full" {
     assert!(result.success, "terraform apply failed:\n{}", result.stderr);
     assert!(result.state.contains("full-stack-test-bucket"));
 }
+
+// Regression for issue #41: the provider polls GetBucketLifecycleConfiguration
+// after the put until the rules and `x-amz-transition-default-minimum-object-size`
+// read back as sent, so the apply only converges when both responses carry it.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+#[ignore]
+async fn test_s3_bucket_lifecycle_configuration() {
+    let result = batch_apply(
+        r#"
+resource "aws_s3_bucket" "s3_bucket_lifecycle" {
+  bucket = "lifecycle-test-bucket"
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "s3_bucket_lifecycle" {
+  bucket = aws_s3_bucket.s3_bucket_lifecycle.id
+
+  rule {
+    id     = "expire-tmp"
+    status = "Enabled"
+
+    filter {
+      prefix = "tmp/"
+    }
+
+    expiration {
+      days = 7
+    }
+  }
+}
+"#,
+    )
+    .await;
+    assert!(result.success, "terraform apply failed:\n{}", result.stderr);
+    assert!(result.state.contains("lifecycle-test-bucket"));
+    assert!(result.state.contains("expire-tmp"));
+    assert!(result.state.contains("all_storage_classes_128K"));
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+#[ignore]
+async fn test_s3_bucket_lifecycle_configuration_varies_by_storage_class() {
+    let result = batch_apply(
+        r#"
+resource "aws_s3_bucket" "s3_bucket_lifecycle_varies" {
+  bucket = "lifecycle-varies-test-bucket"
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "s3_bucket_lifecycle_varies" {
+  bucket = aws_s3_bucket.s3_bucket_lifecycle_varies.id
+
+  transition_default_minimum_object_size = "varies_by_storage_class"
+
+  rule {
+    id     = "archive-logs"
+    status = "Enabled"
+
+    filter {
+      prefix = "logs/"
+    }
+
+    transition {
+      days          = 30
+      storage_class = "GLACIER"
+    }
+  }
+}
+"#,
+    )
+    .await;
+    assert!(result.success, "terraform apply failed:\n{}", result.stderr);
+    assert!(result.state.contains("lifecycle-varies-test-bucket"));
+    assert!(result.state.contains("archive-logs"));
+    assert!(result.state.contains("varies_by_storage_class"));
+}

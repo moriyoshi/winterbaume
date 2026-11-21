@@ -5774,3 +5774,634 @@ async fn test_list_tags_with_nonexistent_code_signing_config_arn() {
         "list_tags on nonexistent code-signing-config ARN should fail"
     );
 }
+
+// ========== Issue #44: AddPermission condition inputs ==========
+//
+// Every condition-producing AddPermission input must land in the statement's
+// single `Condition` object, both in the AddPermission response and in
+// GetPolicy.  Before the fix only SourceArn was rendered; the function-URL
+// inputs (and SourceAccount / PrincipalOrgID / EventSourceToken) were dropped,
+// so a URL-only grant read back as an unconditional one.
+
+/// Parse a policy / statement JSON string returned by the service.
+fn parse_policy_json(raw: &str) -> serde_json::Value {
+    serde_json::from_str(raw).expect("service must return valid policy JSON")
+}
+
+/// Find the statement with the given Sid in a GetPolicy document.
+async fn get_policy_statement(
+    client: &aws_sdk_lambda::Client,
+    function_name: &str,
+    sid: &str,
+) -> serde_json::Value {
+    let resp = client
+        .get_policy()
+        .function_name(function_name)
+        .send()
+        .await
+        .expect("get_policy should succeed");
+    let policy = parse_policy_json(resp.policy().expect("policy body"));
+    policy["Statement"]
+        .as_array()
+        .expect("Statement array")
+        .iter()
+        .find(|s| s["Sid"] == sid)
+        .unwrap_or_else(|| panic!("statement {sid} missing from {policy}"))
+        .clone()
+}
+
+#[tokio::test]
+async fn test_add_permission_function_url_auth_type_condition() {
+    use aws_sdk_lambda::types::FunctionUrlAuthType;
+
+    let client = make_lambda_client().await;
+    create_test_function(&client, "url-auth-perm-func").await;
+
+    let resp = client
+        .add_permission()
+        .function_name("url-auth-perm-func")
+        .statement_id("url")
+        .action("lambda:InvokeFunctionUrl")
+        .principal("*")
+        .function_url_auth_type(FunctionUrlAuthType::None)
+        .send()
+        .await
+        .expect("add_permission should succeed");
+
+    let expected = serde_json::json!({
+        "StringEquals": {"lambda:FunctionUrlAuthType": "NONE"}
+    });
+    let added = parse_policy_json(resp.statement().expect("statement"));
+    assert_eq!(added["Sid"], "url");
+    assert_eq!(added["Action"], "lambda:InvokeFunctionUrl");
+    assert_eq!(added["Principal"], "*");
+    assert_eq!(added["Condition"], expected);
+
+    let stored = get_policy_statement(&client, "url-auth-perm-func", "url").await;
+    assert_eq!(stored["Condition"], expected);
+    assert_eq!(stored, added, "GetPolicy must return the added statement");
+
+    // AWS_IAM is carried through as its own value, not coerced to NONE.
+    client
+        .add_permission()
+        .function_name("url-auth-perm-func")
+        .statement_id("url-iam")
+        .action("lambda:InvokeFunctionUrl")
+        .principal("444455556666")
+        .function_url_auth_type(FunctionUrlAuthType::AwsIam)
+        .send()
+        .await
+        .expect("add_permission should succeed");
+    let stored = get_policy_statement(&client, "url-auth-perm-func", "url-iam").await;
+    assert_eq!(
+        stored["Condition"],
+        serde_json::json!({"StringEquals": {"lambda:FunctionUrlAuthType": "AWS_IAM"}})
+    );
+}
+
+#[tokio::test]
+async fn test_add_permission_invoked_via_function_url_condition() {
+    let client = make_lambda_client().await;
+    create_test_function(&client, "via-url-perm-func").await;
+
+    let resp = client
+        .add_permission()
+        .function_name("via-url-perm-func")
+        .statement_id("invoke")
+        .action("lambda:InvokeFunction")
+        .principal("*")
+        .invoked_via_function_url(true)
+        .send()
+        .await
+        .expect("add_permission should succeed");
+
+    let expected = serde_json::json!({
+        "Bool": {"lambda:InvokedViaFunctionUrl": "true"}
+    });
+    let added = parse_policy_json(resp.statement().expect("statement"));
+    assert_eq!(added["Action"], "lambda:InvokeFunction");
+    assert_eq!(added["Condition"], expected);
+
+    let stored = get_policy_statement(&client, "via-url-perm-func", "invoke").await;
+    assert_eq!(stored["Condition"], expected);
+
+    // A statement added without any condition input stays unconditional and
+    // does not inherit its neighbour's condition.
+    client
+        .add_permission()
+        .function_name("via-url-perm-func")
+        .statement_id("plain")
+        .action("lambda:InvokeFunction")
+        .principal("events.amazonaws.com")
+        .send()
+        .await
+        .expect("add_permission should succeed");
+    let plain = get_policy_statement(&client, "via-url-perm-func", "plain").await;
+    assert!(
+        plain.get("Condition").is_none(),
+        "unconditional statement must have no Condition, got {plain}"
+    );
+}
+
+#[tokio::test]
+async fn test_add_permission_merges_all_condition_inputs() {
+    let client = make_lambda_client().await;
+    create_test_function(&client, "merged-cond-func").await;
+
+    // SourceArn + SourceAccount: two operators in one Condition object.
+    let resp = client
+        .add_permission()
+        .function_name("merged-cond-func")
+        .statement_id("s3")
+        .action("lambda:InvokeFunction")
+        .principal("s3.amazonaws.com")
+        .source_arn("arn:aws:s3:::wb-bucket-a")
+        .source_account("210987654321")
+        .send()
+        .await
+        .expect("add_permission should succeed");
+    let expected_s3 = serde_json::json!({
+        "ArnLike": {"AWS:SourceArn": "arn:aws:s3:::wb-bucket-a"},
+        "StringEquals": {"AWS:SourceAccount": "210987654321"},
+    });
+    let added = parse_policy_json(resp.statement().expect("statement"));
+    assert_eq!(added["Principal"]["Service"], "s3.amazonaws.com");
+    assert_eq!(added["Condition"], expected_s3);
+    let stored = get_policy_statement(&client, "merged-cond-func", "s3").await;
+    assert_eq!(stored["Condition"], expected_s3);
+
+    // PrincipalOrgID + FunctionUrlAuthType share StringEquals, alongside Bool.
+    let resp = client
+        .add_permission()
+        .function_name("merged-cond-func")
+        .statement_id("org")
+        .action("lambda:InvokeFunctionUrl")
+        .principal("*")
+        .principal_org_id("o-a1b2c3d4e5")
+        .function_url_auth_type(aws_sdk_lambda::types::FunctionUrlAuthType::AwsIam)
+        .invoked_via_function_url(true)
+        .send()
+        .await
+        .expect("add_permission should succeed");
+    let expected_org = serde_json::json!({
+        "StringEquals": {
+            "aws:PrincipalOrgID": "o-a1b2c3d4e5",
+            "lambda:FunctionUrlAuthType": "AWS_IAM",
+        },
+        "Bool": {"lambda:InvokedViaFunctionUrl": "true"},
+    });
+    let added = parse_policy_json(resp.statement().expect("statement"));
+    assert_eq!(added["Condition"], expected_org);
+    let stored = get_policy_statement(&client, "merged-cond-func", "org").await;
+    assert_eq!(stored["Condition"], expected_org);
+
+    // EventSourceToken (Alexa Smart Home).
+    client
+        .add_permission()
+        .function_name("merged-cond-func")
+        .statement_id("alexa")
+        .action("lambda:InvokeFunction")
+        .principal("alexa-connectedhome.amazon.com")
+        .event_source_token("amzn1.ask.skill.wb-0001")
+        .send()
+        .await
+        .expect("add_permission should succeed");
+    let stored = get_policy_statement(&client, "merged-cond-func", "alexa").await;
+    assert_eq!(
+        stored["Condition"],
+        serde_json::json!({
+            "StringEquals": {"lambda:EventSourceToken": "amzn1.ask.skill.wb-0001"}
+        })
+    );
+
+    // The earlier statements are untouched by the later additions.
+    let stored = get_policy_statement(&client, "merged-cond-func", "s3").await;
+    assert_eq!(stored["Condition"], expected_s3);
+}
+
+// ========== Issue #45: event source mapping settings round trip ==========
+
+#[tokio::test]
+async fn test_event_source_mapping_persists_function_response_types_and_scaling_config() {
+    use aws_sdk_lambda::types::{FunctionResponseType, ScalingConfig};
+
+    let client = make_lambda_client().await;
+    create_test_function(&client, "esm-settings-func").await;
+
+    let created = client
+        .create_event_source_mapping()
+        .function_name("esm-settings-func")
+        .event_source_arn("arn:aws:sqs:us-east-1:123456789012:wb-q-a")
+        .batch_size(10)
+        .function_response_types(FunctionResponseType::ReportBatchItemFailures)
+        .scaling_config(ScalingConfig::builder().maximum_concurrency(5).build())
+        .send()
+        .await
+        .expect("create_event_source_mapping should succeed");
+    let uuid = created.uuid().expect("uuid").to_string();
+
+    assert_eq!(
+        created.function_response_types(),
+        &[FunctionResponseType::ReportBatchItemFailures]
+    );
+    assert_eq!(
+        created
+            .scaling_config()
+            .and_then(|c| c.maximum_concurrency()),
+        Some(5)
+    );
+
+    let got = client
+        .get_event_source_mapping()
+        .uuid(&uuid)
+        .send()
+        .await
+        .expect("get_event_source_mapping should succeed");
+    assert_eq!(got.batch_size(), Some(10));
+    assert_eq!(
+        got.function_response_types(),
+        &[FunctionResponseType::ReportBatchItemFailures]
+    );
+    assert_eq!(
+        got.scaling_config().and_then(|c| c.maximum_concurrency()),
+        Some(5)
+    );
+
+    let listed = client
+        .list_event_source_mappings()
+        .send()
+        .await
+        .expect("list_event_source_mappings should succeed");
+    let entry = listed
+        .event_source_mappings()
+        .iter()
+        .find(|m| m.uuid() == Some(uuid.as_str()))
+        .expect("mapping must be listed");
+    assert_eq!(
+        entry.function_response_types(),
+        &[FunctionResponseType::ReportBatchItemFailures]
+    );
+    assert_eq!(
+        entry.scaling_config().and_then(|c| c.maximum_concurrency()),
+        Some(5)
+    );
+
+    // Update: change ScalingConfig only; FunctionResponseTypes and BatchSize
+    // were not supplied and must be left as they were.
+    let updated = client
+        .update_event_source_mapping()
+        .uuid(&uuid)
+        .scaling_config(ScalingConfig::builder().maximum_concurrency(42).build())
+        .send()
+        .await
+        .expect("update_event_source_mapping should succeed");
+    assert_eq!(
+        updated
+            .scaling_config()
+            .and_then(|c| c.maximum_concurrency()),
+        Some(42)
+    );
+    assert_eq!(
+        updated.function_response_types(),
+        &[FunctionResponseType::ReportBatchItemFailures]
+    );
+    assert_eq!(updated.batch_size(), Some(10));
+
+    let got = client
+        .get_event_source_mapping()
+        .uuid(&uuid)
+        .send()
+        .await
+        .expect("get_event_source_mapping should succeed");
+    assert_eq!(
+        got.scaling_config().and_then(|c| c.maximum_concurrency()),
+        Some(42)
+    );
+
+    // Delete echoes the final configuration.
+    let deleted = client
+        .delete_event_source_mapping()
+        .uuid(&uuid)
+        .send()
+        .await
+        .expect("delete_event_source_mapping should succeed");
+    assert_eq!(
+        deleted
+            .scaling_config()
+            .and_then(|c| c.maximum_concurrency()),
+        Some(42)
+    );
+    assert_eq!(
+        deleted.function_response_types(),
+        &[FunctionResponseType::ReportBatchItemFailures]
+    );
+}
+
+#[tokio::test]
+async fn test_event_source_mapping_update_sets_function_response_types() {
+    use aws_sdk_lambda::types::FunctionResponseType;
+
+    let client = make_lambda_client().await;
+    create_test_function(&client, "esm-update-frt-func").await;
+
+    let created = client
+        .create_event_source_mapping()
+        .function_name("esm-update-frt-func")
+        .event_source_arn("arn:aws:sqs:us-east-1:123456789012:wb-q-frt")
+        .send()
+        .await
+        .expect("create_event_source_mapping should succeed");
+    let uuid = created.uuid().expect("uuid").to_string();
+    // Nothing supplied, nothing invented.
+    assert!(created.function_response_types().is_empty());
+    assert!(created.scaling_config().is_none());
+
+    let updated = client
+        .update_event_source_mapping()
+        .uuid(&uuid)
+        .function_response_types(FunctionResponseType::ReportBatchItemFailures)
+        .send()
+        .await
+        .expect("update_event_source_mapping should succeed");
+    assert_eq!(
+        updated.function_response_types(),
+        &[FunctionResponseType::ReportBatchItemFailures]
+    );
+
+    let got = client
+        .get_event_source_mapping()
+        .uuid(&uuid)
+        .send()
+        .await
+        .expect("get_event_source_mapping should succeed");
+    assert_eq!(
+        got.function_response_types(),
+        &[FunctionResponseType::ReportBatchItemFailures]
+    );
+}
+
+#[tokio::test]
+async fn test_event_source_mapping_persists_stream_settings() {
+    let client = make_lambda_client().await;
+    create_test_function(&client, "esm-stream-func").await;
+
+    let created = client
+        .create_event_source_mapping()
+        .function_name("esm-stream-func")
+        .event_source_arn("arn:aws:kinesis:us-east-1:123456789012:stream/wb-stream")
+        .starting_position(aws_sdk_lambda::types::EventSourcePosition::AtTimestamp)
+        .starting_position_timestamp(aws_sdk_lambda::primitives::DateTime::from_secs(
+            1_700_000_123,
+        ))
+        .batch_size(250)
+        .bisect_batch_on_function_error(true)
+        .maximum_batching_window_in_seconds(17)
+        .maximum_record_age_in_seconds(3600)
+        .maximum_retry_attempts(4)
+        .parallelization_factor(3)
+        .tumbling_window_in_seconds(120)
+        .kms_key_arn("arn:aws:kms:us-east-1:123456789012:key/wb-key-1")
+        .send()
+        .await
+        .expect("create_event_source_mapping should succeed");
+    let uuid = created.uuid().expect("uuid").to_string();
+
+    let got = client
+        .get_event_source_mapping()
+        .uuid(&uuid)
+        .send()
+        .await
+        .expect("get_event_source_mapping should succeed");
+    assert_eq!(got.bisect_batch_on_function_error(), Some(true));
+    assert_eq!(got.maximum_batching_window_in_seconds(), Some(17));
+    assert_eq!(got.maximum_record_age_in_seconds(), Some(3600));
+    assert_eq!(got.maximum_retry_attempts(), Some(4));
+    assert_eq!(got.parallelization_factor(), Some(3));
+    assert_eq!(got.tumbling_window_in_seconds(), Some(120));
+    assert_eq!(
+        got.kms_key_arn(),
+        Some("arn:aws:kms:us-east-1:123456789012:key/wb-key-1")
+    );
+    assert_eq!(
+        got.starting_position_timestamp().map(|t| t.secs()),
+        Some(1_700_000_123)
+    );
+
+    // A partial update changes only what it names.
+    let updated = client
+        .update_event_source_mapping()
+        .uuid(&uuid)
+        .maximum_retry_attempts(9)
+        .bisect_batch_on_function_error(false)
+        .send()
+        .await
+        .expect("update_event_source_mapping should succeed");
+    assert_eq!(updated.maximum_retry_attempts(), Some(9));
+    assert_eq!(updated.bisect_batch_on_function_error(), Some(false));
+    assert_eq!(updated.parallelization_factor(), Some(3));
+    assert_eq!(updated.maximum_record_age_in_seconds(), Some(3600));
+    assert_eq!(updated.tumbling_window_in_seconds(), Some(120));
+}
+
+#[tokio::test]
+async fn test_event_source_mapping_persists_queues_and_topics() {
+    let client = make_lambda_client().await;
+    create_test_function(&client, "esm-broker-func").await;
+
+    let mq = client
+        .create_event_source_mapping()
+        .function_name("esm-broker-func")
+        .event_source_arn("arn:aws:mq:us-east-1:123456789012:broker:wb-broker:b-1234")
+        .queues("wb-orders")
+        .send()
+        .await
+        .expect("create_event_source_mapping should succeed");
+    let kafka = client
+        .create_event_source_mapping()
+        .function_name("esm-broker-func")
+        .event_source_arn("arn:aws:kafka:us-east-1:123456789012:cluster/wb-cluster/abcd")
+        .topics("wb-topic-a")
+        .topics("wb-topic-b")
+        .send()
+        .await
+        .expect("create_event_source_mapping should succeed");
+
+    let got = client
+        .get_event_source_mapping()
+        .uuid(mq.uuid().unwrap())
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(got.queues(), &["wb-orders".to_string()]);
+    assert!(got.topics().is_empty());
+
+    let got = client
+        .get_event_source_mapping()
+        .uuid(kafka.uuid().unwrap())
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        got.topics(),
+        &["wb-topic-a".to_string(), "wb-topic-b".to_string()]
+    );
+    assert!(got.queues().is_empty());
+}
+
+// ========== Issue #46: ListEventSourceMappings filters ==========
+
+const ESM_FILTER_Q_A: &str = "arn:aws:sqs:us-east-1:123456789012:wb-q-a";
+const ESM_FILTER_Q_B: &str = "arn:aws:sqs:us-east-1:123456789012:wb-q-b";
+
+/// Two functions, three mappings:
+///   wb-fn-a <- wb-q-a, wb-fn-a <- wb-q-b, wb-fn-b <- wb-q-b
+async fn setup_esm_filter_fixture(client: &aws_sdk_lambda::Client) {
+    create_test_function(client, "wb-fn-a").await;
+    create_test_function(client, "wb-fn-b").await;
+    for (function, queue) in [
+        ("wb-fn-a", ESM_FILTER_Q_A),
+        ("wb-fn-a", ESM_FILTER_Q_B),
+        ("wb-fn-b", ESM_FILTER_Q_B),
+    ] {
+        client
+            .create_event_source_mapping()
+            .function_name(function)
+            .event_source_arn(queue)
+            .send()
+            .await
+            .expect("create_event_source_mapping should succeed");
+    }
+}
+
+/// Sorted `(function name, event source ARN)` pairs of a list response.
+fn esm_pairs(
+    resp: &aws_sdk_lambda::operation::list_event_source_mappings::ListEventSourceMappingsOutput,
+) -> Vec<(String, String)> {
+    let mut pairs: Vec<(String, String)> = resp
+        .event_source_mappings()
+        .iter()
+        .map(|m| {
+            let function_arn = m.function_arn().expect("FunctionArn");
+            (
+                function_arn.rsplit(':').next().unwrap().to_string(),
+                m.event_source_arn().expect("EventSourceArn").to_string(),
+            )
+        })
+        .collect();
+    pairs.sort();
+    pairs
+}
+
+fn pair(function: &str, queue: &str) -> (String, String) {
+    (function.to_string(), queue.to_string())
+}
+
+#[tokio::test]
+async fn test_list_event_source_mappings_filters_by_function_name() {
+    let client = make_lambda_client().await;
+    setup_esm_filter_fixture(&client).await;
+
+    // Unfiltered: everything.
+    let all = client.list_event_source_mappings().send().await.unwrap();
+    assert_eq!(all.event_source_mappings().len(), 3);
+
+    let fn_a = vec![
+        pair("wb-fn-a", ESM_FILTER_Q_A),
+        pair("wb-fn-a", ESM_FILTER_Q_B),
+    ];
+    // Every documented spelling of the same function selects the same set.
+    for name in [
+        "wb-fn-a",
+        "arn:aws:lambda:us-east-1:123456789012:function:wb-fn-a",
+        "123456789012:function:wb-fn-a",
+        "wb-fn-a:$LATEST",
+        "arn:aws:lambda:us-east-1:123456789012:function:wb-fn-a:PROD",
+        "123456789012:function:wb-fn-a:7",
+    ] {
+        let resp = client
+            .list_event_source_mappings()
+            .function_name(name)
+            .send()
+            .await
+            .unwrap_or_else(|e| panic!("list with FunctionName={name} failed: {e:?}"));
+        assert_eq!(esm_pairs(&resp), fn_a, "FunctionName={name}");
+    }
+
+    let resp = client
+        .list_event_source_mappings()
+        .function_name("wb-fn-b")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(esm_pairs(&resp), vec![pair("wb-fn-b", ESM_FILTER_Q_B)]);
+
+    // A name that is merely a prefix of an existing function matches nothing.
+    let resp = client
+        .list_event_source_mappings()
+        .function_name("wb-fn")
+        .send()
+        .await
+        .expect("an unknown function is an empty list, not an error");
+    assert!(resp.event_source_mappings().is_empty());
+}
+
+#[tokio::test]
+async fn test_list_event_source_mappings_filters_by_event_source_arn() {
+    let client = make_lambda_client().await;
+    setup_esm_filter_fixture(&client).await;
+
+    let resp = client
+        .list_event_source_mappings()
+        .event_source_arn(ESM_FILTER_Q_A)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(esm_pairs(&resp), vec![pair("wb-fn-a", ESM_FILTER_Q_A)]);
+
+    let resp = client
+        .list_event_source_mappings()
+        .event_source_arn(ESM_FILTER_Q_B)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        esm_pairs(&resp),
+        vec![
+            pair("wb-fn-a", ESM_FILTER_Q_B),
+            pair("wb-fn-b", ESM_FILTER_Q_B),
+        ]
+    );
+
+    let resp = client
+        .list_event_source_mappings()
+        .event_source_arn("arn:aws:sqs:us-east-1:123456789012:wb-q-unmapped")
+        .send()
+        .await
+        .unwrap();
+    assert!(resp.event_source_mappings().is_empty());
+}
+
+#[tokio::test]
+async fn test_list_event_source_mappings_combines_both_filters() {
+    let client = make_lambda_client().await;
+    setup_esm_filter_fixture(&client).await;
+
+    let resp = client
+        .list_event_source_mappings()
+        .function_name("arn:aws:lambda:us-east-1:123456789012:function:wb-fn-a")
+        .event_source_arn(ESM_FILTER_Q_B)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(esm_pairs(&resp), vec![pair("wb-fn-a", ESM_FILTER_Q_B)]);
+
+    // Each filter matches something on its own, but no mapping matches both.
+    let resp = client
+        .list_event_source_mappings()
+        .function_name("wb-fn-b")
+        .event_source_arn(ESM_FILTER_Q_A)
+        .send()
+        .await
+        .unwrap();
+    assert!(resp.event_source_mappings().is_empty());
+}

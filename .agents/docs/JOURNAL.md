@@ -2684,3 +2684,20 @@ Follow-up to issues #37 and #38. Three `awscc` tests in `crates/winterbaume-e2e-
 - **Function.** `auto_publish = true` publishes on create and on each code change through Terraform, `id` is the ARN, and an out-of-band `DeleteFunction` plans as `1 to add`.
 - **Run.** `cargo test -p winterbaume-e2e-tests --test terraform cloudcontrol -- --ignored`. All four `awscc` tests passed. Setting `WINTERBAUME_TF_TMP_DIR` to a directory with a populated `tf-plugin-cache` avoids re-downloading the provider.
 
+
+## 2026-11-21 — Open-issue sweep: #41 – #49
+
+All thirteen open GitHub issues were reviewed. #33, #37, #38 and #39 were already fixed on `main` ( PRs #35 and #40 ) and only remained open. The other nine were addressed in the working tree, one agent per crate, with the lint gate run per crate and again across all ten touched crates together.
+
+### Bugs: modelled input accepted, then dropped
+
+Six of the seven bugs are the same anti-pattern as issue #4 ( `handler-signatures-drop-modelled-fields` ): the generated deserialiser parses a member, and the hand-written handler or stored type never carries it.
+
+- **#41 S3 `TransitionDefaultMinimumObjectSize`.** The lifecycle handlers bypassed `wire` and stored only the XML body. `BucketState` now keeps the value; Put and Get return the `x-amz-transition-default-minimum-object-size` header ( default `all_storage_classes_128K` ), `DeleteBucketLifecycle` clears it, an invalid value is 400 `InvalidArgument` ( the code is a guess ). Two Terraform E2E cases for `aws_s3_bucket_lifecycle_configuration` converge.
+- **#42 / #43 DynamoDB deletion protection and SSE.** Settings live beside the table, in a `table_settings` map with two additive `DynamoDbBackend` methods ( `describe_table_settings`, `update_table_settings` ), because `winterbaume-dynamodb-redis` and the Terraform converter build `Table` / `TableStateView` with exhaustive struct literals and `winterbaume-dynamodbstreams` matches `DynamoDbError` exhaustively. The Redis backend stores them under their own key ( `save_table` rebuilds `StoredTable` from `Table`, so fields added there would be lost on the next `UpdateTable` ). Redis tests ran against `redis:7-alpine`.
+- **#44 Lambda `AddPermission` conditions.** One `permission_statement()` now renders a merged `Condition` for `FunctionUrlAuthType`, `InvokedViaFunctionUrl`, `SourceArn`, `SourceAccount`, `PrincipalOrgID` and `EventSourceToken`, for both the `AddPermission` response and `GetPolicy`. `SourceAccount` had been stored but never rendered.
+- **#45 Lambda event source mapping.** New `EventSourceMappingSettings` holds `FunctionResponseTypes`, `ScalingConfig` and eleven further scalar members; update overwrites only what was supplied. Nested configs are still dropped ( see TODO `lambda-event-source-mapping-nested-configs` ).
+- **#46 Lambda `ListEventSourceMappings` filters.** `FunctionName` ( name, ARN, partial ARN, qualified ) and `EventSourceArn` are applied; `split_function_ref` is the parser.
+- **#47 EventBridge targets.** The stored target is now the whole `model::Target`, so all 13 previously dropped members round-trip and future members need no plumbing. `TargetView` kept its field set ( the Terraform converter builds it exhaustively ); the non-dedicated members travel in `TargetView.extra`, keyed by API member name in API JSON shape.
+
+**Lesson.** A view or stored struct that another crate builds with an exhaustive struct literal cannot gain a field without breaking that crate. Each fix here chose a side map or a single defaulted sub-struct for that reason. The Lambda fix did add fields to `PermissionView` / `EventSourceMappingView`, which broke `winterbaume-terraform` ( and therefore `winterbaume-server` ) until its converters were updated; they now map the new members in both directions, as does `aws_cloudwatch_event_target` and `aws_dynamodb_table`.

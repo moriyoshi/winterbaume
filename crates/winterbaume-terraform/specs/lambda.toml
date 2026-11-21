@@ -165,6 +165,18 @@ hcl = "source_account"
 view = "source_account"
 type = "string?"
 
+[[resource.field]]
+hcl = "event_source_token"
+view = "event_source_token"
+type = "string?"
+
+[[resource.field]]
+hcl = "function_url_auth_type"
+view = "function_url_auth_type"
+type = "string?"
+
+# invoked_via_function_url is Option<bool>, read raw in converter.
+
 # ---------------------------------------------------------------------------
 # aws_lambda_event_source_mapping
 # ---------------------------------------------------------------------------
@@ -197,6 +209,22 @@ type = "string?"
 hcl = "starting_position"
 view = "starting_position"
 type = "string?"
+
+[[resource.field]]
+hcl = "starting_position_timestamp"
+view = "starting_position_timestamp"
+type = "string?"
+
+[[resource.field]]
+hcl = "kms_key_arn"
+view = "kms_key_arn"
+type = "string?"
+
+# The remaining EventSourceMappingSettings members ( bisect_batch_on_function_error,
+# function_response_types, maximum_batching_window_in_seconds,
+# maximum_record_age_in_seconds, maximum_retry_attempts, parallelization_factor,
+# queues, topics, tumbling_window_in_seconds, scaling_config ) are Option<bool>,
+# Option<i32>, Vec<String> or nested blocks, read raw in converter.
 
 # ---------------------------------------------------------------------------
 # aws_lambda_code_signing_config

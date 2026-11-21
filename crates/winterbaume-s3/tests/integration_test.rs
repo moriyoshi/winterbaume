@@ -998,6 +998,360 @@ async fn test_get_bucket_lifecycle_configuration_not_found() {
     assert!(result.is_err());
 }
 
+// ---------------------------------------------------------------------------
+// Lifecycle: x-amz-transition-default-minimum-object-size (issue #41)
+// ---------------------------------------------------------------------------
+
+fn lifecycle_config_for_test(id: &str) -> aws_sdk_s3::types::BucketLifecycleConfiguration {
+    let rule = aws_sdk_s3::types::LifecycleRule::builder()
+        .id(id)
+        .status(aws_sdk_s3::types::ExpirationStatus::Enabled)
+        .expiration(
+            aws_sdk_s3::types::LifecycleExpiration::builder()
+                .days(7)
+                .build(),
+        )
+        .filter(
+            aws_sdk_s3::types::LifecycleRuleFilter::builder()
+                .prefix("tmp/")
+                .build(),
+        )
+        .build()
+        .unwrap();
+    aws_sdk_s3::types::BucketLifecycleConfiguration::builder()
+        .rules(rule)
+        .build()
+        .unwrap()
+}
+
+#[tokio::test]
+async fn test_lifecycle_transition_default_minimum_object_size_round_trips() {
+    use aws_sdk_s3::types::TransitionDefaultMinimumObjectSize as MinSize;
+
+    let client = make_s3_client().await;
+    client
+        .create_bucket()
+        .bucket("lc-min-size-explicit")
+        .send()
+        .await
+        .unwrap();
+
+    let put = client
+        .put_bucket_lifecycle_configuration()
+        .bucket("lc-min-size-explicit")
+        .transition_default_minimum_object_size(MinSize::VariesByStorageClass)
+        .lifecycle_configuration(lifecycle_config_for_test("expire"))
+        .send()
+        .await
+        .expect("put_bucket_lifecycle_configuration should succeed");
+    assert_eq!(
+        put.transition_default_minimum_object_size(),
+        Some(&MinSize::VariesByStorageClass)
+    );
+
+    let get = client
+        .get_bucket_lifecycle_configuration()
+        .bucket("lc-min-size-explicit")
+        .send()
+        .await
+        .expect("get_bucket_lifecycle_configuration should succeed");
+    assert_eq!(
+        get.transition_default_minimum_object_size(),
+        Some(&MinSize::VariesByStorageClass)
+    );
+    assert_eq!(get.rules().len(), 1);
+    assert_eq!(get.rules()[0].id(), Some("expire"));
+}
+
+#[tokio::test]
+async fn test_lifecycle_transition_default_minimum_object_size_defaults_when_omitted() {
+    use aws_sdk_s3::types::TransitionDefaultMinimumObjectSize as MinSize;
+
+    let client = make_s3_client().await;
+    client
+        .create_bucket()
+        .bucket("lc-min-size-default")
+        .send()
+        .await
+        .unwrap();
+
+    let put = client
+        .put_bucket_lifecycle_configuration()
+        .bucket("lc-min-size-default")
+        .lifecycle_configuration(lifecycle_config_for_test("expire"))
+        .send()
+        .await
+        .expect("put_bucket_lifecycle_configuration should succeed");
+    assert_eq!(
+        put.transition_default_minimum_object_size(),
+        Some(&MinSize::AllStorageClasses128K)
+    );
+
+    let get = client
+        .get_bucket_lifecycle_configuration()
+        .bucket("lc-min-size-default")
+        .send()
+        .await
+        .expect("get_bucket_lifecycle_configuration should succeed");
+    assert_eq!(
+        get.transition_default_minimum_object_size(),
+        Some(&MinSize::AllStorageClasses128K)
+    );
+}
+
+#[tokio::test]
+async fn test_lifecycle_transition_default_minimum_object_size_replaced_and_cleared() {
+    use aws_sdk_s3::types::TransitionDefaultMinimumObjectSize as MinSize;
+
+    let client = make_s3_client().await;
+    let bucket = "lc-min-size-replace";
+    client.create_bucket().bucket(bucket).send().await.unwrap();
+
+    client
+        .put_bucket_lifecycle_configuration()
+        .bucket(bucket)
+        .transition_default_minimum_object_size(MinSize::VariesByStorageClass)
+        .lifecycle_configuration(lifecycle_config_for_test("first"))
+        .send()
+        .await
+        .unwrap();
+
+    // A second Put with a different explicit value replaces the stored one.
+    let put = client
+        .put_bucket_lifecycle_configuration()
+        .bucket(bucket)
+        .transition_default_minimum_object_size(MinSize::AllStorageClasses128K)
+        .lifecycle_configuration(lifecycle_config_for_test("second"))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        put.transition_default_minimum_object_size(),
+        Some(&MinSize::AllStorageClasses128K)
+    );
+    let get = client
+        .get_bucket_lifecycle_configuration()
+        .bucket(bucket)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        get.transition_default_minimum_object_size(),
+        Some(&MinSize::AllStorageClasses128K)
+    );
+    assert_eq!(get.rules()[0].id(), Some("second"));
+
+    // Back to the non-default value, then a Put that omits the header: the
+    // configuration is replaced wholesale, so the previous value must not
+    // survive and the default applies again.
+    client
+        .put_bucket_lifecycle_configuration()
+        .bucket(bucket)
+        .transition_default_minimum_object_size(MinSize::VariesByStorageClass)
+        .lifecycle_configuration(lifecycle_config_for_test("third"))
+        .send()
+        .await
+        .unwrap();
+    let get = client
+        .get_bucket_lifecycle_configuration()
+        .bucket(bucket)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        get.transition_default_minimum_object_size(),
+        Some(&MinSize::VariesByStorageClass)
+    );
+    let put = client
+        .put_bucket_lifecycle_configuration()
+        .bucket(bucket)
+        .lifecycle_configuration(lifecycle_config_for_test("fourth"))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        put.transition_default_minimum_object_size(),
+        Some(&MinSize::AllStorageClasses128K)
+    );
+
+    // DeleteBucketLifecycle clears the value along with the rules.
+    client
+        .put_bucket_lifecycle_configuration()
+        .bucket(bucket)
+        .transition_default_minimum_object_size(MinSize::VariesByStorageClass)
+        .lifecycle_configuration(lifecycle_config_for_test("fifth"))
+        .send()
+        .await
+        .unwrap();
+    client
+        .delete_bucket_lifecycle()
+        .bucket(bucket)
+        .send()
+        .await
+        .unwrap();
+    let err = client
+        .get_bucket_lifecycle_configuration()
+        .bucket(bucket)
+        .send()
+        .await
+        .expect_err("lifecycle configuration should be gone");
+    assert_eq!(
+        err.into_service_error().meta().code(),
+        Some("NoSuchLifecycleConfiguration")
+    );
+    client
+        .put_bucket_lifecycle_configuration()
+        .bucket(bucket)
+        .lifecycle_configuration(lifecycle_config_for_test("sixth"))
+        .send()
+        .await
+        .unwrap();
+    let get = client
+        .get_bucket_lifecycle_configuration()
+        .bucket(bucket)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        get.transition_default_minimum_object_size(),
+        Some(&MinSize::AllStorageClasses128K)
+    );
+}
+
+#[tokio::test]
+async fn test_lifecycle_transition_default_minimum_object_size_raw_headers_and_invalid_value() {
+    use std::sync::Arc;
+    use winterbaume_core::{MockRequest, MockService};
+
+    const HEADER: &str = "x-amz-transition-default-minimum-object-size";
+    const BODY: &str = r#"<LifecycleConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/"><Rule><ID>expire</ID><Filter><Prefix>tmp/</Prefix></Filter><Status>Enabled</Status><Expiration><Days>7</Days></Expiration></Rule></LifecycleConfiguration>"#;
+    let uri = "https://lc-min-size-raw.s3.us-east-1.amazonaws.com/?lifecycle";
+
+    let service = Arc::new(S3Service::new());
+    let mock = MockAws::builder().with_service(service.clone()).build();
+    let client = aws_sdk_s3::Client::new(&mock.sdk_config("us-east-1").await);
+    client
+        .create_bucket()
+        .bucket("lc-min-size-raw")
+        .send()
+        .await
+        .unwrap();
+
+    let request = |method: &str, value: Option<&str>| {
+        let mut headers = http::HeaderMap::new();
+        if let Some(value) = value {
+            headers.insert(HEADER, value.parse().unwrap());
+        }
+        MockRequest {
+            method: method.to_string(),
+            uri: uri.to_string(),
+            headers,
+            body: if method == "PUT" {
+                bytes::Bytes::from_static(BODY.as_bytes())
+            } else {
+                bytes::Bytes::new()
+            },
+        }
+    };
+
+    let put = service
+        .handle(request("PUT", Some("varies_by_storage_class")))
+        .await;
+    assert_eq!(put.status, 200);
+    assert_eq!(put.headers[HEADER], "varies_by_storage_class");
+    let get = service.handle(request("GET", None)).await;
+    assert_eq!(get.status, 200);
+    assert_eq!(get.headers[HEADER], "varies_by_storage_class");
+
+    // An unknown value is rejected and leaves the stored configuration alone.
+    let bad = service.handle(request("PUT", Some("bogus"))).await;
+    assert_eq!(bad.status, 400);
+    assert!(!bad.headers.contains_key(HEADER));
+    let body = String::from_utf8_lossy(&bad.body);
+    assert!(body.contains("<Code>InvalidArgument</Code>"), "{body}");
+    let get = service.handle(request("GET", None)).await;
+    assert_eq!(get.headers[HEADER], "varies_by_storage_class");
+
+    // Omitting the header on a later Put reverts to the default.
+    let put = service.handle(request("PUT", None)).await;
+    assert_eq!(put.status, 200);
+    assert_eq!(put.headers[HEADER], "all_storage_classes_128K");
+    let get = service.handle(request("GET", None)).await;
+    assert_eq!(get.headers[HEADER], "all_storage_classes_128K");
+}
+
+#[tokio::test]
+async fn test_lifecycle_transition_default_minimum_object_size_survives_snapshot() {
+    use aws_sdk_s3::types::TransitionDefaultMinimumObjectSize as MinSize;
+    use std::sync::Arc;
+    use winterbaume_core::StatefulService;
+
+    let account = winterbaume_core::default_account_id();
+    let bucket = "lc-min-size-snapshot";
+
+    let src = Arc::new(S3Service::new());
+    let mock = MockAws::builder().with_service(src.clone()).build();
+    let client = aws_sdk_s3::Client::new(&mock.sdk_config("us-east-1").await);
+    client.create_bucket().bucket(bucket).send().await.unwrap();
+    client
+        .put_bucket_lifecycle_configuration()
+        .bucket(bucket)
+        .transition_default_minimum_object_size(MinSize::VariesByStorageClass)
+        .lifecycle_configuration(lifecycle_config_for_test("expire"))
+        .send()
+        .await
+        .unwrap();
+
+    let view = src.snapshot(account, "us-east-1").await;
+    assert_eq!(
+        view.buckets[bucket]
+            .transition_default_minimum_object_size
+            .as_deref(),
+        Some("varies_by_storage_class")
+    );
+    let mut json = serde_json::to_value(&view).unwrap();
+
+    // Restoring the snapshot into a fresh service keeps the value.
+    let dst = Arc::new(S3Service::new());
+    dst.restore(account, "us-east-1", view).await.unwrap();
+    let mock = MockAws::builder().with_service(dst.clone()).build();
+    let client = aws_sdk_s3::Client::new(&mock.sdk_config("us-east-1").await);
+    let get = client
+        .get_bucket_lifecycle_configuration()
+        .bucket(bucket)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        get.transition_default_minimum_object_size(),
+        Some(&MinSize::VariesByStorageClass)
+    );
+
+    // A snapshot written before the field existed still deserialises, and the
+    // lifecycle configuration it carries reads back with the S3 default.
+    json["buckets"][bucket]
+        .as_object_mut()
+        .unwrap()
+        .remove("transition_default_minimum_object_size")
+        .expect("snapshot should carry the field");
+    let legacy: winterbaume_s3::S3StateView = serde_json::from_value(json).unwrap();
+    let dst = Arc::new(S3Service::new());
+    dst.restore(account, "us-east-1", legacy).await.unwrap();
+    let mock = MockAws::builder().with_service(dst.clone()).build();
+    let client = aws_sdk_s3::Client::new(&mock.sdk_config("us-east-1").await);
+    let get = client
+        .get_bucket_lifecycle_configuration()
+        .bucket(bucket)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        get.transition_default_minimum_object_size(),
+        Some(&MinSize::AllStorageClasses128K)
+    );
+    assert_eq!(get.rules().len(), 1);
+}
+
 #[tokio::test]
 async fn test_put_and_get_bucket_notification_configuration() {
     let client = make_s3_client().await;

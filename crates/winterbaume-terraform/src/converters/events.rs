@@ -315,6 +315,429 @@ impl AwsCloudwatchEventRuleConverter {
 // aws_cloudwatch_event_target
 // ---------------------------------------------------------------------------
 
+type JsonMap = serde_json::Map<String, serde_json::Value>;
+
+/// `( terraform attribute, API member )` pairs of one block.
+type FieldPairs = &'static [(&'static str, &'static str)];
+
+/// Target blocks whose attributes map one-to-one onto the members of a
+/// `Target` API structure: `( terraform block, API member, fields )`.
+const TARGET_FLAT_BLOCKS: &[(&str, &str, FieldPairs)] = &[
+    (
+        "retry_policy",
+        "RetryPolicy",
+        &[
+            ("maximum_event_age_in_seconds", "MaximumEventAgeInSeconds"),
+            ("maximum_retry_attempts", "MaximumRetryAttempts"),
+        ],
+    ),
+    ("dead_letter_config", "DeadLetterConfig", &[("arn", "Arn")]),
+    (
+        "input_transformer",
+        "InputTransformer",
+        &[
+            ("input_paths", "InputPathsMap"),
+            ("input_template", "InputTemplate"),
+        ],
+    ),
+    (
+        "sqs_target",
+        "SqsParameters",
+        &[("message_group_id", "MessageGroupId")],
+    ),
+    (
+        "http_target",
+        "HttpParameters",
+        &[
+            ("header_parameters", "HeaderParameters"),
+            ("path_parameter_values", "PathParameterValues"),
+            ("query_string_parameters", "QueryStringParameters"),
+        ],
+    ),
+    (
+        "kinesis_target",
+        "KinesisParameters",
+        &[("partition_key_path", "PartitionKeyPath")],
+    ),
+    (
+        "redshift_target",
+        "RedshiftDataParameters",
+        &[
+            ("database", "Database"),
+            ("db_user", "DbUser"),
+            ("secrets_manager_arn", "SecretManagerArn"),
+            ("sql", "Sql"),
+            ("statement_name", "StatementName"),
+            ("with_event", "WithEvent"),
+        ],
+    ),
+    (
+        "appsync_target",
+        "AppSyncParameters",
+        &[("graphql_operation", "GraphQLOperation")],
+    ),
+];
+
+/// Scalar members of `ecs_target` / `EcsParameters`.
+const ECS_TARGET_FIELDS: FieldPairs = &[
+    ("enable_ecs_managed_tags", "EnableECSManagedTags"),
+    ("enable_execute_command", "EnableExecuteCommand"),
+    ("group", "Group"),
+    ("launch_type", "LaunchType"),
+    ("platform_version", "PlatformVersion"),
+    ("propagate_tags", "PropagateTags"),
+    ("task_count", "TaskCount"),
+    ("task_definition_arn", "TaskDefinitionArn"),
+];
+
+/// `ecs_target` sub-blocks that are lists of flat structures:
+/// `( terraform block, API member, fields )`. The ECS-shaped members are
+/// camelCase in the EventBridge API.
+const ECS_TARGET_LIST_BLOCKS: &[(&str, &str, FieldPairs)] = &[
+    (
+        "capacity_provider_strategy",
+        "CapacityProviderStrategy",
+        &[
+            ("base", "base"),
+            ("capacity_provider", "capacityProvider"),
+            ("weight", "weight"),
+        ],
+    ),
+    (
+        "ordered_placement_strategy",
+        "PlacementStrategy",
+        &[("field", "field"), ("type", "type")],
+    ),
+    (
+        "placement_constraint",
+        "PlacementConstraints",
+        &[("expression", "expression"), ("type", "type")],
+    ),
+];
+
+/// Target attributes that are not `Target` API members. They are kept in
+/// `TargetView::extra` under their Terraform key so that an inject / extract
+/// cycle does not lose them.
+const TARGET_PASSTHROUGH_BLOCKS: &[&str] = &["event_bridge_event_bus_parameters"];
+
+/// Whether a Terraform state value stands for "not configured".
+fn tf_unset(value: &serde_json::Value) -> bool {
+    match value {
+        serde_json::Value::Null => true,
+        serde_json::Value::String(s) => s.is_empty(),
+        serde_json::Value::Array(a) => a.is_empty(),
+        serde_json::Value::Object(o) => o.is_empty(),
+        _ => false,
+    }
+}
+
+/// The first element of a Terraform block list ( `max_items = 1` blocks are
+/// stored as a one-element array ).
+fn tf_single_block<'v>(attrs: &'v serde_json::Value, key: &str) -> Option<&'v serde_json::Value> {
+    match attrs.get(key)? {
+        serde_json::Value::Array(blocks) => blocks.first(),
+        block @ serde_json::Value::Object(_) => Some(block),
+        _ => None,
+    }
+    .filter(|block| block.is_object())
+}
+
+/// Every element of a Terraform block list.
+fn tf_blocks<'v>(attrs: &'v serde_json::Value, key: &str) -> &'v [serde_json::Value] {
+    attrs
+        .get(key)
+        .and_then(|v| v.as_array())
+        .map(Vec::as_slice)
+        .unwrap_or(&[])
+}
+
+/// The API integer members are `i32`; Terraform state may hold a whole
+/// number as a float, which the API model would refuse.
+fn tf_scalar(value: &serde_json::Value) -> serde_json::Value {
+    match value.as_f64() {
+        Some(f) if !value.is_i64() && !value.is_u64() && f.fract() == 0.0 => {
+            serde_json::json!(f as i64)
+        }
+        _ => value.clone(),
+    }
+}
+
+/// Copy the configured attributes of a Terraform block into an API
+/// structure, renaming them.
+fn tf_fields_to_api(block: &serde_json::Value, fields: FieldPairs) -> JsonMap {
+    let mut out = JsonMap::new();
+    for (tf_key, api_key) in fields {
+        if let Some(v) = block.get(*tf_key).filter(|v| !tf_unset(v)) {
+            out.insert((*api_key).to_string(), tf_scalar(v));
+        }
+    }
+    out
+}
+
+/// Copy the members of an API structure into a Terraform block, renaming
+/// them. Absent members become `null`, as in Terraform state.
+fn api_fields_to_tf(obj: &serde_json::Value, fields: FieldPairs) -> JsonMap {
+    let mut out = JsonMap::new();
+    for (tf_key, api_key) in fields {
+        out.insert(
+            (*tf_key).to_string(),
+            obj.get(*api_key)
+                .cloned()
+                .unwrap_or(serde_json::Value::Null),
+        );
+    }
+    out
+}
+
+fn insert_unless_empty(out: &mut JsonMap, key: &str, members: JsonMap) {
+    if !members.is_empty() {
+        out.insert(key.to_string(), serde_json::Value::Object(members));
+    }
+}
+
+/// `ecs_target` block -> `EcsParameters`.
+fn ecs_target_to_api(block: &serde_json::Value) -> JsonMap {
+    let mut out = tf_fields_to_api(block, ECS_TARGET_FIELDS);
+    for (tf_key, api_key, fields) in ECS_TARGET_LIST_BLOCKS {
+        let items: Vec<serde_json::Value> = tf_blocks(block, tf_key)
+            .iter()
+            .map(|item| serde_json::Value::Object(tf_fields_to_api(item, fields)))
+            .collect();
+        if !items.is_empty() {
+            out.insert((*api_key).to_string(), items.into());
+        }
+    }
+    if let Some(net) = tf_single_block(block, "network_configuration") {
+        let mut vpc = tf_fields_to_api(
+            net,
+            &[
+                ("security_groups", "SecurityGroups"),
+                ("subnets", "Subnets"),
+            ],
+        );
+        // Terraform models the ENABLED / DISABLED enum as a bool.
+        if let Some(assign) = net.get("assign_public_ip").and_then(|v| v.as_bool()) {
+            let value = if assign { "ENABLED" } else { "DISABLED" };
+            vpc.insert("AssignPublicIp".to_string(), value.into());
+        }
+        out.insert(
+            "NetworkConfiguration".to_string(),
+            serde_json::json!({"awsvpcConfiguration": vpc}),
+        );
+    }
+    // Terraform keeps the tags as a map, the API as a `Key` / `Value` list.
+    if let Some(tags) = block.get("tags").and_then(|v| v.as_object()) {
+        let mut tags: Vec<_> = tags
+            .iter()
+            .filter_map(|(k, v)| v.as_str().map(|v| (k, v)))
+            .collect();
+        tags.sort();
+        if !tags.is_empty() {
+            let tags: Vec<_> = tags
+                .into_iter()
+                .map(|(k, v)| serde_json::json!({"Key": k, "Value": v}))
+                .collect();
+            out.insert("Tags".to_string(), tags.into());
+        }
+    }
+    out
+}
+
+/// `EcsParameters` -> `ecs_target` block.
+fn ecs_target_to_tf(params: &serde_json::Value) -> JsonMap {
+    let mut out = api_fields_to_tf(params, ECS_TARGET_FIELDS);
+    for (tf_key, api_key, fields) in ECS_TARGET_LIST_BLOCKS {
+        let items: Vec<serde_json::Value> = tf_blocks(params, api_key)
+            .iter()
+            .map(|item| serde_json::Value::Object(api_fields_to_tf(item, fields)))
+            .collect();
+        out.insert((*tf_key).to_string(), items.into());
+    }
+    let network_configuration = match params
+        .get("NetworkConfiguration")
+        .and_then(|n| n.get("awsvpcConfiguration"))
+    {
+        Some(vpc) => {
+            let mut net = api_fields_to_tf(
+                vpc,
+                &[
+                    ("security_groups", "SecurityGroups"),
+                    ("subnets", "Subnets"),
+                ],
+            );
+            net.insert(
+                "assign_public_ip".to_string(),
+                (vpc.get("AssignPublicIp").and_then(|v| v.as_str()) == Some("ENABLED")).into(),
+            );
+            serde_json::json!([net])
+        }
+        None => serde_json::json!([]),
+    };
+    out.insert("network_configuration".to_string(), network_configuration);
+    let tags: JsonMap = tf_blocks(params, "Tags")
+        .iter()
+        .filter_map(|tag| {
+            Some((
+                tag.get("Key")?.as_str()?.to_string(),
+                tag.get("Value")?.clone(),
+            ))
+        })
+        .collect();
+    out.insert("tags".to_string(), serde_json::Value::Object(tags));
+    out
+}
+
+/// The API-shaped `Target` members ( other than `Id`, `Arn`, `Input`,
+/// `InputPath` and `RoleArn` ) described by the nested blocks of an
+/// `aws_cloudwatch_event_target`, keyed by API member name.
+fn target_members_from_tf(attrs: &serde_json::Value) -> JsonMap {
+    let mut out = JsonMap::new();
+    for (tf_key, api_key, fields) in TARGET_FLAT_BLOCKS {
+        if let Some(block) = tf_single_block(attrs, tf_key) {
+            insert_unless_empty(&mut out, api_key, tf_fields_to_api(block, fields));
+        }
+    }
+    if let Some(block) = tf_single_block(attrs, "ecs_target") {
+        insert_unless_empty(&mut out, "EcsParameters", ecs_target_to_api(block));
+    }
+    if let Some(block) = tf_single_block(attrs, "batch_target") {
+        let mut params = tf_fields_to_api(
+            block,
+            &[("job_definition", "JobDefinition"), ("job_name", "JobName")],
+        );
+        // The provider records 0 for an unset size / attempt count; neither
+        // is a value the API accepts.
+        let positive = |key: &str| {
+            block
+                .get(key)
+                .map(tf_scalar)
+                .filter(|v| v.as_i64() > Some(0))
+        };
+        if let Some(size) = positive("array_size") {
+            params.insert(
+                "ArrayProperties".to_string(),
+                serde_json::json!({"Size": size}),
+            );
+        }
+        if let Some(attempts) = positive("job_attempts") {
+            params.insert(
+                "RetryStrategy".to_string(),
+                serde_json::json!({"Attempts": attempts}),
+            );
+        }
+        insert_unless_empty(&mut out, "BatchParameters", params);
+    }
+    let run_command_targets: Vec<serde_json::Value> = tf_blocks(attrs, "run_command_targets")
+        .iter()
+        .map(|t| {
+            serde_json::Value::Object(tf_fields_to_api(t, &[("key", "Key"), ("values", "Values")]))
+        })
+        .collect();
+    if !run_command_targets.is_empty() {
+        out.insert(
+            "RunCommandParameters".to_string(),
+            serde_json::json!({"RunCommandTargets": run_command_targets}),
+        );
+    }
+    if let Some(block) = tf_single_block(attrs, "sagemaker_pipeline_target") {
+        let parameters: Vec<serde_json::Value> = tf_blocks(block, "pipeline_parameter_list")
+            .iter()
+            .map(|p| {
+                serde_json::Value::Object(tf_fields_to_api(
+                    p,
+                    &[("name", "Name"), ("value", "Value")],
+                ))
+            })
+            .collect();
+        let mut params = JsonMap::new();
+        if !parameters.is_empty() {
+            params.insert("PipelineParameterList".to_string(), parameters.into());
+        }
+        // A bare `sagemaker_pipeline_target {}` block is still a member.
+        out.insert(
+            "SageMakerPipelineParameters".to_string(),
+            serde_json::Value::Object(params),
+        );
+    }
+    out
+}
+
+/// The reverse of [`target_members_from_tf`]: every nested target block of
+/// `aws_cloudwatch_event_target`, rebuilt from the API-shaped members held in
+/// `TargetView::extra`. A member that is absent yields an empty block list.
+fn target_members_to_tf(extra: &JsonMap) -> JsonMap {
+    let mut out = JsonMap::new();
+    let mut put = |key: &str, block: Option<JsonMap>| {
+        let blocks: Vec<serde_json::Value> =
+            block.into_iter().map(serde_json::Value::Object).collect();
+        out.insert(key.to_string(), blocks.into());
+    };
+    for (tf_key, api_key, fields) in TARGET_FLAT_BLOCKS {
+        put(
+            tf_key,
+            extra.get(*api_key).map(|m| api_fields_to_tf(m, fields)),
+        );
+    }
+    put(
+        "ecs_target",
+        extra.get("EcsParameters").map(ecs_target_to_tf),
+    );
+    put(
+        "batch_target",
+        extra.get("BatchParameters").map(|params| {
+            let mut block = api_fields_to_tf(
+                params,
+                &[("job_definition", "JobDefinition"), ("job_name", "JobName")],
+            );
+            let nested = |outer: &str, inner: &str| {
+                params
+                    .get(outer)
+                    .and_then(|o| o.get(inner))
+                    .cloned()
+                    .unwrap_or_else(|| 0.into())
+            };
+            block.insert("array_size".to_string(), nested("ArrayProperties", "Size"));
+            block.insert(
+                "job_attempts".to_string(),
+                nested("RetryStrategy", "Attempts"),
+            );
+            block
+        }),
+    );
+    put(
+        "sagemaker_pipeline_target",
+        extra.get("SageMakerPipelineParameters").map(|params| {
+            let parameters: Vec<serde_json::Value> = tf_blocks(params, "PipelineParameterList")
+                .iter()
+                .map(|p| {
+                    serde_json::Value::Object(api_fields_to_tf(
+                        p,
+                        &[("name", "Name"), ("value", "Value")],
+                    ))
+                })
+                .collect();
+            let mut block = JsonMap::new();
+            block.insert("pipeline_parameter_list".to_string(), parameters.into());
+            block
+        }),
+    );
+    // `run_command_targets` is itself the repeated block.
+    let run_command_targets: Vec<serde_json::Value> = extra
+        .get("RunCommandParameters")
+        .map(|params| tf_blocks(params, "RunCommandTargets"))
+        .unwrap_or(&[])
+        .iter()
+        .map(|t| {
+            serde_json::Value::Object(api_fields_to_tf(t, &[("key", "Key"), ("values", "Values")]))
+        })
+        .collect();
+    out.insert(
+        "run_command_targets".to_string(),
+        run_command_targets.into(),
+    );
+    out
+}
+
 /// Converts `aws_cloudwatch_event_target` Terraform resources to/from EventBridge state.
 pub struct AwsCloudwatchEventTargetConverter {
     service: Arc<EventBridgeService>,
@@ -369,25 +792,19 @@ impl AwsCloudwatchEventTargetConverter {
         let target_arn = model.arn.clone();
 
         let _tags_all = attrs.get("tags_all");
-        let _retry_policy = attrs.get("retry_policy");
 
-        // Collect all nested target configuration blocks into `extra`.
+        // Reshape the Terraform target blocks into the API-shaped `Target`
+        // members that `TargetView::extra` carries ( and that
+        // `ListTargetsByRule` surfaces ).
         let extra = {
-            let mut extra_map = serde_json::Map::new();
-            for key in &[
-                "input_transformer",
-                "dead_letter_config",
-                "run_command_targets",
-                "ecs_target",
-                "batch_target",
-                "http_target",
-                "kinesis_target",
-                "sqs_target",
-                "redshift_target",
-                "sagemaker_pipeline_target",
-                "event_bridge_event_bus_parameters",
-            ] {
-                if let Some(v) = attrs.get(*key) {
+            let mut extra_map = target_members_from_tf(attrs);
+            if let Some(role_arn) = model.role_arn.filter(|s| !s.is_empty()) {
+                extra_map.insert("RoleArn".to_string(), role_arn.into());
+            }
+            // Blocks with no `Target` API member stay under their Terraform
+            // key: the view round-trips them, the API does not surface them.
+            for key in TARGET_PASSTHROUGH_BLOCKS {
+                if let Some(v) = attrs.get(*key).filter(|v| !tf_unset(v)) {
                     extra_map.insert(key.to_string(), v.clone());
                 }
             }
@@ -459,7 +876,6 @@ impl AwsCloudwatchEventTargetConverter {
         for rule in view.rules.values() {
             for target in &rule.targets {
                 let id = format!("{}/{}", rule.name, target.id);
-                // Merge extra nested blocks back into attributes.
                 let mut attr_map = serde_json::json!({
                     "id": id,
                     "rule": rule.name,
@@ -468,17 +884,26 @@ impl AwsCloudwatchEventTargetConverter {
                     "input": target.input,
                     "input_path": target.input_path,
                     "event_bus_name": rule.event_bus_name,
-                    "retry_policy": null,
-                    "dead_letter_config": null,
-                    "ecs_target": [],
-                    "batch_target": [],
+                    "role_arn": null,
                 });
-                if let Some(extra) = &target.extra {
-                    if let (Some(map), Some(extra_map)) =
-                        (attr_map.as_object_mut(), extra.as_object())
-                    {
+                // Turn the API-shaped members of `extra` back into Terraform
+                // blocks; an absent member yields an empty block list.
+                if let Some(map) = attr_map.as_object_mut() {
+                    let empty = serde_json::Map::new();
+                    let extra_map = target.extra.as_ref().and_then(|e| e.as_object());
+                    map.extend(target_members_to_tf(extra_map.unwrap_or(&empty)));
+                    if let Some(extra_map) = extra_map {
+                        if let Some(role_arn) = extra_map.get("RoleArn") {
+                            map.insert("role_arn".to_string(), role_arn.clone());
+                        }
+                        // Entries kept under a Terraform key ( see
+                        // `TARGET_PASSTHROUGH_BLOCKS`, and snapshots taken
+                        // before `extra` became API-shaped ) are emitted
+                        // as they are. API members never start lower-case.
                         for (k, v) in extra_map {
-                            map.insert(k.clone(), v.clone());
+                            if k.starts_with(|c: char| c.is_ascii_lowercase()) {
+                                map.insert(k.clone(), v.clone());
+                            }
                         }
                     }
                 }

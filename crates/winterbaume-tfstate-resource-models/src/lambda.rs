@@ -60,6 +60,10 @@ pub struct LambdaPermissionTfModel {
     pub source_arn: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub source_account: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub event_source_token: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub function_url_auth_type: Option<String>,
 }
 
 /// Auto-generated TF-shaped projection of the `aws_lambda_event_source_mapping` resource.
@@ -72,6 +76,10 @@ pub struct LambdaEventSourceMappingTfModel {
     pub event_source_arn: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub starting_position: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub starting_position_timestamp: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kms_key_arn: Option<String>,
 }
 
 /// Auto-generated TF-shaped projection of the `aws_lambda_code_signing_config` resource.

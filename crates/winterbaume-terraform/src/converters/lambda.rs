@@ -9,8 +9,8 @@ use chrono::Utc;
 use winterbaume_core::StatefulService;
 use winterbaume_lambda::LambdaService;
 use winterbaume_lambda::types::{
-    CodeSigningConfigEntry, FunctionRecursionConfig, ProvisionedConcurrencyConfig,
-    RuntimeManagementConfig,
+    CodeSigningConfigEntry, EventSourceMappingScalingSettings, EventSourceMappingSettings,
+    FunctionRecursionConfig, ProvisionedConcurrencyConfig, RuntimeManagementConfig,
 };
 use winterbaume_lambda::views::{
     AliasView, EventSourceMappingView, FunctionEventInvokeConfigView, FunctionUrlConfigView,
@@ -434,7 +434,8 @@ impl AwsLambdaPermissionConverter {
         let model: lambda_gen::LambdaPermissionTfModel = serde_json::from_value(attrs.clone())
             .map_err(|e| classify_deserialize_error("aws_lambda_permission", e))?;
 
-        let _principal_org_id = model.principal_org_id;
+        // Terraform state may carry unset optional strings as "".
+        let non_empty = |v: Option<String>| v.filter(|s| !s.is_empty());
 
         let function_name = model.function_name.clone();
         let statement_id = model.statement_id.clone();
@@ -444,6 +445,13 @@ impl AwsLambdaPermissionConverter {
             principal: model.principal,
             source_arn: model.source_arn,
             source_account: model.source_account,
+            principal_org_id: non_empty(model.principal_org_id),
+            event_source_token: non_empty(model.event_source_token),
+            function_url_auth_type: non_empty(model.function_url_auth_type),
+            // Option<bool>, outside the spec vocabulary: read raw.
+            invoked_via_function_url: attrs
+                .get("invoked_via_function_url")
+                .and_then(|v| v.as_bool()),
         };
 
         let mut state_view = self
@@ -493,6 +501,10 @@ impl AwsLambdaPermissionConverter {
                     "principal": perm.principal,
                     "source_arn": perm.source_arn,
                     "source_account": perm.source_account,
+                    "principal_org_id": perm.principal_org_id,
+                    "event_source_token": perm.event_source_token,
+                    "function_url_auth_type": perm.function_url_auth_type,
+                    "invoked_via_function_url": perm.invoked_via_function_url,
                 });
                 results.push(ExtractedResource {
                     name: id,
@@ -509,6 +521,76 @@ impl AwsLambdaPermissionConverter {
 // ---------------------------------------------------------------------------
 // aws_lambda_event_source_mapping
 // ---------------------------------------------------------------------------
+
+/// Build the store-and-echo settings of an event source mapping from the raw
+/// Terraform attributes whose types fall outside the spec vocabulary.
+///
+/// `kms_key_arn` and `starting_position_timestamp` come from the typed model
+/// and are filled in by the caller; `logging_config` has no Terraform
+/// attribute.
+///
+/// A null attribute means "never supplied" and stays `None`. So do the two
+/// placeholders the provider writes for sources that do not report the
+/// member at all and that the API itself can never return:
+/// `parallelization_factor = 0` and `maximum_record_age_in_seconds = 0`.
+fn esm_settings_from_tf(attrs: &serde_json::Value) -> EventSourceMappingSettings {
+    let int = |key: &str| {
+        attrs
+            .get(key)
+            .and_then(|v| v.as_i64().or_else(|| v.as_f64().map(|f| f as i64)))
+            .and_then(|v| i32::try_from(v).ok())
+    };
+    let strings = |key: &str| {
+        attrs
+            .get(key)
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(str::to_string))
+                    .collect::<Vec<_>>()
+            })
+            .filter(|v| !v.is_empty())
+    };
+    let scaling_config = attrs
+        .get("scaling_config")
+        .and_then(|v| v.as_array())
+        .and_then(|arr| arr.first())
+        .map(|block| EventSourceMappingScalingSettings {
+            maximum_concurrency: block
+                .get("maximum_concurrency")
+                .and_then(|v| v.as_i64())
+                .and_then(|v| i32::try_from(v).ok()),
+        });
+
+    EventSourceMappingSettings {
+        bisect_batch_on_function_error: attrs
+            .get("bisect_batch_on_function_error")
+            .and_then(|v| v.as_bool()),
+        function_response_types: strings("function_response_types"),
+        maximum_batching_window_in_seconds: int("maximum_batching_window_in_seconds"),
+        maximum_record_age_in_seconds: int("maximum_record_age_in_seconds").filter(|v| *v != 0),
+        maximum_retry_attempts: int("maximum_retry_attempts"),
+        parallelization_factor: int("parallelization_factor").filter(|v| *v >= 1),
+        queues: strings("queues"),
+        scaling_config,
+        topics: strings("topics"),
+        tumbling_window_in_seconds: int("tumbling_window_in_seconds"),
+        ..Default::default()
+    }
+}
+
+/// Terraform keeps `starting_position_timestamp` as an RFC 3339 string; the
+/// Lambda API ( and the stored settings ) use epoch seconds.
+fn parse_rfc3339_epoch_seconds(value: &str) -> Option<f64> {
+    chrono::DateTime::parse_from_rfc3339(value)
+        .ok()
+        .map(|dt| dt.timestamp_millis() as f64 / 1000.0)
+}
+
+fn format_epoch_seconds_rfc3339(seconds: f64) -> Option<String> {
+    chrono::DateTime::<Utc>::from_timestamp_millis((seconds * 1000.0).round() as i64)
+        .map(|dt| dt.to_rfc3339_opts(chrono::SecondsFormat::AutoSi, true))
+}
 
 /// Converts `aws_lambda_event_source_mapping` Terraform resources to/from Lambda state.
 pub struct AwsLambdaEventSourceMappingConverter {
@@ -561,16 +643,14 @@ impl AwsLambdaEventSourceMappingConverter {
 
         // Additional fields for coverage (TF-only / not stored in state).
         let _ = attrs.get("tags_all");
-        let _ = attrs.get("bisect_batch_on_function_error");
-        let _ = attrs.get("function_response_types");
-        let _ = attrs.get("maximum_batching_window_in_seconds");
-        let _ = attrs.get("maximum_record_age_in_seconds");
-        let _ = attrs.get("maximum_retry_attempts");
-        let _ = attrs.get("parallelization_factor");
-        let _ = attrs.get("queues");
-        let _ = attrs.get("topics");
-        let _ = attrs.get("tumbling_window_in_seconds");
-        let _ = attrs.get("scaling_config");
+
+        // Store-and-echo settings surfaced by Get/ListEventSourceMappings.
+        let mut settings = esm_settings_from_tf(attrs);
+        settings.kms_key_arn = model.kms_key_arn.filter(|s| !s.is_empty());
+        settings.starting_position_timestamp = model
+            .starting_position_timestamp
+            .as_deref()
+            .and_then(parse_rfc3339_epoch_seconds);
 
         // Nested blocks — stored for round-trip fidelity.
         let destination_config = attrs.get("destination_config").cloned();
@@ -609,7 +689,7 @@ impl AwsLambdaEventSourceMappingConverter {
             .and_then(|v| v.as_bool())
             .unwrap_or(true);
 
-        let esm_view = EventSourceMappingView {
+        let mut esm_view = EventSourceMappingView {
             uuid: uuid.clone(),
             event_source_arn,
             function_arn,
@@ -627,12 +707,18 @@ impl AwsLambdaEventSourceMappingConverter {
             document_db_event_source_config,
             metrics_config,
             provisioned_poller_config,
+            settings,
         };
 
         let mut state_view = self
             .service
             .snapshot(&ctx.default_account_id, &region)
             .await;
+        // `logging_config` has no Terraform attribute; keep whatever an
+        // already-present mapping carries instead of wiping it.
+        if let Some(existing) = state_view.event_source_mappings.get(&uuid) {
+            esm_view.settings.logging_config = existing.settings.logging_config.clone();
+        }
         state_view.event_source_mappings.insert(uuid, esm_view);
         self.service
             .restore(&ctx.default_account_id, &region, state_view)
@@ -654,6 +740,13 @@ impl AwsLambdaEventSourceMappingConverter {
             .await;
         let mut results = vec![];
         for esm in view.event_source_mappings.values() {
+            let settings = &esm.settings;
+            // Settings that were never supplied fall back to the values the
+            // AWS provider records for an untouched mapping.
+            let scaling_config = match &settings.scaling_config {
+                Some(c) => serde_json::json!([{"maximum_concurrency": c.maximum_concurrency}]),
+                None => serde_json::json!([]),
+            };
             let mut attrs = serde_json::json!({
                 "id": esm.uuid,
                 "uuid": esm.uuid,
@@ -666,14 +759,30 @@ impl AwsLambdaEventSourceMappingConverter {
                 "state": esm.state,
                 "last_modified": esm.last_modified,
                 "state_transition_reason": "USER_INITIATED",
-                "maximum_retry_attempts": -1,
+                "maximum_retry_attempts": settings.maximum_retry_attempts.unwrap_or(-1),
                 "tags_all": {},
-                "function_response_types": [],
-                "maximum_batching_window_in_seconds": 0,
-                "maximum_record_age_in_seconds": -1,
-                "parallelization_factor": 1,
-                "tumbling_window_in_seconds": 0,
-                "scaling_config": [],
+                "bisect_batch_on_function_error": settings
+                    .bisect_batch_on_function_error
+                    .unwrap_or(false),
+                "function_response_types": settings
+                    .function_response_types
+                    .clone()
+                    .unwrap_or_default(),
+                "kms_key_arn": settings.kms_key_arn,
+                "maximum_batching_window_in_seconds": settings
+                    .maximum_batching_window_in_seconds
+                    .unwrap_or(0),
+                "maximum_record_age_in_seconds": settings
+                    .maximum_record_age_in_seconds
+                    .unwrap_or(-1),
+                "parallelization_factor": settings.parallelization_factor.unwrap_or(1),
+                "queues": settings.queues,
+                "topics": settings.topics,
+                "tumbling_window_in_seconds": settings.tumbling_window_in_seconds.unwrap_or(0),
+                "starting_position_timestamp": settings
+                    .starting_position_timestamp
+                    .and_then(format_epoch_seconds_rfc3339),
+                "scaling_config": scaling_config,
             });
             // Emit nested blocks if present
             let obj = attrs.as_object_mut().unwrap();
