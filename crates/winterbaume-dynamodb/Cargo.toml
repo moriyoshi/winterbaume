@@ -10,6 +10,7 @@ description = "DynamoDB service implementation for winterbaume"
 
 [dependencies]
 winterbaume-core = { workspace = true }
+base64 = { workspace = true }
 tokio = { workspace = true }
 bytes = { workspace = true }
 http = { workspace = true }

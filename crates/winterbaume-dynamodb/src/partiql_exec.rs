@@ -922,7 +922,7 @@ fn attribute_value_type_name(av: &AttributeValue) -> &'static str {
 fn attribute_value_size(av: &AttributeValue) -> Option<i64> {
     match av {
         AttributeValue::S(s) => Some(s.len() as i64),
-        AttributeValue::B(b) => Some(b.len() as i64),
+        AttributeValue::B(b) => Some(crate::types::binary_len(b) as i64),
         AttributeValue::L(l) => Some(l.len() as i64),
         AttributeValue::SS(s) => Some(s.len() as i64),
         AttributeValue::NS(s) => Some(s.len() as i64),

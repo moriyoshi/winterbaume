@@ -138,8 +138,9 @@ fn encode_key_value(val: &AttributeValue) -> String {
 /// Compare two optional `AttributeValue`s for query-result sort ordering.
 ///
 /// `None` (item missing the range-key attribute) sorts after `Some` so that
-/// well-formed items take precedence in the result page. Type mismatches and
-/// unsupported types fall back to `Equal`, leaving the relative order of
+/// well-formed items take precedence in the result page. Values compare by
+/// [`compare_key_values`] ( numbers exactly, not as `f64` ); type mismatches
+/// and unsupported types fall back to `Equal`, leaving the relative order of
 /// affected items unspecified — DynamoDB only guarantees a consistent order
 /// for items whose range key matches the table's declared scalar type.
 fn compare_attr_values(
@@ -151,16 +152,7 @@ fn compare_attr_values(
         (None, None) => Ordering::Equal,
         (None, Some(_)) => Ordering::Greater,
         (Some(_), None) => Ordering::Less,
-        (Some(av), Some(bv)) => match (av, bv) {
-            (AttributeValue::S(x), AttributeValue::S(y)) => x.cmp(y),
-            (AttributeValue::N(x), AttributeValue::N(y)) => {
-                let xn: f64 = x.parse().unwrap_or(0.0);
-                let yn: f64 = y.parse().unwrap_or(0.0);
-                xn.partial_cmp(&yn).unwrap_or(Ordering::Equal)
-            }
-            (AttributeValue::B(x), AttributeValue::B(y)) => x.cmp(y),
-            _ => Ordering::Equal,
-        },
+        (Some(av), Some(bv)) => compare_key_values(av, bv).unwrap_or(Ordering::Equal),
     }
 }
 
@@ -178,6 +170,137 @@ fn item_field(item: &Item, hash_key: &str, range_key: Option<&str>) -> String {
         encode_key_value(&hash_val),
         encode_key_value(&range_val)
     )
+}
+
+/// Position of an item in a read: its sort-key value (the index sort key for
+/// an index read, the table sort key for a base-table query, none for a
+/// scan), with the table primary key as a tie-breaker. The tie-breaker makes
+/// the order total, which index reads need because index keys are not
+/// unique; `ExclusiveStartKey` carries the table primary key, so its position
+/// is computed the same way.
+struct ReadPosition {
+    sort_value: Option<AttributeValue>,
+    hash_value: Option<AttributeValue>,
+    range_value: Option<AttributeValue>,
+}
+
+impl ReadPosition {
+    fn of(item: &Item, table: &StoredTable, sort_attr: Option<&str>) -> Self {
+        let value = |attr: Option<&str>| attr.and_then(|a| item.get(a)).cloned();
+        Self {
+            sort_value: value(sort_attr),
+            hash_value: value(Some(&table.hash_key_attr)),
+            range_value: value(table.range_key_attr.as_deref()),
+        }
+    }
+
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        compare_attr_values(self.sort_value.as_ref(), other.sort_value.as_ref())
+            .then_with(|| compare_attr_values(self.hash_value.as_ref(), other.hash_value.as_ref()))
+            .then_with(|| {
+                compare_attr_values(self.range_value.as_ref(), other.range_value.as_ref())
+            })
+    }
+}
+
+/// Resolve the `(hash, range)` key attribute names of a secondary index.
+fn index_key_attrs<'a>(
+    table: &'a StoredTable,
+    index_name: &str,
+) -> Result<(&'a str, Option<&'a str>), DynamoDbError> {
+    let index = table
+        .global_secondary_indexes
+        .iter()
+        .chain(table.local_secondary_indexes.iter())
+        .find(|index| index.index_name == index_name)
+        .ok_or_else(|| {
+            DynamoDbError::ValidationError(format!(
+                "The table does not have the specified index: {index_name}"
+            ))
+        })?;
+    let hash = index
+        .key_schema
+        .iter()
+        .find(|k| k.key_type == "HASH")
+        .map(|k| k.attribute_name.as_str())
+        .ok_or(DynamoDbError::NoHashKey)?;
+    let range = index
+        .key_schema
+        .iter()
+        .find(|k| k.key_type == "RANGE")
+        .map(|k| k.attribute_name.as_str());
+    Ok((hash, range))
+}
+
+/// Whether `item` belongs to a (sparse) secondary index: it must carry
+/// every index key attribute.
+fn in_index(item: &Item, hash_attr: &str, range_attr: Option<&str>) -> bool {
+    item.contains_key(hash_attr) && range_attr.is_none_or(|r| item.contains_key(r))
+}
+
+/// Order `items` by [`ReadPosition`], skip past `exclusive_start_key`, apply
+/// `limit`, and emit a `LastEvaluatedKey` made of `key_attrs` when the page
+/// is truncated.
+fn paginate(
+    items: Vec<Item>,
+    table: &StoredTable,
+    sort_attr: Option<&str>,
+    forward: bool,
+    exclusive_start_key: Option<&Item>,
+    limit: Option<usize>,
+    key_attrs: &[&str],
+) -> QueryResult {
+    let mut positioned: Vec<(ReadPosition, Item)> = items
+        .into_iter()
+        .map(|item| (ReadPosition::of(&item, table, sort_attr), item))
+        .collect();
+    positioned.sort_by(|a, b| a.0.cmp(&b.0));
+    if !forward {
+        positioned.reverse();
+    }
+    if let Some(start_key) = exclusive_start_key {
+        let start = ReadPosition::of(start_key, table, sort_attr);
+        positioned.retain(|(position, _)| {
+            let ord = position.cmp(&start);
+            if forward { ord.is_gt() } else { ord.is_lt() }
+        });
+    }
+    let truncated = limit.is_some_and(|limit| positioned.len() > limit);
+    if let Some(limit) = limit {
+        positioned.truncate(limit);
+    }
+    let items: Vec<Item> = positioned.into_iter().map(|(_, item)| item).collect();
+    let last_evaluated_key = items.last().filter(|_| truncated).map(|item| {
+        key_attrs
+            .iter()
+            .filter_map(|attr| item.get(*attr).map(|v| (attr.to_string(), v.clone())))
+            .collect()
+    });
+    let count = items.len();
+    QueryResult {
+        items,
+        count,
+        scanned_count: count,
+        last_evaluated_key,
+    }
+}
+
+/// The attributes a `LastEvaluatedKey` carries: the table primary key, plus
+/// the index key when reading an index.
+fn page_key_attrs<'a>(
+    table: &'a StoredTable,
+    index_keys: Option<(&'a str, Option<&'a str>)>,
+) -> Vec<&'a str> {
+    let mut attrs = vec![table.hash_key_attr.as_str()];
+    attrs.extend(table.range_key_attr.as_deref());
+    if let Some((hash, range)) = index_keys {
+        for attr in std::iter::once(hash).chain(range) {
+            if !attrs.contains(&attr) {
+                attrs.push(attr);
+            }
+        }
+    }
+    attrs
 }
 
 // ---------------------------------------------------------------------------
@@ -1208,40 +1331,21 @@ impl DynamoDbBackend for RedisDynamoDbBackend {
 
             // Resolve hash and (optional) range key attribute names from the
             // index when one is named, otherwise from the table.
-            let (hash_key, range_key): (&str, Option<&str>) =
-                if let Some(index_name) = index_name.as_deref() {
-                    let idx = stored
-                        .global_secondary_indexes
-                        .iter()
-                        .chain(stored.local_secondary_indexes.iter())
-                        .find(|index| index.index_name == index_name)
-                        .ok_or_else(|| {
-                            DynamoDbError::InternalError(format!(
-                                "The table does not have the specified index: {index_name}"
-                            ))
-                        })?;
-                    let h = idx
-                        .key_schema
-                        .iter()
-                        .find(|k| k.key_type == "HASH")
-                        .map(|k| k.attribute_name.as_str())
-                        .ok_or(DynamoDbError::NoHashKey)?;
-                    let r = idx
-                        .key_schema
-                        .iter()
-                        .find(|k| k.key_type == "RANGE")
-                        .map(|k| k.attribute_name.as_str());
-                    (h, r)
-                } else {
-                    (
-                        stored.hash_key_attr.as_str(),
-                        stored.range_key_attr.as_deref(),
-                    )
-                };
+            let index_keys = index_name
+                .as_deref()
+                .map(|index_name| index_key_attrs(&stored, index_name))
+                .transpose()?;
+            let (hash_key, range_key) = index_keys.unwrap_or((
+                stored.hash_key_attr.as_str(),
+                stored.range_key_attr.as_deref(),
+            ));
 
+            // Indexes are sparse: an item missing an index key attribute is
+            // not present in the index at all.
             let hash_val = key_conditions.get(hash_key);
             let mut filtered: Vec<Item> = all_items
                 .into_iter()
+                .filter(|item| in_index(item, hash_key, range_key))
                 .filter(|item| hash_val.is_none_or(|hv| item.get(hash_key) == Some(hv)))
                 .collect();
 
@@ -1255,91 +1359,24 @@ impl DynamoDbBackend for RedisDynamoDbBackend {
 
             // Apply the sort-key range condition (`<`, `<=`, `>`, `>=`,
             // `BETWEEN`, `begins_with`) on the range-key attribute. Items
-            // missing the range-key attribute or with an incompatible type
-            // are dropped.
+            // with an incompatible type are dropped.
             if let (Some(cond), Some(rk_attr)) = (sort_key_condition.as_ref(), range_key) {
                 filtered.retain(|item| item.get(rk_attr).is_some_and(|v| cond.matches(v)));
             }
 
-            // Sort by range key for deterministic ordering before pagination.
-            // (DynamoDB sorts query results by the range key; the in-memory
-            // backend uses `serialize_key_value` for the same purpose.)
-            if let Some(rk_attr) = range_key {
-                filtered.sort_by(|a, b| {
-                    let ak = a.get(rk_attr);
-                    let bk = b.get(rk_attr);
-                    let ord = compare_attr_values(ak, bk);
-                    if scan_index_forward {
-                        ord
-                    } else {
-                        ord.reverse()
-                    }
-                });
-            } else if !scan_index_forward {
-                filtered.reverse();
-            }
-
-            // Skip past `ExclusiveStartKey` (the page boundary returned in the
-            // previous call's `LastEvaluatedKey`). Compares on the range-key
-            // attribute when present, falling back to hash-key when absent —
-            // which mirrors how DynamoDB encodes a continuation token.
-            if let Some(start_key) = exclusive_start_key.as_ref() {
-                if let Some(rk_attr) = range_key {
-                    let start_val = start_key.get(rk_attr).cloned();
-                    filtered.retain(|item| {
-                        let item_val = item.get(rk_attr);
-                        let ord = compare_attr_values(item_val, start_val.as_ref());
-                        if scan_index_forward {
-                            ord.is_gt()
-                        } else {
-                            ord.is_lt()
-                        }
-                    });
-                }
-            }
-
-            let scanned_count = filtered.len();
-            let total = filtered.len();
-            let truncate_to = limit.unwrap_or(total);
-            let truncated = total > truncate_to;
-            filtered.truncate(truncate_to);
-            let count = filtered.len();
-
-            // Emit `LastEvaluatedKey` (table primary key + index key when
-            // applicable) when the page is truncated, so callers can resume.
-            let last_evaluated_key = if truncated {
-                filtered.last().map(|item| {
-                    let mut key: Item = std::collections::HashMap::new();
-                    if let Some(v) = item.get(stored.hash_key_attr.as_str()) {
-                        key.insert(stored.hash_key_attr.clone(), v.clone());
-                    }
-                    if let Some(rk_attr) = stored.range_key_attr.as_deref()
-                        && let Some(v) = item.get(rk_attr)
-                    {
-                        key.insert(rk_attr.to_string(), v.clone());
-                    }
-                    if index_name.is_some() {
-                        if let Some(v) = item.get(hash_key) {
-                            key.insert(hash_key.to_string(), v.clone());
-                        }
-                        if let Some(rk_attr) = range_key
-                            && let Some(v) = item.get(rk_attr)
-                        {
-                            key.insert(rk_attr.to_string(), v.clone());
-                        }
-                    }
-                    key
-                })
-            } else {
-                None
-            };
-
-            Ok(QueryResult {
-                items: filtered,
-                count,
-                scanned_count,
-                last_evaluated_key,
-            })
+            // Order by the sort key, breaking ties (index keys are not
+            // unique) with the table primary key, then page. The same order
+            // positions `ExclusiveStartKey`, which carries both key sets.
+            let key_attrs = page_key_attrs(&stored, index_keys);
+            Ok(paginate(
+                filtered,
+                &stored,
+                range_key,
+                scan_index_forward,
+                exclusive_start_key.as_ref(),
+                limit,
+                &key_attrs,
+            ))
         })
     }
 
@@ -1349,24 +1386,59 @@ impl DynamoDbBackend for RedisDynamoDbBackend {
         region: String,
         table_name: String,
         limit: Option<usize>,
-        _exclusive_start_key: Option<Item>,
+        exclusive_start_key: Option<Item>,
     ) -> Pin<Box<dyn Future<Output = Result<QueryResult, DynamoDbError>> + Send>> {
         let mut conn = self.conn.clone();
         Box::pin(async move {
             let acct = &account_id;
             let rgn = &region;
-            let mut all_items = load_all_items(&mut conn, acct, rgn, &table_name).await?;
-            let scanned_count = all_items.len();
-            if let Some(lim) = limit {
-                all_items.truncate(lim);
-            }
-            let count = all_items.len();
-            Ok(QueryResult {
-                items: all_items,
-                count,
-                scanned_count,
-                last_evaluated_key: None,
-            })
+            let stored = load_table(&mut conn, acct, rgn, &table_name).await?;
+            let all_items = load_all_items(&mut conn, acct, rgn, &table_name).await?;
+            let key_attrs = page_key_attrs(&stored, None);
+            Ok(paginate(
+                all_items,
+                &stored,
+                None,
+                true,
+                exclusive_start_key.as_ref(),
+                limit,
+                &key_attrs,
+            ))
+        })
+    }
+
+    fn scan_index(
+        &self,
+        account_id: String,
+        region: String,
+        table_name: String,
+        index_name: String,
+        limit: Option<usize>,
+        exclusive_start_key: Option<Item>,
+    ) -> Pin<Box<dyn Future<Output = Result<QueryResult, DynamoDbError>> + Send>> {
+        let mut conn = self.conn.clone();
+        Box::pin(async move {
+            let acct = &account_id;
+            let rgn = &region;
+            let stored = load_table(&mut conn, acct, rgn, &table_name).await?;
+            let (hash_key, range_key) = index_key_attrs(&stored, &index_name)?;
+            // Drop the items absent from the sparse index before `Limit`
+            // applies, so a page is never short because of them.
+            let items: Vec<Item> = load_all_items(&mut conn, acct, rgn, &table_name)
+                .await?
+                .into_iter()
+                .filter(|item| in_index(item, hash_key, range_key))
+                .collect();
+            let key_attrs = page_key_attrs(&stored, Some((hash_key, range_key)));
+            Ok(paginate(
+                items,
+                &stored,
+                None,
+                true,
+                exclusive_start_key.as_ref(),
+                limit,
+                &key_attrs,
+            ))
         })
     }
 
@@ -2847,6 +2919,116 @@ mod tests {
         // Production override.
         info.redis.db = 7;
         assert_eq!(info.redis.db, 7, "override must take effect");
+    }
+
+    fn table() -> super::StoredTable {
+        serde_json::from_value(serde_json::json!({
+            "name": "t",
+            "arn": "arn:aws:dynamodb:us-east-1:123456789012:table/t",
+            "key_schema": [],
+            "attribute_definitions": [],
+            "billing_mode": "PAY_PER_REQUEST",
+            "provisioned_throughput": null,
+            "creation_date_time": "2026-11-06T00:00:00Z",
+            "table_status": "ACTIVE",
+            "item_count": 0,
+            "hash_key_attr": "pk",
+            "hash_key_type": "S",
+            "range_key_attr": "sk",
+            "range_key_type": "S",
+        }))
+        .unwrap()
+    }
+
+    fn item(pairs: &[(&str, &str)]) -> super::Item {
+        pairs
+            .iter()
+            .map(|(k, v)| (k.to_string(), super::AttributeValue::S(v.to_string())))
+            .collect()
+    }
+
+    /// Walk every page with `Limit` = 1, returning the `sk` of each item and
+    /// the attribute names of every `LastEvaluatedKey`.
+    fn walk(
+        items: &[super::Item],
+        sort_attr: Option<&str>,
+        forward: bool,
+        key_attrs: &[&str],
+    ) -> (Vec<String>, Vec<Vec<String>>) {
+        let table = table();
+        let (mut seen, mut keys) = (Vec::new(), Vec::new());
+        let mut start = None;
+        for _ in 0..=items.len() {
+            let page = super::paginate(
+                items.to_vec(),
+                &table,
+                sort_attr,
+                forward,
+                start.as_ref(),
+                Some(1),
+                key_attrs,
+            );
+            seen.extend(page.items.iter().map(|i| match &i["sk"] {
+                super::AttributeValue::S(s) => s.clone(),
+                other => panic!("{other:?}"),
+            }));
+            match page.last_evaluated_key {
+                Some(key) => {
+                    let mut names: Vec<String> = key.keys().cloned().collect();
+                    names.sort();
+                    keys.push(names);
+                    start = Some(key);
+                }
+                None => return (seen, keys),
+            }
+        }
+        panic!("pagination did not terminate: {seen:?}");
+    }
+
+    /// Items sharing an index sort key are ordered by the table primary key,
+    /// so paging one item at a time visits each exactly once in either
+    /// direction. Before 2026-11-06 the Redis backend positioned
+    /// `ExclusiveStartKey` by the index sort key alone and skipped them.
+    #[test]
+    fn index_pages_break_ties_with_the_table_key() {
+        let items = [
+            item(&[("pk", "p2"), ("sk", "b"), ("g", "x"), ("gs", "1")]),
+            item(&[("pk", "p1"), ("sk", "a"), ("g", "x"), ("gs", "1")]),
+            item(&[("pk", "p1"), ("sk", "c"), ("g", "x"), ("gs", "0")]),
+        ];
+        let key_attrs = ["pk", "sk", "g", "gs"];
+        let (seen, keys) = walk(&items, Some("gs"), true, &key_attrs);
+        assert_eq!(seen, ["c", "a", "b"]);
+        assert!(
+            keys.iter().all(|k| k == &["g", "gs", "pk", "sk"]),
+            "{keys:?}"
+        );
+        let (seen, _) = walk(&items, Some("gs"), false, &key_attrs);
+        assert_eq!(seen, ["b", "a", "c"]);
+    }
+
+    /// An index without a sort key still advances: the table primary key
+    /// alone positions `ExclusiveStartKey`.
+    #[test]
+    fn hash_only_index_and_scan_pages_advance() {
+        let items = [
+            item(&[("pk", "p2"), ("sk", "b"), ("g", "x")]),
+            item(&[("pk", "p1"), ("sk", "a"), ("g", "x")]),
+            item(&[("pk", "p1"), ("sk", "c"), ("g", "x")]),
+        ];
+        let (mut seen, keys) = walk(&items, None, true, &["pk", "sk", "g"]);
+        assert_eq!(keys.len(), 2);
+        seen.sort();
+        assert_eq!(seen, ["a", "b", "c"]);
+    }
+
+    #[test]
+    fn sparse_index_membership() {
+        let full = item(&[("pk", "p"), ("sk", "s"), ("g", "x"), ("gs", "1")]);
+        let partial = item(&[("pk", "p"), ("sk", "s"), ("g", "x")]);
+        assert!(super::in_index(&full, "g", Some("gs")));
+        assert!(!super::in_index(&partial, "g", Some("gs")));
+        assert!(super::in_index(&partial, "g", None));
     }
 
     #[test]

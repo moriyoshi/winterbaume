@@ -183,24 +183,32 @@ impl SortKeyCondition {
     pub fn matches(&self, value: &AttributeValue) -> bool {
         use std::cmp::Ordering;
         match self {
-            SortKeyCondition::LessThan(op) => attr_cmp(value, op) == Some(Ordering::Less),
+            SortKeyCondition::LessThan(op) => compare_key_values(value, op) == Some(Ordering::Less),
             SortKeyCondition::LessThanOrEqual(op) => {
-                matches!(attr_cmp(value, op), Some(Ordering::Less | Ordering::Equal))
+                matches!(
+                    compare_key_values(value, op),
+                    Some(Ordering::Less | Ordering::Equal)
+                )
             }
-            SortKeyCondition::GreaterThan(op) => attr_cmp(value, op) == Some(Ordering::Greater),
+            SortKeyCondition::GreaterThan(op) => {
+                compare_key_values(value, op) == Some(Ordering::Greater)
+            }
             SortKeyCondition::GreaterThanOrEqual(op) => matches!(
-                attr_cmp(value, op),
+                compare_key_values(value, op),
                 Some(Ordering::Greater | Ordering::Equal)
             ),
             SortKeyCondition::Between(lo, hi) => {
                 matches!(
-                    attr_cmp(value, lo),
+                    compare_key_values(value, lo),
                     Some(Ordering::Greater | Ordering::Equal)
-                ) && matches!(attr_cmp(value, hi), Some(Ordering::Less | Ordering::Equal))
+                ) && matches!(
+                    compare_key_values(value, hi),
+                    Some(Ordering::Less | Ordering::Equal)
+                )
             }
             SortKeyCondition::BeginsWith(prefix) => match (value, prefix) {
                 (AttributeValue::S(a), AttributeValue::S(b)) => a.starts_with(b.as_str()),
-                (AttributeValue::B(a), AttributeValue::B(b)) => a.starts_with(b.as_str()),
+                (AttributeValue::B(a), AttributeValue::B(b)) => binary_starts_with(a, b),
                 _ => false,
             },
         }
@@ -208,26 +216,162 @@ impl SortKeyCondition {
 }
 
 /// Compare two DynamoDB-typed [`AttributeValue`]s using DynamoDB's per-type
-/// ordering rules.
+/// ordering rules, the ones that order sort keys and drive key conditions.
 ///
 /// - Strings compare lexicographically by UTF-8 bytes.
-/// - Numbers compare numerically (parsed as `f64`; non-parsable values yield
-///   `None`).
-/// - Binary values compare lexicographically as their stored base64 encoding.
+/// - Numbers compare numerically and exactly ( see [`compare_numbers`] );
+///   non-parsable values yield `None`.
+/// - Binary values compare as unsigned bytes ( see [`compare_binaries`] ).
 ///
 /// Returns `None` for type mismatches and for unsupported types (sets, lists,
 /// maps, bool, null) — sort-key conditions only apply to `S`, `N`, `B` per
 /// the DynamoDB spec.
-fn attr_cmp(a: &AttributeValue, b: &AttributeValue) -> Option<std::cmp::Ordering> {
+pub fn compare_key_values(a: &AttributeValue, b: &AttributeValue) -> Option<std::cmp::Ordering> {
     match (a, b) {
         (AttributeValue::S(x), AttributeValue::S(y)) => Some(x.cmp(y)),
-        (AttributeValue::N(x), AttributeValue::N(y)) => {
-            let xn: f64 = x.parse().ok()?;
-            let yn: f64 = y.parse().ok()?;
-            xn.partial_cmp(&yn)
-        }
-        (AttributeValue::B(x), AttributeValue::B(y)) => Some(x.cmp(y)),
+        (AttributeValue::N(x), AttributeValue::N(y)) => compare_numbers(x, y),
+        (AttributeValue::B(x), AttributeValue::B(y)) => Some(compare_binaries(x, y)),
         _ => None,
+    }
+}
+
+/// Decode a stored `B` value, which holds the base64 text from the request.
+/// Padding is optional, as the text is whatever the client sent.
+pub fn decode_binary(value: &str) -> Option<Vec<u8>> {
+    use base64::Engine as _;
+    use base64::engine::{DecodePaddingMode, GeneralPurpose, GeneralPurposeConfig};
+    const LENIENT: GeneralPurpose = GeneralPurpose::new(
+        &base64::alphabet::STANDARD,
+        GeneralPurposeConfig::new().with_decode_padding_mode(DecodePaddingMode::Indifferent),
+    );
+    LENIENT.decode(value).ok()
+}
+
+/// Compare two stored `B` values as DynamoDB does: by their decoded bytes,
+/// each treated as unsigned. The base64 text orders differently ( digits,
+/// `+` and `/` sort before the letters as text but encode the highest
+/// bytes ), and `AQ==` is not a text prefix of `AQI=` even though `01` is a
+/// byte prefix of `01 02`. Values that are not valid base64
+/// fall back to comparing their text.
+pub fn compare_binaries(a: &str, b: &str) -> std::cmp::Ordering {
+    match (decode_binary(a), decode_binary(b)) {
+        (Some(x), Some(y)) => x.cmp(&y),
+        _ => a.cmp(b),
+    }
+}
+
+/// The length in bytes of a stored `B` value, which is what `size()`
+/// reports. Invalid base64 falls back to an estimate from the text length.
+pub fn binary_len(value: &str) -> usize {
+    decode_binary(value).map_or(value.len() * 3 / 4, |bytes| bytes.len())
+}
+
+/// `begins_with` on two stored `B` values, by decoded bytes.
+pub fn binary_starts_with(value: &str, prefix: &str) -> bool {
+    match (decode_binary(value), decode_binary(prefix)) {
+        (Some(v), Some(p)) => v.starts_with(&p),
+        _ => value.starts_with(prefix),
+    }
+}
+
+/// Compare two DynamoDB number strings exactly.
+///
+/// DynamoDB numbers carry up to 38 significant digits, more than `f64`
+/// keeps, so `12345678901234567890` and `12345678901234567891` would compare
+/// equal as floats. Both strings are parsed into sign, significant digits
+/// and decimal exponent instead. Returns `None` when either string is not a
+/// number.
+pub fn compare_numbers(a: &str, b: &str) -> Option<std::cmp::Ordering> {
+    Some(Decimal::parse(a)?.cmp(&Decimal::parse(b)?))
+}
+
+/// A parsed decimal, normalised so equal values compare equal: the value is
+/// `0.d1 d2 d3... × 10^exponent` with `d1 != 0` and no trailing zero digit.
+/// Zero has no digits and is never negative.
+#[derive(PartialEq, Eq)]
+struct Decimal {
+    negative: bool,
+    digits: Vec<u8>,
+    exponent: i64,
+}
+
+impl Decimal {
+    fn parse(s: &str) -> Option<Self> {
+        let s = s.trim();
+        let (negative, rest) = match s.as_bytes().first()? {
+            b'-' => (true, &s[1..]),
+            b'+' => (false, &s[1..]),
+            _ => (false, s),
+        };
+        let (mantissa, exp) = match rest.find(['e', 'E']) {
+            Some(i) => (&rest[..i], rest[i + 1..].parse::<i64>().ok()?),
+            None => (rest, 0),
+        };
+        let (int_part, frac_part) = mantissa.split_once('.').unwrap_or((mantissa, ""));
+        if int_part.is_empty() && frac_part.is_empty() {
+            return None;
+        }
+        let mut digits = Vec::with_capacity(int_part.len() + frac_part.len());
+        for c in int_part.bytes().chain(frac_part.bytes()) {
+            if !c.is_ascii_digit() {
+                return None;
+            }
+            digits.push(c - b'0');
+        }
+        let leading = digits.iter().take_while(|d| **d == 0).count();
+        digits.drain(..leading);
+        let exponent = exp
+            .checked_add(int_part.len() as i64)?
+            .checked_sub(leading as i64)?;
+        while digits.last() == Some(&0) {
+            digits.pop();
+        }
+        if digits.is_empty() {
+            return Some(Self {
+                negative: false,
+                digits,
+                exponent: 0,
+            });
+        }
+        Some(Self {
+            negative,
+            digits,
+            exponent,
+        })
+    }
+
+    fn signum(&self) -> i8 {
+        match (self.digits.is_empty(), self.negative) {
+            (true, _) => 0,
+            (false, true) => -1,
+            (false, false) => 1,
+        }
+    }
+}
+
+impl Ord for Decimal {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        let by_sign = self.signum().cmp(&other.signum());
+        if by_sign.is_ne() || self.signum() == 0 {
+            return by_sign;
+        }
+        // Normalised digits make the larger exponent the larger magnitude;
+        // with equal exponents the digit sequences compare lexicographically.
+        let magnitude = self
+            .exponent
+            .cmp(&other.exponent)
+            .then_with(|| self.digits.cmp(&other.digits));
+        if self.negative {
+            magnitude.reverse()
+        } else {
+            magnitude
+        }
+    }
+}
+
+impl PartialOrd for Decimal {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
     }
 }
 
@@ -497,4 +641,79 @@ pub struct ImportInfo {
     pub end_time: Option<DateTime<Utc>>,
     pub s3_bucket_source: Option<String>,
     pub input_format: Option<String>,
+}
+
+#[cfg(test)]
+mod tests {
+    use std::cmp::Ordering::{Equal, Greater, Less};
+
+    use super::{binary_len, binary_starts_with, compare_binaries, compare_numbers};
+
+    #[test]
+    fn numbers_compare_numerically_and_exactly() {
+        for (a, b, expected) in [
+            ("9", "10", Less),
+            ("-10", "-9", Less),
+            ("-1", "0", Less),
+            ("0", "-0.0", Equal),
+            ("1.50", "1.5", Equal),
+            ("1e2", "100", Equal),
+            ("+1E-2", "0.01", Equal),
+            ("0.001", "0.01", Less),
+            (".5", "0.45", Greater),
+            ("12345678901234567890", "12345678901234567891", Less),
+            (
+                "0.00000000000000000000000000000000000001",
+                "0.00000000000000000000000000000000000002",
+                Less,
+            ),
+            ("1e125", "9.99e124", Greater),
+            ("-1e-130", "-2e-130", Greater),
+        ] {
+            assert_eq!(compare_numbers(a, b), Some(expected), "{a} vs {b}");
+            assert_eq!(
+                compare_numbers(b, a),
+                Some(expected.reverse()),
+                "{b} vs {a}"
+            );
+        }
+    }
+
+    #[test]
+    fn non_numbers_do_not_compare() {
+        for bad in ["", "-", ".", "1e", "1.2.3", "abc", "1x"] {
+            assert_eq!(compare_numbers(bad, "1"), None, "{bad:?}");
+        }
+    }
+
+    #[test]
+    fn binaries_compare_as_unsigned_bytes() {
+        for (a, b, expected) in [
+            // In each pair the text sorts the other way: base64 puts digits
+            // and "/" before the letters.
+            ("aA==", "0A==", Less), // 0x68 < 0xd0
+            ("AA==", "/w==", Less), // 0x00 < 0xff
+            // A byte prefix sorts first: 01 < 01 02.
+            ("AQ==", "AQI=", Less),
+            // Padding is optional.
+            ("AQI", "AQI=", Equal),
+        ] {
+            assert_eq!(compare_binaries(a, b), expected, "{a} vs {b}");
+            assert_eq!(compare_binaries(b, a), expected.reverse(), "{b} vs {a}");
+        }
+    }
+
+    #[test]
+    fn binary_prefixes_match_by_bytes() {
+        assert!(binary_starts_with("AQID", "AQ=="));
+        assert!(binary_starts_with("AQID", "AQI="));
+        assert!(!binary_starts_with("AQID", "Ag=="));
+    }
+
+    #[test]
+    fn binary_len_counts_decoded_bytes() {
+        for (value, expected) in [("", 0), ("AQ==", 1), ("AQ", 1), ("AQI=", 2), ("AQID", 3)] {
+            assert_eq!(binary_len(value), expected, "{value:?}");
+        }
+    }
 }

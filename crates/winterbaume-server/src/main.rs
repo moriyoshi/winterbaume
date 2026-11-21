@@ -668,8 +668,10 @@ async fn register_all_services(
     let sesv1 = Arc::new(winterbaume_ses::SesService::new());
     let sns = Arc::new(winterbaume_sns::SnsService::new());
     let ssm = Arc::new(winterbaume_ssm::SsmService::new());
-    let cloudcontrol =
-        Arc::new(winterbaume_cloudcontrol::CloudControlService::with_ssm_service(Arc::clone(&ssm)));
+    let cloudcontrol = Arc::new(
+        winterbaume_cloudcontrol::CloudControlService::with_ssm_service(Arc::clone(&ssm))
+            .with_cloudfront_service(Arc::clone(&cloudfront)),
+    );
     let ssoadmin = Arc::new(winterbaume_ssoadmin::SsoAdminService::new());
     let stepfunctions = Arc::new(winterbaume_sfn::SfnService::new());
     let wafv2 = Arc::new(winterbaume_wafv2::WafV2Service::new());

@@ -385,35 +385,7 @@ impl DynamoDbState {
 
         // Determine hash/range key attrs — either from the index or the table.
         let (hash_attr, range_attr) = if let Some(idx_name) = index_name {
-            // Find index key schema from GSIs or LSIs
-            let key_schema = ts
-                .table
-                .global_secondary_indexes
-                .iter()
-                .find(|g| g.index_name == idx_name)
-                .map(|g| &g.key_schema)
-                .or_else(|| {
-                    ts.table
-                        .local_secondary_indexes
-                        .iter()
-                        .find(|l| l.index_name == idx_name)
-                        .map(|l| &l.key_schema)
-                })
-                .ok_or_else(|| {
-                    DynamoDbError::InternalError(format!(
-                        "The table does not have the specified index: {idx_name}"
-                    ))
-                })?;
-            let h = key_schema
-                .iter()
-                .find(|k| k.key_type == "HASH")
-                .map(|k| k.attribute_name.clone())
-                .ok_or(DynamoDbError::NoHashKey)?;
-            let r = key_schema
-                .iter()
-                .find(|k| k.key_type == "RANGE")
-                .map(|k| k.attribute_name.clone());
-            (h, r)
+            index_key_attrs(&ts.table, idx_name)?
         } else {
             (
                 ts.table.hash_key_attr.clone(),
@@ -430,18 +402,19 @@ impl DynamoDbState {
         };
 
         if index_name.is_some() {
-            // GSI/LSI query: scan all items and filter by the index's hash key,
-            // then sort by the index's range key.
-            let mut matching: Vec<Item> = Vec::new();
-            for range_map in ts.items.values() {
-                for item in range_map.values() {
-                    if let Some(v) = item.get(&hash_attr) {
-                        if serialize_key_value(v) == hash_value {
-                            matching.push(item.clone());
-                        }
-                    }
-                }
-            }
+            // GSI/LSI query: walk every item and keep those that belong to the
+            // index partition. Indexes are sparse: an item missing the index
+            // sort key is not present in the index at all.
+            let mut matching: Vec<&Item> = ts
+                .items
+                .values()
+                .flat_map(|m| m.values())
+                .filter(|item| {
+                    item.get(&hash_attr)
+                        .is_some_and(|v| serialize_key_value(v) == hash_value)
+                })
+                .filter(|item| range_attr.as_ref().is_none_or(|rk| item.contains_key(rk)))
+                .collect();
 
             // Apply sort-key equality from `key_conditions` (when the request
             // used `sk = :v` on the index's range key).
@@ -457,65 +430,35 @@ impl DynamoDbState {
                 matching.retain(|item| item.get(rk_attr).is_some_and(|v| cond.matches(v)));
             }
 
-            // Sort by range key of the index
-            if let Some(ref rk_attr) = range_attr {
-                matching.sort_by(|a, b| {
-                    let ak = a.get(rk_attr).map(serialize_key_value).unwrap_or_default();
-                    let bk = b.get(rk_attr).map(serialize_key_value).unwrap_or_default();
-                    if scan_index_forward {
-                        ak.cmp(&bk)
-                    } else {
-                        bk.cmp(&ak)
-                    }
-                });
+            // Index keys are not unique, so order by the index sort key and
+            // break ties with the table primary key. The same tuple drives
+            // `ExclusiveStartKey`, which carries both key sets.
+            let order = |a: &Item, b: &Item| index_order(a, b, &ts.table, range_attr.as_deref());
+            matching.sort_by(|a, b| order(a, b));
+            if !scan_index_forward {
+                matching.reverse();
             }
 
             // Skip past exclusive start key
             if let Some(start_key) = exclusive_start_key {
-                if let Some(ref rk_attr) = range_attr {
-                    let start_range = start_key
-                        .get(rk_attr)
-                        .map(serialize_key_value)
-                        .unwrap_or_default();
-                    matching.retain(|item| {
-                        let rk = item
-                            .get(rk_attr)
-                            .map(serialize_key_value)
-                            .unwrap_or_default();
-                        if scan_index_forward {
-                            rk > start_range
-                        } else {
-                            rk < start_range
-                        }
-                    });
-                }
+                matching.retain(|item| {
+                    let ord = order(item, start_key);
+                    if scan_index_forward {
+                        ord.is_gt()
+                    } else {
+                        ord.is_lt()
+                    }
+                });
             }
 
             let total = matching.len();
             let lim = limit.unwrap_or(total);
             let is_truncated = total > lim;
-            let result_items: Vec<Item> = matching.into_iter().take(lim).collect();
+            let result_items: Vec<Item> = matching.into_iter().take(lim).cloned().collect();
 
             let last_evaluated_key = if is_truncated {
                 result_items.last().map(|item| {
-                    let mut key = Item::new();
-                    // Include table primary key + index key in last_evaluated_key
-                    key.insert(
-                        ts.table.hash_key_attr.clone(),
-                        item.get(&ts.table.hash_key_attr).cloned().unwrap(),
-                    );
-                    if let Some(ref rk_attr) = ts.table.range_key_attr {
-                        if let Some(v) = item.get(rk_attr) {
-                            key.insert(rk_attr.clone(), v.clone());
-                        }
-                    }
-                    key.insert(hash_attr.clone(), item.get(&hash_attr).cloned().unwrap());
-                    if let Some(ref rk_attr) = range_attr {
-                        if let Some(v) = item.get(rk_attr) {
-                            key.insert(rk_attr.clone(), v.clone());
-                        }
-                    }
-                    key
+                    index_last_evaluated_key(item, &ts.table, &hash_attr, range_attr.as_deref())
                 })
             } else {
                 None
@@ -554,29 +497,23 @@ impl DynamoDbState {
             items.retain(|&(_, item)| item.get(rk_attr).is_some_and(|v| cond.matches(v)));
         }
 
-        // Sort by range key
-        if scan_index_forward {
-            items.sort_by(|a, b| a.0.cmp(b.0));
-        } else {
-            items.sort_by(|a, b| b.0.cmp(a.0));
+        // Sort by the range key's value. The storage key is a string
+        // (`N:10`), which would put 10 before 9.
+        let range_attr = ts.table.range_key_attr.as_deref();
+        items.sort_by(|a, b| key_order(attr_value(a.1, range_attr), attr_value(b.1, range_attr)));
+        if !scan_index_forward {
+            items.reverse();
         }
 
         // Skip past exclusive start key
         if let Some(start_key) = exclusive_start_key {
-            let start_range = if let Some(ref rk_attr) = ts.table.range_key_attr {
-                start_key
-                    .get(rk_attr)
-                    .map(serialize_key_value)
-                    .unwrap_or_default()
-            } else {
-                String::new()
-            };
-
-            items.retain(|&(rk, _)| {
+            let start_range = attr_value(start_key, range_attr);
+            items.retain(|&(_, item)| {
+                let ord = key_order(attr_value(item, range_attr), start_range);
                 if scan_index_forward {
-                    rk > &start_range
+                    ord.is_gt()
                 } else {
-                    rk < &start_range
+                    ord.is_lt()
                 }
             });
         }
@@ -628,67 +565,31 @@ impl DynamoDbState {
             .tables
             .get(table_name)
             .ok_or_else(|| resource_not_found(table_name))?;
+        Ok(scan_table_state(ts, None, limit, exclusive_start_key))
+    }
 
-        // Collect all items sorted by hash key then range key
-        let mut all_items: Vec<(String, String, &Item)> = Vec::new();
-        for (hk, range_map) in &ts.items {
-            for (rk, item) in range_map {
-                all_items.push((hk.clone(), rk.clone(), item));
-            }
-        }
-        all_items.sort_by(|a, b| (&a.0, &a.1).cmp(&(&b.0, &b.1)));
-
-        // Skip past exclusive start key
-        if let Some(start_key) = exclusive_start_key {
-            let start_hash = start_key
-                .get(&ts.table.hash_key_attr)
-                .map(serialize_key_value)
-                .unwrap_or_default();
-            let start_range = ts
-                .table
-                .range_key_attr
-                .as_ref()
-                .and_then(|rk_attr| start_key.get(rk_attr).map(serialize_key_value))
-                .unwrap_or_default();
-
-            all_items.retain(|(hk, rk, _)| (hk, rk) > (&start_hash, &start_range));
-        }
-
-        let total = all_items.len();
-        let limit = limit.unwrap_or(total);
-        let is_truncated = total > limit;
-
-        let result_items: Vec<Item> = all_items
-            .into_iter()
-            .take(limit)
-            .map(|(_, _, item)| item.clone())
-            .collect();
-
-        let last_evaluated_key = if is_truncated {
-            result_items.last().map(|item| {
-                let mut key = Item::new();
-                key.insert(
-                    ts.table.hash_key_attr.clone(),
-                    item.get(&ts.table.hash_key_attr).cloned().unwrap(),
-                );
-                if let Some(ref rk_attr) = ts.table.range_key_attr
-                    && let Some(v) = item.get(rk_attr)
-                {
-                    key.insert(rk_attr.clone(), v.clone());
-                }
-                key
-            })
-        } else {
-            None
-        };
-
-        let count = result_items.len();
-        Ok(QueryResult {
-            items: result_items,
-            count,
-            scanned_count: count,
-            last_evaluated_key,
-        })
+    /// Scan a secondary index. Only items carrying every index key
+    /// attribute are part of the (sparse) index, and `LastEvaluatedKey`
+    /// carries the index keys alongside the table primary key, as AWS does.
+    /// Items are returned whole; the caller applies the index projection.
+    pub fn scan_index(
+        &self,
+        table_name: &str,
+        index_name: &str,
+        limit: Option<usize>,
+        exclusive_start_key: Option<&Item>,
+    ) -> Result<QueryResult, DynamoDbError> {
+        let ts = self
+            .tables
+            .get(table_name)
+            .ok_or_else(|| resource_not_found(table_name))?;
+        let (hash_attr, range_attr) = index_key_attrs(&ts.table, index_name)?;
+        Ok(scan_table_state(
+            ts,
+            Some((hash_attr.as_str(), range_attr.as_deref())),
+            limit,
+            exclusive_start_key,
+        ))
     }
 
     pub fn list_tables(&self) -> Vec<&str> {
@@ -1599,6 +1500,176 @@ fn item_identity(target: &Item, table: &Table) -> Result<String, DynamoDbError> 
 }
 
 /// Serialize a DynamoDB-typed AttributeValue to a string key for HashMap storage.
+/// Resolve the `(hash, range)` key attribute names of a secondary index.
+pub(crate) fn index_key_attrs(
+    table: &Table,
+    index_name: &str,
+) -> Result<(String, Option<String>), DynamoDbError> {
+    let key_schema = table
+        .global_secondary_indexes
+        .iter()
+        .find(|g| g.index_name == index_name)
+        .map(|g| &g.key_schema)
+        .or_else(|| {
+            table
+                .local_secondary_indexes
+                .iter()
+                .find(|l| l.index_name == index_name)
+                .map(|l| &l.key_schema)
+        })
+        .ok_or_else(|| {
+            DynamoDbError::ValidationError(format!(
+                "The table does not have the specified index: {index_name}"
+            ))
+        })?;
+    let hash = key_schema
+        .iter()
+        .find(|k| k.key_type == "HASH")
+        .map(|k| k.attribute_name.clone())
+        .ok_or(DynamoDbError::NoHashKey)?;
+    let range = key_schema
+        .iter()
+        .find(|k| k.key_type == "RANGE")
+        .map(|k| k.attribute_name.clone());
+    Ok((hash, range))
+}
+
+/// Order two key attribute values as DynamoDB orders sort keys: numbers
+/// numerically, strings and binaries by their contents. A missing value
+/// sorts first; values of different types fall back to their storage
+/// strings so the order stays total.
+fn key_order(a: Option<&AttributeValue>, b: Option<&AttributeValue>) -> std::cmp::Ordering {
+    match (a, b) {
+        (Some(a), Some(b)) => crate::types::compare_key_values(a, b)
+            .unwrap_or_else(|| serialize_key_value(a).cmp(&serialize_key_value(b))),
+        _ => a.is_some().cmp(&b.is_some()),
+    }
+}
+
+fn attr_value<'a>(item: &'a Item, attr: Option<&str>) -> Option<&'a AttributeValue> {
+    attr.and_then(|attr| item.get(attr))
+}
+
+/// Order of two items within one index partition: the index sort key
+/// first, then the table primary key as a tie-breaker.
+fn index_order(
+    a: &Item,
+    b: &Item,
+    table: &Table,
+    index_range_attr: Option<&str>,
+) -> std::cmp::Ordering {
+    [
+        index_range_attr,
+        Some(table.hash_key_attr.as_str()),
+        table.range_key_attr.as_deref(),
+    ]
+    .into_iter()
+    .map(|attr| key_order(attr_value(a, attr), attr_value(b, attr)))
+    .find(|ord| ord.is_ne())
+    .unwrap_or(std::cmp::Ordering::Equal)
+}
+
+/// `LastEvaluatedKey` for an index read: the table primary key plus the
+/// index key attributes.
+fn index_last_evaluated_key(
+    item: &Item,
+    table: &Table,
+    index_hash_attr: &str,
+    index_range_attr: Option<&str>,
+) -> Item {
+    let mut key = Item::new();
+    for attr in [
+        Some(table.hash_key_attr.as_str()),
+        table.range_key_attr.as_deref(),
+    ]
+    .into_iter()
+    .chain([Some(index_hash_attr), index_range_attr])
+    .flatten()
+    {
+        if let Some(v) = item.get(attr) {
+            key.insert(attr.to_string(), v.clone());
+        }
+    }
+    key
+}
+
+/// Scan a table, or — when `index_keys` is given — the sparse subset of it
+/// that belongs to a secondary index.
+fn scan_table_state(
+    ts: &TableState,
+    index_keys: Option<(&str, Option<&str>)>,
+    limit: Option<usize>,
+    exclusive_start_key: Option<&Item>,
+) -> QueryResult {
+    // Collect all items sorted by hash key then range key
+    let mut all_items: Vec<(&String, &String, &Item)> = Vec::new();
+    for (hk, range_map) in &ts.items {
+        for (rk, item) in range_map {
+            if let Some((ih, ir)) = index_keys
+                && !(item.contains_key(ih) && ir.is_none_or(|r| item.contains_key(r)))
+            {
+                continue;
+            }
+            all_items.push((hk, rk, item));
+        }
+    }
+    all_items.sort_by(|a, b| (a.0, a.1).cmp(&(b.0, b.1)));
+
+    // Skip past exclusive start key
+    if let Some(start_key) = exclusive_start_key {
+        let start_hash = start_key
+            .get(&ts.table.hash_key_attr)
+            .map(serialize_key_value)
+            .unwrap_or_default();
+        let start_range = ts
+            .table
+            .range_key_attr
+            .as_ref()
+            .and_then(|rk_attr| start_key.get(rk_attr).map(serialize_key_value))
+            .unwrap_or_default();
+
+        all_items.retain(|(hk, rk, _)| (*hk, *rk) > (&start_hash, &start_range));
+    }
+
+    let total = all_items.len();
+    let limit = limit.unwrap_or(total);
+    let is_truncated = total > limit;
+
+    let result_items: Vec<Item> = all_items
+        .into_iter()
+        .take(limit)
+        .map(|(_, _, item)| item.clone())
+        .collect();
+
+    let last_evaluated_key = if is_truncated {
+        result_items.last().map(|item| match index_keys {
+            Some((ih, ir)) => index_last_evaluated_key(item, &ts.table, ih, ir),
+            None => {
+                let mut key = Item::new();
+                if let Some(v) = item.get(&ts.table.hash_key_attr) {
+                    key.insert(ts.table.hash_key_attr.clone(), v.clone());
+                }
+                if let Some(ref rk_attr) = ts.table.range_key_attr
+                    && let Some(v) = item.get(rk_attr)
+                {
+                    key.insert(rk_attr.clone(), v.clone());
+                }
+                key
+            }
+        })
+    } else {
+        None
+    };
+
+    let count = result_items.len();
+    QueryResult {
+        items: result_items,
+        count,
+        scanned_count: count,
+        last_evaluated_key,
+    }
+}
+
 fn serialize_key_value(value: &AttributeValue) -> String {
     match value {
         AttributeValue::S(s) => format!("S:{s}"),
