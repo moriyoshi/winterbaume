@@ -14,6 +14,10 @@ use winterbaume_core::{
 
 use crate::model;
 use crate::state::{LambdaError, LambdaState};
+use crate::types::{
+    EventSourceMappingLoggingSettings, EventSourceMappingScalingSettings,
+    EventSourceMappingSettings, Permission,
+};
 use crate::views::LambdaStateView;
 use crate::wire;
 
@@ -1659,6 +1663,21 @@ impl LambdaService {
             input.batch_size,
             enabled,
             input.starting_position.as_deref(),
+            EventSourceMappingSettings {
+                bisect_batch_on_function_error: input.bisect_batch_on_function_error,
+                function_response_types: input.function_response_types,
+                kms_key_arn: input.k_m_s_key_arn,
+                logging_config: input.logging_config.map(esm_logging_settings_from),
+                maximum_batching_window_in_seconds: input.maximum_batching_window_in_seconds,
+                maximum_record_age_in_seconds: input.maximum_record_age_in_seconds,
+                maximum_retry_attempts: input.maximum_retry_attempts,
+                parallelization_factor: input.parallelization_factor,
+                queues: input.queues,
+                scaling_config: input.scaling_config.map(esm_scaling_settings_from),
+                starting_position_timestamp: input.starting_position_timestamp,
+                topics: input.topics,
+                tumbling_window_in_seconds: input.tumbling_window_in_seconds,
+            },
         ) {
             Ok(esm) => {
                 let resp = esm_configuration_from(esm);
@@ -1708,6 +1727,23 @@ impl LambdaService {
             input.function_name.as_deref(),
             input.batch_size,
             input.enabled,
+            // `Queues`, `Topics` and `StartingPositionTimestamp` are not
+            // members of UpdateEventSourceMappingRequest: they are immutable.
+            EventSourceMappingSettings {
+                bisect_batch_on_function_error: input.bisect_batch_on_function_error,
+                function_response_types: input.function_response_types,
+                kms_key_arn: input.k_m_s_key_arn,
+                logging_config: input.logging_config.map(esm_logging_settings_from),
+                maximum_batching_window_in_seconds: input.maximum_batching_window_in_seconds,
+                maximum_record_age_in_seconds: input.maximum_record_age_in_seconds,
+                maximum_retry_attempts: input.maximum_retry_attempts,
+                parallelization_factor: input.parallelization_factor,
+                queues: None,
+                scaling_config: input.scaling_config.map(esm_scaling_settings_from),
+                starting_position_timestamp: None,
+                topics: None,
+                tumbling_window_in_seconds: input.tumbling_window_in_seconds,
+            },
         ) {
             Ok(esm) => {
                 let resp = esm_configuration_from(esm);
@@ -1746,12 +1782,16 @@ impl LambdaService {
         labels: &[(&str, &str)],
         query: &HashMap<String, String>,
     ) -> MockResponse {
-        if let Err(e) = wire::deserialize_list_event_source_mappings_request(request, labels, query)
-        {
-            return rest_json_error(400, "ValidationException", &e);
-        }
+        let input =
+            match wire::deserialize_list_event_source_mappings_request(request, labels, query) {
+                Ok(v) => v,
+                Err(e) => return rest_json_error(400, "ValidationException", &e),
+            };
         let state = state.read().await;
-        let mappings = state.list_event_source_mappings();
+        let mappings = state.list_event_source_mappings(
+            input.function_name.as_deref(),
+            input.event_source_arn.as_deref(),
+        );
         let entries: Vec<model::EventSourceMappingConfiguration> =
             mappings.iter().map(|m| esm_configuration_from(m)).collect();
         let resp = model::ListEventSourceMappingsResponse {
@@ -2038,11 +2078,17 @@ impl LambdaService {
         let mut state = state.write().await;
         match state.add_permission(
             &input.function_name,
-            &input.statement_id,
-            action,
-            &input.principal,
-            input.source_arn.as_deref(),
-            input.source_account.as_deref(),
+            Permission {
+                statement_id: input.statement_id,
+                action: action.to_string(),
+                principal: input.principal,
+                source_arn: input.source_arn,
+                source_account: input.source_account,
+                principal_org_id: input.principal_org_i_d,
+                event_source_token: input.event_source_token,
+                function_url_auth_type: input.function_url_auth_type,
+                invoked_via_function_url: input.invoked_via_function_url,
+            },
             input.revision_id.as_deref(),
         ) {
             Ok((statement, _revision_id)) => {
@@ -3835,6 +3881,7 @@ fn alias_configuration_from(alias: &crate::types::Alias) -> model::AliasConfigur
 fn esm_configuration_from(
     esm: &crate::types::EventSourceMapping,
 ) -> model::EventSourceMappingConfiguration {
+    let settings = &esm.settings;
     model::EventSourceMappingConfiguration {
         u_u_i_d: Some(esm.uuid.clone()),
         event_source_arn: esm.event_source_arn.clone(),
@@ -3843,7 +3890,43 @@ fn esm_configuration_from(
         state: Some(esm.state.clone()),
         last_modified: Some(esm.last_modified.timestamp() as f64),
         starting_position: esm.starting_position.clone(),
+        bisect_batch_on_function_error: settings.bisect_batch_on_function_error,
+        function_response_types: settings.function_response_types.clone(),
+        k_m_s_key_arn: settings.kms_key_arn.clone(),
+        logging_config: settings.logging_config.as_ref().map(|c| {
+            model::EventSourceMappingLoggingConfig {
+                system_log_level: c.system_log_level.clone(),
+            }
+        }),
+        maximum_batching_window_in_seconds: settings.maximum_batching_window_in_seconds,
+        maximum_record_age_in_seconds: settings.maximum_record_age_in_seconds,
+        maximum_retry_attempts: settings.maximum_retry_attempts,
+        parallelization_factor: settings.parallelization_factor,
+        queues: settings.queues.clone(),
+        scaling_config: settings
+            .scaling_config
+            .as_ref()
+            .map(|c| model::ScalingConfig {
+                maximum_concurrency: c.maximum_concurrency,
+            }),
+        starting_position_timestamp: settings.starting_position_timestamp,
+        topics: settings.topics.clone(),
+        tumbling_window_in_seconds: settings.tumbling_window_in_seconds,
         ..Default::default()
+    }
+}
+
+fn esm_scaling_settings_from(c: model::ScalingConfig) -> EventSourceMappingScalingSettings {
+    EventSourceMappingScalingSettings {
+        maximum_concurrency: c.maximum_concurrency,
+    }
+}
+
+fn esm_logging_settings_from(
+    c: model::EventSourceMappingLoggingConfig,
+) -> EventSourceMappingLoggingSettings {
+    EventSourceMappingLoggingSettings {
+        system_log_level: c.system_log_level,
     }
 }
 

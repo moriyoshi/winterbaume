@@ -10,9 +10,10 @@ use crate::handlers::LambdaService;
 use crate::state::LambdaState;
 use crate::types::{
     Alias, CapacityProviderEntry, CodeSigningConfigEntry, CorsConfig, DurableExecution,
-    EventSourceMapping, FunctionEventInvokeConfig, FunctionRecursionConfig, FunctionScalingConfig,
-    FunctionUrlConfig, FunctionVersion, LambdaFunction, LayerPermission, LayerVersion, Permission,
-    ProvisionedConcurrencyConfig, RuntimeManagementConfig,
+    EventSourceMapping, EventSourceMappingSettings, FunctionEventInvokeConfig,
+    FunctionRecursionConfig, FunctionScalingConfig, FunctionUrlConfig, FunctionVersion,
+    LambdaFunction, LayerPermission, LayerVersion, Permission, ProvisionedConcurrencyConfig,
+    RuntimeManagementConfig,
 };
 
 /// Serializable view of the entire Lambda state for one account/region.
@@ -171,6 +172,10 @@ pub struct EventSourceMappingView {
     pub metrics_config: Option<serde_json::Value>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub provisioned_poller_config: Option<serde_json::Value>,
+    /// Store-and-echo settings ( `FunctionResponseTypes`, `ScalingConfig`, ... ).
+    /// Absent in snapshots taken before these were tracked.
+    #[serde(default)]
+    pub settings: EventSourceMappingSettings,
 }
 
 /// Serializable view of a layer version.
@@ -236,6 +241,14 @@ pub struct PermissionView {
     pub principal: String,
     pub source_arn: Option<String>,
     pub source_account: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub principal_org_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub event_source_token: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub function_url_auth_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub invoked_via_function_url: Option<bool>,
 }
 
 /// Serializable view of a function event invoke config.
@@ -389,6 +402,7 @@ impl From<&EventSourceMapping> for EventSourceMappingView {
             document_db_event_source_config: esm.document_db_event_source_config.clone(),
             metrics_config: esm.metrics_config.clone(),
             provisioned_poller_config: esm.provisioned_poller_config.clone(),
+            settings: esm.settings.clone(),
         }
     }
 }
@@ -464,6 +478,10 @@ impl From<&Permission> for PermissionView {
             principal: p.principal.clone(),
             source_arn: p.source_arn.clone(),
             source_account: p.source_account.clone(),
+            principal_org_id: p.principal_org_id.clone(),
+            event_source_token: p.event_source_token.clone(),
+            function_url_auth_type: p.function_url_auth_type.clone(),
+            invoked_via_function_url: p.invoked_via_function_url,
         }
     }
 }
@@ -633,6 +651,7 @@ impl From<EventSourceMappingView> for EventSourceMapping {
             document_db_event_source_config: v.document_db_event_source_config,
             metrics_config: v.metrics_config,
             provisioned_poller_config: v.provisioned_poller_config,
+            settings: v.settings,
         }
     }
 }
@@ -708,6 +727,10 @@ impl From<PermissionView> for Permission {
             principal: v.principal,
             source_arn: v.source_arn,
             source_account: v.source_account,
+            principal_org_id: v.principal_org_id,
+            event_source_token: v.event_source_token,
+            function_url_auth_type: v.function_url_auth_type,
+            invoked_via_function_url: v.invoked_via_function_url,
         }
     }
 }
@@ -868,5 +891,121 @@ mod tests {
 
         assert!(!object.contains_key("account_id"));
         assert!(!object.contains_key("region"));
+    }
+
+    /// Snapshots written before issues #44 / #45 carry neither the extra
+    /// permission condition inputs nor the event-source-mapping settings.
+    /// They must still load, with those members absent.
+    #[test]
+    fn legacy_snapshot_without_new_members_still_deserializes() {
+        let view: LambdaStateView = serde_json::from_value(serde_json::json!({
+            "event_source_mappings": {
+                "u-1": {
+                    "uuid": "u-1",
+                    "event_source_arn": "arn:aws:sqs:us-east-1:123456789012:q",
+                    "function_arn": "arn:aws:lambda:us-east-1:123456789012:function:f",
+                    "batch_size": 10,
+                    "enabled": true,
+                    "state": "Enabled",
+                    "last_modified": "2026-01-01T00:00:00+00:00",
+                    "starting_position": null
+                }
+            },
+            "function_permissions": {
+                "f": [{
+                    "statement_id": "s",
+                    "action": "lambda:InvokeFunction",
+                    "principal": "*",
+                    "source_arn": null,
+                    "source_account": null
+                }]
+            }
+        }))
+        .expect("legacy snapshot must deserialize");
+
+        assert_eq!(
+            view.event_source_mappings["u-1"].settings,
+            EventSourceMappingSettings::default()
+        );
+        let perm = &view.function_permissions["f"][0];
+        assert_eq!(perm.function_url_auth_type, None);
+        assert_eq!(perm.invoked_via_function_url, None);
+        assert_eq!(perm.principal_org_id, None);
+        assert_eq!(perm.event_source_token, None);
+    }
+
+    /// The new members survive a snapshot -> JSON -> restore round trip.
+    #[tokio::test]
+    async fn new_members_round_trip_through_snapshot() {
+        let service = LambdaService::new();
+        let mut view = LambdaStateView::default();
+        view.event_source_mappings.insert(
+            "u-1".to_string(),
+            EventSourceMappingView {
+                uuid: "u-1".to_string(),
+                event_source_arn: None,
+                function_arn: "arn:aws:lambda:us-east-1:123456789012:function:f".to_string(),
+                batch_size: None,
+                enabled: true,
+                state: "Enabled".to_string(),
+                last_modified: "2026-01-01T00:00:00+00:00".to_string(),
+                starting_position: None,
+                destination_config: None,
+                filter_criteria: None,
+                self_managed_event_source: None,
+                source_access_configuration: None,
+                self_managed_kafka_event_source_config: None,
+                amazon_managed_kafka_event_source_config: None,
+                document_db_event_source_config: None,
+                metrics_config: None,
+                provisioned_poller_config: None,
+                settings: EventSourceMappingSettings {
+                    function_response_types: Some(vec!["ReportBatchItemFailures".to_string()]),
+                    scaling_config: Some(crate::types::EventSourceMappingScalingSettings {
+                        maximum_concurrency: Some(7),
+                    }),
+                    ..Default::default()
+                },
+            },
+        );
+        view.function_permissions.insert(
+            "f".to_string(),
+            vec![PermissionView {
+                statement_id: "s".to_string(),
+                action: "lambda:InvokeFunctionUrl".to_string(),
+                principal: "*".to_string(),
+                source_arn: None,
+                source_account: None,
+                principal_org_id: Some("o-abcdefghij".to_string()),
+                event_source_token: None,
+                function_url_auth_type: Some("NONE".to_string()),
+                invoked_via_function_url: Some(true),
+            }],
+        );
+        service
+            .restore("123456789012", "us-east-1", view)
+            .await
+            .unwrap();
+
+        let json = serde_json::to_value(service.snapshot("123456789012", "us-east-1").await)
+            .expect("snapshot must serialize");
+        let back: LambdaStateView = serde_json::from_value(json).unwrap();
+
+        let settings = &back.event_source_mappings["u-1"].settings;
+        assert_eq!(
+            settings.function_response_types.as_deref(),
+            Some(&["ReportBatchItemFailures".to_string()][..])
+        );
+        assert_eq!(
+            settings
+                .scaling_config
+                .as_ref()
+                .and_then(|c| c.maximum_concurrency),
+            Some(7)
+        );
+        let perm = &back.function_permissions["f"][0];
+        assert_eq!(perm.principal_org_id.as_deref(), Some("o-abcdefghij"));
+        assert_eq!(perm.function_url_auth_type.as_deref(), Some("NONE"));
+        assert_eq!(perm.invoked_via_function_url, Some(true));
     }
 }

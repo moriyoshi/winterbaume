@@ -79,6 +79,109 @@ pub struct EventSourceMapping {
     pub document_db_event_source_config: Option<serde_json::Value>,
     pub metrics_config: Option<serde_json::Value>,
     pub provisioned_poller_config: Option<serde_json::Value>,
+    /// Scalar and list settings accepted by Create/UpdateEventSourceMapping
+    /// and echoed back verbatim on every read.
+    pub settings: EventSourceMappingSettings,
+}
+
+/// Store-and-echo settings of an event source mapping.
+///
+/// Every member is optional: `None` means "never supplied", so the member is
+/// omitted from responses.  The same struct doubles as the patch applied by
+/// `UpdateEventSourceMapping`, where `None` means "leave unchanged".
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct EventSourceMappingSettings {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bisect_batch_on_function_error: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub function_response_types: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub kms_key_arn: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub logging_config: Option<EventSourceMappingLoggingSettings>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub maximum_batching_window_in_seconds: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub maximum_record_age_in_seconds: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub maximum_retry_attempts: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub parallelization_factor: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub queues: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub scaling_config: Option<EventSourceMappingScalingSettings>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub starting_position_timestamp: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub topics: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tumbling_window_in_seconds: Option<i32>,
+}
+
+impl EventSourceMappingSettings {
+    /// Overwrite every member that `patch` supplies, leaving the rest alone.
+    pub fn merge(&mut self, patch: EventSourceMappingSettings) {
+        fn set<T>(slot: &mut Option<T>, value: Option<T>) {
+            if value.is_some() {
+                *slot = value;
+            }
+        }
+        set(
+            &mut self.bisect_batch_on_function_error,
+            patch.bisect_batch_on_function_error,
+        );
+        set(
+            &mut self.function_response_types,
+            patch.function_response_types,
+        );
+        set(&mut self.kms_key_arn, patch.kms_key_arn);
+        set(&mut self.logging_config, patch.logging_config);
+        set(
+            &mut self.maximum_batching_window_in_seconds,
+            patch.maximum_batching_window_in_seconds,
+        );
+        set(
+            &mut self.maximum_record_age_in_seconds,
+            patch.maximum_record_age_in_seconds,
+        );
+        set(
+            &mut self.maximum_retry_attempts,
+            patch.maximum_retry_attempts,
+        );
+        set(
+            &mut self.parallelization_factor,
+            patch.parallelization_factor,
+        );
+        set(&mut self.queues, patch.queues);
+        set(&mut self.scaling_config, patch.scaling_config);
+        set(
+            &mut self.starting_position_timestamp,
+            patch.starting_position_timestamp,
+        );
+        set(&mut self.topics, patch.topics);
+        set(
+            &mut self.tumbling_window_in_seconds,
+            patch.tumbling_window_in_seconds,
+        );
+    }
+}
+
+/// `ScalingConfig` of an event source mapping.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct EventSourceMappingScalingSettings {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub maximum_concurrency: Option<i32>,
+}
+
+/// `LoggingConfig` of an event source mapping.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct EventSourceMappingLoggingSettings {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub system_log_level: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -132,13 +235,17 @@ pub struct CorsConfig {
     pub max_age: Option<i32>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Permission {
     pub statement_id: String,
     pub action: String,
     pub principal: String,
     pub source_arn: Option<String>,
     pub source_account: Option<String>,
+    pub principal_org_id: Option<String>,
+    pub event_source_token: Option<String>,
+    pub function_url_auth_type: Option<String>,
+    pub invoked_via_function_url: Option<bool>,
 }
 
 #[derive(Debug, Clone)]

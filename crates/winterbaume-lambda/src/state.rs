@@ -446,6 +446,7 @@ impl LambdaState {
         batch_size: Option<i32>,
         enabled: bool,
         starting_position: Option<&str>,
+        settings: EventSourceMappingSettings,
     ) -> Result<&EventSourceMapping, LambdaError> {
         let resolved = self.resolve_name(function_name);
         let func = self
@@ -476,6 +477,7 @@ impl LambdaState {
             document_db_event_source_config: None,
             metrics_config: None,
             provisioned_poller_config: None,
+            settings,
         };
 
         self.event_source_mappings.insert(uuid.clone(), esm);
@@ -494,6 +496,7 @@ impl LambdaState {
         function_name: Option<&str>,
         batch_size: Option<i32>,
         enabled: Option<bool>,
+        settings: EventSourceMappingSettings,
     ) -> Result<&EventSourceMapping, LambdaError> {
         if !self.event_source_mappings.contains_key(uuid) {
             return Err(LambdaError::EventSourceMappingNotFound(uuid.to_string()));
@@ -524,6 +527,7 @@ impl LambdaState {
                 "Disabled".to_string()
             };
         }
+        esm.settings.merge(settings);
         esm.last_modified = Utc::now();
 
         Ok(self.event_source_mappings.get(uuid).unwrap())
@@ -538,8 +542,37 @@ impl LambdaState {
             .ok_or_else(|| LambdaError::EventSourceMappingNotFound(uuid.to_string()))
     }
 
-    pub fn list_event_source_mappings(&self) -> Vec<&EventSourceMapping> {
-        self.event_source_mappings.values().collect()
+    /// List event source mappings, optionally narrowed to one function and /
+    /// or one event source.  Both filters must match when both are given.
+    ///
+    /// `function_name` accepts every form the API documents: bare name, full
+    /// ARN, partial ARN, each optionally carrying a version / alias qualifier.
+    /// A function that has no mappings ( or does not exist ) yields an empty
+    /// list rather than an error.
+    pub fn list_event_source_mappings(
+        &self,
+        function_name: Option<&str>,
+        event_source_arn: Option<&str>,
+    ) -> Vec<&EventSourceMapping> {
+        let function = function_name.map(split_function_ref);
+        self.event_source_mappings
+            .values()
+            .filter(|esm| {
+                event_source_arn.is_none_or(|arn| esm.event_source_arn.as_deref() == Some(arn))
+            })
+            .filter(|esm| {
+                function.as_ref().is_none_or(|(name, qualifier)| {
+                    let (esm_name, esm_qualifier) = split_function_ref(&esm.function_arn);
+                    // A qualifier only narrows the match when both sides carry
+                    // one; mappings are stored against the unqualified ARN.
+                    esm_name == *name
+                        && match (qualifier, &esm_qualifier) {
+                            (Some(want), Some(have)) => want == have,
+                            _ => true,
+                        }
+                })
+            })
+            .collect()
     }
 
     // ========== Layer operations ==========
@@ -861,11 +894,7 @@ impl LambdaState {
     pub fn add_permission(
         &mut self,
         function_name: &str,
-        statement_id: &str,
-        action: &str,
-        principal: &str,
-        source_arn: Option<&str>,
-        source_account: Option<&str>,
+        perm: Permission,
         expected_revision_id: Option<&str>,
     ) -> Result<(String, String), LambdaError> {
         let resolved = self.resolve_name(function_name);
@@ -888,48 +917,18 @@ impl LambdaState {
             .function_permissions
             .entry(resolved.clone())
             .or_default();
-        if perms.iter().any(|p| p.statement_id == statement_id) {
+        if perms.iter().any(|p| p.statement_id == perm.statement_id) {
             return Err(LambdaError::PermissionAlreadyExists(
-                statement_id.to_string(),
+                perm.statement_id.clone(),
             ));
         }
 
-        let perm = Permission {
-            statement_id: statement_id.to_string(),
-            action: action.to_string(),
-            principal: principal.to_string(),
-            source_arn: source_arn.map(|s| s.to_string()),
-            source_account: source_account.map(|s| s.to_string()),
-        };
+        let statement = permission_statement(&perm, &func.function_arn);
         perms.push(perm);
 
         let new_revision = uuid::Uuid::new_v4().to_string();
         self.function_policy_revisions
-            .insert(resolved.clone(), new_revision.clone());
-
-        // Build principal: if it looks like an account ID (all digits), use it directly
-        // If it contains a dot (like "lambda.amazonaws.com"), it's a service principal
-        let principal_value = if principal.contains('.') {
-            serde_json::json!({"Service": principal})
-        } else {
-            serde_json::json!(principal)
-        };
-
-        let mut statement = serde_json::json!({
-            "Sid": statement_id,
-            "Effect": "Allow",
-            "Principal": principal_value,
-            "Action": action,
-            "Resource": func.function_arn,
-        });
-
-        // Add Condition for SourceArn
-        if let Some(src_arn) = source_arn {
-            statement.as_object_mut().unwrap().insert(
-                "Condition".to_string(),
-                serde_json::json!({"ArnLike": {"AWS:SourceArn": src_arn}}),
-            );
-        }
+            .insert(resolved, new_revision.clone());
 
         Ok((statement.to_string(), new_revision))
     }
@@ -980,27 +979,7 @@ impl LambdaState {
 
         let statements: Vec<serde_json::Value> = perms
             .iter()
-            .map(|p| {
-                let principal_value = if p.principal.contains('.') {
-                    serde_json::json!({"Service": p.principal})
-                } else {
-                    serde_json::json!(p.principal)
-                };
-                let mut stmt = serde_json::json!({
-                    "Sid": p.statement_id,
-                    "Effect": "Allow",
-                    "Principal": principal_value,
-                    "Action": p.action,
-                    "Resource": func.function_arn,
-                });
-                if let Some(ref src_arn) = p.source_arn {
-                    stmt.as_object_mut().unwrap().insert(
-                        "Condition".to_string(),
-                        serde_json::json!({"ArnLike": {"AWS:SourceArn": src_arn}}),
-                    );
-                }
-                stmt
-            })
+            .map(|p| permission_statement(p, &func.function_arn))
             .collect();
         let policy = serde_json::json!({
             "Version": "2012-10-17",
@@ -1737,6 +1716,90 @@ impl LambdaState {
         // Might be just a function name
         Ok(arn.to_string())
     }
+}
+
+/// Split a function reference into `(name, qualifier)`.
+///
+/// Accepts a bare name ( `fn` ), a qualified name ( `fn:PROD` ), a partial ARN
+/// ( `123456789012:function:fn[:PROD]` ) or a full ARN
+/// ( `arn:aws:lambda:us-east-1:123456789012:function:fn[:PROD]` ).
+fn split_function_ref(name_or_arn: &str) -> (String, Option<String>) {
+    let parts: Vec<&str> = name_or_arn.split(':').collect();
+    let name_at = match parts.iter().position(|p| *p == "function") {
+        // `function` is the ARN resource-type marker only when something
+        // precedes it; otherwise it is a function that happens to be so named.
+        Some(i) if i > 0 && i + 1 < parts.len() => i + 1,
+        _ => 0,
+    };
+    let qualifier = parts
+        .get(name_at + 1)
+        .filter(|q| !q.is_empty())
+        .map(|q| q.to_string());
+    (parts[name_at].to_string(), qualifier)
+}
+
+/// Render one stored permission as the policy statement Lambda returns from
+/// `AddPermission` and embeds in `GetPolicy`.
+///
+/// Every condition-producing input contributes to a single `Condition`
+/// object, grouped by operator, exactly as the service merges them.
+fn permission_statement(p: &Permission, resource: &str) -> serde_json::Value {
+    // A principal containing a dot ( `events.amazonaws.com` ) is a service
+    // principal; account ids and `*` stay bare strings.
+    let principal_value = if p.principal.contains('.') {
+        serde_json::json!({"Service": p.principal})
+    } else {
+        serde_json::json!(p.principal)
+    };
+
+    let mut statement = serde_json::json!({
+        "Sid": p.statement_id,
+        "Effect": "Allow",
+        "Principal": principal_value,
+        "Action": p.action,
+        "Resource": resource,
+    });
+
+    let mut string_equals = serde_json::Map::new();
+    if let Some(account) = &p.source_account {
+        string_equals.insert("AWS:SourceAccount".to_string(), account.as_str().into());
+    }
+    if let Some(org) = &p.principal_org_id {
+        string_equals.insert("aws:PrincipalOrgID".to_string(), org.as_str().into());
+    }
+    if let Some(token) = &p.event_source_token {
+        string_equals.insert("lambda:EventSourceToken".to_string(), token.as_str().into());
+    }
+    if let Some(auth_type) = &p.function_url_auth_type {
+        string_equals.insert(
+            "lambda:FunctionUrlAuthType".to_string(),
+            auth_type.as_str().into(),
+        );
+    }
+
+    let mut condition = serde_json::Map::new();
+    if !string_equals.is_empty() {
+        condition.insert("StringEquals".to_string(), string_equals.into());
+    }
+    if let Some(arn) = &p.source_arn {
+        condition.insert(
+            "ArnLike".to_string(),
+            serde_json::json!({"AWS:SourceArn": arn}),
+        );
+    }
+    if p.invoked_via_function_url == Some(true) {
+        condition.insert(
+            "Bool".to_string(),
+            serde_json::json!({"lambda:InvokedViaFunctionUrl": "true"}),
+        );
+    }
+    if !condition.is_empty() {
+        statement
+            .as_object_mut()
+            .unwrap()
+            .insert("Condition".to_string(), condition.into());
+    }
+    statement
 }
 
 /// Shape an `AddLayerVersionPermission` principal into the JSON value the AWS
