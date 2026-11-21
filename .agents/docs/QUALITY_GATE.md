@@ -307,6 +307,7 @@ Gate checks:
 
 - [ ] Every service crate has `tests/integration_test.rs`.
 - [ ] Tests use real `aws-sdk-rust` clients against the in-process mock, not raw HTTP.
+- [ ] Names and values that reach the service through a URI path label, a query string or a form-encoded body are tested with non-ASCII text and with characters the SDK must escape ( space, `+`, `%`, `/` ), and read back unchanged. An ASCII-only suite cannot see a decoder that treats bytes as characters: issue #58 mangled every non-ASCII S3 key and every non-ASCII form value in the query-protocol services, with all tests green. Decode with `winterbaume_core::percent_decode` ( form and query, `+` is a space ) or `percent_decode_path` ( path segments, `+` is literal ); do not write a local decoder.
 - [ ] Read and describe tests create prerequisite resources first and use returned ARNs or identifiers instead of plausible hard-coded values.
 - [ ] Service errors are asserted with debug formatting (`format!("{:?}", err)`), not `Display`, because SDK `Display` often collapses to `service error`.
 - [ ] Tests account for SDK getter requiredness: required members return `&T`; optional members return `Option<&T>`, and sibling outputs in one service may mix both shapes.
