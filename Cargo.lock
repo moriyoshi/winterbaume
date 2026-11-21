@@ -14389,6 +14389,7 @@ dependencies = [
  "tracing",
  "uuid",
  "winterbaume-core",
+ "winterbaume-iam-rule-eval",
 ]
 
 [[package]]

@@ -45,6 +45,11 @@ Backend options:
                              (requires: backend-dynamodb-redis feature)
       --vfs-dir DIR          Filesystem directory for S3/Glacier/EBS blob storage
                              (requires: backend-vfs-fs feature)
+
+Behaviour options (all off by default):
+      --s3-enforce-bucket-policies
+                             Answer 403 AccessDenied for S3 requests matched by an
+                             explicit Deny in the bucket policy
 ```
 
 ## Environment variables
@@ -62,6 +67,7 @@ Every option has a corresponding environment variable. Variables are applied aft
 | `WB_SQS_BACKEND` | `--sqs-backend` |
 | `WB_DYNAMODB_BACKEND` | `--dynamodb-backend` |
 | `WB_VFS_DIR` | `--vfs-dir` |
+| `WB_S3_ENFORCE_BUCKET_POLICIES` | `--s3-enforce-bucket-policies` |
 
 **Configuration precedence:** CLI flags > environment variables > config file > built-in defaults.
 
@@ -88,6 +94,10 @@ dynamodb = "redis://127.0.0.1/"
 
 # Requires: --features backend-vfs-fs
 vfs_dir = "/var/lib/winterbaume/blobs"
+
+[s3]
+# Optional: enforce explicit Deny statements of bucket policies
+enforce_bucket_policies = true
 ```
 
 ```sh
@@ -240,6 +250,23 @@ cargo build -p winterbaume-server \
 ```
 
 When a backend option is set but the corresponding feature was not compiled in, the server starts with the in-memory fallback and logs a warning. It does not exit.
+
+## Opt-in behaviours
+
+By default the server authorises nothing: every request is allowed. An option makes it behave more like AWS when a test needs that.
+
+### `--s3-enforce-bucket-policies` — bucket policy enforcement
+
+Enables `--s3-enforce-bucket-policies` / `WB_S3_ENFORCE_BUCKET_POLICIES` / `[s3] enforce_bucket_policies`. An S3 object or listing request that an explicit `Deny` statement of the bucket's policy matches is answered with HTTP 403 `AccessDenied`.
+
+```sh
+./winterbaume-server --s3-enforce-bucket-policies
+```
+
+- Only explicit denies are enforced. `Allow` statements and identity policies are not evaluated, so a request no `Deny` matches proceeds as before.
+- Bucket configuration requests, including `PutBucketPolicy` and `DeleteBucketPolicy`, are never denied, so a test can always repair a policy that locks it out.
+- The server does not authenticate callers. A `Deny` statement applies when its `Principal` is a wildcard (`"*"` or `{"AWS": "*"}`); statements naming a specific principal, using `NotPrincipal`, or conditioned on caller identity keys such as `aws:PrincipalArn` or `aws:userid` are skipped.
+- The server listens on plain HTTP, so `aws:SecureTransport` is `false` unless a TLS-terminating proxy in front sets `X-Forwarded-Proto: https`. A TLS-only policy therefore denies direct requests, as it would deny plain HTTP on AWS. `aws:SourceIp` is the client address, or `X-Forwarded-For` when a proxy supplies it.
 
 ## Routing
 

@@ -30,6 +30,8 @@ pub struct S3Service {
     pub(crate) state: Arc<BackendState<S3State>>,
     pub(crate) notifier: StateChangeNotifier<S3StateView>,
     pub(crate) blobs: Arc<BlobStoreMap>,
+    /// See [`S3Service::with_bucket_policy_enforcement`].
+    pub(crate) bucket_policy_enforcement: bool,
 }
 
 impl S3Service {
@@ -38,7 +40,94 @@ impl S3Service {
             state: Arc::new(BackendState::new()),
             notifier: StateChangeNotifier::new(),
             blobs: Arc::new(BlobStoreMap::mem("s3")),
+            bucket_policy_enforcement: false,
         }
+    }
+
+    /// Switch enforcement of bucket policies on or off ( default: off ).
+    ///
+    /// Builder-style, so it composes with every constructor:
+    ///
+    /// ```
+    /// use winterbaume_s3::S3Service;
+    ///
+    /// let service = S3Service::new().with_bucket_policy_enforcement(true);
+    /// assert!(service.bucket_policy_enforcement());
+    /// ```
+    ///
+    /// With enforcement **off**, bucket policies are stored and returned but
+    /// never consulted, and request handling is unchanged.
+    ///
+    /// With enforcement **on**, every S3 *data-plane* request is checked
+    /// against the policy of the bucket it addresses, and an applicable
+    /// explicit `Deny` statement fails the request with HTTP 403 and S3's XML
+    /// `AccessDenied` error ( no body for `HEAD` ). Nothing else changes:
+    ///
+    /// * **Only `Deny` is enforced.** `Allow` statements and identity policies
+    ///   are not evaluated; a request no `Deny` covers proceeds as before.
+    /// * **Data plane only.** Enforced: object get / head / put / delete and
+    ///   their `versionId` variants, `CopyObject` and `UploadPartCopy` ( read
+    ///   on the source bucket's policy, write on the destination's ),
+    ///   `DeleteObjects` ( denied keys are reported as per-key `AccessDenied`
+    ///   entries in a 200 response, the rest are deleted ), `ListObjects`,
+    ///   `ListObjectsV2`, `ListObjectVersions`, `HeadBucket`, the multipart
+    ///   upload operations, and object tagging, ACL, legal-hold, retention,
+    ///   attributes, torrent, restore, select and `UpdateObjectEncryption`.
+    ///   **Not enforced:** `CreateBucket`, `DeleteBucket`, `ListBuckets` and
+    ///   every bucket configuration operation, including `PutBucketPolicy`,
+    ///   `GetBucketPolicy` and `DeleteBucketPolicy`, so that a test can always
+    ///   repair or remove a policy that locks it out. `CreateSession` and
+    ///   `RenameObject` ( directory buckets, no `s3:` action ) are not
+    ///   enforced either.
+    /// * **Principal.** The emulator does not authenticate callers, so a
+    ///   statement applies only when its `Principal` is a wildcard ( `"*"` or
+    ///   `{"AWS": "*"}` ). Statements naming specific principals, using
+    ///   `NotPrincipal`, or lacking `Principal` are skipped, as are statements
+    ///   whose `Condition` tests the caller's identity ( `aws:PrincipalArn`,
+    ///   `aws:PrincipalAccount`, `aws:PrincipalOrgID`, `aws:PrincipalTag/*`,
+    ///   `aws:userid`, `aws:username` and their relatives ): whether they
+    ///   cover the caller cannot be decided, and guessing would deny requests
+    ///   that AWS would let through.
+    /// * **Conditions.** All standard IAM operators are evaluated, including
+    ///   `...IfExists`, `Null`, `ForAllValues:` and `ForAnyValue:`. Supplied
+    ///   keys: `aws:SecureTransport`, `aws:CurrentTime`, `aws:EpochTime`,
+    ///   `aws:UserAgent`, `aws:Referer`, `aws:SourceIp` ( only from an
+    ///   `X-Forwarded-For` header ), `s3:prefix` / `s3:delimiter` /
+    ///   `s3:max-keys` ( object listings, only for parameters actually sent ),
+    ///   `s3:versionid`, `s3:authType`, `s3:signatureversion`,
+    ///   `s3:RequestObjectTag/<key>` and `s3:RequestObjectTagKeys` ( from the
+    ///   `x-amz-tagging` header ), `s3:if-match`, `s3:if-none-match`,
+    ///   `s3:object-lock-mode`, `s3:object-lock-legal-hold`,
+    ///   `s3:object-lock-retain-until-date`, and the header-derived
+    ///   `s3:x-amz-acl`, `s3:x-amz-content-sha256`, `s3:x-amz-copy-source`,
+    ///   `s3:x-amz-grant-*`, `s3:x-amz-metadata-directive`,
+    ///   `s3:x-amz-server-side-encryption` ( and `-aws-kms-key-id`,
+    ///   `-customer-algorithm` ), `s3:x-amz-storage-class` and
+    ///   `s3:x-amz-website-redirect-location`.
+    /// * **Keys the emulator cannot supply** ( for example
+    ///   `s3:ExistingObjectTag/<key>`, `s3:TlsVersion`, `aws:SourceVpce` )
+    ///   follow IAM's rule for a key missing from the request context: the
+    ///   test fails, so the `Deny` does not apply — unless the operator is
+    ///   negated ( `StringNotEquals`, `NotIpAddress`, ... ), carries
+    ///   `IfExists`, is qualified with `ForAllValues:`, or is `Null: true`, in
+    ///   which case it holds and the `Deny` applies.
+    /// * **`aws:SecureTransport`** is `true` when the request URI the service
+    ///   receives has the `https` scheme, unless an `X-Forwarded-Proto` header
+    ///   is present, in which case that header decides. Front ends that
+    ///   normalise the URI ( as `winterbaume-server` does ) must set the
+    ///   header to convey a plain-HTTP connection.
+    /// * A stored policy that is not a parseable policy document is logged and
+    ///   denies nothing. Policy variables ( `${aws:username}` ) are not
+    ///   substituted.
+    pub fn with_bucket_policy_enforcement(mut self, enabled: bool) -> Self {
+        self.bucket_policy_enforcement = enabled;
+        self
+    }
+
+    /// Whether bucket policies are enforced. See
+    /// [`S3Service::with_bucket_policy_enforcement`].
+    pub fn bucket_policy_enforcement(&self) -> bool {
+        self.bucket_policy_enforcement
     }
 
     /// Create an S3 service backed by the given VFS for blob storage.
@@ -47,6 +136,7 @@ impl S3Service {
             state: Arc::new(BackendState::new()),
             notifier: StateChangeNotifier::new(),
             blobs: Arc::new(BlobStoreMap::new(vfs, "s3")),
+            bucket_policy_enforcement: false,
         }
     }
 
@@ -81,6 +171,7 @@ impl S3Service {
             state: Arc::new(BackendState::from_iter(entries)),
             notifier: StateChangeNotifier::new(),
             blobs: Arc::new(blobs),
+            bucket_policy_enforcement: false,
         })
     }
 
@@ -357,6 +448,24 @@ impl S3Service {
 
         // Parse query string for list-type, etc.
         let query = parse_query_from_uri(&request.uri);
+
+        if self.bucket_policy_enforcement {
+            if let Some(bucket) = &target.bucket {
+                let permissions = crate::bucket_policy::required_permissions(
+                    method,
+                    bucket,
+                    target.key.as_deref(),
+                    &query,
+                    &request.headers,
+                );
+                if let Some(denied) = self
+                    .first_denied_permission(&state, &permissions, &request, &query)
+                    .await
+                {
+                    return access_denied_response(&denied, method == "HEAD");
+                }
+            }
+        }
 
         let response = match (&target.bucket, &target.key, method) {
             // Service-level operations (no bucket)
@@ -885,6 +994,36 @@ impl S3Service {
             }
         }
         response
+    }
+
+    /// Evaluate `permissions` against the policy of the bucket each one names
+    /// and return the first that an explicit `Deny` covers. Buckets that do
+    /// not exist ( in this account and region ) have no policy; the handler
+    /// reports them as it always did.
+    async fn first_denied_permission(
+        &self,
+        state: &Arc<tokio::sync::RwLock<S3State>>,
+        permissions: &[crate::bucket_policy::Permission],
+        request: &MockRequest,
+        query: &std::collections::HashMap<String, String>,
+    ) -> Option<crate::bucket_policy::Permission> {
+        if permissions.is_empty() {
+            return None;
+        }
+        let context = crate::bucket_policy::request_context(request, query);
+        let state = state.read().await;
+        permissions
+            .iter()
+            .find(|permission| {
+                let policy = state
+                    .buckets
+                    .get(&permission.bucket)
+                    .and_then(|bs| bs.policy.as_deref());
+                policy.is_some()
+                    && crate::bucket_policy::PolicyGuard::new(&permission.bucket, policy)
+                        .denies(permission, &context)
+            })
+            .cloned()
     }
 
     async fn handle_list_buckets(&self, state: &Arc<tokio::sync::RwLock<S3State>>) -> MockResponse {
@@ -2389,15 +2528,30 @@ impl S3Service {
             Ok(input) => input,
             Err(response) => return response,
         };
-        let (deleted, blobs_to_delete, dm_stored) = {
+        let (deleted, errors, blobs_to_delete, dm_stored) = {
             let mut state = state.write().await;
 
             if !state.buckets.contains_key(bucket_name) {
                 return s3_error_response(&no_such_bucket(bucket_name));
             }
 
+            // With bucket policy enforcement on, each key is authorised on its
+            // own: a denied key becomes an `AccessDenied` entry in the result
+            // and the remaining keys are still processed, as S3 does.
+            let policy_guard = self.bucket_policy_enforcement.then(|| {
+                let policy = state
+                    .buckets
+                    .get(bucket_name)
+                    .and_then(|bs| bs.policy.as_deref());
+                (
+                    crate::bucket_policy::PolicyGuard::new(bucket_name, policy),
+                    crate::bucket_policy::request_context(request, query),
+                )
+            });
+
             use crate::state::DeleteObjectOutcome;
             let mut deleted = Vec::new();
+            let mut errors = Vec::new();
             let mut blobs_to_delete = Vec::new();
             // (blob_key, dm_version_id, object_key) for delete-marker stored record writes.
             let mut dm_stored: Vec<(String, String, String)> = Vec::new();
@@ -2406,6 +2560,24 @@ impl S3Service {
                 let mut delete_marker = None;
                 let mut delete_marker_version_id = None;
                 let mut result_version_id = object.version_id.clone();
+                if let Some((guard, context)) = &policy_guard {
+                    let permission = crate::bucket_policy::Permission::object_version(
+                        "s3:DeleteObject",
+                        "s3:DeleteObjectVersion",
+                        bucket_name,
+                        &object.key,
+                        version_id_ref,
+                    );
+                    if guard.denies(&permission, context) {
+                        errors.push(wire::Error {
+                            code: Some("AccessDenied".to_string()),
+                            key: Some(object.key),
+                            message: Some("Access Denied".to_string()),
+                            version_id: object.version_id,
+                        });
+                        continue;
+                    }
+                }
                 match state.delete_object(bucket_name, &object.key, version_id_ref) {
                     Ok(DeleteObjectOutcome::Deleted {
                         blob_key,
@@ -2433,7 +2605,7 @@ impl S3Service {
                     version_id: result_version_id,
                 });
             }
-            (deleted, blobs_to_delete, dm_stored)
+            (deleted, errors, blobs_to_delete, dm_stored)
         };
         for (blob_key, blob_version_id) in blobs_to_delete {
             let _ = blobs.delete_version(&blob_key, &blob_version_id).await;
@@ -2462,7 +2634,7 @@ impl S3Service {
 
         let result = wire::DeleteObjectsOutput {
             deleted: (input.delete.quiet != Some(true)).then_some(deleted),
-            errors: None,
+            errors: (!errors.is_empty()).then_some(errors),
         };
         wire::serialize_delete_objects_response(&result)
     }
@@ -5004,6 +5176,38 @@ fn s3_error_response(err: &S3Error) -> MockResponse {
         request_id = uuid::Uuid::new_v4(),
     );
     MockResponse::xml(status, body)
+}
+
+/// S3's `AccessDenied` for a request an explicit `Deny` in the bucket policy
+/// covers. `HEAD` responses carry no body, like every other S3 HEAD error.
+fn access_denied_response(denied: &crate::bucket_policy::Permission, head: bool) -> MockResponse {
+    if head {
+        return MockResponse {
+            status: 403,
+            headers: http::HeaderMap::new(),
+            body: Bytes::new(),
+        };
+    }
+    let resource = denied.resource_arn();
+    // AWS prefixes this with `User: <caller ARN> is`; the emulator does not
+    // know the caller.
+    let message = format!(
+        "Access Denied: not authorized to perform: {} on resource: \"{}\" with an explicit deny in a resource-based policy",
+        denied.action, resource
+    );
+    let body = format!(
+        r#"<?xml version="1.0" encoding="UTF-8"?>
+<Error>
+  <Code>AccessDenied</Code>
+  <Message>{message}</Message>
+  <Resource>{resource}</Resource>
+  <RequestId>{request_id}</RequestId>
+</Error>"#,
+        message = xml_escape(&message),
+        resource = xml_escape(&resource),
+        request_id = uuid::Uuid::new_v4(),
+    );
+    MockResponse::xml(403, body)
 }
 
 enum ObjectRange {
