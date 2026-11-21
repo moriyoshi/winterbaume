@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 use http::header::HeaderName;
 use serde_json::{Value, json};
+use winterbaume_core::percent_decode;
 use winterbaume_core::{
     BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, default_account_id,
 };
@@ -1797,37 +1798,6 @@ fn extract_query_string(uri: &str) -> String {
         uri[idx + 1..].to_string()
     } else {
         String::new()
-    }
-}
-
-fn percent_decode(s: &str) -> String {
-    urlencoding_decode(s)
-}
-
-fn urlencoding_decode(s: &str) -> String {
-    let mut result = String::with_capacity(s.len());
-    let mut chars = s.bytes();
-    while let Some(b) = chars.next() {
-        if b == b'%' {
-            let hi = chars.next().unwrap_or(b'0');
-            let lo = chars.next().unwrap_or(b'0');
-            let byte = hex_val(hi) * 16 + hex_val(lo);
-            result.push(byte as char);
-        } else if b == b'+' {
-            result.push(' ');
-        } else {
-            result.push(b as char);
-        }
-    }
-    result
-}
-
-fn hex_val(b: u8) -> u8 {
-    match b {
-        b'0'..=b'9' => b - b'0',
-        b'a'..=b'f' => b - b'a' + 10,
-        b'A'..=b'F' => b - b'A' + 10,
-        _ => 0,
     }
 }
 

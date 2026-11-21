@@ -3,6 +3,7 @@ use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
 
+use winterbaume_core::urldecode;
 use winterbaume_core::{
     BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
     default_account_id,
@@ -1372,34 +1373,6 @@ fn parse_query_string(s: &str) -> HashMap<String, String> {
         }
     }
     map
-}
-
-fn urldecode(s: &str) -> String {
-    let mut result = String::with_capacity(s.len());
-    let mut chars = s.bytes();
-    while let Some(b) = chars.next() {
-        match b {
-            b'+' => result.push(' '),
-            b'%' => {
-                let hi = chars.next().and_then(hex_val);
-                let lo = chars.next().and_then(hex_val);
-                if let (Some(hi), Some(lo)) = (hi, lo) {
-                    result.push((hi << 4 | lo) as char);
-                }
-            }
-            _ => result.push(b as char),
-        }
-    }
-    result
-}
-
-fn hex_val(b: u8) -> Option<u8> {
-    match b {
-        b'0'..=b'9' => Some(b - b'0'),
-        b'a'..=b'f' => Some(b - b'a' + 10),
-        b'A'..=b'F' => Some(b - b'A' + 10),
-        _ => None,
-    }
 }
 
 fn elasticache_error_response(e: &ElastiCacheError) -> MockResponse {

@@ -4,6 +4,7 @@ use std::sync::Arc;
 
 use http::header::HeaderName;
 use serde_json::json;
+use winterbaume_core::percent_decode;
 use winterbaume_core::{
     BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, default_account_id,
 };
@@ -286,28 +287,10 @@ fn extract_query_param(uri: &str, param: &str) -> Option<String> {
         if let Some((key, value)) = pair.split_once('=')
             && key == param
         {
-            return Some(urlencoding_decode(value));
+            return Some(percent_decode(value));
         }
     }
     None
-}
-
-fn urlencoding_decode(s: &str) -> String {
-    let mut result = String::with_capacity(s.len());
-    let mut chars = s.chars();
-    while let Some(c) = chars.next() {
-        if c == '%' {
-            let hex: String = chars.by_ref().take(2).collect();
-            if let Ok(byte) = u8::from_str_radix(&hex, 16) {
-                result.push(byte as char);
-            }
-        } else if c == '+' {
-            result.push(' ');
-        } else {
-            result.push(c);
-        }
-    }
-    result
 }
 
 fn mediastore_error_response(err: &MediaStoreDataError) -> MockResponse {

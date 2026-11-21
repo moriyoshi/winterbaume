@@ -4,6 +4,7 @@ use std::pin::Pin;
 use std::sync::Arc;
 
 use serde_json::{Value, json};
+use winterbaume_core::percent_decode_path;
 use winterbaume_core::{
     BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, default_account_id,
     extract_path, extract_query_string, parse_query_string,
@@ -880,7 +881,7 @@ impl BedrockAgentService {
         }
 
         let resource_arn = segments[1..].join("/");
-        let resource_arn = urldecode(&resource_arn);
+        let resource_arn = percent_decode_path(&resource_arn);
 
         match method {
             "POST" => {
@@ -2714,37 +2715,13 @@ fn extract_query(uri: &str) -> Vec<(String, String)> {
         let query = &uri[pos + 1..];
         for pair in query.split('&') {
             if let Some(eq_pos) = pair.find('=') {
-                let key = urldecode(&pair[..eq_pos]);
-                let value = urldecode(&pair[eq_pos + 1..]);
+                let key = percent_decode_path(&pair[..eq_pos]);
+                let value = percent_decode_path(&pair[eq_pos + 1..]);
                 pairs.push((key, value));
             }
         }
     }
     pairs
-}
-
-fn urldecode(s: &str) -> String {
-    let mut result = String::new();
-    let mut chars = s.bytes();
-    while let Some(b) = chars.next() {
-        if b == b'%' {
-            let h1 = chars.next().unwrap_or(0);
-            let h2 = chars.next().unwrap_or(0);
-            let hex = [h1, h2];
-            if let Ok(hex_str) = std::str::from_utf8(&hex)
-                && let Ok(val) = u8::from_str_radix(hex_str, 16)
-            {
-                result.push(val as char);
-                continue;
-            }
-            result.push('%');
-            result.push(h1 as char);
-            result.push(h2 as char);
-        } else {
-            result.push(b as char);
-        }
-    }
-    result
 }
 
 // ─── Error helpers ──────────────────────────────────────────────────

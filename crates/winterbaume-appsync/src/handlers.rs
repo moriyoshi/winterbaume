@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 use http::header::HeaderName;
 use serde_json::json;
+use winterbaume_core::percent_decode;
 use winterbaume_core::{
     BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
     default_account_id,
@@ -1115,24 +1116,13 @@ fn extract_query_list(query_string: &str, key: &str) -> Vec<String> {
             let (k, v) = pair.split_once('=')?;
 
             if k == key {
-                let decoded = v
-                    .replace("%20", " ")
-                    .replace("%3A", ":")
-                    .replace("%2F", "/")
-                    .replace('+', " ");
+                let decoded = percent_decode(v);
                 Some(decoded)
             } else {
                 None
             }
         })
         .collect()
-}
-
-fn percent_decode(s: &str) -> String {
-    s.replace("%3A", ":")
-        .replace("%2F", "/")
-        .replace("%20", " ")
-        .replace('+', " ")
 }
 
 fn appsync_error_response(err: &AppSyncError) -> MockResponse {

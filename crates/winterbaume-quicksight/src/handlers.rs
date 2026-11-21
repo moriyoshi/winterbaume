@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 use http::header::HeaderName;
 use serde_json::{Value, json};
+use winterbaume_core::urldecode;
 use winterbaume_core::{
     BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, default_account_id,
 };
@@ -2885,25 +2886,6 @@ fn extract_query(uri: &str) -> HashMap<String, String> {
         }
     }
     map
-}
-
-fn urldecode(s: &str) -> String {
-    let mut result = String::new();
-    let mut chars = s.bytes();
-    while let Some(b) = chars.next() {
-        if b == b'%' {
-            let hi = chars.next().unwrap_or(b'0');
-            let lo = chars.next().unwrap_or(b'0');
-            let decoded =
-                u8::from_str_radix(&format!("{}{}", hi as char, lo as char), 16).unwrap_or(b'?');
-            result.push(decoded as char);
-        } else if b == b'+' {
-            result.push(' ');
-        } else {
-            result.push(b as char);
-        }
-    }
-    result
 }
 
 fn quicksight_error_response(err: &QuickSightError) -> MockResponse {

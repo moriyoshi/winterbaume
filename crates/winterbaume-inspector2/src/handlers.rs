@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 use http::header::HeaderName;
 use serde_json::json;
+use winterbaume_core::percent_decode_path;
 use winterbaume_core::{
     BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, default_account_id,
 };
@@ -2368,8 +2369,8 @@ fn parse_query_multi(s: &str) -> HashMap<String, String> {
     }
     for pair in s.split('&') {
         if let Some((key, value)) = pair.split_once('=') {
-            let key = urlencoding_decode(key);
-            let value = urlencoding_decode(value);
+            let key = percent_decode_path(key);
+            let value = percent_decode_path(value);
             map.entry(key)
                 .and_modify(|existing| {
                     existing.push(',');
@@ -2388,32 +2389,8 @@ fn extract_tags_resource_arn(uri: &str) -> String {
     let prefix = "/tags/";
     if let Some(rest) = path.strip_prefix(prefix) {
         // URL-decode the ARN
-        urlencoding_decode(rest)
+        percent_decode_path(rest)
     } else {
         path
     }
-}
-
-fn urlencoding_decode(s: &str) -> String {
-    let mut result = String::with_capacity(s.len());
-    let mut chars = s.bytes();
-    while let Some(b) = chars.next() {
-        if b == b'%' {
-            let hi = chars.next().unwrap_or(b'0');
-            let lo = chars.next().unwrap_or(b'0');
-            let hex = [hi, lo];
-            if let Ok(s) = std::str::from_utf8(&hex) {
-                if let Ok(val) = u8::from_str_radix(s, 16) {
-                    result.push(val as char);
-                    continue;
-                }
-            }
-            result.push('%');
-            result.push(hi as char);
-            result.push(lo as char);
-        } else {
-            result.push(b as char);
-        }
-    }
-    result
 }

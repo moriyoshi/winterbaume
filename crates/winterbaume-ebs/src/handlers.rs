@@ -5,6 +5,7 @@ use std::sync::Arc;
 use http::header::HeaderName;
 use serde_json::{Value, json};
 use tokio::io::AsyncReadExt;
+use winterbaume_core::percent_decode;
 use winterbaume_core::{
     BackendState, BlobStore, BlobStoreMap, MockRequest, MockResponse, MockService,
     StateChangeNotifier, Vfs, default_account_id,
@@ -477,34 +478,6 @@ fn parse_query_param<'a>(query: &'a str, key: &str) -> Option<&'a str> {
 
         if k == key { Some(v) } else { None }
     })
-}
-
-fn percent_decode(s: &str) -> String {
-    let mut result = String::with_capacity(s.len());
-    let mut bytes = s.bytes();
-    while let Some(b) = bytes.next() {
-        match b {
-            b'%' => {
-                let hi = bytes.next().and_then(hex_val);
-                let lo = bytes.next().and_then(hex_val);
-                if let (Some(hi), Some(lo)) = (hi, lo) {
-                    result.push((hi << 4 | lo) as char);
-                }
-            }
-            b'+' => result.push(' '),
-            _ => result.push(b as char),
-        }
-    }
-    result
-}
-
-fn hex_val(b: u8) -> Option<u8> {
-    match b {
-        b'0'..=b'9' => Some(b - b'0'),
-        b'a'..=b'f' => Some(b - b'a' + 10),
-        b'A'..=b'F' => Some(b - b'A' + 10),
-        _ => None,
-    }
 }
 
 fn ebs_error_response(err: &EbsError) -> MockResponse {

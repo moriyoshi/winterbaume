@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 use http::header::HeaderName;
 use serde_json::json;
+use winterbaume_core::percent_decode_path;
 use winterbaume_core::{
     BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
     default_account_id,
@@ -78,7 +79,7 @@ impl EksService {
             .trim_start_matches('/')
             .split('/')
             .filter(|s| !s.is_empty())
-            .map(percent_decode)
+            .map(percent_decode_path)
             .collect();
         let segs: Vec<&str> = segments.iter().map(|s| s.as_str()).collect();
 
@@ -2620,25 +2621,6 @@ fn capability_wire(cap: &crate::types::CapabilityStore) -> wire::Capability {
         },
         ..Default::default()
     }
-}
-
-fn percent_decode(s: &str) -> String {
-    let mut result = String::with_capacity(s.len());
-    let mut chars = s.chars();
-    while let Some(c) = chars.next() {
-        if c == '%' {
-            let hex: String = chars.by_ref().take(2).collect();
-            if let Ok(byte) = u8::from_str_radix(&hex, 16) {
-                result.push(byte as char);
-            } else {
-                result.push('%');
-                result.push_str(&hex);
-            }
-        } else {
-            result.push(c);
-        }
-    }
-    result
 }
 
 fn extract_path_and_query(uri: &str) -> (String, String) {

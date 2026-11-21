@@ -4,6 +4,7 @@ use std::pin::Pin;
 use std::sync::Arc;
 
 use serde_json::json;
+use winterbaume_core::percent_decode_path;
 use winterbaume_core::{
     BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
     default_account_id, extract_path, extract_query_string,
@@ -89,7 +90,7 @@ impl SecurityHubService {
     ) -> MockResponse {
         // Check for resource-ARN-based paths first: /tags/{ResourceArn}
         if let Some(resource_arn_encoded) = path.strip_prefix("/tags/") {
-            let resource_arn = urldecode(resource_arn_encoded);
+            let resource_arn = percent_decode_path(resource_arn_encoded);
             let labels: &[(&str, &str)] = &[("ResourceArn", resource_arn.as_str())];
             return match method {
                 "GET" => {
@@ -119,7 +120,7 @@ impl SecurityHubService {
         // DELETE /actionTargets/{ActionTargetArn+}
         if method == "DELETE" && path.starts_with("/actionTargets/") {
             let arn_encoded = &path["/actionTargets/".len()..];
-            let action_target_arn = urldecode(arn_encoded);
+            let action_target_arn = percent_decode_path(arn_encoded);
             let labels: &[(&str, &str)] = &[("ActionTargetArn", action_target_arn.as_str())];
             return self
                 .handle_delete_action_target(state, request, labels, query_map)
@@ -129,7 +130,7 @@ impl SecurityHubService {
         // PATCH /actionTargets/{ActionTargetArn+}
         if method == "PATCH" && path.starts_with("/actionTargets/") {
             let arn_encoded = &path["/actionTargets/".len()..];
-            let action_target_arn = urldecode(arn_encoded);
+            let action_target_arn = percent_decode_path(arn_encoded);
             let labels: &[(&str, &str)] = &[("ActionTargetArn", action_target_arn.as_str())];
             return self
                 .handle_update_action_target(state, request, labels, query_map)
@@ -139,7 +140,7 @@ impl SecurityHubService {
         // DELETE /findingAggregator/delete/{FindingAggregatorArn+}
         if method == "DELETE" && path.starts_with("/findingAggregator/delete/") {
             let arn_encoded = &path["/findingAggregator/delete/".len()..];
-            let arn = urldecode(arn_encoded);
+            let arn = percent_decode_path(arn_encoded);
             let labels: &[(&str, &str)] = &[("FindingAggregatorArn", arn.as_str())];
             return self
                 .handle_delete_finding_aggregator(state, request, labels, query_map)
@@ -149,7 +150,7 @@ impl SecurityHubService {
         // GET /findingAggregator/get/{FindingAggregatorArn+}
         if method == "GET" && path.starts_with("/findingAggregator/get/") {
             let arn_encoded = &path["/findingAggregator/get/".len()..];
-            let arn = urldecode(arn_encoded);
+            let arn = percent_decode_path(arn_encoded);
             let labels: &[(&str, &str)] = &[("FindingAggregatorArn", arn.as_str())];
             return self
                 .handle_get_finding_aggregator(
@@ -165,7 +166,7 @@ impl SecurityHubService {
             && !path.starts_with("/insights/results/")
         {
             let arn_encoded = &path["/insights/".len()..];
-            let arn = urldecode(arn_encoded);
+            let arn = percent_decode_path(arn_encoded);
             let labels: &[(&str, &str)] = &[("InsightArn", arn.as_str())];
             return self
                 .handle_delete_insight(state, request, labels, query_map)
@@ -175,7 +176,7 @@ impl SecurityHubService {
         // PATCH /insights/{InsightArn+}
         if method == "PATCH" && path.starts_with("/insights/") {
             let arn_encoded = &path["/insights/".len()..];
-            let arn = urldecode(arn_encoded);
+            let arn = percent_decode_path(arn_encoded);
             let labels: &[(&str, &str)] = &[("InsightArn", arn.as_str())];
             return self
                 .handle_update_insight(state, request, labels, query_map)
@@ -185,7 +186,7 @@ impl SecurityHubService {
         // GET /insights/results/{InsightArn+}
         if method == "GET" && path.starts_with("/insights/results/") {
             let arn_encoded = &path["/insights/results/".len()..];
-            let arn = urldecode(arn_encoded);
+            let arn = percent_decode_path(arn_encoded);
             let labels: &[(&str, &str)] = &[("InsightArn", arn.as_str())];
             return self
                 .handle_get_insight_results(state, request, labels, query_map)
@@ -195,7 +196,7 @@ impl SecurityHubService {
         // DELETE /productSubscriptions/{ProductSubscriptionArn+}
         if method == "DELETE" && path.starts_with("/productSubscriptions/") {
             let arn_encoded = &path["/productSubscriptions/".len()..];
-            let arn = urldecode(arn_encoded);
+            let arn = percent_decode_path(arn_encoded);
             let labels: &[(&str, &str)] = &[("ProductSubscriptionArn", arn.as_str())];
             return self
                 .handle_disable_import_findings_for_product(state, request, labels, query_map)
@@ -205,7 +206,7 @@ impl SecurityHubService {
         // GET /standards/controls/{StandardsSubscriptionArn+}
         if method == "GET" && path.starts_with("/standards/controls/") {
             let arn_encoded = &path["/standards/controls/".len()..];
-            let arn = urldecode(arn_encoded);
+            let arn = percent_decode_path(arn_encoded);
             let labels: &[(&str, &str)] = &[("StandardsSubscriptionArn", arn.as_str())];
             return self
                 .handle_describe_standards_controls(state, request, labels, query_map)
@@ -215,7 +216,7 @@ impl SecurityHubService {
         // PATCH /standards/control/{StandardsControlArn+}
         if method == "PATCH" && path.starts_with("/standards/control/") {
             let arn_encoded = &path["/standards/control/".len()..];
-            let arn = urldecode(arn_encoded);
+            let arn = percent_decode_path(arn_encoded);
             let labels: &[(&str, &str)] = &[("StandardsControlArn", arn.as_str())];
             return self
                 .handle_update_standards_control(state, request, labels, query_map)
@@ -225,7 +226,7 @@ impl SecurityHubService {
         // DELETE /aggregatorv2/delete/{AggregatorV2Arn+}
         if method == "DELETE" && path.starts_with("/aggregatorv2/delete/") {
             let arn_encoded = &path["/aggregatorv2/delete/".len()..];
-            let arn = urldecode(arn_encoded);
+            let arn = percent_decode_path(arn_encoded);
             let labels: &[(&str, &str)] = &[("AggregatorV2Arn", arn.as_str())];
             return self
                 .handle_delete_aggregator_v2(state, request, labels, query_map)
@@ -235,7 +236,7 @@ impl SecurityHubService {
         // GET /aggregatorv2/get/{AggregatorV2Arn+}
         if method == "GET" && path.starts_with("/aggregatorv2/get/") {
             let arn_encoded = &path["/aggregatorv2/get/".len()..];
-            let arn = urldecode(arn_encoded);
+            let arn = percent_decode_path(arn_encoded);
             let labels: &[(&str, &str)] = &[("AggregatorV2Arn", arn.as_str())];
             return self
                 .handle_get_aggregator_v2(state, request, labels, query_map)
@@ -245,7 +246,7 @@ impl SecurityHubService {
         // PATCH /aggregatorv2/update/{AggregatorV2Arn+}
         if method == "PATCH" && path.starts_with("/aggregatorv2/update/") {
             let arn_encoded = &path["/aggregatorv2/update/".len()..];
-            let arn = urldecode(arn_encoded);
+            let arn = percent_decode_path(arn_encoded);
             let labels: &[(&str, &str)] = &[("AggregatorV2Arn", arn.as_str())];
             return self
                 .handle_update_aggregator_v2(state, request, labels, query_map)
@@ -4113,30 +4114,6 @@ fn sh_error_response(err: &SecurityHubError) -> MockResponse {
         error_type.parse().unwrap(),
     );
     resp
-}
-
-fn urldecode(s: &str) -> String {
-    let mut result = String::new();
-    let mut chars = s.bytes();
-    while let Some(b) = chars.next() {
-        if b == b'%' {
-            let hi = chars.next().unwrap_or(b'0');
-            let lo = chars.next().unwrap_or(b'0');
-            let hex = [hi, lo];
-            if let Ok(s) = std::str::from_utf8(&hex)
-                && let Ok(val) = u8::from_str_radix(s, 16)
-            {
-                result.push(val as char);
-                continue;
-            }
-            result.push('%');
-            result.push(hi as char);
-            result.push(lo as char);
-        } else {
-            result.push(b as char);
-        }
-    }
-    result
 }
 
 fn rest_json_error(status: u16, code: &str, message: &str) -> MockResponse {

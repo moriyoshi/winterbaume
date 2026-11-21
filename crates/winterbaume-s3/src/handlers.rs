@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 use bytes::Bytes;
 use tokio::io::AsyncReadExt;
+use winterbaume_core::percent_decode;
 use winterbaume_core::{
     BackendState, BlobStore, BlobStoreMap, MockRequest, MockResponse, MockService,
     StateChangeNotifier, StatefulService, Vfs, VfsError, default_account_id,
@@ -5112,34 +5113,6 @@ fn parse_query_from_uri(uri: &str) -> std::collections::HashMap<String, String> 
         }
     }
     map
-}
-
-fn percent_decode(s: &str) -> String {
-    let mut result = String::with_capacity(s.len());
-    let mut bytes = s.bytes();
-    while let Some(b) = bytes.next() {
-        match b {
-            b'%' => {
-                let hi = bytes.next().and_then(hex_val);
-                let lo = bytes.next().and_then(hex_val);
-                if let (Some(hi), Some(lo)) = (hi, lo) {
-                    result.push((hi << 4 | lo) as char);
-                }
-            }
-            b'+' => result.push(' '),
-            _ => result.push(b as char),
-        }
-    }
-    result
-}
-
-fn hex_val(b: u8) -> Option<u8> {
-    match b {
-        b'0'..=b'9' => Some(b - b'0'),
-        b'a'..=b'f' => Some(b - b'a' + 10),
-        b'A'..=b'F' => Some(b - b'A' + 10),
-        _ => None,
-    }
 }
 
 fn xml_escape(s: &str) -> String {

@@ -7557,3 +7557,80 @@ async fn test_issue_52_provider_and_certificate_get_outputs_return_tags() {
         issue_52_pairs(&[("idp", "corp-saml")])
     );
 }
+
+// Regression test for issue #58: awsQuery form bodies carry non-ASCII values
+// as percent-encoded UTF-8, which must be decoded as UTF-8 once rather than
+// byte by byte.
+#[tokio::test]
+async fn test_non_ascii_form_values_round_trip() {
+    let client = make_iam_client().await;
+    let trust_policy = r#"{"Version":"2012-10-17","Statement":[]}"#;
+
+    client
+        .create_role()
+        .role_name("utf8-role")
+        .assume_role_policy_document(trust_policy)
+        .description("café ¡olé! a+b c%20d")
+        .tags(
+            aws_sdk_iam::types::Tag::builder()
+                .key("部署")
+                .value("日本語 開発+1")
+                .build()
+                .unwrap(),
+        )
+        .send()
+        .await
+        .expect("create_role should succeed");
+
+    let updated = client
+        .update_role_description()
+        .role_name("utf8-role")
+        .description("¿más café? 100%")
+        .send()
+        .await
+        .expect("update_role_description should succeed");
+    assert_eq!(
+        updated.role().unwrap().description(),
+        Some("¿más café? 100%")
+    );
+
+    client
+        .tag_role()
+        .role_name("utf8-role")
+        .tags(
+            aws_sdk_iam::types::Tag::builder()
+                .key("絵文字")
+                .value("😀")
+                .build()
+                .unwrap(),
+        )
+        .send()
+        .await
+        .expect("tag_role should succeed");
+
+    let tags = client
+        .list_role_tags()
+        .role_name("utf8-role")
+        .send()
+        .await
+        .expect("list_role_tags should succeed");
+    let mut pairs: Vec<(&str, &str)> = tags.tags().iter().map(|t| (t.key(), t.value())).collect();
+    pairs.sort_unstable();
+    assert_eq!(pairs, [("絵文字", "😀"), ("部署", "日本語 開発+1")]);
+
+    client
+        .untag_role()
+        .role_name("utf8-role")
+        .tag_keys("部署")
+        .send()
+        .await
+        .expect("untag_role should succeed");
+    let tags = client
+        .list_role_tags()
+        .role_name("utf8-role")
+        .send()
+        .await
+        .unwrap();
+    let pairs: Vec<(&str, &str)> = tags.tags().iter().map(|t| (t.key(), t.value())).collect();
+    assert_eq!(pairs, [("絵文字", "😀")]);
+}

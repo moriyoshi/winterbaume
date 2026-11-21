@@ -3,6 +3,7 @@ use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
 
+use winterbaume_core::percent_decode_path;
 use winterbaume_core::{
     BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
     default_account_id,
@@ -86,30 +87,6 @@ fn extract_path(uri: &str) -> &str {
 
 fn extract_query(uri: &str) -> &str {
     uri.split_once('?').map(|(_, q)| q).unwrap_or("")
-}
-
-fn percent_decode(s: &str) -> String {
-    // Minimal percent-decoding for path segments
-    let mut result = String::with_capacity(s.len());
-    let bytes = s.as_bytes();
-    let mut i = 0;
-    while i < bytes.len() {
-        if bytes[i] == b'%' && i + 2 < bytes.len() {
-            if let (Ok(h), Ok(l)) = (
-                std::str::from_utf8(&bytes[i + 1..i + 2]),
-                std::str::from_utf8(&bytes[i + 2..i + 3]),
-            ) {
-                if let Ok(b) = u8::from_str_radix(&format!("{h}{l}"), 16) {
-                    result.push(b as char);
-                    i += 3;
-                    continue;
-                }
-            }
-        }
-        result.push(bytes[i] as char);
-        i += 1;
-    }
-    result
 }
 
 fn app_to_model(a: &crate::types::AmplifyApp) -> model::App {
@@ -211,7 +188,7 @@ impl AmplifyService {
         let segments_owned: Vec<String> = path
             .trim_start_matches('/')
             .split('/')
-            .map(percent_decode)
+            .map(percent_decode_path)
             .collect();
         let segments: Vec<&str> = segments_owned.iter().map(|s| s.as_str()).collect();
 

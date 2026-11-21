@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 use http::header::HeaderName;
 use serde_json::json;
+use winterbaume_core::percent_decode_path;
 use winterbaume_core::{
     BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
     default_account_id,
@@ -67,7 +68,7 @@ impl ResilienceHubService {
 
         // Handle /tags/{resourceArn} routes
         if let Some(rest) = path.strip_prefix("/tags/") {
-            let resource_arn = percent_decode(rest);
+            let resource_arn = percent_decode_path(rest);
             let labels: &[(&str, &str)] = &[("resourceArn", resource_arn.as_str())];
             let response = match method {
                 "GET" => {
@@ -1161,25 +1162,6 @@ fn extract_query(uri: &str) -> String {
     } else {
         String::new()
     }
-}
-
-fn percent_decode(s: &str) -> String {
-    let mut result = String::new();
-    let bytes = s.as_bytes();
-    let mut i = 0;
-    while i < bytes.len() {
-        if bytes[i] == b'%'
-            && i + 2 < bytes.len()
-            && let Ok(byte) = u8::from_str_radix(&s[i + 1..i + 3], 16)
-        {
-            result.push(byte as char);
-            i += 3;
-            continue;
-        }
-        result.push(bytes[i] as char);
-        i += 1;
-    }
-    result
 }
 
 fn resiliencehub_error_response(err: &ResilienceHubError) -> MockResponse {

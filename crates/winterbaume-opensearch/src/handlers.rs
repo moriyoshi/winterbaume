@@ -4,6 +4,7 @@ use std::sync::Arc;
 
 use http::header::HeaderName;
 use serde_json::{Value, json};
+use winterbaume_core::percent_decode_path;
 use winterbaume_core::{
     BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
     default_account_id,
@@ -2156,12 +2157,8 @@ fn extract_query_param(query_string: &str, param_name: &str) -> Option<String> {
         if let Some((key, value)) = part.split_once('=')
             && key == param_name
         {
-            // URL-decode the value (basic: handle %3A for colons, %2F for slashes)
-            let decoded = value
-                .replace("%3A", ":")
-                .replace("%3a", ":")
-                .replace("%2F", "/")
-                .replace("%2f", "/");
+            // URL-decode the value; `+` is kept literal, as it always has been here.
+            let decoded = percent_decode_path(value);
             return Some(decoded);
         }
     }
