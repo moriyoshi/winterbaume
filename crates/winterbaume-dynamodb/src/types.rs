@@ -72,14 +72,14 @@ pub fn aws_managed_kms_key_arn(account_id: &str, region: &str) -> String {
     let seed = format!("{account_id}/{region}/alias/aws/dynamodb");
     let hi = fnv1a_64(seed.as_bytes(), 0xcbf2_9ce4_8422_2325);
     let lo = fnv1a_64(seed.as_bytes(), hi);
-    let hex = format!("{hi:016x}{lo:016x}");
+    // The 128 bits `hi:lo`, laid out as the 8-4-4-4-12 hex groups of a key id.
     format!(
-        "arn:aws:kms:{region}:{account_id}:key/{}-{}-{}-{}-{}",
-        &hex[..8],
-        &hex[8..12],
-        &hex[12..16],
-        &hex[16..20],
-        &hex[20..],
+        "arn:aws:kms:{region}:{account_id}:key/{:08x}-{:04x}-{:04x}-{:04x}-{:012x}",
+        hi >> 32,
+        (hi >> 16) & 0xffff,
+        hi & 0xffff,
+        lo >> 48,
+        lo & 0xffff_ffff_ffff,
     )
 }
 
@@ -802,6 +802,30 @@ mod tests {
     fn binary_len_counts_decoded_bytes() {
         for (value, expected) in [("", 0), ("AQ==", 1), ("AQ", 1), ("AQI=", 2), ("AQID", 3)] {
             assert_eq!(binary_len(value), expected, "{value:?}");
+        }
+    }
+
+    /// The key id is derived, not random: pin one value so that a change to
+    /// the derivation or its formatting cannot silently move every table's
+    /// reported key. The groups carry leading zeros.
+    #[test]
+    fn aws_managed_kms_key_arn_is_stable() {
+        assert_eq!(
+            super::aws_managed_kms_key_arn("123456789012", "us-east-1"),
+            "arn:aws:kms:us-east-1:123456789012:key/bb88e535-d5a5-9272-320a-1352fe497d73"
+        );
+        for (account, region) in [
+            ("000000000000", "eu-west-1"),
+            ("210987654321", "ap-northeast-1"),
+        ] {
+            let arn = super::aws_managed_kms_key_arn(account, region);
+            let id = arn.rsplit('/').next().unwrap();
+            let groups: Vec<usize> = id.split('-').map(str::len).collect();
+            assert_eq!(groups, [8, 4, 4, 4, 12], "{arn}");
+            assert!(
+                id.chars().all(|c| c == '-' || c.is_ascii_hexdigit()),
+                "{arn}"
+            );
         }
     }
 }
