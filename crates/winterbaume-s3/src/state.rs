@@ -12,6 +12,16 @@ pub struct S3State {
     pub buckets: HashMap<String, BucketState>,
 }
 
+/// Value S3 applies to a lifecycle configuration when the
+/// `x-amz-transition-default-minimum-object-size` request header is omitted.
+pub const DEFAULT_TRANSITION_DEFAULT_MINIMUM_OBJECT_SIZE: &str = "all_storage_classes_128K";
+
+/// Valid values of `x-amz-transition-default-minimum-object-size`.
+pub const TRANSITION_DEFAULT_MINIMUM_OBJECT_SIZES: [&str; 2] = [
+    DEFAULT_TRANSITION_DEFAULT_MINIMUM_OBJECT_SIZE,
+    "varies_by_storage_class",
+];
+
 /// State for a single bucket (metadata + objects).
 #[derive(Debug, Clone)]
 pub struct BucketState {
@@ -25,6 +35,11 @@ pub struct BucketState {
     pub delete_markers: HashMap<String, Vec<DeleteMarker>>,
     /// Raw XML lifecycle configuration (if set).
     pub lifecycle_configuration: Option<String>,
+    /// `x-amz-transition-default-minimum-object-size` applied to the lifecycle
+    /// configuration. `None` when no lifecycle configuration is set, or when it
+    /// was restored from a snapshot that predates this field (read back as the
+    /// S3 default).
+    pub transition_default_minimum_object_size: Option<String>,
     /// Raw XML notification configuration (if set).
     pub notification_configuration: Option<String>,
     // FIX(terraform-e2e): All fields below were added for terraform compatibility.
@@ -162,6 +177,9 @@ pub enum S3Error {
     #[error("The lifecycle configuration does not exist.")]
     NoSuchLifecycleConfiguration { resource: String },
 
+    #[error("Invalid value for x-amz-transition-default-minimum-object-size: {value}")]
+    InvalidTransitionDefaultMinimumObjectSize { value: String, resource: String },
+
     #[error("The bucket policy does not exist.")]
     NoSuchBucketPolicy { resource: String },
 
@@ -253,6 +271,7 @@ impl S3Error {
             | S3Error::PreconditionFailed { resource }
             | S3Error::InvalidRange { resource } => resource.as_str(),
             S3Error::InvalidPart { resource, .. }
+            | S3Error::InvalidTransitionDefaultMinimumObjectSize { resource, .. }
             | S3Error::MethodNotAllowed { resource, .. }
             | S3Error::InternalError { resource, .. }
             | S3Error::MalformedXML { resource, .. } => resource.as_str(),
@@ -318,6 +337,7 @@ impl S3State {
                 object_history: HashMap::new(),
                 delete_markers: HashMap::new(),
                 lifecycle_configuration: None,
+                transition_default_minimum_object_size: None,
                 notification_configuration: None,
                 versioning_status: None,
                 tags: HashMap::new(),
@@ -705,28 +725,70 @@ impl S3State {
         })
     }
 
+    /// Create or replace the bucket's lifecycle configuration.
+    ///
+    /// `transition_default_minimum_object_size` is the value of the
+    /// `x-amz-transition-default-minimum-object-size` request header; when
+    /// absent S3 applies `all_storage_classes_128K`. The whole configuration
+    /// is replaced, so a previously stored value never survives a new Put.
+    /// Returns the value now in effect.
     pub fn put_bucket_lifecycle_configuration(
         &mut self,
         bucket_name: &str,
         xml: String,
-    ) -> Result<(), S3Error> {
+        transition_default_minimum_object_size: Option<&str>,
+    ) -> Result<&str, S3Error> {
         let bs = self
             .buckets
             .get_mut(bucket_name)
             .ok_or_else(|| no_such_bucket(bucket_name))?;
+        let effective = match transition_default_minimum_object_size {
+            None => DEFAULT_TRANSITION_DEFAULT_MINIMUM_OBJECT_SIZE,
+            Some(value) => TRANSITION_DEFAULT_MINIMUM_OBJECT_SIZES
+                .iter()
+                .copied()
+                .find(|valid| *valid == value)
+                .ok_or_else(|| S3Error::InvalidTransitionDefaultMinimumObjectSize {
+                    value: value.to_string(),
+                    resource: format!("/{bucket_name}?lifecycle"),
+                })?,
+        };
         bs.lifecycle_configuration = Some(xml);
-        Ok(())
+        bs.transition_default_minimum_object_size = Some(effective.to_string());
+        Ok(effective)
     }
 
+    /// Return the lifecycle configuration XML together with the transition
+    /// default minimum object size in effect, or `None` when no configuration
+    /// is set.
     pub fn get_bucket_lifecycle_configuration(
         &self,
         bucket_name: &str,
-    ) -> Result<Option<&str>, S3Error> {
+    ) -> Result<Option<(&str, &str)>, S3Error> {
         let bs = self
             .buckets
             .get(bucket_name)
             .ok_or_else(|| no_such_bucket(bucket_name))?;
-        Ok(bs.lifecycle_configuration.as_deref())
+        Ok(bs.lifecycle_configuration.as_deref().map(|xml| {
+            (
+                xml,
+                bs.transition_default_minimum_object_size
+                    .as_deref()
+                    .unwrap_or(DEFAULT_TRANSITION_DEFAULT_MINIMUM_OBJECT_SIZE),
+            )
+        }))
+    }
+
+    /// Remove the lifecycle configuration and its transition default minimum
+    /// object size.
+    pub fn delete_bucket_lifecycle(&mut self, bucket_name: &str) -> Result<(), S3Error> {
+        let bs = self
+            .buckets
+            .get_mut(bucket_name)
+            .ok_or_else(|| no_such_bucket(bucket_name))?;
+        bs.lifecycle_configuration = None;
+        bs.transition_default_minimum_object_size = None;
+        Ok(())
     }
 
     pub fn put_bucket_notification_configuration(

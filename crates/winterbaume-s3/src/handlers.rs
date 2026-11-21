@@ -156,6 +156,7 @@ impl S3Service {
                 object_history: HashMap::new(),
                 delete_markers: HashMap::new(),
                 lifecycle_configuration: meta.lifecycle_configuration,
+                transition_default_minimum_object_size: meta.transition_default_minimum_object_size,
                 notification_configuration: meta.notification_configuration,
                 versioning_status: meta.versioning_status,
                 tags: meta.tags,
@@ -375,8 +376,17 @@ impl S3Service {
             (Some(bucket), None, "PUT") => {
                 if query.contains_key("lifecycle") {
                     // PUT /{Bucket}?lifecycle - PutBucketLifecycleConfiguration
-                    self.handle_put_bucket_lifecycle_configuration(&state, bucket, request.body)
-                        .await
+                    let transition_default_minimum_object_size = request
+                        .headers
+                        .get(TRANSITION_DEFAULT_MINIMUM_OBJECT_SIZE_HEADER)
+                        .map(|value| value.to_str().unwrap_or_default().to_string());
+                    self.handle_put_bucket_lifecycle_configuration(
+                        &state,
+                        bucket,
+                        transition_default_minimum_object_size.as_deref(),
+                        request.body,
+                    )
+                    .await
                 } else if query.contains_key("notification") {
                     // PUT /{Bucket}?notification - PutBucketNotificationConfiguration
                     self.handle_put_bucket_notification_configuration(&state, bucket, request.body)
@@ -2670,16 +2680,25 @@ impl S3Service {
         &self,
         state: &Arc<tokio::sync::RwLock<S3State>>,
         bucket_name: &str,
+        transition_default_minimum_object_size: Option<&str>,
         body: Bytes,
     ) -> MockResponse {
         let xml = String::from_utf8_lossy(&body).to_string();
         let mut state = state.write().await;
-        match state.put_bucket_lifecycle_configuration(bucket_name, xml) {
-            Ok(()) => MockResponse {
-                status: 200,
-                headers: http::HeaderMap::new(),
-                body: Bytes::new(),
-            },
+        match state.put_bucket_lifecycle_configuration(
+            bucket_name,
+            xml,
+            transition_default_minimum_object_size,
+        ) {
+            Ok(effective) => {
+                let mut headers = http::HeaderMap::new();
+                insert_transition_default_minimum_object_size(&mut headers, effective);
+                MockResponse {
+                    status: 200,
+                    headers,
+                    body: Bytes::new(),
+                }
+            }
             Err(e) => s3_error_response(&e),
         }
     }
@@ -2691,7 +2710,14 @@ impl S3Service {
     ) -> MockResponse {
         let state = state.read().await;
         match state.get_bucket_lifecycle_configuration(bucket_name) {
-            Ok(Some(xml)) => MockResponse::xml(200, xml.to_string()),
+            Ok(Some((xml, transition_default_minimum_object_size))) => {
+                let mut response = MockResponse::xml(200, xml.to_string());
+                insert_transition_default_minimum_object_size(
+                    &mut response.headers,
+                    transition_default_minimum_object_size,
+                );
+                response
+            }
             Ok(None) => s3_error_response(&S3Error::NoSuchLifecycleConfiguration {
                 resource: format!("/{bucket_name}?lifecycle"),
             }),
@@ -3830,15 +3856,13 @@ impl S3Service {
         bucket_name: &str,
     ) -> MockResponse {
         let mut state = state.write().await;
-        let bs = match state.buckets.get_mut(bucket_name) {
-            Some(bs) => bs,
-            None => return s3_error_response(&no_such_bucket(bucket_name)),
-        };
-        bs.lifecycle_configuration = None;
-        MockResponse {
-            status: 204,
-            headers: http::HeaderMap::new(),
-            body: Bytes::new(),
+        match state.delete_bucket_lifecycle(bucket_name) {
+            Ok(()) => MockResponse {
+                status: 204,
+                headers: http::HeaderMap::new(),
+                body: Bytes::new(),
+            },
+            Err(e) => s3_error_response(&e),
         }
     }
 
@@ -4909,6 +4933,18 @@ fn deserialize_s3_request<T>(result: Result<T, String>, resource: &str) -> Resul
     })
 }
 
+/// Lifecycle configuration header carried by `PutBucketLifecycleConfiguration`
+/// requests and by the Put/Get responses.
+const TRANSITION_DEFAULT_MINIMUM_OBJECT_SIZE_HEADER: &str =
+    "x-amz-transition-default-minimum-object-size";
+
+/// The generated restXml serialisers leave this response header to the handler.
+fn insert_transition_default_minimum_object_size(headers: &mut http::HeaderMap, value: &str) {
+    if let Ok(value) = http::HeaderValue::from_str(value) {
+        headers.insert(TRANSITION_DEFAULT_MINIMUM_OBJECT_SIZE_HEADER, value);
+    }
+}
+
 fn s3_error_response(err: &S3Error) -> MockResponse {
     let (status, code) = match err {
         S3Error::InvalidBucketName { .. } => (400, "InvalidBucketName"),
@@ -4928,6 +4964,7 @@ fn s3_error_response(err: &S3Error) -> MockResponse {
         S3Error::MissingInventoryConfigurationId { .. } => (400, "InvalidArgument"),
         S3Error::NoSuchInventoryConfiguration { .. } => (404, "NoSuchConfiguration"),
         S3Error::NoSuchLifecycleConfiguration { .. } => (404, "NoSuchLifecycleConfiguration"),
+        S3Error::InvalidTransitionDefaultMinimumObjectSize { .. } => (400, "InvalidArgument"),
         S3Error::NoSuchBucketPolicy { .. } => (404, "NoSuchBucketPolicy"),
         S3Error::NoSuchTagSet { .. } => (404, "NoSuchTagSet"),
         S3Error::NoSuchCORSConfiguration { .. } => (404, "NoSuchCORSConfiguration"),
