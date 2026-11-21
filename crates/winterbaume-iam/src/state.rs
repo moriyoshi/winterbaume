@@ -210,6 +210,7 @@ impl IamState {
         user_name: &str,
         path: &str,
         tags: Vec<Tag>,
+        permissions_boundary: Option<&str>,
     ) -> Result<&User, IamError> {
         if self.users.contains_key(user_name) {
             return Err(IamError::UserAlreadyExists(user_name.to_string()));
@@ -228,7 +229,7 @@ impl IamState {
             tags,
             attached_policies: Vec::new(),
             inline_policies: Vec::new(),
-            permissions_boundary: None,
+            permissions_boundary: permissions_boundary.map(str::to_string),
         };
 
         self.users.insert(user_name.to_string(), user);
@@ -351,6 +352,7 @@ impl IamState {
         description: &str,
         max_session_duration: i32,
         tags: Vec<Tag>,
+        permissions_boundary: Option<&str>,
     ) -> Result<&Role, IamError> {
         if self.roles.contains_key(role_name) {
             return Err(IamError::RoleAlreadyExists(role_name.to_string()));
@@ -372,7 +374,7 @@ impl IamState {
             tags,
             attached_policies: Vec::new(),
             inline_policies: Vec::new(),
-            permissions_boundary: None,
+            permissions_boundary: permissions_boundary.map(str::to_string),
         };
 
         self.roles.insert(role_name.to_string(), role);

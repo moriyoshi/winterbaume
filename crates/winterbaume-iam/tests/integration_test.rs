@@ -6943,3 +6943,617 @@ async fn test_list_policies_granting_service_access_returns_empty() {
     assert!(resp.policies_granting_service_access().is_empty());
     assert!(!resp.is_truncated());
 }
+
+// ---------------------------------------------------------------------------
+// Issue #52: Tags (and other stored attributes) on Create*/Get* outputs
+// ---------------------------------------------------------------------------
+
+const ISSUE_52_TRUST_POLICY: &str = r#"{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"},"Action":"sts:AssumeRole"}]}"#;
+const ISSUE_52_BOUNDARY_ARN: &str = "arn:aws:iam::aws:policy/PowerUserAccess";
+
+fn issue_52_tag(key: &str, value: &str) -> aws_sdk_iam::types::Tag {
+    aws_sdk_iam::types::Tag::builder()
+        .key(key)
+        .value(value)
+        .build()
+        .unwrap()
+}
+
+/// Flatten SDK tags into sorted `(key, value)` pairs for order-independent comparison.
+fn issue_52_tag_pairs(tags: &[aws_sdk_iam::types::Tag]) -> Vec<(String, String)> {
+    let mut pairs: Vec<(String, String)> = tags
+        .iter()
+        .map(|t| (t.key().to_string(), t.value().to_string()))
+        .collect();
+    pairs.sort();
+    pairs
+}
+
+fn issue_52_pairs(pairs: &[(&str, &str)]) -> Vec<(String, String)> {
+    pairs
+        .iter()
+        .map(|(k, v)| (k.to_string(), v.to_string()))
+        .collect()
+}
+
+#[tokio::test]
+async fn test_issue_52_create_role_and_get_role_return_tags() {
+    let client = make_iam_client().await;
+
+    let created = client
+        .create_role()
+        .role_name("wb-tag-role")
+        .assume_role_policy_document(ISSUE_52_TRUST_POLICY)
+        .tags(issue_52_tag("app", "demo"))
+        .tags(issue_52_tag("cost-centre", "R&D <42>"))
+        .send()
+        .await
+        .expect("create_role should succeed");
+    let expected = issue_52_pairs(&[("app", "demo"), ("cost-centre", "R&D <42>")]);
+    assert_eq!(
+        issue_52_tag_pairs(created.role().unwrap().tags()),
+        expected,
+        "CreateRole must echo the tags it stored"
+    );
+
+    let got = client
+        .get_role()
+        .role_name("wb-tag-role")
+        .send()
+        .await
+        .expect("get_role should succeed");
+    assert_eq!(issue_52_tag_pairs(got.role().unwrap().tags()), expected);
+
+    // Consistent with ListRoleTags.
+    let listed = client
+        .list_role_tags()
+        .role_name("wb-tag-role")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(issue_52_tag_pairs(listed.tags()), expected);
+}
+
+#[tokio::test]
+async fn test_issue_52_get_role_reflects_tag_role_and_untag_role() {
+    let client = make_iam_client().await;
+
+    client
+        .create_role()
+        .role_name("wb-retag-role")
+        .assume_role_policy_document(ISSUE_52_TRUST_POLICY)
+        .tags(issue_52_tag("app", "demo"))
+        .send()
+        .await
+        .unwrap();
+
+    // TagRole adds a key and overwrites an existing one.
+    client
+        .tag_role()
+        .role_name("wb-retag-role")
+        .tags(issue_52_tag("app", "demo-v2"))
+        .tags(issue_52_tag("stage", "canary"))
+        .send()
+        .await
+        .unwrap();
+    let got = client
+        .get_role()
+        .role_name("wb-retag-role")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        issue_52_tag_pairs(got.role().unwrap().tags()),
+        issue_52_pairs(&[("app", "demo-v2"), ("stage", "canary")])
+    );
+
+    client
+        .untag_role()
+        .role_name("wb-retag-role")
+        .tag_keys("app")
+        .send()
+        .await
+        .unwrap();
+    let got = client
+        .get_role()
+        .role_name("wb-retag-role")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        issue_52_tag_pairs(got.role().unwrap().tags()),
+        issue_52_pairs(&[("stage", "canary")])
+    );
+
+    // Removing the last tag leaves GetRole without any tags.
+    client
+        .untag_role()
+        .role_name("wb-retag-role")
+        .tag_keys("stage")
+        .send()
+        .await
+        .unwrap();
+    let got = client
+        .get_role()
+        .role_name("wb-retag-role")
+        .send()
+        .await
+        .unwrap();
+    assert!(got.role().unwrap().tags().is_empty());
+}
+
+#[tokio::test]
+async fn test_issue_52_role_without_tags_has_no_tags() {
+    let client = make_iam_client().await;
+
+    let created = client
+        .create_role()
+        .role_name("wb-untagged-role")
+        .assume_role_policy_document(ISSUE_52_TRUST_POLICY)
+        .send()
+        .await
+        .unwrap();
+    let role = created.role().unwrap();
+    assert!(role.tags().is_empty());
+    assert!(role.description().is_none());
+    assert!(role.permissions_boundary().is_none());
+    assert_eq!(role.max_session_duration(), Some(3600));
+    assert_eq!(
+        role.assume_role_policy_document(),
+        Some(ISSUE_52_TRUST_POLICY)
+    );
+}
+
+#[tokio::test]
+async fn test_issue_52_create_role_and_get_role_return_stored_attributes() {
+    let client = make_iam_client().await;
+
+    let created = client
+        .create_role()
+        .role_name("wb-attr-role")
+        .path("/svc/")
+        .assume_role_policy_document(ISSUE_52_TRUST_POLICY)
+        .description("Runs the <nightly> batch & more")
+        .max_session_duration(7200)
+        .permissions_boundary(ISSUE_52_BOUNDARY_ARN)
+        .send()
+        .await
+        .unwrap();
+
+    let got = client
+        .get_role()
+        .role_name("wb-attr-role")
+        .send()
+        .await
+        .unwrap();
+
+    for role in [created.role().unwrap(), got.role().unwrap()] {
+        assert_eq!(role.path(), "/svc/");
+        assert_eq!(role.description(), Some("Runs the <nightly> batch & more"));
+        assert_eq!(role.max_session_duration(), Some(7200));
+        let boundary = role
+            .permissions_boundary()
+            .expect("PermissionsBoundary should be returned");
+        assert_eq!(
+            boundary.permissions_boundary_arn(),
+            Some(ISSUE_52_BOUNDARY_ARN)
+        );
+        assert_eq!(
+            boundary.permissions_boundary_type(),
+            Some(&aws_sdk_iam::types::PermissionsBoundaryAttachmentType::Policy)
+        );
+        assert_eq!(
+            role.assume_role_policy_document(),
+            Some(ISSUE_52_TRUST_POLICY)
+        );
+    }
+
+    // Later mutations are visible through GetRole as well.
+    client
+        .update_role()
+        .role_name("wb-attr-role")
+        .description("second description")
+        .max_session_duration(10800)
+        .send()
+        .await
+        .unwrap();
+    client
+        .delete_role_permissions_boundary()
+        .role_name("wb-attr-role")
+        .send()
+        .await
+        .unwrap();
+    let got = client
+        .get_role()
+        .role_name("wb-attr-role")
+        .send()
+        .await
+        .unwrap();
+    let role = got.role().unwrap();
+    assert_eq!(role.description(), Some("second description"));
+    assert_eq!(role.max_session_duration(), Some(10800));
+    assert!(role.permissions_boundary().is_none());
+
+    client
+        .put_role_permissions_boundary()
+        .role_name("wb-attr-role")
+        .permissions_boundary("arn:aws:iam::aws:policy/ReadOnlyAccess")
+        .send()
+        .await
+        .unwrap();
+    let got = client
+        .get_role()
+        .role_name("wb-attr-role")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        got.role()
+            .unwrap()
+            .permissions_boundary()
+            .and_then(|b| b.permissions_boundary_arn()),
+        Some("arn:aws:iam::aws:policy/ReadOnlyAccess")
+    );
+}
+
+#[tokio::test]
+async fn test_issue_52_list_roles_omits_tags_and_permissions_boundary() {
+    let client = make_iam_client().await;
+
+    client
+        .create_role()
+        .role_name("wb-listed-role")
+        .assume_role_policy_document(ISSUE_52_TRUST_POLICY)
+        .permissions_boundary(ISSUE_52_BOUNDARY_ARN)
+        .tags(issue_52_tag("team", "platform"))
+        .send()
+        .await
+        .unwrap();
+
+    let listed = client.list_roles().send().await.unwrap();
+    let role = listed
+        .roles()
+        .iter()
+        .find(|r| r.role_name() == "wb-listed-role")
+        .expect("role should be listed");
+    // AWS documents that ListRoles does not return PermissionsBoundary, RoleLastUsed or Tags.
+    assert!(role.tags().is_empty());
+    assert!(role.permissions_boundary().is_none());
+    assert!(role.role_last_used().is_none());
+}
+
+#[tokio::test]
+async fn test_issue_52_create_user_and_get_user_return_tags_and_boundary() {
+    let client = make_iam_client().await;
+
+    let created = client
+        .create_user()
+        .user_name("wb-tag-user")
+        .path("/staff/")
+        .permissions_boundary(ISSUE_52_BOUNDARY_ARN)
+        .tags(issue_52_tag("dept", "finance"))
+        .tags(issue_52_tag("note", "a&b"))
+        .send()
+        .await
+        .expect("create_user should succeed");
+    let got = client
+        .get_user()
+        .user_name("wb-tag-user")
+        .send()
+        .await
+        .expect("get_user should succeed");
+
+    for user in [created.user().unwrap(), got.user().unwrap()] {
+        assert_eq!(user.user_name(), "wb-tag-user");
+        assert_eq!(user.path(), "/staff/");
+        assert_eq!(
+            issue_52_tag_pairs(user.tags()),
+            issue_52_pairs(&[("dept", "finance"), ("note", "a&b")])
+        );
+        assert_eq!(
+            user.permissions_boundary()
+                .and_then(|b| b.permissions_boundary_arn()),
+            Some(ISSUE_52_BOUNDARY_ARN)
+        );
+    }
+
+    // TagUser / UntagUser / boundary changes show up in GetUser.
+    client
+        .tag_user()
+        .user_name("wb-tag-user")
+        .tags(issue_52_tag("dept", "treasury"))
+        .send()
+        .await
+        .unwrap();
+    client
+        .untag_user()
+        .user_name("wb-tag-user")
+        .tag_keys("note")
+        .send()
+        .await
+        .unwrap();
+    client
+        .delete_user_permissions_boundary()
+        .user_name("wb-tag-user")
+        .send()
+        .await
+        .unwrap();
+    let got = client
+        .get_user()
+        .user_name("wb-tag-user")
+        .send()
+        .await
+        .unwrap();
+    let user = got.user().unwrap();
+    assert_eq!(
+        issue_52_tag_pairs(user.tags()),
+        issue_52_pairs(&[("dept", "treasury")])
+    );
+    assert!(user.permissions_boundary().is_none());
+}
+
+#[tokio::test]
+async fn test_issue_52_list_users_omits_tags_and_permissions_boundary() {
+    let client = make_iam_client().await;
+
+    client
+        .create_user()
+        .user_name("wb-listed-user")
+        .permissions_boundary(ISSUE_52_BOUNDARY_ARN)
+        .tags(issue_52_tag("dept", "legal"))
+        .send()
+        .await
+        .unwrap();
+
+    let listed = client.list_users().send().await.unwrap();
+    let user = listed
+        .users()
+        .iter()
+        .find(|u| u.user_name() == "wb-listed-user")
+        .expect("user should be listed");
+    // AWS documents that ListUsers does not return PermissionsBoundary or Tags.
+    assert!(user.tags().is_empty());
+    assert!(user.permissions_boundary().is_none());
+}
+
+#[tokio::test]
+async fn test_issue_52_instance_profile_tags_on_create_get_but_not_list() {
+    let client = make_iam_client().await;
+
+    let created = client
+        .create_instance_profile()
+        .instance_profile_name("wb-tag-profile")
+        .tags(issue_52_tag("fleet", "blue"))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        issue_52_tag_pairs(created.instance_profile().unwrap().tags()),
+        issue_52_pairs(&[("fleet", "blue")])
+    );
+
+    client
+        .tag_instance_profile()
+        .instance_profile_name("wb-tag-profile")
+        .tags(issue_52_tag("tier", "edge"))
+        .send()
+        .await
+        .unwrap();
+    let got = client
+        .get_instance_profile()
+        .instance_profile_name("wb-tag-profile")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        issue_52_tag_pairs(got.instance_profile().unwrap().tags()),
+        issue_52_pairs(&[("fleet", "blue"), ("tier", "edge")])
+    );
+
+    // AWS documents that ListInstanceProfiles does not return tags.
+    let listed = client.list_instance_profiles().send().await.unwrap();
+    let profile = listed
+        .instance_profiles()
+        .iter()
+        .find(|p| p.instance_profile_name() == "wb-tag-profile")
+        .expect("instance profile should be listed");
+    assert!(profile.tags().is_empty());
+}
+
+#[tokio::test]
+async fn test_issue_52_policy_tags_on_create_get_but_not_list() {
+    let client = make_iam_client().await;
+
+    let created = client
+        .create_policy()
+        .policy_name("wb-tag-policy")
+        .policy_document(
+            r#"{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":"s3:GetObject","Resource":"*"}]}"#,
+        )
+        .tags(issue_52_tag("owner", "sec-team"))
+        .send()
+        .await
+        .unwrap();
+    let policy = created.policy().unwrap();
+    let arn = policy.arn().unwrap().to_string();
+    assert_eq!(
+        issue_52_tag_pairs(policy.tags()),
+        issue_52_pairs(&[("owner", "sec-team")])
+    );
+
+    let got = client.get_policy().policy_arn(&arn).send().await.unwrap();
+    assert_eq!(
+        issue_52_tag_pairs(got.policy().unwrap().tags()),
+        issue_52_pairs(&[("owner", "sec-team")])
+    );
+
+    // AWS documents that ListPolicies does not return tags.
+    let listed = client
+        .list_policies()
+        .scope(aws_sdk_iam::types::PolicyScopeType::Local)
+        .send()
+        .await
+        .unwrap();
+    let policy = listed
+        .policies()
+        .iter()
+        .find(|p| p.arn() == Some(arn.as_str()))
+        .expect("policy should be listed");
+    assert!(policy.tags().is_empty());
+}
+
+#[tokio::test]
+async fn test_issue_52_virtual_mfa_device_list_omits_tags() {
+    let client = make_iam_client().await;
+
+    let created = client
+        .create_virtual_mfa_device()
+        .virtual_mfa_device_name("wb-tag-mfa")
+        .tags(issue_52_tag("holder", "ops"))
+        .send()
+        .await
+        .unwrap();
+    let serial = created
+        .virtual_mfa_device()
+        .unwrap()
+        .serial_number()
+        .to_string();
+
+    // AWS documents that ListVirtualMFADevices does not return tags; ListMFADeviceTags does.
+    let listed = client.list_virtual_mfa_devices().send().await.unwrap();
+    let device = listed
+        .virtual_mfa_devices()
+        .iter()
+        .find(|d| d.serial_number() == serial)
+        .expect("device should be listed");
+    assert!(device.tags().is_empty());
+
+    let tags = client
+        .list_mfa_device_tags()
+        .serial_number(&serial)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        issue_52_tag_pairs(tags.tags()),
+        issue_52_pairs(&[("holder", "ops")])
+    );
+}
+
+#[tokio::test]
+async fn test_issue_52_account_authorization_details_return_tags_and_boundary() {
+    let client = make_iam_client().await;
+
+    client
+        .create_role()
+        .role_name("wb-gaad-role")
+        .assume_role_policy_document(ISSUE_52_TRUST_POLICY)
+        .permissions_boundary(ISSUE_52_BOUNDARY_ARN)
+        .tags(issue_52_tag("scope", "audit"))
+        .send()
+        .await
+        .unwrap();
+    client
+        .create_user()
+        .user_name("wb-gaad-user")
+        .tags(issue_52_tag("badge", "0042"))
+        .send()
+        .await
+        .unwrap();
+    client
+        .put_user_permissions_boundary()
+        .user_name("wb-gaad-user")
+        .permissions_boundary(ISSUE_52_BOUNDARY_ARN)
+        .send()
+        .await
+        .unwrap();
+    client
+        .tag_role()
+        .role_name("wb-gaad-role")
+        .tags(issue_52_tag("reviewed", "2026-Q4"))
+        .send()
+        .await
+        .unwrap();
+
+    let details = client
+        .get_account_authorization_details()
+        .send()
+        .await
+        .unwrap();
+
+    let role = details
+        .role_detail_list()
+        .iter()
+        .find(|r| r.role_name() == Some("wb-gaad-role"))
+        .expect("role detail should be present");
+    assert_eq!(
+        issue_52_tag_pairs(role.tags()),
+        issue_52_pairs(&[("reviewed", "2026-Q4"), ("scope", "audit")])
+    );
+    assert_eq!(
+        role.permissions_boundary()
+            .and_then(|b| b.permissions_boundary_arn()),
+        Some(ISSUE_52_BOUNDARY_ARN)
+    );
+
+    let user = details
+        .user_detail_list()
+        .iter()
+        .find(|u| u.user_name() == Some("wb-gaad-user"))
+        .expect("user detail should be present");
+    assert_eq!(
+        issue_52_tag_pairs(user.tags()),
+        issue_52_pairs(&[("badge", "0042")])
+    );
+    assert_eq!(
+        user.permissions_boundary()
+            .and_then(|b| b.permissions_boundary_arn()),
+        Some(ISSUE_52_BOUNDARY_ARN)
+    );
+}
+
+#[tokio::test]
+async fn test_issue_52_provider_and_certificate_get_outputs_return_tags() {
+    let client = make_iam_client().await;
+
+    let oidc = client
+        .create_open_id_connect_provider()
+        .url("https://oidc.issue52.example.com")
+        .client_id_list("sts.amazonaws.com")
+        .thumbprint_list("9e99a48a9960b14926bb7f3b02e22da2b0ab7280")
+        .tags(issue_52_tag("idp", "corp-oidc"))
+        .send()
+        .await
+        .unwrap();
+    let oidc_arn = oidc.open_id_connect_provider_arn().unwrap().to_string();
+    let got = client
+        .get_open_id_connect_provider()
+        .open_id_connect_provider_arn(&oidc_arn)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        issue_52_tag_pairs(got.tags()),
+        issue_52_pairs(&[("idp", "corp-oidc")])
+    );
+
+    let saml = client
+        .create_saml_provider()
+        .name("wb-issue52-saml")
+        .saml_metadata_document("<EntityDescriptor>issue-52</EntityDescriptor>")
+        .tags(issue_52_tag("idp", "corp-saml"))
+        .send()
+        .await
+        .unwrap();
+    let saml_arn = saml.saml_provider_arn().unwrap().to_string();
+    let got = client
+        .get_saml_provider()
+        .saml_provider_arn(&saml_arn)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        issue_52_tag_pairs(got.tags()),
+        issue_52_pairs(&[("idp", "corp-saml")])
+    );
+}
