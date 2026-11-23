@@ -170,27 +170,29 @@ This step is **required** in the PR-based flow: it produces the diff the release
 
 Commit the result together with the `changelog` output, open the PR, and merge it into `main`. Keep `release-plan.toml` for the remaining steps — `publish` and `tag` both read it, and both would have to be re-derived by a fresh `plan` otherwise.
 
-#### `publish` — chunked publish grouped by target version
+#### `publish` — one chunked publish in dependency order
 
-Groups plan entries by their concrete `next` version and runs one chunked `cargo release` per group, in-process. Without `--execute`, prints the planned invocations and exits. With `--execute`, drives the actual publish.
+Takes every crate the plan dispatches, each with its concrete `next` version, sorts them into one workspace-topological order ( dependencies first ), and runs a single chunked `cargo release` over that order, in-process. A chunk may hold crates bound for different versions. Without `--execute`, prints the version groups and the publish order chunk by chunk and exits. With `--execute`, drives the actual publish.
+
+The order is across versions, not within each version: a crate's target version says nothing about where it sits in the dependency graph. Driving the version groups one after another, as earlier versions of the harness did, ran them in key order, so the `0.2.1` group that depends on `winterbaume-core` `0.3.0` would have been published before the `0.3.0` group that holds core.
 
 **It publishes and nothing else.** The bump is already committed on `main` ( that is what the release PR was for ) and the tags belong on the merge commit after crates.io has accepted every crate, so this stage owns neither the version step, nor the release commit, nor the tags, nor the push:
 
 | Guard | Behaviour |
 |-------|-----------|
-| Manifest pre-flight | Every crate the plan dispatches must already sit at its `next` version. Checked across *all* groups before the first crate is published, so a stale tree is a clean refusal rather than a half-published release. |
+| Manifest pre-flight | Every crate the plan dispatches must already sit at its `next` version. Checked across *all* crates before the first one is published, so a stale tree is a clean refusal rather than a half-published release. |
 | Dirty tree | Refused. There is no release commit to fold the changes into, and `cargo publish` would either reject the tree or ship uncommitted work. |
 | Branch check | HEAD not contained in `origin/main` prints a warning ( the remote-tracking ref may simply be stale — `git fetch origin` ). Not fatal: a rerun after a partial publish is a legitimate reason to be elsewhere. |
 | Tags | Not created. The run ends by printing the `tag` invocation to follow it with. |
 
 `--all-in-one` restores the pre-PR behaviour ( bump + commit + publish + tag + push in one command ) for the rare case that warrants it; `--tag` runs the `tag` stage at HEAD immediately after a successful publish, with the same checks it applies on its own.
 
-Grouping is by version, not by bump level, because a level keyword is the wrong dispatch currency in two ways:
+Each crate is dispatched at its version, not at its bump level, because a level keyword is the wrong dispatch currency in two ways:
 
 - **The version step is not idempotent under a level.** `cargo release version patch` re-run bumps a *second* time. A chunk that was partially bumped before a failure — a crash or Ctrl+C midway through the step — would have its already-bumped crates moved again on resume, silently skipping a version number.
 - **A level disables the resumability prune.** `batch` can only drop crates whose target is already on crates.io when it knows the concrete target; given a level it prints `skipping pre-flight crates.io resumability check` and prunes nothing.
 
-The plan already computes `next` for every bumping crate, so `publish` dispatches that. On this workspace the 241 publishable members currently sit at 10 distinct versions, so a workspace-wide patch bump drives ~10 groups rather than 1 — a handful of extra partial chunks, which matters only under the first-launch `--sleep` settings.
+The plan already computes `next` for every bumping crate, so `publish` dispatches that. Because one run carries every version, the number of distinct versions does not add partial chunks; in `--all-in-one` mode a chunk runs one `cargo release version` per target version it contains.
 
 Within `batch`, the version step is additionally computed per crate rather than per chunk: only the crates not yet at their target are handed to `cargo release version`. Under a level dispatch ( reachable through `batch --version patch`, the bypass mode ) a crate whose current version is *not* on crates.io is treated as already bumped and left alone. When the crates.io lookup itself fails, that check reports "not published" and the crate is skipped — the safe direction, since a skipped bump surfaces as a failed or pruned publish, whereas a spurious bump burns a version number that cannot be unpublished.
 
