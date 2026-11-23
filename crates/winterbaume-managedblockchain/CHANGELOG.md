@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.2.2 - 2026-11-21
+
+### Fixed
+- Percent-encoded UTF-8 in request paths and query strings is decoded as UTF-8. The private decoder this crate carried turned each byte into its own character, so non-ASCII names and values were stored mangled ( `é` as `Ã©` ). The crate now uses the shared decoders in `winterbaume-core` (#58, #60).
+
 ## v0.2.1 - 2026-08-17
 
 ### Documentation

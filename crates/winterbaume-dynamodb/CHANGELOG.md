@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.4.0 - 2026-11-21
+
+### Added
+- `DynamoDbBackend::scan_index`, `describe_table_settings` and `update_table_settings`, each with a default implementation so existing backends keep compiling (#40, #55).
+- `types::aws_managed_kms_key_arn`, the ARN reported for the AWS managed key when SSE is enabled without naming one (#55).
+
+### Fixed
+- `Query` and `Scan` on a secondary index return only the projected attributes for `KEYS_ONLY` and `INCLUDE` projections; they returned whole items. `Select=ALL_ATTRIBUTES` on a GSI without an `ALL` projection is rejected, `Scan` honours `IndexName`, indexes are sparse, and `ConsistentRead=true` on a GSI is rejected (#39, #40).
+- Numeric and binary sort keys are ordered by value and by byte, not by their stored text, in queries, key conditions and filters (#40).
+- `DeletionProtectionEnabled` on `CreateTable` and `UpdateTable` is stored and returned, and `DeleteTable` on a protected table fails with `ValidationException` until protection is turned off (#42, #55).
+- `SSESpecification` is reflected as `SSEDescription` ( `Status: ENABLED`, `SSEType: KMS` and the key ARN ) when SSE is enabled (#43, #55).
+- `Tags` given to `CreateTable` are returned by `ListTagsOfResource`. Tags are also removed with their table, so a table recreated under the same name no longer inherits them (#51, #59).
+
 ## v0.3.0 - 2026-08-17
 
 ### Fixed

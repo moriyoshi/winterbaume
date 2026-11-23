@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.0.1 - 2026-11-21
+
+### Internal
+- Uses the shared percent-decoders in `winterbaume-core` in place of a private copy, which already decoded UTF-8 correctly; no change in behaviour (#60).
+
 ## v0.3.0 - 2026-07-03
 
 ### Internal

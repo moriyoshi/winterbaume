@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.1.0 - 2026-11-21
+
+### Added
+- `CloudFrontService::shared_state` and `get_function_in_stage`, with the `CloudFrontFunctionStage` types, so that Cloud Control can serve CloudFront resources from live state (#40).
+
 ## v1.0.1 - 2026-08-17
 
 ### Documentation

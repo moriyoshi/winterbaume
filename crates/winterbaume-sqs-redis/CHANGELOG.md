@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.2.2 - 2026-11-21
+
+### Internal
+- Dependency-only release for `winterbaume-sqs` v0.2.1; no change to this crate's own code.
+
 ## v0.2.1 - 2026-05-18
 
 ### Fixed

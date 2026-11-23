@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.2.2 - 2026-11-21
+
+### Fixed
+- Percent-encoded ARNs, names and tag keys are fully decoded. The crate decoded only `%3A` and `%2F` ( and in places `%20` ), so any other escape, including every non-ASCII character, was stored still encoded. It now uses the shared decoders in `winterbaume-core` (#58, #60).
+
 ## v0.2.1 - 2026-08-17
 
 ### Documentation

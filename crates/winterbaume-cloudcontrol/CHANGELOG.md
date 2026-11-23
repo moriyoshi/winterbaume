@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.2.0 - 2026-11-21
+
+### Added
+- `CloudControlService::with_cloudfront_service`, linking Cloud Control to a shared `CloudFrontService` (#40).
+
+### Fixed
+- `AWS::CloudFront::ResponseHeadersPolicy` and `AWS::CloudFront::Function` are backed by live CloudFront state, so they are visible through the CloudFront API and `GetResource` matches AWS: read-only `Id` and `LastModifiedTime`, unset `SecurityHeadersConfig` members as `{}`, `FunctionARN` as the identifier, `Stage`, and no write-only `AutoPublish`. `UpdateResource` applies patches at any depth and validates the result against the resource schema, as AWS does (#37, #38, #40).
+
 ## v1.1.0 - 2026-10-27
 
 ### Fixed
