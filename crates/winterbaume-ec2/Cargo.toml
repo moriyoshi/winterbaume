@@ -1,6 +1,6 @@
 [package]
 name = "winterbaume-ec2"
-version = "1.0.1"
+version = "1.0.2"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
@@ -10,7 +10,7 @@ description = "EC2/VPC service implementation for winterbaume"
 
 [dependencies]
 winterbaume-core = { workspace = true }
-winterbaume-ec2-generated = { version = "0.2.1", path = "../winterbaume-ec2-generated", default-features = false }
+winterbaume-ec2-generated = { version = "0.2.2", path = "../winterbaume-ec2-generated", default-features = false }
 tokio = { workspace = true }
 http = { workspace = true }
 uuid = { workspace = true }
