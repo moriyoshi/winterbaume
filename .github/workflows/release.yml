@@ -6,28 +6,95 @@ on:
   push:
     tags:
       - 'winterbaume-server-v[0-9]+.[0-9]+.[0-9]+'
+  # Release an existing tag with this revision of the workflow. A tag-triggered
+  # run uses the workflow and dist config of the tagged commit, and release tags
+  # cannot be moved, so a tag whose release failed for a CI reason ( e.g. a
+  # retired runner image ) can only be released this way. The tagged source is
+  # what gets tested and built; only the runner overrides come from here.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag, e.g. winterbaume-server-v0.2.9
+        type: string
+        required: true
 
 jobs:
+  resolve:
+    name: Resolve release tag
+    runs-on: "ubuntu-24.04"
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+      ref: ${{ steps.tag.outputs.ref }}
+    steps:
+      - id: tag
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_TAG: ${{ inputs.tag }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            tag="$INPUT_TAG"
+          else
+            tag="$REF_NAME"
+          fi
+          if ! [[ "$tag" =~ ^winterbaume-server-v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::not a server release tag: $tag"
+            exit 1
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "ref=refs/tags/$tag" >> "$GITHUB_OUTPUT"
+
   # Run the CI pipeline first; release artifacts are only built if CI passes.
   ci:
+    needs:
+      - resolve
     uses: ./.github/workflows/ci.yml
+    with:
+      ref: ${{ needs.resolve.outputs.ref }}
 
   plan:
     needs:
+      - resolve
       - ci
     runs-on: "ubuntu-24.04"
     outputs:
       val: ${{ steps.plan.outputs.manifest }}
-      tag: ${{ !github.event.pull_request && github.ref_name || '' }}
-      tag-flag: ${{ !github.event.pull_request && format('--tag={0}', github.ref_name) || '' }}
+      tag: ${{ !github.event.pull_request && needs.resolve.outputs.tag || '' }}
+      tag-flag: ${{ !github.event.pull_request && format('--tag={0}', needs.resolve.outputs.tag) || '' }}
+      ref: ${{ needs.resolve.outputs.ref }}
       publishing: ${{ !github.event.pull_request }}
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
         with:
+          ref: ${{ needs.resolve.outputs.ref }}
           persist-credentials: false
           submodules: recursive
+      # On a manual run, the tagged dist-workspace.toml may predate a runner
+      # fix. Take `[dist.github-custom-runners]` from the workflow's own
+      # revision; the plan is the only place dist reads runners.
+      - name: Check out the workflow revision's dist config
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
+        with:
+          ref: ${{ github.sha }}
+          path: .workflow-rev
+          persist-credentials: false
+          sparse-checkout: |
+            dist-workspace.toml
+            .github/scripts/apply-dist-runner-overrides.py
+          sparse-checkout-cone-mode: false
+      - name: Apply the workflow revision's runner overrides
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 .workflow-rev/.github/scripts/apply-dist-runner-overrides.py \
+            .workflow-rev/dist-workspace.toml dist-workspace.toml
+          rm -rf .workflow-rev
       - name: Install dist
         shell: bash
         env:
@@ -47,7 +114,7 @@ jobs:
           path: ~/.cargo/bin/dist
       - id: plan
         run: |
-          dist ${{ (!github.event.pull_request && format('host --steps=create --tag={0}', github.ref_name)) || 'plan' }} --allow-dirty --output-format=json > plan-dist-manifest.json
+          dist ${{ (!github.event.pull_request && format('host --steps=create --tag={0}', needs.resolve.outputs.tag)) || 'plan' }} --allow-dirty --output-format=json > plan-dist-manifest.json
           echo "dist ran successfully"
           cat plan-dist-manifest.json
           echo "manifest=$(jq -c "." plan-dist-manifest.json)" >> "$GITHUB_OUTPUT"
@@ -76,6 +143,7 @@ jobs:
           git config --global core.longpaths true
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
         with:
+          ref: ${{ needs.plan.outputs.ref }}
           persist-credentials: false
           submodules: recursive
       - name: Install Rust non-interactively if not already installed
@@ -128,6 +196,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
         with:
+          ref: ${{ needs.plan.outputs.ref }}
           persist-credentials: false
           submodules: recursive
       - name: Install cached dist
@@ -175,6 +244,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
         with:
+          ref: ${{ needs.plan.outputs.ref }}
           persist-credentials: false
           submodules: recursive
       - name: Install cached dist
@@ -215,8 +285,10 @@ jobs:
           PRERELEASE_FLAG: "${{ fromJson(steps.host.outputs.manifest).announcement_is_prerelease && '--prerelease' || '' }}"
           ANNOUNCEMENT_TITLE: "${{ fromJson(steps.host.outputs.manifest).announcement_title }}"
           ANNOUNCEMENT_BODY: "${{ fromJson(steps.host.outputs.manifest).announcement_github_body }}"
-          RELEASE_COMMIT: "${{ github.sha }}"
         run: |
+          # The tagged commit, not github.sha: a manual run executes on the
+          # default branch.
+          RELEASE_COMMIT="$(git rev-parse HEAD)"
           echo "$ANNOUNCEMENT_BODY" > $RUNNER_TEMP/notes.txt
 
           gh release create "${{ needs.plan.outputs.tag }}" --target "$RELEASE_COMMIT" $PRERELEASE_FLAG --title "$ANNOUNCEMENT_TITLE" --notes-file "$RUNNER_TEMP/notes.txt" artifacts/*
@@ -232,5 +304,6 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
         with:
+          ref: ${{ needs.plan.outputs.ref }}
           persist-credentials: false
           submodules: recursive
