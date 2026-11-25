@@ -17,5 +17,12 @@ serde_json = { workspace = true }
 uuid = { workspace = true }
 md-5 = { workspace = true }
 
+[dev-dependencies]
+aws-config = { workspace = true }
+aws-sdk-sqs = { workspace = true }
+sha2 = { workspace = true }
+tokio = { workspace = true }
+winterbaume-core = { workspace = true }
+
 [lints]
 workspace = true

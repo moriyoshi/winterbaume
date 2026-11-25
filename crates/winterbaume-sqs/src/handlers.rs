@@ -10,7 +10,7 @@ use winterbaume_core::{
 
 use crate::backend::{InMemorySqsBackend, SqsBackend};
 use crate::state::SqsError;
-use crate::types::MessageAttribute;
+use crate::types::{Message, MessageAttribute};
 use crate::views::SqsStateView;
 use crate::wire;
 
@@ -360,6 +360,7 @@ impl SqsService {
             Ok(out) => wire::serialize_send_message_response(&wire::SendMessageResult {
                 message_id: Some(out.message_id),
                 m_d5_of_message_body: Some(out.body_md5),
+                sequence_number: out.sequence_number,
                 ..Default::default()
             }),
             Err(e) => sqs_error_response(&e),
@@ -392,6 +393,14 @@ impl SqsService {
             .map(|v| v as u32);
         let wait_time_seconds = input.wait_time_seconds.map(|v| v.max(0) as u32);
         let queue_name = extract_queue_name_from_url(&input.queue_url);
+        // System attributes are returned only when named, through
+        // `MessageSystemAttributeNames` or the deprecated `AttributeNames`.
+        let requested_system_attributes: Vec<String> = input
+            .message_system_attribute_names
+            .unwrap_or_default()
+            .into_iter()
+            .chain(input.attribute_names.unwrap_or_default())
+            .collect();
 
         // Resolve the effective long-poll duration, honouring the queue's
         // ReceiveMessageWaitTimeSeconds when the request omits an explicit
@@ -457,19 +466,7 @@ impl SqsService {
                 let msgs: Vec<wire::Message> = messages
                     .iter()
                     .map(|m| {
-                        let mut attrs = HashMap::new();
-                        attrs.insert("SenderId".to_string(), m.sender_id.clone());
-                        attrs.insert("SentTimestamp".to_string(), m.sent_timestamp.to_string());
-                        attrs.insert(
-                            "ApproximateReceiveCount".to_string(),
-                            m.approximate_receive_count.to_string(),
-                        );
-                        attrs.insert(
-                            "ApproximateFirstReceiveTimestamp".to_string(),
-                            m.approximate_first_receive_timestamp
-                                .map(|t| t.to_string())
-                                .unwrap_or_default(),
-                        );
+                        let attrs = message_system_attributes(m, &requested_system_attributes);
 
                         let message_attributes = if m.message_attributes.is_empty() {
                             None
@@ -493,7 +490,7 @@ impl SqsService {
                             receipt_handle: m.receipt_handle.clone(),
                             m_d5_of_body: Some(m.body_md5.clone()),
                             body: Some(m.body.clone()),
-                            attributes: Some(attrs),
+                            attributes: (!attrs.is_empty()).then_some(attrs),
                             message_attributes,
                             ..Default::default()
                         }
@@ -632,6 +629,7 @@ impl SqsService {
                         id: Some(id),
                         message_id: Some(out.message_id),
                         m_d5_of_message_body: Some(out.body_md5),
+                        sequence_number: out.sequence_number,
                         ..Default::default()
                     });
                 }
@@ -1062,6 +1060,34 @@ fn extract_queue_name_from_url(url: &str) -> String {
     url.rsplit('/').next().unwrap_or("").to_string()
 }
 
+/// The system attributes of `m` named in `requested` ( `All` meaning every
+/// one ). Attributes the message does not carry, such as the FIFO ones on a
+/// standard-queue message, are left out.
+fn message_system_attributes(m: &Message, requested: &[String]) -> HashMap<String, String> {
+    let all = requested.iter().any(|n| n == "All");
+    let wanted = |name: &str| all || requested.iter().any(|n| n == name);
+    let candidates: [(&str, Option<String>); 7] = [
+        ("SenderId", Some(m.sender_id.clone())),
+        ("SentTimestamp", Some(m.sent_timestamp.to_string())),
+        (
+            "ApproximateReceiveCount",
+            Some(m.approximate_receive_count.to_string()),
+        ),
+        (
+            "ApproximateFirstReceiveTimestamp",
+            m.approximate_first_receive_timestamp.map(|t| t.to_string()),
+        ),
+        ("MessageGroupId", m.message_group_id.clone()),
+        ("MessageDeduplicationId", m.message_deduplication_id.clone()),
+        ("SequenceNumber", m.sequence_number.clone()),
+    ];
+    candidates
+        .into_iter()
+        .filter(|(name, _)| wanted(name))
+        .filter_map(|(name, value)| value.map(|v| (name.to_string(), v)))
+        .collect()
+}
+
 fn wire_message_attributes_to_state(
     attrs: Option<HashMap<String, wire::MessageAttributeValue>>,
 ) -> HashMap<String, MessageAttribute> {
@@ -1101,6 +1127,8 @@ fn sqs_error_response(err: &SqsError) -> MockResponse {
         MessageMoveTaskAlreadyRunning => (400, "ResourceNotFoundException"),
         InvalidTaskHandle { .. } => (400, "ResourceNotFoundException"),
         TaskNotCancellable => (400, "ResourceNotFoundException"),
+        InvalidAttributeName { .. } => (400, "InvalidAttributeName"),
+        InvalidAttributeValue { .. } => (400, "InvalidAttributeValue"),
         InternalError(_) => (500, "InternalError"),
     };
     json_error_response(status, error_type, &err.to_string())

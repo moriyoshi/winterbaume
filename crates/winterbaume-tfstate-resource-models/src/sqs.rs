@@ -39,6 +39,10 @@ pub struct SqsQueueTfModel {
     pub fifo_queue: bool,
     #[serde(default = "default_sqs_queue_content_based_deduplication")]
     pub content_based_deduplication: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub deduplication_scope: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fifo_throughput_limit: Option<String>,
     #[serde(default)]
     pub tags: HashMap<String, String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]

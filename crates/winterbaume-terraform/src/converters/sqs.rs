@@ -96,6 +96,10 @@ impl AwsSqsQueueConverter {
             receive_wait_time_seconds: model.receive_wait_time_seconds,
             fifo_queue: model.fifo_queue,
             content_based_deduplication: model.content_based_deduplication,
+            // The provider records "" for standard queues; only FIFO queues
+            // carry these settings.
+            deduplication_scope: model.deduplication_scope.filter(|v| !v.is_empty()),
+            fifo_throughput_limit: model.fifo_throughput_limit.filter(|v| !v.is_empty()),
             tags: model.tags,
             redrive_policy: model.redrive_policy,
             policy: model.policy,
@@ -135,6 +139,8 @@ impl AwsSqsQueueConverter {
                 "receive_wait_time_seconds": queue.receive_wait_time_seconds,
                 "fifo_queue": queue.fifo_queue,
                 "content_based_deduplication": queue.content_based_deduplication,
+                "deduplication_scope": queue.deduplication_scope.clone().unwrap_or_default(),
+                "fifo_throughput_limit": queue.fifo_throughput_limit.clone().unwrap_or_default(),
                 "tags": queue.tags,
                 "tags_all": queue.tags,
             });

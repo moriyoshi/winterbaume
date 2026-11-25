@@ -40,21 +40,59 @@ resource "aws_sqs_queue" "sqs_queue_attrs" {
     assert!(result.state.contains("terraform-attrs-queue"));
 }
 
+/// High-throughput FIFO queue ( issue #64 ): the provider reads
+/// `deduplication_scope` and `fifo_throughput_limit` back after apply, so the
+/// stored values must round-trip and a second plan must show no changes. Runs
+/// on its own server because `batch_apply` does not plan.
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 #[ignore]
 async fn test_sqs_queue_fifo() {
-    let result = batch_apply(
+    let port = start_server(test_services()).await;
+    let url = format!("http://127.0.0.1:{port}");
+    let dir = create_tf_dir("sqs-fifo-high-throughput");
+
+    write_provider_tf(&dir, &url);
+    std::fs::write(
+        dir.join("main.tf"),
         r#"
 resource "aws_sqs_queue" "sqs_queue_fifo" {
   name                        = "terraform-fifo-queue.fifo"
   fifo_queue                  = true
   content_based_deduplication = true
+  deduplication_scope         = "messageGroup"
+  fifo_throughput_limit       = "perMessageGroupId"
 }
 "#,
     )
-    .await;
-    assert!(result.success, "terraform apply failed:\n{}", result.stderr);
-    assert!(result.state.contains("terraform-fifo-queue.fifo"));
+    .unwrap();
+
+    terraform_init(&dir).await;
+    let (ok, _stdout, stderr) = terraform_apply(&dir).await;
+    assert!(ok, "terraform apply failed:\n{stderr}");
+
+    let state = std::fs::read_to_string(dir.join("terraform.tfstate")).unwrap();
+    assert!(state.contains("terraform-fifo-queue.fifo"));
+    assert!(
+        state.contains(r#""deduplication_scope": "messageGroup""#),
+        "deduplication_scope not read back:\n{state}"
+    );
+    assert!(
+        state.contains(r#""fifo_throughput_limit": "perMessageGroupId""#),
+        "fifo_throughput_limit not read back:\n{state}"
+    );
+
+    // -detailed-exitcode: 0 = no changes, 2 = changes pending.
+    let (ok, stdout, stderr) = terraform_plan(&dir).await;
+    assert!(
+        ok,
+        "terraform plan shows changes after apply:\nstdout:\n{stdout}\nstderr:\n{stderr}"
+    );
+    assert!(
+        stdout.contains("No changes"),
+        "Expected 'No changes' in plan output:\n{stdout}"
+    );
+
+    cleanup_tf_dir(&dir);
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]

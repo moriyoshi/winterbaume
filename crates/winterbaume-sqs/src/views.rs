@@ -7,7 +7,9 @@ use serde::{Deserialize, Serialize};
 use winterbaume_core::{StateChangeNotifier, StatefulService};
 
 use crate::handlers::SqsService;
-use crate::state::{QueueState, SqsState};
+use crate::state::{
+    DEDUPLICATION_SCOPE_QUEUE, FIFO_THROUGHPUT_LIMIT_PER_QUEUE, QueueState, SqsState,
+};
 use crate::types::{MessageMoveTask, Queue};
 
 /// Serializable view of the entire SQS state for one account/region.
@@ -44,6 +46,12 @@ pub struct QueueStateView {
     pub fifo_queue: bool,
     #[serde(default)]
     pub content_based_deduplication: bool,
+    /// FIFO `DeduplicationScope` ( `queue` when absent ).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub deduplication_scope: Option<String>,
+    /// FIFO `FifoThroughputLimit` ( `perQueue` when absent ).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fifo_throughput_limit: Option<String>,
     /// Queue tags.
     #[serde(default)]
     pub tags: HashMap<String, String>,
@@ -149,6 +157,14 @@ impl From<&QueueState> for QueueStateView {
             receive_wait_time_seconds: qs.queue.receive_wait_time_seconds,
             fifo_queue: qs.queue.fifo_queue,
             content_based_deduplication: qs.queue.content_based_deduplication,
+            deduplication_scope: qs
+                .queue
+                .fifo_queue
+                .then(|| qs.queue.deduplication_scope.clone()),
+            fifo_throughput_limit: qs
+                .queue
+                .fifo_queue
+                .then(|| qs.queue.fifo_throughput_limit.clone()),
             tags: qs.tags.clone(),
             redrive_policy: qs.redrive_policy.clone(),
             policy: qs.policy.clone(),
@@ -197,6 +213,12 @@ impl From<QueueStateView> for QueueState {
                 receive_wait_time_seconds: view.receive_wait_time_seconds,
                 fifo_queue: view.fifo_queue,
                 content_based_deduplication: view.content_based_deduplication,
+                deduplication_scope: view
+                    .deduplication_scope
+                    .unwrap_or_else(|| DEDUPLICATION_SCOPE_QUEUE.to_string()),
+                fifo_throughput_limit: view
+                    .fifo_throughput_limit
+                    .unwrap_or_else(|| FIFO_THROUGHPUT_LIMIT_PER_QUEUE.to_string()),
             },
             messages: Vec::new(),
             deleted_handles: HashSet::new(),
@@ -206,6 +228,7 @@ impl From<QueueStateView> for QueueState {
             redrive_policy: view.redrive_policy,
             policy: view.policy,
             dedup_index: HashMap::new(),
+            sequence_counter: 0,
         }
     }
 }
