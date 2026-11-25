@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.3.0 - 2026-11-25
+
+### Added
+- The `sts-assume-role-without-role-arn` relaxation ( `ASSUME_ROLE_WITHOUT_ROLE_ARN` ), enabled through `StsService::with_relaxations` or `winterbaume-server --relax`. `AssumeRole` without `RoleArn` then issues temporary credentials that keep the caller's own identity, as MinIO does, for clients such as Lakekeeper. `RoleSessionName` is still required, and the response has no `AssumedRoleUser`. Off by default: AWS answers `MissingParameter` (#77, #78).
+- `RELAXATIONS`, `StsService::with_relaxations` and `StsService::relaxations` (#78).
+
+### Changed
+- `GetCallerIdentity` resolves the caller from the access key in the SigV4 credential scope. Credentials from `AssumeRole`, `AssumeRoleWithSAML` and `AssumeRoleWithWebIdentity` now answer the assumed-role ARN; every caller used to get the default `user/moto` identity (#78).
+- Breaking: `StsState` and `StsStateView` gain `caller_sessions`. The view field defaults to empty and is omitted when empty, so existing snapshots still load (#78).
+
 ## v0.2.1 - 2026-11-21
 
 ### Fixed

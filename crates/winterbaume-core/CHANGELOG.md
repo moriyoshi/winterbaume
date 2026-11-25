@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.1 - 2026-11-25
+
+### Added
+- `Relaxation`, `Relaxations` and `UnknownRelaxation` ( the `relax` module ): named, opt-in relaxations of AWS request validation. A service crate declares its rules and takes the enabled set through `with_relaxations`; with none enabled, services refuse what AWS refuses (#77, #78).
+- `auth::extract_access_key_from_headers`, the access key ID from a SigV4 `Authorization` header. The signature is not checked (#78).
+
 ## v0.3.0 - 2026-11-21
 
 ### Added

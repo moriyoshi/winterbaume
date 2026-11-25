@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.2.3 - 2026-11-25
+
+### Internal
+- Dependency-only release for `winterbaume-core` v0.3.1; no change to this crate's own code.
+
 ## v0.2.2 - 2026-11-21
 
 ### Fixed

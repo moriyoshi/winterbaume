@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.3.0 - 2026-11-25
+
+### Internal
+- Dependency-only release for `winterbaume-dynamodb` v0.5.0 and `winterbaume-core` v0.3.1; no change to this crate's own code. Its public API takes an `Arc<dyn DynamoDbBackend>`, so the new `winterbaume-dynamodb` makes this a breaking release.
+
 ## v0.2.2 - 2026-11-21
 
 ### Internal

@@ -1,10 +1,33 @@
-# Release plan overrides for the 2026-11-21 cut.
+# Release plan overrides for the 2026-11-25 cut.
 #
-# The 2026-10-27 cut ( winterbaume-cloudcontrol 1.1.0, winterbaume-ssm 0.3.0,
-# winterbaume-server 0.2.8, winterbaume-terraform 0.2.6 ) was published to
-# crates.io but never tagged, so `plan` measures those crates from their
-# previous tags. For winterbaume-ssm that turns a dependency-only release into
-# a minor one: the new public item it finds ( `SsmService::shared_state` ) was
-# already released in 0.3.0. Delete this file once the 2026-10-27 tags exist.
+# cargo-semver-checks is not installed, so the plan sees only new `pub`
+# items and the dependency graph. Each entry below corrects it by hand.
 [bumps]
-winterbaume-ssm = "0.3.1"
+# Additive only since v0.3.0 ( the `relax` module and
+# `auth::extract_access_key_from_headers` ), which Cargo allows in a patch.
+# The heuristic's `minor` would make it 0.4.0, a breaking step under 0.y.z,
+# while its 219 dependants only get patch releases: a user on core 0.3 would
+# then pull service crates built against core 0.4 on `cargo update`, and their
+# `MockService` impls would no longer fit `MockAws`.
+winterbaume-core = "patch"
+
+# Issue #62 ( PR #73 ) replaced eight public `Option<serde_json::Value>` fields
+# of the stored function with a typed `settings: FunctionSettings`. At 2.1.0
+# the heuristic's `minor` is not a breaking step.
+winterbaume-lambda = "major"
+
+# Ten public fields added to plain public structs ( issues #64 – #69 ). The
+# heuristic does not count fields.
+winterbaume-tfstate-resource-models = "minor"
+
+# These expose a crate that takes a breaking bump in their own public API, so
+# moving to the new version breaks their users too:
+# - sqs-redis implements `winterbaume_sqs::SqsBackend` ( sqs 0.2 -> 0.3 );
+# - dynamodb-redis implements `winterbaume_dynamodb::DynamoDbBackend`, and
+#   dynamodbstreams takes an `Arc<dyn DynamoDbBackend>` ( dynamodb 0.4 -> 0.5 );
+# - terraform re-exports winterbaume-tfstate-resource-models as `generated`
+#   and its converters take `Arc<LambdaService>` and the other services.
+winterbaume-sqs-redis = "minor"
+winterbaume-dynamodb-redis = "minor"
+winterbaume-dynamodbstreams = "minor"
+winterbaume-terraform = "minor"

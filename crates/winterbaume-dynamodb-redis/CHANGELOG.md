@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.3.0 - 2026-11-25
+
+### Fixed
+- Conditional `PutItem`, `UpdateItem`, `DeleteItem` and `TransactWriteItems` are atomic: the condition is checked and the write applied in one Lua compare-and-swap, retried on conflict. The plain `UpdateItem` used to be an `HGET` followed by an `HSET` (#61, #73).
+
+### Changed
+- Built against `winterbaume-dynamodb` v0.5.0, whose `DynamoDbBackend` it implements, so this is a breaking release.
+
 ## v0.2.2 - 2026-11-21
 
 ### Fixed
