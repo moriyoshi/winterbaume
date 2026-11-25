@@ -74,6 +74,17 @@ view = "content_based_deduplication"
 type = "bool"
 default = false
 
+# FIFO high-throughput settings. The provider stores "" for standard queues.
+[[resource.field]]
+hcl = "deduplication_scope"
+view = "deduplication_scope"
+type = "string?"
+
+[[resource.field]]
+hcl = "fifo_throughput_limit"
+view = "fifo_throughput_limit"
+type = "string?"
+
 [[resource.field]]
 hcl = "tags"
 view = "tags"

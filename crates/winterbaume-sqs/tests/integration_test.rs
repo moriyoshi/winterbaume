@@ -4,6 +4,8 @@
 //! through the winterbaume mock infrastructure.
 
 use aws_sdk_sqs::config::BehaviorVersion;
+use aws_sdk_sqs::error::ProvideErrorMetadata;
+use aws_sdk_sqs::types::{MessageSystemAttributeName, QueueAttributeName};
 use winterbaume_core::MockAws;
 use winterbaume_sqs::SqsService;
 
@@ -2270,7 +2272,8 @@ async fn test_moto_get_queue_attributes_full() {
     assert_eq!(
         a.get(&aws_sdk_sqs::types::QueueAttributeName::MaximumMessageSize)
             .unwrap(),
-        "262144"
+        // AWS raised the default to 1 MiB; moto asserts "1048576" too.
+        "1048576"
     );
     assert_eq!(
         a.get(&aws_sdk_sqs::types::QueueAttributeName::MessageRetentionPeriod)
@@ -2533,16 +2536,28 @@ async fn test_moto_send_message_with_message_group_id() {
         .await
         .unwrap();
 
+    #[allow(deprecated)]
     let recv = client
         .receive_message()
         .queue_url(&queue_url)
         .max_number_of_messages(1)
+        .attribute_names(QueueAttributeName::from("MessageDeduplicationId"))
+        .attribute_names(QueueAttributeName::from("MessageGroupId"))
         .send()
         .await
         .unwrap();
 
     assert_eq!(recv.messages().len(), 1);
     assert_eq!(recv.messages()[0].body().unwrap(), "mydata");
+    let attrs = recv.messages()[0].attributes().expect("system attributes");
+    assert_eq!(
+        attrs.get(&MessageSystemAttributeName::MessageGroupId),
+        Some(&"group_id_1".to_string())
+    );
+    assert_eq!(
+        attrs.get(&MessageSystemAttributeName::MessageDeduplicationId),
+        Some(&"dedupe_id_1".to_string())
+    );
 }
 
 // Ported from moto: test_sqs.py::test_create_queue_with_policy
@@ -3772,4 +3787,1034 @@ async fn test_long_poll_returns_when_message_arrives() {
         elapsed < std::time::Duration::from_millis(1500),
         "long-poll should return promptly after the message arrives, elapsed={elapsed:?}"
     );
+}
+
+// ===================================================================
+// FIFO parity: issues #64 (high throughput attributes), #65 (message-group
+// gating) and #66 (FIFO system attributes and sequence numbers)
+// ===================================================================
+
+/// Create a FIFO queue with the given extra attributes and return its URL.
+async fn create_fifo_queue(
+    client: &aws_sdk_sqs::Client,
+    name: &str,
+    attributes: &[(QueueAttributeName, &str)],
+) -> String {
+    let mut req = client
+        .create_queue()
+        .queue_name(name)
+        .attributes(QueueAttributeName::FifoQueue, "true");
+    for (k, v) in attributes {
+        req = req.attributes(k.clone(), *v);
+    }
+    req.send().await.unwrap().queue_url().unwrap().to_string()
+}
+
+async fn queue_attributes(
+    client: &aws_sdk_sqs::Client,
+    queue_url: &str,
+) -> std::collections::HashMap<QueueAttributeName, String> {
+    client
+        .get_queue_attributes()
+        .queue_url(queue_url)
+        .attribute_names(QueueAttributeName::All)
+        .send()
+        .await
+        .unwrap()
+        .attributes()
+        .cloned()
+        .unwrap_or_default()
+}
+
+// Ported from moto: test_sqs.py::test_create_fifo_queue_with_high_throughput
+#[tokio::test]
+async fn test_moto_create_fifo_queue_with_high_throughput() {
+    let client = make_sqs_client().await;
+    let queue_name = "hi-tput.fifo";
+    let queue_url = create_fifo_queue(
+        &client,
+        queue_name,
+        &[
+            (QueueAttributeName::DeduplicationScope, "messageGroup"),
+            (QueueAttributeName::FifoThroughputLimit, "perMessageGroupId"),
+        ],
+    )
+    .await;
+    assert!(queue_url.contains(queue_name));
+
+    let attributes = queue_attributes(&client, &queue_url).await;
+    assert_eq!(
+        attributes[&QueueAttributeName::DeduplicationScope],
+        "messageGroup"
+    );
+    assert_eq!(attributes[&QueueAttributeName::FifoQueue], "true");
+    assert_eq!(
+        attributes[&QueueAttributeName::FifoThroughputLimit],
+        "perMessageGroupId"
+    );
+}
+
+/// Issue #64: `SetQueueAttributes` changes both high-throughput settings, and
+/// they can be switched back to the defaults.
+#[tokio::test]
+async fn test_fifo_set_queue_attributes_high_throughput() {
+    let client = make_sqs_client().await;
+    let queue_url = create_fifo_queue(&client, "set-hi-tput.fifo", &[]).await;
+    let attributes = queue_attributes(&client, &queue_url).await;
+    assert_eq!(attributes[&QueueAttributeName::DeduplicationScope], "queue");
+    assert_eq!(
+        attributes[&QueueAttributeName::FifoThroughputLimit],
+        "perQueue"
+    );
+
+    client
+        .set_queue_attributes()
+        .queue_url(&queue_url)
+        .attributes(QueueAttributeName::DeduplicationScope, "messageGroup")
+        .attributes(QueueAttributeName::FifoThroughputLimit, "perMessageGroupId")
+        .send()
+        .await
+        .unwrap();
+    let attributes = queue_attributes(&client, &queue_url).await;
+    assert_eq!(
+        attributes[&QueueAttributeName::DeduplicationScope],
+        "messageGroup"
+    );
+    assert_eq!(
+        attributes[&QueueAttributeName::FifoThroughputLimit],
+        "perMessageGroupId"
+    );
+
+    // Lowering the scope while the limit is still perMessageGroupId is
+    // rejected and leaves both settings unchanged.
+    let err = client
+        .set_queue_attributes()
+        .queue_url(&queue_url)
+        .attributes(QueueAttributeName::DeduplicationScope, "queue")
+        .send()
+        .await
+        .unwrap_err();
+    assert_eq!(err.code(), Some("InvalidAttributeValue"));
+    let attributes = queue_attributes(&client, &queue_url).await;
+    assert_eq!(
+        attributes[&QueueAttributeName::DeduplicationScope],
+        "messageGroup"
+    );
+
+    client
+        .set_queue_attributes()
+        .queue_url(&queue_url)
+        .attributes(QueueAttributeName::DeduplicationScope, "queue")
+        .attributes(QueueAttributeName::FifoThroughputLimit, "perQueue")
+        .send()
+        .await
+        .unwrap();
+    let attributes = queue_attributes(&client, &queue_url).await;
+    assert_eq!(attributes[&QueueAttributeName::DeduplicationScope], "queue");
+    assert_eq!(
+        attributes[&QueueAttributeName::FifoThroughputLimit],
+        "perQueue"
+    );
+}
+
+/// Issue #64: AWS allows `perMessageGroupId` only with
+/// `DeduplicationScope=messageGroup`, accepts only the documented values, and
+/// rejects both attributes on a standard queue.
+#[tokio::test]
+async fn test_fifo_high_throughput_attribute_validation() {
+    let client = make_sqs_client().await;
+
+    let err = client
+        .create_queue()
+        .queue_name("bad-limit.fifo")
+        .attributes(QueueAttributeName::FifoQueue, "true")
+        .attributes(QueueAttributeName::FifoThroughputLimit, "perMessageGroupId")
+        .send()
+        .await
+        .unwrap_err();
+    assert_eq!(err.code(), Some("InvalidAttributeValue"));
+
+    let err = client
+        .create_queue()
+        .queue_name("bad-scope.fifo")
+        .attributes(QueueAttributeName::FifoQueue, "true")
+        .attributes(QueueAttributeName::DeduplicationScope, "everything")
+        .send()
+        .await
+        .unwrap_err();
+    assert_eq!(err.code(), Some("InvalidAttributeValue"));
+
+    let err = client
+        .create_queue()
+        .queue_name("standard-with-scope")
+        .attributes(QueueAttributeName::DeduplicationScope, "messageGroup")
+        .send()
+        .await
+        .unwrap_err();
+    assert_eq!(err.code(), Some("InvalidAttributeName"));
+
+    // None of the rejected queues exists.
+    let urls = client.list_queues().send().await.unwrap();
+    assert!(urls.queue_urls().is_empty(), "{:?}", urls.queue_urls());
+
+    // A standard queue reports neither attribute.
+    let url = client
+        .create_queue()
+        .queue_name("plain")
+        .send()
+        .await
+        .unwrap()
+        .queue_url()
+        .unwrap()
+        .to_string();
+    let attributes = queue_attributes(&client, &url).await;
+    assert!(!attributes.contains_key(&QueueAttributeName::DeduplicationScope));
+    assert!(!attributes.contains_key(&QueueAttributeName::FifoThroughputLimit));
+}
+
+/// Issue #64: with `DeduplicationScope=messageGroup` a deduplication id is
+/// unique per message group, not per queue.
+#[tokio::test]
+async fn test_fifo_deduplication_scope_message_group() {
+    let client = make_sqs_client().await;
+    let queue_url = create_fifo_queue(
+        &client,
+        "dedup-per-group.fifo",
+        &[(QueueAttributeName::DeduplicationScope, "messageGroup")],
+    )
+    .await;
+
+    let a = client
+        .send_message()
+        .queue_url(&queue_url)
+        .message_body("a")
+        .message_group_id("g1")
+        .message_deduplication_id("same")
+        .send()
+        .await
+        .unwrap();
+    let b = client
+        .send_message()
+        .queue_url(&queue_url)
+        .message_body("b")
+        .message_group_id("g2")
+        .message_deduplication_id("same")
+        .send()
+        .await
+        .unwrap();
+    assert_ne!(a.message_id(), b.message_id());
+    // Same id in the same group: a duplicate of `a`.
+    let dup = client
+        .send_message()
+        .queue_url(&queue_url)
+        .message_body("a-again")
+        .message_group_id("g1")
+        .message_deduplication_id("same")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(dup.message_id(), a.message_id());
+    assert_eq!(dup.sequence_number(), a.sequence_number());
+
+    let recv = client
+        .receive_message()
+        .queue_url(&queue_url)
+        .max_number_of_messages(10)
+        .send()
+        .await
+        .unwrap();
+    let mut bodies: Vec<&str> = recv.messages().iter().filter_map(|m| m.body()).collect();
+    bodies.sort();
+    assert_eq!(bodies, ["a", "b"]);
+
+    // With the default queue scope the same id in another group is a duplicate.
+    let queue_url = create_fifo_queue(&client, "dedup-per-queue.fifo", &[]).await;
+    for (body, group) in [("a", "g1"), ("b", "g2")] {
+        client
+            .send_message()
+            .queue_url(&queue_url)
+            .message_body(body)
+            .message_group_id(group)
+            .message_deduplication_id("same")
+            .send()
+            .await
+            .unwrap();
+    }
+    let recv = client
+        .receive_message()
+        .queue_url(&queue_url)
+        .max_number_of_messages(10)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(recv.messages().len(), 1);
+    assert_eq!(recv.messages()[0].body(), Some("a"));
+}
+
+// Ported from moto: test_sqs.py::test_receive_messages_with_message_group_id
+#[tokio::test]
+async fn test_moto_receive_messages_with_message_group_id() {
+    let client = make_sqs_client().await;
+    let queue_url = create_fifo_queue(
+        &client,
+        "recv-group.fifo",
+        &[(QueueAttributeName::ContentBasedDeduplication, "true")],
+    )
+    .await;
+    client
+        .set_queue_attributes()
+        .queue_url(&queue_url)
+        .attributes(QueueAttributeName::VisibilityTimeout, "3600")
+        .send()
+        .await
+        .unwrap();
+    for (body, group) in [
+        ("message-1", "group"),
+        ("message-2", "group"),
+        ("message-3", "group"),
+        ("separate-message", "anothergroup"),
+    ] {
+        client
+            .send_message()
+            .queue_url(&queue_url)
+            .message_body(body)
+            .message_group_id(group)
+            .send()
+            .await
+            .unwrap();
+    }
+
+    #[allow(deprecated)]
+    let messages = client
+        .receive_message()
+        .queue_url(&queue_url)
+        .max_number_of_messages(2)
+        .attribute_names(QueueAttributeName::from("MessageGroupId"))
+        .send()
+        .await
+        .unwrap()
+        .messages
+        .unwrap_or_default();
+    assert_eq!(messages.len(), 2);
+    assert_eq!(
+        messages[0].attributes().unwrap()[&MessageSystemAttributeName::MessageGroupId],
+        "group"
+    );
+
+    // Different client can not 'see' messages from the group until they are processed
+    let messages_for_client_2 = client
+        .receive_message()
+        .queue_url(&queue_url)
+        .wait_time_seconds(0)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(messages_for_client_2.messages().len(), 1);
+    assert_eq!(
+        messages_for_client_2.messages()[0].body(),
+        Some("separate-message")
+    );
+
+    // message is now processed, next one should be available
+    for message in &messages {
+        client
+            .delete_message()
+            .queue_url(&queue_url)
+            .receipt_handle(message.receipt_handle().unwrap())
+            .send()
+            .await
+            .unwrap();
+    }
+    let messages = client
+        .receive_message()
+        .queue_url(&queue_url)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(messages.messages().len(), 1);
+    assert_eq!(messages.messages()[0].body(), Some("message-3"));
+}
+
+// Ported from moto: test_sqs.py::test_receive_messages_with_message_group_id_on_requeue
+#[tokio::test]
+async fn test_moto_receive_messages_with_message_group_id_on_requeue() {
+    let client = make_sqs_client().await;
+    let queue_url = create_fifo_queue(
+        &client,
+        "recv-group-requeue.fifo",
+        &[(QueueAttributeName::ContentBasedDeduplication, "true")],
+    )
+    .await;
+    client
+        .set_queue_attributes()
+        .queue_url(&queue_url)
+        .attributes(QueueAttributeName::VisibilityTimeout, "3600")
+        .send()
+        .await
+        .unwrap();
+    for body in ["message-1", "message-2"] {
+        client
+            .send_message()
+            .queue_url(&queue_url)
+            .message_body(body)
+            .message_group_id("group")
+            .send()
+            .await
+            .unwrap();
+    }
+
+    let messages = client
+        .receive_message()
+        .queue_url(&queue_url)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(messages.messages().len(), 1);
+    let message = messages.messages()[0].clone();
+
+    // received message is not deleted!
+    let messages = client
+        .receive_message()
+        .queue_url(&queue_url)
+        .wait_time_seconds(0)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(messages.messages().len(), 0);
+
+    // message is now available again, next one should be available
+    client
+        .change_message_visibility()
+        .queue_url(&queue_url)
+        .receipt_handle(message.receipt_handle().unwrap())
+        .visibility_timeout(0)
+        .send()
+        .await
+        .unwrap();
+    let messages = client
+        .receive_message()
+        .queue_url(&queue_url)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(messages.messages().len(), 1);
+    assert_eq!(messages.messages()[0].message_id(), message.message_id());
+}
+
+// Ported from moto: test_sqs.py::test_receive_messages_with_message_group_id_on_visibility_timeout
+//
+// moto freezes the clock at 12:00:00, sets a 10 s visibility timeout, and
+// checks at 12:00:05 ( still hidden ) and 12:00:15 ( visible again ). There
+// is no clock override here, so the same steps run on the real clock with a
+// 2 s timeout, checked at about 1 s and again after it has expired.
+#[tokio::test]
+async fn test_moto_receive_messages_with_message_group_id_on_visibility_timeout() {
+    let client = make_sqs_client().await;
+    let queue_url = create_fifo_queue(
+        &client,
+        "test-queue.fifo",
+        &[(QueueAttributeName::ContentBasedDeduplication, "true")],
+    )
+    .await;
+    client
+        .set_queue_attributes()
+        .queue_url(&queue_url)
+        .attributes(QueueAttributeName::VisibilityTimeout, "3600")
+        .send()
+        .await
+        .unwrap();
+    for body in ["message-1", "message-2"] {
+        client
+            .send_message()
+            .queue_url(&queue_url)
+            .message_body(body)
+            .message_group_id("group")
+            .send()
+            .await
+            .unwrap();
+    }
+
+    let messages = client
+        .receive_message()
+        .queue_url(&queue_url)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(messages.messages().len(), 1);
+    let message = messages.messages()[0].clone();
+
+    // received message is not processed yet
+    let messages_for_second_client = client
+        .receive_message()
+        .queue_url(&queue_url)
+        .wait_time_seconds(0)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(messages_for_second_client.messages().len(), 0);
+
+    client
+        .change_message_visibility()
+        .queue_url(&queue_url)
+        .receipt_handle(message.receipt_handle().unwrap())
+        .visibility_timeout(2)
+        .send()
+        .await
+        .unwrap();
+
+    // no timeout yet
+    tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
+    let messages = client
+        .receive_message()
+        .queue_url(&queue_url)
+        .wait_time_seconds(0)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(messages.messages().len(), 0);
+
+    // message is now available again, next one should be available
+    tokio::time::sleep(std::time::Duration::from_millis(1200)).await;
+    let messages = client
+        .receive_message()
+        .queue_url(&queue_url)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(messages.messages().len(), 1);
+    assert_eq!(messages.messages()[0].message_id(), message.message_id());
+}
+
+/// Issue #65 negative case: while the first message of a group is in flight,
+/// the second is withheld; deleting the first releases it.
+#[tokio::test]
+async fn test_fifo_in_flight_message_blocks_its_group() {
+    let client = make_sqs_client().await;
+    let queue_url = create_fifo_queue(&client, "gate.fifo", &[]).await;
+    for (body, dedup) in [("first", "d1"), ("second", "d2")] {
+        client
+            .send_message()
+            .queue_url(&queue_url)
+            .message_body(body)
+            .message_group_id("g1")
+            .message_deduplication_id(dedup)
+            .send()
+            .await
+            .unwrap();
+    }
+
+    let first = client
+        .receive_message()
+        .queue_url(&queue_url)
+        .max_number_of_messages(1)
+        .visibility_timeout(60)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(first.messages().len(), 1);
+    assert_eq!(first.messages()[0].body(), Some("first"));
+
+    let blocked = client
+        .receive_message()
+        .queue_url(&queue_url)
+        .max_number_of_messages(10)
+        .visibility_timeout(60)
+        .send()
+        .await
+        .unwrap();
+    assert!(
+        blocked.messages().is_empty(),
+        "group g1 is in flight, got {:?}",
+        blocked.messages()
+    );
+
+    client
+        .delete_message()
+        .queue_url(&queue_url)
+        .receipt_handle(first.messages()[0].receipt_handle().unwrap())
+        .send()
+        .await
+        .unwrap();
+    let second = client
+        .receive_message()
+        .queue_url(&queue_url)
+        .max_number_of_messages(10)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(second.messages().len(), 1);
+    assert_eq!(second.messages()[0].body(), Some("second"));
+}
+
+/// Issue #65: a standard queue does not gate on `MessageGroupId`.
+#[tokio::test]
+async fn test_standard_queue_message_group_does_not_gate() {
+    let client = make_sqs_client().await;
+    let queue_url = client
+        .create_queue()
+        .queue_name("fair-standard")
+        .send()
+        .await
+        .unwrap()
+        .queue_url()
+        .unwrap()
+        .to_string();
+    for body in ["first", "second"] {
+        client
+            .send_message()
+            .queue_url(&queue_url)
+            .message_body(body)
+            .message_group_id("tenant-a")
+            .send()
+            .await
+            .unwrap();
+    }
+    for _ in 0..2 {
+        let recv = client
+            .receive_message()
+            .queue_url(&queue_url)
+            .visibility_timeout(60)
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(recv.messages().len(), 1);
+    }
+}
+
+// Ported from moto: test_sqs.py::test_fifo_send_receive_message_with_attribute_name
+//
+// moto parametrises over eight `AttributeNames` values; each case runs here
+// on its own queue, as it does under pytest.
+#[tokio::test]
+async fn test_moto_fifo_send_receive_message_with_attribute_name() {
+    type Check = fn(Option<&String>) -> bool;
+    fn present(x: Option<&String>) -> bool {
+        x.is_some_and(|v| !v.is_empty())
+    }
+    fn absent(x: Option<&String>) -> bool {
+        x.is_none()
+    }
+    fn count_one(x: Option<&String>) -> bool {
+        x.is_some_and(|v| v == "1")
+    }
+    fn dedup_123(x: Option<&String>) -> bool {
+        x.is_some_and(|v| v == "123")
+    }
+    fn group_456(x: Option<&String>) -> bool {
+        x.is_some_and(|v| v == "456")
+    }
+    const NAMES: [&str; 7] = [
+        "ApproximateFirstReceiveTimestamp",
+        "ApproximateReceiveCount",
+        "MessageDeduplicationId",
+        "MessageGroupId",
+        "SenderId",
+        "SentTimestamp",
+        "SequenceNumber",
+    ];
+    // Expected checks in NAMES order, per requested attribute name.
+    let cases: [(&str, [Check; 7]); 8] = [
+        (
+            "All",
+            [
+                present, count_one, dedup_123, group_456, present, present, present,
+            ],
+        ),
+        (
+            "ApproximateFirstReceiveTimestamp",
+            [present, absent, absent, absent, absent, absent, absent],
+        ),
+        (
+            "ApproximateReceiveCount",
+            [absent, count_one, absent, absent, absent, absent, absent],
+        ),
+        (
+            "MessageDeduplicationId",
+            [absent, absent, dedup_123, absent, absent, absent, absent],
+        ),
+        (
+            "MessageGroupId",
+            [absent, absent, absent, group_456, absent, absent, absent],
+        ),
+        (
+            "SenderId",
+            [absent, absent, absent, absent, present, absent, absent],
+        ),
+        (
+            "SentTimestamp",
+            [absent, absent, absent, absent, absent, present, absent],
+        ),
+        (
+            "SequenceNumber",
+            [absent, absent, absent, absent, absent, absent, present],
+        ),
+    ];
+
+    for (i, (attribute_name, expected)) in cases.iter().enumerate() {
+        let client = make_sqs_client().await;
+        let queue_url = create_fifo_queue(&client, &format!("attr-{i}.fifo"), &[]).await;
+
+        let body = "this is a test message";
+        let resp = client
+            .send_message()
+            .queue_url(&queue_url)
+            .message_body(body)
+            .message_deduplication_id("123")
+            .message_group_id("456")
+            .send()
+            .await
+            .unwrap();
+        assert!(resp.sequence_number().is_some(), "{attribute_name}");
+
+        #[allow(deprecated)]
+        let recv = client
+            .receive_message()
+            .queue_url(&queue_url)
+            .attribute_names(QueueAttributeName::from(*attribute_name))
+            .max_number_of_messages(2)
+            .send()
+            .await
+            .unwrap();
+        let message = &recv.messages()[0];
+        assert_eq!(message.body(), Some(body));
+        assert!(message.md5_of_message_attributes().is_none());
+
+        let attrs = message.attributes().cloned().unwrap_or_default();
+        for (name, check) in NAMES.iter().zip(expected.iter()) {
+            let value = attrs.get(&MessageSystemAttributeName::from(*name));
+            assert!(
+                check(value),
+                "AttributeNames=[{attribute_name}]: unexpected {name} = {value:?}"
+            );
+        }
+    }
+}
+
+/// Issue #66: `MessageSystemAttributeNames` selects the same attributes as
+/// the deprecated `AttributeNames`, the two lists are merged, and the
+/// `SequenceNumber` on receive matches the one `SendMessage` returned.
+#[tokio::test]
+async fn test_fifo_message_system_attribute_names() {
+    let client = make_sqs_client().await;
+    let queue_url = create_fifo_queue(&client, "sys-attrs.fifo", &[]).await;
+    let sent = client
+        .send_message()
+        .queue_url(&queue_url)
+        .message_body("first")
+        .message_group_id("g1")
+        .message_deduplication_id("d1")
+        .send()
+        .await
+        .unwrap();
+    let seq = sent
+        .sequence_number()
+        .expect("FIFO send has a SequenceNumber");
+    assert!(seq.chars().all(|c| c.is_ascii_digit()), "{seq}");
+
+    #[allow(deprecated)]
+    let recv = client
+        .receive_message()
+        .queue_url(&queue_url)
+        .message_system_attribute_names(MessageSystemAttributeName::SequenceNumber)
+        .message_system_attribute_names(MessageSystemAttributeName::MessageGroupId)
+        .attribute_names(QueueAttributeName::from("MessageDeduplicationId"))
+        .send()
+        .await
+        .unwrap();
+    let attrs = recv.messages()[0].attributes().unwrap();
+    assert_eq!(attrs.len(), 3, "{attrs:?}");
+    assert_eq!(attrs[&MessageSystemAttributeName::SequenceNumber], seq);
+    assert_eq!(attrs[&MessageSystemAttributeName::MessageGroupId], "g1");
+    assert_eq!(
+        attrs[&MessageSystemAttributeName::MessageDeduplicationId],
+        "d1"
+    );
+}
+
+/// Issue #66: like AWS, `ReceiveMessage` returns no system attributes unless
+/// they are requested.
+#[tokio::test]
+async fn test_receive_message_returns_no_system_attributes_by_default() {
+    let client = make_sqs_client().await;
+    for (name, fifo) in [("no-attrs", false), ("no-attrs.fifo", true)] {
+        let mut req = client.create_queue().queue_name(name);
+        if fifo {
+            req = req.attributes(QueueAttributeName::FifoQueue, "true");
+        }
+        let queue_url = req.send().await.unwrap().queue_url().unwrap().to_string();
+        let mut send = client
+            .send_message()
+            .queue_url(&queue_url)
+            .message_body("x");
+        if fifo {
+            send = send.message_group_id("g").message_deduplication_id("d");
+        }
+        let sent = send.send().await.unwrap();
+        assert_eq!(sent.sequence_number().is_some(), fifo, "{name}");
+
+        let recv = client
+            .receive_message()
+            .queue_url(&queue_url)
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(recv.messages().len(), 1);
+        assert!(
+            recv.messages()[0].attributes().is_none(),
+            "{name}: {:?}",
+            recv.messages()[0].attributes()
+        );
+    }
+}
+
+/// Issue #66: sequence numbers increase per queue, and a standard queue
+/// carries none of the FIFO attributes even with `All`.
+#[tokio::test]
+async fn test_fifo_sequence_numbers_increase() {
+    let client = make_sqs_client().await;
+    let queue_url = create_fifo_queue(
+        &client,
+        "seq.fifo",
+        &[(QueueAttributeName::ContentBasedDeduplication, "true")],
+    )
+    .await;
+    let mut previous: Option<u128> = None;
+    for i in 0..5 {
+        let seq: u128 = client
+            .send_message()
+            .queue_url(&queue_url)
+            .message_body(format!("m{i}"))
+            .message_group_id(if i % 2 == 0 { "even" } else { "odd" })
+            .send()
+            .await
+            .unwrap()
+            .sequence_number()
+            .unwrap()
+            .parse()
+            .unwrap();
+        if let Some(p) = previous {
+            assert!(seq > p, "{seq} should be greater than {p}");
+        }
+        previous = Some(seq);
+    }
+
+    let std_url = client
+        .create_queue()
+        .queue_name("seq-standard")
+        .send()
+        .await
+        .unwrap()
+        .queue_url()
+        .unwrap()
+        .to_string();
+    client
+        .send_message()
+        .queue_url(&std_url)
+        .message_body("x")
+        .send()
+        .await
+        .unwrap();
+    let recv = client
+        .receive_message()
+        .queue_url(&std_url)
+        .message_system_attribute_names(MessageSystemAttributeName::All)
+        .send()
+        .await
+        .unwrap();
+    let attrs = recv.messages()[0].attributes().unwrap();
+    assert!(attrs.contains_key(&MessageSystemAttributeName::SenderId));
+    for name in [
+        MessageSystemAttributeName::SequenceNumber,
+        MessageSystemAttributeName::MessageDeduplicationId,
+        MessageSystemAttributeName::MessageGroupId,
+    ] {
+        assert!(!attrs.contains_key(&name), "{name:?} on a standard queue");
+    }
+}
+
+// Ported from moto: test_sqs.py::test_fifo_queue_send_deduplicationid_same_as_sha256_of_old_message
+#[tokio::test]
+async fn test_moto_fifo_queue_send_deduplicationid_same_as_sha256_of_old_message() {
+    use sha2::{Digest, Sha256};
+
+    let client = make_sqs_client().await;
+    let queue_url = create_fifo_queue(
+        &client,
+        "sha-dlq.fifo",
+        &[(QueueAttributeName::ContentBasedDeduplication, "true")],
+    )
+    .await;
+
+    client
+        .send_message()
+        .queue_url(&queue_url)
+        .message_body("first")
+        .message_group_id("1")
+        .send()
+        .await
+        .unwrap();
+
+    let deduplicationid = format!("{:x}", Sha256::digest(b"first"));
+
+    client
+        .send_message()
+        .queue_url(&queue_url)
+        .message_body("second")
+        .message_group_id("2")
+        .message_deduplication_id(&deduplicationid)
+        .send()
+        .await
+        .unwrap();
+    let messages = client
+        .receive_message()
+        .queue_url(&queue_url)
+        .max_number_of_messages(2)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(messages.messages().len(), 1);
+}
+
+/// Issue #66: under content-based deduplication the reported
+/// `MessageDeduplicationId` is the SHA-256 hex digest of the body.
+#[tokio::test]
+async fn test_fifo_content_based_deduplication_id_is_sha256() {
+    use sha2::{Digest, Sha256};
+
+    let client = make_sqs_client().await;
+    let queue_url = create_fifo_queue(
+        &client,
+        "sha-id.fifo",
+        &[(QueueAttributeName::ContentBasedDeduplication, "true")],
+    )
+    .await;
+    client
+        .send_message()
+        .queue_url(&queue_url)
+        .message_body("payload")
+        .message_group_id("g")
+        .send()
+        .await
+        .unwrap();
+    let recv = client
+        .receive_message()
+        .queue_url(&queue_url)
+        .message_system_attribute_names(MessageSystemAttributeName::MessageDeduplicationId)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        recv.messages()[0].attributes().unwrap()
+            [&MessageSystemAttributeName::MessageDeduplicationId],
+        format!("{:x}", Sha256::digest(b"payload"))
+    );
+}
+
+// Ported from moto: test_sqs.py::test_fifo_send_message_batch
+#[tokio::test]
+async fn test_moto_fifo_send_message_batch() {
+    use aws_sdk_sqs::types::{MessageAttributeValue, SendMessageBatchRequestEntry};
+
+    let client = make_sqs_client().await;
+    let queue_url = create_fifo_queue(&client, "batch.fifo", &[]).await;
+
+    let response = client
+        .send_message_batch()
+        .queue_url(&queue_url)
+        .entries(
+            SendMessageBatchRequestEntry::builder()
+                .id("id_1")
+                .message_body("body_1")
+                .delay_seconds(0)
+                .message_attributes(
+                    "attribute_name_1",
+                    MessageAttributeValue::builder()
+                        .string_value("attribute_value_1")
+                        .data_type("String")
+                        .build()
+                        .unwrap(),
+                )
+                .message_group_id("message_group_id_1")
+                .message_deduplication_id("message_deduplication_id_1")
+                .build()
+                .unwrap(),
+        )
+        .entries(
+            SendMessageBatchRequestEntry::builder()
+                .id("id_2")
+                .message_body("body_2")
+                .delay_seconds(0)
+                .message_attributes(
+                    "attribute_name_2",
+                    MessageAttributeValue::builder()
+                        .string_value("123")
+                        .data_type("Number")
+                        .build()
+                        .unwrap(),
+                )
+                .message_group_id("message_group_id_2")
+                .message_deduplication_id("message_deduplication_id_2")
+                .build()
+                .unwrap(),
+        )
+        .send()
+        .await
+        .unwrap();
+
+    let mut ids: Vec<&str> = response.successful().iter().map(|e| e.id()).collect();
+    ids.sort();
+    assert_eq!(ids, ["id_1", "id_2"]);
+    for entry in response.successful() {
+        assert!(entry.sequence_number().is_some());
+    }
+
+    #[allow(deprecated)]
+    let response = client
+        .receive_message()
+        .queue_url(&queue_url)
+        .max_number_of_messages(10)
+        .message_attribute_names("attribute_name_1")
+        .message_attribute_names("attribute_name_2")
+        .attribute_names(QueueAttributeName::from("MessageDeduplicationId"))
+        .attribute_names(QueueAttributeName::from("MessageGroupId"))
+        .send()
+        .await
+        .unwrap();
+    let messages = response.messages();
+
+    let expected = [
+        (
+            "body_1",
+            "attribute_name_1",
+            "attribute_value_1",
+            "String",
+            "message_group_id_1",
+            "message_deduplication_id_1",
+        ),
+        (
+            "body_2",
+            "attribute_name_2",
+            "123",
+            "Number",
+            "message_group_id_2",
+            "message_deduplication_id_2",
+        ),
+    ];
+    for (message, (body, attr_name, attr_value, data_type, group, dedup)) in
+        messages.iter().zip(expected)
+    {
+        assert_eq!(message.body(), Some(body));
+        let message_attributes = message.message_attributes().unwrap();
+        assert_eq!(message_attributes.len(), 1);
+        let attr = &message_attributes[attr_name];
+        assert_eq!(attr.string_value(), Some(attr_value));
+        assert_eq!(attr.data_type(), data_type);
+        let attrs = message.attributes().unwrap();
+        assert_eq!(attrs[&MessageSystemAttributeName::MessageGroupId], group);
+        assert_eq!(
+            attrs[&MessageSystemAttributeName::MessageDeduplicationId],
+            dedup
+        );
+    }
+    assert_eq!(messages.len(), 2);
 }

@@ -35,6 +35,9 @@ use crate::views::SqsStateView;
 pub struct SendMessageOutput {
     pub message_id: String,
     pub body_md5: String,
+    /// FIFO queues only: the message's `SequenceNumber` ( for a duplicate,
+    /// the original message's ).
+    pub sequence_number: Option<String>,
 }
 
 // ---------------------------------------------------------------------------
@@ -402,6 +405,7 @@ impl SqsBackend for InMemorySqsBackend {
             .map(|out| SendMessageOutput {
                 message_id: out.message_id,
                 body_md5: out.body_md5,
+                sequence_number: out.sequence_number,
             })
         })
     }

@@ -13,11 +13,15 @@
 //! | `sqs:{acct}:{rgn}:queue:{name}:msgs` | Hash | `msg_id` → JSON `StoredMsg` |
 //! | `sqs:{acct}:{rgn}:queue:{name}:order` | List | `msg_id` in insertion order |
 //! | `sqs:{acct}:{rgn}:queue:{name}:deleted` | Set | Deleted receipt handles |
+//! | `sqs:{acct}:{rgn}:queue:{name}:dedup` | Hash | FIFO dedup key → `{msg_id}\|{expires_ms}\|{sequence_number}` |
+//! | `sqs:{acct}:{rgn}:queue:{name}:seq` | String | FIFO sequence counter ( `INCR` ) |
 //! | `sqs:{acct}:{rgn}:move_tasks` | List | Task handles |
 //! | `sqs:{acct}:{rgn}:move_task:{handle}` | String | JSON `StoredTask` |
 //!
 //! `receive_messages` is performed atomically via an embedded Lua script so
-//! that concurrent callers cannot pick up the same message.
+//! that concurrent callers cannot pick up the same message. On FIFO queues the
+//! script also applies message-group gating: no message of a group with a
+//! message in flight is delivered.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -31,7 +35,11 @@ use uuid::Uuid;
 use winterbaume_sqs::SqsStateView;
 use winterbaume_sqs::StateViewError;
 use winterbaume_sqs::backend::{SendMessageOutput, SqsBackend};
-use winterbaume_sqs::state::SqsError;
+use winterbaume_sqs::state::{
+    DEDUP_WINDOW_MS, DEDUPLICATION_SCOPE_QUEUE, DEFAULT_MAXIMUM_MESSAGE_SIZE,
+    FIFO_THROUGHPUT_LIMIT_PER_QUEUE, SqsError, content_deduplication_id, dedup_index_key,
+    format_sequence_number, resolve_fifo_throughput_attributes,
+};
 use winterbaume_sqs::types::{Message, MessageAttribute, MessageMoveTask, Queue};
 use winterbaume_sqs::views::QueueStateView;
 
@@ -70,6 +78,12 @@ fn k_order(acct: &str, rgn: &str, name: &str) -> String {
 fn k_deleted(acct: &str, rgn: &str, name: &str) -> String {
     format!("sqs:{acct}:{rgn}:queue:{name}:deleted")
 }
+fn k_dedup(acct: &str, rgn: &str, name: &str) -> String {
+    format!("sqs:{acct}:{rgn}:queue:{name}:dedup")
+}
+fn k_seq(acct: &str, rgn: &str, name: &str) -> String {
+    format!("sqs:{acct}:{rgn}:queue:{name}:seq")
+}
 fn k_tasks(acct: &str, rgn: &str) -> String {
     format!("sqs:{acct}:{rgn}:move_tasks")
 }
@@ -99,6 +113,10 @@ struct StoredQueue {
     receive_wait_time_seconds: u32,
     fifo_queue: bool,
     content_based_deduplication: bool,
+    #[serde(default = "default_deduplication_scope")]
+    deduplication_scope: String,
+    #[serde(default = "default_fifo_throughput_limit")]
+    fifo_throughput_limit: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     redrive_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -110,6 +128,14 @@ struct StoredQueue {
     /// label → (aws_account_ids, actions)
     #[serde(default)]
     permissions: HashMap<String, StoredPermEntry>,
+}
+
+fn default_deduplication_scope() -> String {
+    DEDUPLICATION_SCOPE_QUEUE.to_string()
+}
+
+fn default_fifo_throughput_limit() -> String {
+    FIFO_THROUGHPUT_LIMIT_PER_QUEUE.to_string()
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -141,6 +167,8 @@ impl StoredQueue {
             receive_wait_time_seconds: self.receive_wait_time_seconds,
             fifo_queue: self.fifo_queue,
             content_based_deduplication: self.content_based_deduplication,
+            deduplication_scope: self.deduplication_scope.clone(),
+            fifo_throughput_limit: self.fifo_throughput_limit.clone(),
         }
     }
 }
@@ -163,6 +191,12 @@ struct StoredMsg {
     visible_at: i64,
     #[serde(default)]
     message_attributes: HashMap<String, StoredMsgAttr>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    message_group_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    message_deduplication_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    sequence_number: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -201,6 +235,9 @@ impl StoredMsg {
                     )
                 })
                 .collect(),
+            message_group_id: self.message_group_id.clone(),
+            message_deduplication_id: self.message_deduplication_id.clone(),
+            sequence_number: self.sequence_number.clone(),
         }
     }
 }
@@ -244,17 +281,9 @@ impl StoredTask {
 // ARGV[1] = now_ms
 // ARGV[2] = visibility_timeout_ms
 // ARGV[3] = max_count
-// ARGV[4..] = pre-generated receipt handles (one per potential visible message)
-//
-// Returns an array of JSON-encoded messages that were received.
-
-// KEYS[1] = msgs hash key
-// KEYS[2] = order list key
-// ARGV[1] = now_ms
-// ARGV[2] = visibility_timeout_ms
-// ARGV[3] = max_count
 // ARGV[4] = max_receive_count (0 means unlimited)
-// ARGV[5..] = pre-generated receipt handles (one per potential visible message)
+// ARGV[5] = 1 for a FIFO queue (apply message-group gating), else 0
+// ARGV[6..] = pre-generated receipt handles (one per potential visible message)
 //
 // Returns an array of strings, each prefixed with "R:" for received messages
 // or "D:" for messages to be redriven to a DLQ. Redriven messages are also
@@ -263,6 +292,10 @@ impl StoredTask {
 // Rust caller's DLQ-push step and must not consume the caller's `max_n` receive
 // budget. Receipt-handle indexing also uses `recv_count` so dead-lettered
 // iterations don't burn a handle slot in `ARGV`.
+//
+// FIFO gating mirrors `SqsState::receive_message`: a group with a message in
+// flight (received, visibility not expired) is skipped entirely, and a message
+// that is still hidden holds back the later messages of its group.
 const RECEIVE_SCRIPT: &str = r#"
 local msgs_key  = KEYS[1]
 local order_key = KEYS[2]
@@ -270,17 +303,45 @@ local now_ms    = tonumber(ARGV[1])
 local vis_ms    = tonumber(ARGV[2])
 local max_n     = tonumber(ARGV[3])
 local max_recv  = tonumber(ARGV[4])
+local fifo      = tonumber(ARGV[5]) == 1
 local results   = {}
 local recv_count = 0
+local blocked   = {}
+
+local function group_of(msg)
+    local g = msg['message_group_id']
+    if type(g) == 'string' then return g end
+    return nil
+end
 
 local ids = redis.call('LRANGE', order_key, 0, -1)
+
+if fifo then
+    for _, id in ipairs(ids) do
+        local raw = redis.call('HGET', msgs_key, id)
+        if raw and raw ~= false then
+            local msg = cjson.decode(raw)
+            local vis_at = tonumber(tostring(msg['visible_at']))
+            local cnt = msg['approximate_receive_count']
+            local g = group_of(msg)
+            if g and vis_at and now_ms < vis_at and type(cnt) == 'number' and cnt > 0 then
+                blocked[g] = true
+            end
+        end
+    end
+end
+
 for _, id in ipairs(ids) do
     if recv_count >= max_n then break end
     local raw = redis.call('HGET', msgs_key, id)
     if raw and raw ~= false then
         local msg = cjson.decode(raw)
         local vis_at = tonumber(tostring(msg['visible_at']))
-        if vis_at and now_ms >= vis_at then
+        local g = nil
+        if fifo then g = group_of(msg) end
+        if vis_at and now_ms < vis_at then
+            if g then blocked[g] = true end
+        elseif vis_at and not (g and blocked[g]) then
             local cnt = msg['approximate_receive_count']
             if type(cnt) ~= 'number' then cnt = 0 end
             local new_cnt = cnt + 1
@@ -292,7 +353,7 @@ for _, id in ipairs(ids) do
                 redis.call('LREM', order_key, 0, id)
                 table.insert(results, 'D:' .. cjson.encode(msg))
             else
-                local handle = ARGV[4 + recv_count + 1]
+                local handle = ARGV[5 + recv_count + 1]
                 if handle and handle ~= false then
                     msg['receipt_handle'] = handle
                     local rhs = msg['all_receipt_handles']
@@ -494,8 +555,14 @@ fn build_queue_attributes(sq: &StoredQueue, msgs: &[StoredMsg]) -> HashMap<Strin
             "ContentBasedDeduplication".to_string(),
             sq.content_based_deduplication.to_string(),
         );
-        attrs.insert("DeduplicationScope".to_string(), "queue".to_string());
-        attrs.insert("FifoThroughputLimit".to_string(), "perQueue".to_string());
+        attrs.insert(
+            "DeduplicationScope".to_string(),
+            sq.deduplication_scope.clone(),
+        );
+        attrs.insert(
+            "FifoThroughputLimit".to_string(),
+            sq.fifo_throughput_limit.clone(),
+        );
     }
     if let Some(ref rp) = sq.redrive_policy {
         attrs.insert("RedrivePolicy".to_string(), rp.clone());
@@ -599,12 +666,20 @@ impl SqsBackend for RedisSqsBackend {
                     (Some(a), Some(b)) => a == b,
                     (Some(_), None) => false,
                 };
+                let scope_ok = attributes
+                    .get("DeduplicationScope")
+                    .is_none_or(|v| *v == existing.deduplication_scope);
+                let limit_ok = attributes
+                    .get("FifoThroughputLimit")
+                    .is_none_or(|v| *v == existing.fifo_throughput_limit);
                 if vis != existing.visibility_timeout
                     || delay != existing.delay_seconds
                     || maxmsg != existing.maximum_message_size
                     || ret != existing.message_retention_period
                     || wait != existing.receive_wait_time_seconds
                     || !rp_ok
+                    || !scope_ok
+                    || !limit_ok
                 {
                     return Err(SqsError::QueueAlreadyExists);
                 }
@@ -613,6 +688,12 @@ impl SqsBackend for RedisSqsBackend {
 
             let now = Utc::now();
             let fifo = name.ends_with(".fifo");
+            let (deduplication_scope, fifo_throughput_limit) = resolve_fifo_throughput_attributes(
+                fifo,
+                &attributes,
+                DEDUPLICATION_SCOPE_QUEUE,
+                FIFO_THROUGHPUT_LIMIT_PER_QUEUE,
+            )?;
             let url = format!("https://sqs.{region}.amazonaws.com/{account_id}/{name}");
             let arn = format!("arn:aws:sqs:{region}:{account_id}:{name}");
             let sq = StoredQueue {
@@ -625,7 +706,11 @@ impl SqsBackend for RedisSqsBackend {
                 modified_ts: now.timestamp(),
                 visibility_timeout: parse_attr(&attributes, "VisibilityTimeout", 30),
                 delay_seconds: parse_attr(&attributes, "DelaySeconds", 0),
-                maximum_message_size: parse_attr(&attributes, "MaximumMessageSize", 262144),
+                maximum_message_size: parse_attr(
+                    &attributes,
+                    "MaximumMessageSize",
+                    DEFAULT_MAXIMUM_MESSAGE_SIZE,
+                ),
                 message_retention_period: parse_attr(&attributes, "MessageRetentionPeriod", 345600),
                 receive_wait_time_seconds: parse_attr(
                     &attributes,
@@ -637,6 +722,8 @@ impl SqsBackend for RedisSqsBackend {
                     .get("ContentBasedDeduplication")
                     .map(|v| v == "true")
                     .unwrap_or(false),
+                deduplication_scope,
+                fifo_throughput_limit,
                 redrive_policy: attributes.get("RedrivePolicy").cloned(),
                 policy: attributes.get("Policy").cloned(),
                 dead_letter_target_arn: extract_dlq_arn(&attributes),
@@ -663,14 +750,14 @@ impl SqsBackend for RedisSqsBackend {
             {
                 return Err(queue_not_found());
             }
-            let dedup_key = format!("sqs:{account_id}:{region}:queue:{queue_name}:dedup");
             let _: () = cm
                 .del(vec![
                     k_queue(&account_id, &region, &queue_name),
                     k_msgs(&account_id, &region, &queue_name),
                     k_order(&account_id, &region, &queue_name),
                     k_deleted(&account_id, &region, &queue_name),
-                    dedup_key,
+                    k_dedup(&account_id, &region, &queue_name),
+                    k_seq(&account_id, &region, &queue_name),
                 ])
                 .await
                 .map_err(redis_err)?;
@@ -725,6 +812,16 @@ impl SqsBackend for RedisSqsBackend {
             let mut sq = load_queue(&mut cm, &account_id, &region, &queue_name)
                 .await?
                 .ok_or_else(queue_not_found)?;
+
+            // Validate before changing anything so a rejected call has no effect.
+            let (deduplication_scope, fifo_throughput_limit) = resolve_fifo_throughput_attributes(
+                sq.fifo_queue,
+                &attributes,
+                &sq.deduplication_scope,
+                &sq.fifo_throughput_limit,
+            )?;
+            sq.deduplication_scope = deduplication_scope;
+            sq.fifo_throughput_limit = fifo_throughput_limit;
 
             if let Some(v) = attributes
                 .get("VisibilityTimeout")
@@ -826,7 +923,6 @@ impl SqsBackend for RedisSqsBackend {
     ) -> Pin<Box<dyn Future<Output = Result<SendMessageOutput, SqsError>> + Send>> {
         let mut cm = self.manager.clone();
         Box::pin(async move {
-            let _ = message_group_id; // FIFO ordering not enforced at this layer
             let sq = load_queue(&mut cm, &account_id, &region, &queue_name)
                 .await?
                 .ok_or_else(queue_not_found)?;
@@ -842,49 +938,62 @@ impl SqsBackend for RedisSqsBackend {
             };
 
             // FIFO deduplication.  Mirrors the in-memory backend's semantics:
-            // explicit MessageDeduplicationId wins over content-based hashing,
-            // both are scoped to a 5-minute window stored in a Redis hash
-            // keyed `sqs:{acct}:{rgn}:queue:{name}:dedup` (dedup_id ->
-            // "{message_id}|{expires_ms}").
+            // explicit MessageDeduplicationId wins over the SHA-256 of the
+            // body, both are scoped to a 5-minute window stored in a Redis
+            // hash keyed `sqs:{acct}:{rgn}:queue:{name}:dedup` (dedup key ->
+            // "{message_id}|{expires_ms}|{sequence_number}").
             let dedup_id: Option<String> = if sq.fifo_queue {
-                if let Some(ref explicit) = message_deduplication_id {
-                    Some(explicit.clone())
-                } else if sq.content_based_deduplication {
-                    Some(body_md5.clone())
-                } else {
-                    None
+                match message_deduplication_id {
+                    Some(explicit) => Some(explicit),
+                    None if sq.content_based_deduplication => Some(content_deduplication_id(&body)),
+                    None => None,
                 }
             } else {
                 None
             };
-            let dedup_key = format!("sqs:{account_id}:{region}:queue:{queue_name}:dedup");
-            const DEDUP_WINDOW_MS: i64 = 5 * 60 * 1000;
+            let dedup_key = k_dedup(&account_id, &region, &queue_name);
+            let dedup_field = dedup_id.as_deref().map(|did| {
+                dedup_index_key(&sq.deduplication_scope, message_group_id.as_deref(), did)
+            });
 
-            if let Some(ref did) = dedup_id {
+            if let Some(ref field) = dedup_field {
                 // Lazy eviction of expired entries.
                 let entries: Vec<(String, String)> =
                     cm.hgetall(&dedup_key).await.map_err(redis_err)?;
+                let mut existing: Option<(String, Option<String>)> = None;
                 for (k, v) in &entries {
-                    if let Some((_, exp)) = v.split_once('|') {
-                        if let Ok(exp_ms) = exp.parse::<i64>() {
-                            if exp_ms <= now_ms {
-                                let _: () = cm.hdel(&dedup_key, k).await.map_err(redis_err)?;
-                            }
+                    let mut parts = v.splitn(3, '|');
+                    let id = parts.next().unwrap_or_default();
+                    let exp_ms = parts.next().and_then(|e| e.parse::<i64>().ok());
+                    let seq = parts.next().filter(|s| !s.is_empty());
+                    match exp_ms {
+                        Some(exp_ms) if exp_ms <= now_ms => {
+                            let _: () = cm.hdel(&dedup_key, k).await.map_err(redis_err)?;
                         }
+                        _ if k == field => {
+                            existing = Some((id.to_string(), seq.map(str::to_string)));
+                        }
+                        _ => {}
                     }
                 }
-                if let Some(existing) = entries
-                    .iter()
-                    .find(|(k, _)| k == did)
-                    .and_then(|(_, v)| v.split_once('|').map(|(id, _)| id.to_string()))
-                {
+                if let Some((message_id, sequence_number)) = existing {
                     return Ok(SendMessageOutput {
-                        message_id: existing,
+                        message_id,
                         body_md5,
+                        sequence_number,
                     });
                 }
             }
 
+            let sequence_number = if sq.fifo_queue {
+                let n: u64 = cm
+                    .incr(k_seq(&account_id, &region, &queue_name), 1u64)
+                    .await
+                    .map_err(redis_err)?;
+                Some(format_sequence_number(n))
+            } else {
+                None
+            };
             let message_id = Uuid::new_v4().to_string();
 
             let stored_attrs: HashMap<String, StoredMsgAttr> = message_attributes
@@ -913,6 +1022,9 @@ impl SqsBackend for RedisSqsBackend {
                 approximate_receive_count: 0,
                 visible_at,
                 message_attributes: stored_attrs,
+                message_group_id,
+                message_deduplication_id: dedup_id,
+                sequence_number: sequence_number.clone(),
             };
 
             let json = serde_json::to_string(&msg).map_err(json_err)?;
@@ -928,14 +1040,22 @@ impl SqsBackend for RedisSqsBackend {
                 .rpush(k_order(&account_id, &region, &queue_name), &message_id)
                 .await
                 .map_err(redis_err)?;
-            if let Some(did) = dedup_id {
-                let entry = format!("{message_id}|{}", now_ms + DEDUP_WINDOW_MS);
-                let _: () = cm.hset(&dedup_key, &did, &entry).await.map_err(redis_err)?;
+            if let Some(field) = dedup_field {
+                let entry = format!(
+                    "{message_id}|{}|{}",
+                    now_ms + DEDUP_WINDOW_MS,
+                    sequence_number.as_deref().unwrap_or_default()
+                );
+                let _: () = cm
+                    .hset(&dedup_key, &field, &entry)
+                    .await
+                    .map_err(redis_err)?;
             }
 
             Ok(SendMessageOutput {
                 message_id,
                 body_md5,
+                sequence_number,
             })
         })
     }
@@ -970,6 +1090,7 @@ impl SqsBackend for RedisSqsBackend {
             inv.arg(vis_ms);
             inv.arg(max as i64);
             inv.arg(max_recv as i64);
+            inv.arg(i64::from(sq.fifo_queue));
             for h in &handles {
                 inv.arg(h.as_str());
             }
@@ -1124,13 +1245,12 @@ impl SqsBackend for RedisSqsBackend {
             {
                 return Err(queue_not_found());
             }
-            let dedup_key = format!("sqs:{account_id}:{region}:queue:{queue_name}:dedup");
             let _: () = cm
                 .del(vec![
                     k_msgs(&account_id, &region, &queue_name),
                     k_order(&account_id, &region, &queue_name),
                     k_deleted(&account_id, &region, &queue_name),
-                    dedup_key,
+                    k_dedup(&account_id, &region, &queue_name),
                 ])
                 .await
                 .map_err(redis_err)?;
@@ -1572,6 +1692,12 @@ impl SqsBackend for RedisSqsBackend {
                                 receive_wait_time_seconds: sq.receive_wait_time_seconds,
                                 fifo_queue: sq.fifo_queue,
                                 content_based_deduplication: sq.content_based_deduplication,
+                                deduplication_scope: sq
+                                    .fifo_queue
+                                    .then(|| sq.deduplication_scope.clone()),
+                                fifo_throughput_limit: sq
+                                    .fifo_queue
+                                    .then(|| sq.fifo_throughput_limit.clone()),
                                 tags: sq.tags,
                                 redrive_policy: sq.redrive_policy,
                                 policy: sq.policy,
@@ -1649,6 +1775,12 @@ impl SqsBackend for RedisSqsBackend {
                     receive_wait_time_seconds: qv.receive_wait_time_seconds,
                     fifo_queue: qv.fifo_queue,
                     content_based_deduplication: qv.content_based_deduplication,
+                    deduplication_scope: qv
+                        .deduplication_scope
+                        .unwrap_or_else(default_deduplication_scope),
+                    fifo_throughput_limit: qv
+                        .fifo_throughput_limit
+                        .unwrap_or_else(default_fifo_throughput_limit),
                     redrive_policy: qv.redrive_policy,
                     policy: qv.policy,
                     dead_letter_target_arn: None,
@@ -1706,6 +1838,12 @@ impl SqsBackend for RedisSqsBackend {
                     receive_wait_time_seconds: qv.receive_wait_time_seconds,
                     fifo_queue: qv.fifo_queue,
                     content_based_deduplication: qv.content_based_deduplication,
+                    deduplication_scope: qv
+                        .deduplication_scope
+                        .unwrap_or_else(default_deduplication_scope),
+                    fifo_throughput_limit: qv
+                        .fifo_throughput_limit
+                        .unwrap_or_else(default_fifo_throughput_limit),
                     redrive_policy: qv.redrive_policy,
                     policy: qv.policy,
                     dead_letter_target_arn: None,

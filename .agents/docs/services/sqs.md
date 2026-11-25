@@ -67,7 +67,8 @@ Parity implications:
 - **Group gating ( #65 ).** `send_message` discarded `MessageGroupId` ( `let _ = message_group_id; // currently informational; FIFO ordering not yet enforced`, present since the initial commit and never filed in `TODO.md` ). A receive must skip every message whose group has a message in flight, and must return messages of one group in send order. `ChangeMessageVisibility` to 0 and visibility expiry release the group; so does `DeleteMessage` of the in-flight message.
 - **FIFO system attributes ( #66 ).** A FIFO message carries `MessageGroupId`, `MessageDeduplicationId` ( the explicit id, or the SHA-256 of the body under content-based deduplication ) and `SequenceNumber`. winterbaume keys content-based deduplication on the body MD5, so an explicit id equal to the SHA-256 of an earlier body is not treated as a duplicate, as AWS documents it is ( moto `test_fifo_queue_send_deduplicationid_same_as_sha256_of_old_message` ). `SendMessage`, `SendMessageBatch` entries and received messages report the same `SequenceNumber`; it is a 128-bit decimal string that increases per queue. `ReceiveMessage` returns only the attributes named in `MessageSystemAttributeNames` ( or the deprecated `AttributeNames` ), with `All` meaning every one; the handler ignored both and always returned four standard attributes.
 - **Testing traps.** `scenario_test.rs::test_fifo_queue_ordered_processing` deletes each message before it receives the next, so it passes without any gating. Assert the negative case: two messages in one group, receive one with a long visibility timeout, and the next receive returns nothing. The port of moto's `test_send_message_with_message_group_id` dropped the two assertions on `MessageGroupId` and `MessageDeduplicationId` that are the point of the test. Of moto's 38 SQS tests that touch FIFO queues, group ids or sequence numbers, 8 are ported; the unported ones include `test_create_fifo_queue_with_high_throughput`, the three `test_receive_messages_with_message_group_id*` tests and `test_fifo_send_receive_message_with_attribute_name`.
-- **Terraform.** `aws_sqs_queue` reads `deduplication_scope` and `fifo_throughput_limit` back after apply; the E2E FIFO case sets neither and stops at apply.
+- **Terraform.** `aws_sqs_queue` reads `deduplication_scope` and `fifo_throughput_limit` back after apply; the provider records `""` for both on a standard queue. Since 2026-11-25 the E2E FIFO case sets both and checks that a second plan shows no changes.
+- **Status.** Fixed on 2026-11-25; see `Member Audit` → `Resolved`. The notes above describe the state before the fix. moto's `test_receive_messages_with_message_group_id_on_visibility_timeout` uses `freeze_time`; winterbaume has no clock override, so its port uses a 2-second timeout on the real clock.
 
 ## Operation Groups
 
@@ -245,17 +246,22 @@ Coverage is counted per operation, `Operation Detail Matrix` lists required inpu
 
 ### Known defects
 
-- #64: `DeduplicationScope` and `FifoThroughputLimit` are discarded on create and reported as constants.
-- #65: `MessageGroupId` does not gate delivery.
-- #66: `ReceiveMessage` ignores `MessageSystemAttributeNames` and `AttributeNames` ( both listed below ) and never reports the FIFO system attributes. `SendMessageResult.SequenceNumber` and `SendMessageBatchResultEntry.SequenceNumber` are never populated.
+- None open from issues #64 – #66. `MessageAttributeNames` is still ignored ( every message attribute is returned whether or not it is named ), `MD5OfMessageAttributes` is never populated, and `ReceiveMessage` treats an explicit `VisibilityTimeout=0` as "use the queue default" ( a workaround for the AWS CLI; AWS honours 0 ). `KmsMasterKeyId`, `KmsDataKeyReusePeriodSeconds` and `RedriveAllowPolicy` are not stored and `SqsManagedSseEnabled` is a constant `true` ( `TODO.md` `sqs-fifo-parity` ).
+
+### Resolved ( 2026-11-25 )
+
+- #64: `CreateQueue` and `SetQueueAttributes` store `DeduplicationScope` ( `queue` | `messageGroup` ) and `FifoThroughputLimit` ( `perQueue` | `perMessageGroupId` ), and `GetQueueAttributes` reports the stored values. Both are FIFO-only ( `InvalidAttributeName` on a standard queue ); an unknown value, or `perMessageGroupId` without `DeduplicationScope=messageGroup` ( after merging the call with the current values ), is `InvalidAttributeValue` and changes nothing. `DeduplicationScope=messageGroup` keys the deduplication index by ( group, id ). Both settings are in `QueueStateView` ( optional, absent for standard queues ) and in the `aws_sqs_queue` Terraform converter.
+- #65: on FIFO queues `ReceiveMessage` skips every message whose group has a message in flight ( received, not deleted, visibility not expired ), and a message still hidden by a delay holds back the later messages of its group. One receive may return several messages of a free group, in send order ( moto `test_receive_messages_with_message_group_id` ). Deletion, `ChangeMessageVisibility` to 0 and visibility expiry release the group. Standard queues store `MessageGroupId` but do not gate on it. The Redis backend applies the same rules inside its receive Lua script.
+- #66: messages store `MessageGroupId`, `MessageDeduplicationId` ( explicit, or the SHA-256 hex of the body under content-based deduplication, which now also keys the index ) and a per-queue `SequenceNumber` ( a 20-digit decimal string that increases per queue; a duplicate send returns the original's ). `SendMessage` and `SendMessageBatch` entries return the `SequenceNumber` on FIFO queues. `ReceiveMessage` returns only the system attributes named in `MessageSystemAttributeNames` or the deprecated `AttributeNames` ( merged; `All` means every one ), and no `Attributes` map when none is named. Before this, four standard attributes were always returned.
+- `MaximumMessageSize` defaults to 1,048,576 bytes in both backends.
 
 ### Open candidates ( audited 2026-11-25 )
 
 Generated by `.agents/bin/audit-wire-members.py sqs --dossier`. Rows are unclassified candidates, not confirmed defects: each one is resolved as honoured, rejected with the AWS error, ignored because AWS ignores it, or filed in `TODO.md` ( QUALITY_GATE.md §5.3 and §5.4 ). Regenerate after changing handlers.
 
-- Unread request members: 12 in 7 operations.
+- Unread request members: 10 in 7 operations.
 - Operations whose generated request deserialiser is never called: 0.
-- Never-populated response members: 11 in 5 structures ( run the script for the list ).
+- Never-populated response members: 9 in 5 structures ( run the script for the list ).
 - Response structures populated unevenly across literals: 1.
 
 #### Unread request members
@@ -265,7 +271,7 @@ Generated by `.agents/bin/audit-wire-members.py sqs --dossier`. Rows are unclass
 - `list_dead_letter_source_queues` ( 2 of 3 ): `max_results`, `next_token`
 - `list_message_move_tasks` ( 1 of 2 ): `max_results`
 - `list_queues` ( 2 of 3 ): `max_results`, `next_token`
-- `receive_message` ( 4 of 8 ): `attribute_names`, `message_attribute_names`, `message_system_attribute_names`, `receive_request_attempt_id`
+- `receive_message` ( 2 of 8 ): `message_attribute_names`, `receive_request_attempt_id`
 - `send_message` ( 1 of 7 ): `message_system_attributes`
 
 #### Never-populated response members
@@ -273,8 +279,8 @@ Generated by `.agents/bin/audit-wire-members.py sqs --dossier`. Rows are unclass
 - `ListMessageMoveTasksResultEntry`: `failure_reason`
 - `Message`: `m_d5_of_message_attributes`
 - `MessageAttributeValue`: `binary_list_values`, `binary_value`, `string_list_values`
-- `SendMessageBatchResultEntry`: `m_d5_of_message_attributes`, `m_d5_of_message_system_attributes`, `sequence_number`
-- `SendMessageResult`: `m_d5_of_message_attributes`, `m_d5_of_message_system_attributes`, `sequence_number`
+- `SendMessageBatchResultEntry`: `m_d5_of_message_attributes`, `m_d5_of_message_system_attributes`
+- `SendMessageResult`: `m_d5_of_message_attributes`, `m_d5_of_message_system_attributes`
 
 #### Unevenly populated response structures
 

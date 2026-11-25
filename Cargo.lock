@@ -15218,6 +15218,7 @@ dependencies = [
  "md-5 0.10.6",
  "serde",
  "serde_json",
+ "sha2 0.10.9",
  "thiserror 2.0.18",
  "tokio",
  "tracing",
@@ -15229,12 +15230,17 @@ dependencies = [
 name = "winterbaume-sqs-redis"
 version = "0.2.2"
 dependencies = [
+ "aws-config",
+ "aws-sdk-sqs",
  "chrono",
  "md-5 0.10.6",
  "redis",
  "serde",
  "serde_json",
+ "sha2 0.10.9",
+ "tokio",
  "uuid",
+ "winterbaume-core",
  "winterbaume-sqs",
 ]
 

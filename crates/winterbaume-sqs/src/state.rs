@@ -1,7 +1,8 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use chrono::Utc;
 use md5::{Digest, Md5};
+use sha2::Sha256;
 
 use crate::types::{Message, MessageAttribute, MessageMoveTask, Queue};
 
@@ -33,20 +34,48 @@ pub struct QueueState {
     pub redrive_policy: Option<String>,
     /// The raw Policy JSON string (stored as-is).
     pub policy: Option<String>,
-    /// FIFO deduplication index: dedup_id → (message_id, expires_at_ms).
+    /// FIFO deduplication index keyed by [`dedup_index_key`].
     /// Entries past their expiry are evicted lazily on each send.
-    #[allow(clippy::type_complexity)]
-    pub dedup_index: HashMap<String, (String, i64)>,
+    pub dedup_index: HashMap<String, DedupEntry>,
+    /// Last FIFO sequence number issued for this queue ( see
+    /// [`format_sequence_number`] ).
+    pub sequence_counter: u64,
+}
+
+/// A FIFO deduplication-index entry: the message a deduplication id was
+/// first accepted for, and when the id leaves the deduplication interval.
+#[derive(Debug, Clone)]
+pub struct DedupEntry {
+    pub message_id: String,
+    pub sequence_number: Option<String>,
+    pub expires_at_ms: i64,
 }
 
 /// FIFO deduplication window in milliseconds (5 minutes per AWS spec).
-const DEDUP_WINDOW_MS: i64 = 5 * 60 * 1000;
+pub const DEDUP_WINDOW_MS: i64 = 5 * 60 * 1000;
+
+/// Default `MaximumMessageSize` ( 1 MiB ), per the `SetQueueAttributes`
+/// reference.
+pub const DEFAULT_MAXIMUM_MESSAGE_SIZE: u32 = 1_048_576;
+
+/// `DeduplicationScope` values.
+pub const DEDUPLICATION_SCOPE_QUEUE: &str = "queue";
+pub const DEDUPLICATION_SCOPE_MESSAGE_GROUP: &str = "messageGroup";
+/// `FifoThroughputLimit` values.
+pub const FIFO_THROUGHPUT_LIMIT_PER_QUEUE: &str = "perQueue";
+pub const FIFO_THROUGHPUT_LIMIT_PER_MESSAGE_GROUP_ID: &str = "perMessageGroupId";
+
+/// Offset added to the per-queue counter so that sequence numbers have the
+/// 20-digit shape AWS returns ( e.g. `18849496460467696128` ).
+const SEQUENCE_NUMBER_BASE: u128 = 18_000_000_000_000_000_000;
 
 /// Output of [`SqsState::send_message`].
 #[derive(Debug, Clone)]
 pub struct SendMessageOutcome {
     pub message_id: String,
     pub body_md5: String,
+    /// FIFO queues only.
+    pub sequence_number: Option<String>,
 }
 
 /// Error type for SQS operations.
@@ -92,8 +121,90 @@ pub enum SqsError {
     InvalidTaskHandle { task_handle: String },
     #[error("The message move task is not in a cancellable state.")]
     TaskNotCancellable,
+    #[error("Unknown Attribute {name}.")]
+    InvalidAttributeName { name: String },
+    #[error("Invalid value for the parameter {name}.")]
+    InvalidAttributeValue { name: String },
     #[error("Internal error: {0}")]
     InternalError(String),
+}
+
+/// Resolve the FIFO high-throughput attributes ( `DeduplicationScope` and
+/// `FifoThroughputLimit` ) from a `CreateQueue` / `SetQueueAttributes`
+/// attribute map, falling back to the queue's current values.
+///
+/// Both are FIFO-only ( `InvalidAttributeName` on a standard queue ), each
+/// accepts two values, and `perMessageGroupId` is allowed only together with
+/// `DeduplicationScope=messageGroup` ( `InvalidAttributeValue` otherwise ).
+pub fn resolve_fifo_throughput_attributes(
+    fifo: bool,
+    attributes: &HashMap<String, String>,
+    current_scope: &str,
+    current_limit: &str,
+) -> Result<(String, String), SqsError> {
+    let scope = attributes.get("DeduplicationScope");
+    let limit = attributes.get("FifoThroughputLimit");
+    for (name, value, allowed) in [
+        (
+            "DeduplicationScope",
+            scope,
+            [DEDUPLICATION_SCOPE_QUEUE, DEDUPLICATION_SCOPE_MESSAGE_GROUP],
+        ),
+        (
+            "FifoThroughputLimit",
+            limit,
+            [
+                FIFO_THROUGHPUT_LIMIT_PER_QUEUE,
+                FIFO_THROUGHPUT_LIMIT_PER_MESSAGE_GROUP_ID,
+            ],
+        ),
+    ] {
+        let Some(value) = value else { continue };
+        if !fifo {
+            return Err(SqsError::InvalidAttributeName {
+                name: name.to_string(),
+            });
+        }
+        if !allowed.contains(&value.as_str()) {
+            return Err(SqsError::InvalidAttributeValue {
+                name: name.to_string(),
+            });
+        }
+    }
+    let scope = scope.map(String::as_str).unwrap_or(current_scope);
+    let limit = limit.map(String::as_str).unwrap_or(current_limit);
+    if limit == FIFO_THROUGHPUT_LIMIT_PER_MESSAGE_GROUP_ID
+        && scope != DEDUPLICATION_SCOPE_MESSAGE_GROUP
+    {
+        return Err(SqsError::InvalidAttributeValue {
+            name: "FifoThroughputLimit".to_string(),
+        });
+    }
+    Ok((scope.to_string(), limit.to_string()))
+}
+
+/// The `MessageDeduplicationId` SQS generates under content-based
+/// deduplication: the SHA-256 hex digest of the body ( attributes excluded ).
+pub fn content_deduplication_id(body: &str) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(body.as_bytes());
+    format!("{:x}", hasher.finalize())
+}
+
+/// Key of a deduplication id in the per-queue deduplication index. With
+/// `DeduplicationScope=messageGroup` the same id may be used once per group.
+pub fn dedup_index_key(scope: &str, message_group_id: Option<&str>, dedup_id: &str) -> String {
+    if scope == DEDUPLICATION_SCOPE_MESSAGE_GROUP {
+        format!("{}\u{0}{dedup_id}", message_group_id.unwrap_or_default())
+    } else {
+        dedup_id.to_string()
+    }
+}
+
+/// Render the `counter`-th sequence number of a queue as a decimal string.
+/// Numbers increase with the counter and always have the same width.
+pub fn format_sequence_number(counter: u64) -> String {
+    (SEQUENCE_NUMBER_BASE + counter as u128).to_string()
 }
 
 impl SqsState {
@@ -142,12 +253,21 @@ impl SqsState {
                 (Some(_), None) => false,
             };
 
+            let scope_matches = attributes
+                .get("DeduplicationScope")
+                .is_none_or(|v| *v == eq.deduplication_scope);
+            let limit_matches = attributes
+                .get("FifoThroughputLimit")
+                .is_none_or(|v| *v == eq.fifo_throughput_limit);
+
             if vis != eq.visibility_timeout
                 || delay != eq.delay_seconds
                 || max_msg != eq.maximum_message_size
                 || retention != eq.message_retention_period
                 || wait != eq.receive_wait_time_seconds
                 || !redrive_matches
+                || !scope_matches
+                || !limit_matches
             {
                 return Err(SqsError::QueueAlreadyExists);
             }
@@ -156,6 +276,12 @@ impl SqsState {
         }
 
         let fifo = name.ends_with(".fifo");
+        let (deduplication_scope, fifo_throughput_limit) = resolve_fifo_throughput_attributes(
+            fifo,
+            attributes,
+            DEDUPLICATION_SCOPE_QUEUE,
+            FIFO_THROUGHPUT_LIMIT_PER_QUEUE,
+        )?;
         let now = Utc::now();
         let url = format!("https://sqs.{region}.amazonaws.com/{account_id}/{name}");
         let arn = format!("arn:aws:sqs:{region}:{account_id}:{name}");
@@ -174,7 +300,11 @@ impl SqsState {
             last_modified_timestamp: now,
             visibility_timeout: parse_attr(attributes, "VisibilityTimeout", 30),
             delay_seconds: parse_attr(attributes, "DelaySeconds", 0),
-            maximum_message_size: parse_attr(attributes, "MaximumMessageSize", 262144),
+            maximum_message_size: parse_attr(
+                attributes,
+                "MaximumMessageSize",
+                DEFAULT_MAXIMUM_MESSAGE_SIZE,
+            ),
             message_retention_period: parse_attr(attributes, "MessageRetentionPeriod", 345600),
             receive_wait_time_seconds: parse_attr(attributes, "ReceiveMessageWaitTimeSeconds", 0),
             fifo_queue: fifo,
@@ -185,6 +315,8 @@ impl SqsState {
                 .get("ContentBasedDeduplication")
                 .map(|v| v == "true")
                 .unwrap_or(false),
+            deduplication_scope,
+            fifo_throughput_limit,
         };
 
         let initial_tags = tags.cloned().unwrap_or_default();
@@ -201,6 +333,7 @@ impl SqsState {
                 redrive_policy: redrive_policy_str,
                 policy,
                 dedup_index: HashMap::new(),
+                sequence_counter: 0,
             },
         );
 
@@ -301,8 +434,14 @@ impl SqsState {
                 "ContentBasedDeduplication".to_string(),
                 q.content_based_deduplication.to_string(),
             );
-            attrs.insert("DeduplicationScope".to_string(), "queue".to_string());
-            attrs.insert("FifoThroughputLimit".to_string(), "perQueue".to_string());
+            attrs.insert(
+                "DeduplicationScope".to_string(),
+                q.deduplication_scope.clone(),
+            );
+            attrs.insert(
+                "FifoThroughputLimit".to_string(),
+                q.fifo_throughput_limit.clone(),
+            );
         }
         if let Some(ref policy) = qs.redrive_policy {
             attrs.insert("RedrivePolicy".to_string(), policy.clone());
@@ -327,7 +466,7 @@ impl SqsState {
     ) -> Result<SendMessageOutcome, SqsError> {
         let qs = self
             .queues
-            .get(queue_name)
+            .get_mut(queue_name)
             .ok_or(SqsError::NonExistentQueue)?;
 
         let queue_delay = qs.queue.delay_seconds;
@@ -335,38 +474,44 @@ impl SqsState {
         let now_ms = Utc::now().timestamp_millis();
         let visible_at = now_ms + (delay as i64 * 1000);
         let body_md5 = compute_md5(body);
+        let fifo = qs.queue.fifo_queue;
 
-        // FIFO deduplication: compute the effective dedup id and short-circuit
-        // duplicate sends within DEDUP_WINDOW_MS by returning the original
-        // MessageId without enqueueing again.
-        let dedup_id: Option<String> = if qs.queue.fifo_queue {
-            if let Some(explicit) = message_deduplication_id {
-                Some(explicit.to_string())
-            } else if qs.queue.content_based_deduplication {
-                Some(body_md5.clone())
-            } else {
-                None
+        // FIFO deduplication: the effective id is the explicit one, or the
+        // SHA-256 of the body under content-based deduplication. A duplicate
+        // within DEDUP_WINDOW_MS returns the original MessageId and
+        // SequenceNumber without enqueueing again.
+        let dedup_id: Option<String> = if fifo {
+            match message_deduplication_id {
+                Some(explicit) => Some(explicit.to_string()),
+                None if qs.queue.content_based_deduplication => {
+                    Some(content_deduplication_id(body))
+                }
+                None => None,
             }
         } else {
             None
         };
+        let dedup_key = dedup_id
+            .as_deref()
+            .map(|did| dedup_index_key(&qs.queue.deduplication_scope, message_group_id, did));
 
-        if let Some(ref did) = dedup_id {
-            let qs_mut = self.queues.get_mut(queue_name).unwrap();
-            // Evict expired entries.
-            qs_mut
-                .dedup_index
-                .retain(|_, (_, expires)| *expires > now_ms);
-            if let Some((existing_id, _)) = qs_mut.dedup_index.get(did) {
+        if let Some(ref key) = dedup_key {
+            qs.dedup_index.retain(|_, e| e.expires_at_ms > now_ms);
+            if let Some(existing) = qs.dedup_index.get(key) {
                 return Ok(SendMessageOutcome {
-                    message_id: existing_id.clone(),
+                    message_id: existing.message_id.clone(),
                     body_md5,
+                    sequence_number: existing.sequence_number.clone(),
                 });
             }
         }
 
-        let _ = message_group_id; // currently informational; FIFO ordering not yet enforced
-
+        let sequence_number = if fifo {
+            qs.sequence_counter += 1;
+            Some(format_sequence_number(qs.sequence_counter))
+        } else {
+            None
+        };
         let message_id = uuid::Uuid::new_v4().to_string();
 
         let message = Message {
@@ -381,17 +526,26 @@ impl SqsState {
             approximate_receive_count: 0,
             visible_at,
             message_attributes,
+            message_group_id: message_group_id.map(str::to_string),
+            message_deduplication_id: dedup_id,
+            sequence_number: sequence_number.clone(),
         };
 
-        let qs = self.queues.get_mut(queue_name).unwrap();
         qs.messages.push(message);
-        if let Some(did) = dedup_id {
-            qs.dedup_index
-                .insert(did, (message_id.clone(), now_ms + DEDUP_WINDOW_MS));
+        if let Some(key) = dedup_key {
+            qs.dedup_index.insert(
+                key,
+                DedupEntry {
+                    message_id: message_id.clone(),
+                    sequence_number: sequence_number.clone(),
+                    expires_at_ms: now_ms + DEDUP_WINDOW_MS,
+                },
+            );
         }
         Ok(SendMessageOutcome {
             message_id,
             body_md5,
+            sequence_number,
         })
     }
 
@@ -414,6 +568,20 @@ impl SqsState {
         let mut received = Vec::new();
         let mut to_redrive: Vec<Message> = Vec::new();
 
+        // FIFO group gating: a group with a message in flight ( received, not
+        // deleted, visibility not expired ) delivers nothing more until that
+        // message is deleted or becomes visible again.
+        let fifo = qs.queue.fifo_queue;
+        let mut blocked_groups: HashSet<String> = if fifo {
+            qs.messages
+                .iter()
+                .filter(|m| now_ms < m.visible_at && m.approximate_receive_count > 0)
+                .filter_map(|m| m.message_group_id.clone())
+                .collect()
+        } else {
+            HashSet::new()
+        };
+
         let mut idx = 0;
         while idx < qs.messages.len() {
             if received.len() >= max_messages {
@@ -422,6 +590,20 @@ impl SqsState {
             let msg = &mut qs.messages[idx];
 
             if now_ms < msg.visible_at {
+                // A message that is still hidden ( for example by a delay )
+                // also holds back the later messages of its group.
+                if fifo && let Some(group) = &msg.message_group_id {
+                    blocked_groups.insert(group.clone());
+                }
+                idx += 1;
+                continue;
+            }
+            if fifo
+                && msg
+                    .message_group_id
+                    .as_ref()
+                    .is_some_and(|g| blocked_groups.contains(g))
+            {
                 idx += 1;
                 continue;
             }
@@ -539,6 +721,16 @@ impl SqsState {
             .queues
             .get_mut(queue_name)
             .ok_or(SqsError::NonExistentQueue)?;
+
+        // Validate before changing anything so a rejected call has no effect.
+        let (deduplication_scope, fifo_throughput_limit) = resolve_fifo_throughput_attributes(
+            qs.queue.fifo_queue,
+            attributes,
+            &qs.queue.deduplication_scope,
+            &qs.queue.fifo_throughput_limit,
+        )?;
+        qs.queue.deduplication_scope = deduplication_scope;
+        qs.queue.fifo_throughput_limit = fifo_throughput_limit;
 
         if let Some(v) = attributes.get("VisibilityTimeout")
             && let Ok(val) = v.parse()

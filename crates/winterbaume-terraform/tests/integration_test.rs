@@ -415,6 +415,74 @@ async fn test_inject_sqs_queue() {
     assert_eq!(queue.tags.get("service"), Some(&"events".to_string()));
 }
 
+/// Issue #64: a FIFO queue's `deduplication_scope` and
+/// `fifo_throughput_limit` survive inject and extract; the provider's ""
+/// for a standard queue is not stored as a setting.
+#[tokio::test]
+async fn test_inject_extract_sqs_fifo_high_throughput() {
+    let sqs = Arc::new(SqsService::new());
+    let ctx = default_ctx();
+
+    let mut injector = TerraformInjector::new();
+    injector.register(AwsSqsQueueConverter::new(Arc::clone(&sqs)));
+
+    let tfstate = make_tfstate(vec![
+        make_resource(
+            "aws_sqs_queue",
+            "fifo",
+            json!({
+                "name": "orders.fifo",
+                "fifo_queue": true,
+                "content_based_deduplication": true,
+                "deduplication_scope": "messageGroup",
+                "fifo_throughput_limit": "perMessageGroupId",
+            }),
+        ),
+        make_resource(
+            "aws_sqs_queue",
+            "standard",
+            json!({
+                "name": "plain-queue",
+                "fifo_queue": false,
+                "deduplication_scope": "",
+                "fifo_throughput_limit": "",
+            }),
+        ),
+    ]);
+
+    let report = injector.inject_all(&tfstate, &ctx).await;
+    assert!(report.is_success(), "errors: {:?}", report.errors);
+
+    let view = sqs.snapshot(&ctx.default_account_id, "us-east-1").await;
+    let fifo = &view.queues["orders.fifo"];
+    assert_eq!(fifo.deduplication_scope.as_deref(), Some("messageGroup"));
+    assert_eq!(
+        fifo.fifo_throughput_limit.as_deref(),
+        Some("perMessageGroupId")
+    );
+    let plain = &view.queues["plain-queue"];
+    assert_eq!(plain.deduplication_scope, None);
+    assert_eq!(plain.fifo_throughput_limit, None);
+
+    let converter = AwsSqsQueueConverter::new(Arc::clone(&sqs));
+    let extracted = converter.extract(&ctx).await.unwrap();
+    let fifo = extracted
+        .iter()
+        .find(|r| r.name == "orders.fifo")
+        .expect("FIFO queue extracted");
+    assert_eq!(fifo.attributes["deduplication_scope"], "messageGroup");
+    assert_eq!(
+        fifo.attributes["fifo_throughput_limit"],
+        "perMessageGroupId"
+    );
+    let plain = extracted
+        .iter()
+        .find(|r| r.name == "plain-queue")
+        .expect("standard queue extracted");
+    assert_eq!(plain.attributes["deduplication_scope"], "");
+    assert_eq!(plain.attributes["fifo_throughput_limit"], "");
+}
+
 // ---------------------------------------------------------------------------
 // Multi-service injection test
 // ---------------------------------------------------------------------------

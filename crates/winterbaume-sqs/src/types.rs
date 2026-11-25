@@ -21,6 +21,10 @@ pub struct Queue {
     /// FIX(terraform-e2e): Added — FIFO queue deduplication setting. Without this,
     /// GetQueueAttributes always returned "false" regardless of the CreateQueue input.
     pub content_based_deduplication: bool,
+    /// FIFO `DeduplicationScope`: `queue` (default) or `messageGroup`.
+    pub deduplication_scope: String,
+    /// FIFO `FifoThroughputLimit`: `perQueue` (default) or `perMessageGroupId`.
+    pub fifo_throughput_limit: String,
 }
 
 /// An SQS message in a queue.
@@ -38,6 +42,13 @@ pub struct Message {
     pub approximate_receive_count: u32,
     pub visible_at: i64,
     pub message_attributes: HashMap<String, MessageAttribute>,
+    /// `MessageGroupId` given on send ( FIFO queues and fair standard queues ).
+    pub message_group_id: Option<String>,
+    /// Effective FIFO `MessageDeduplicationId`: the explicit id, or the SHA-256
+    /// hex digest of the body under content-based deduplication.
+    pub message_deduplication_id: Option<String>,
+    /// FIFO `SequenceNumber`, a decimal string that increases per queue.
+    pub sequence_number: Option<String>,
 }
 
 impl Message {
