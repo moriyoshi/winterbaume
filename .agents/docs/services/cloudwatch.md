@@ -25,7 +25,8 @@ Amazon CloudWatch monitors your Amazon Web Services (Amazon Web Services) resour
 - ARN namespace: `monitoring`
 - CloudFormation name: `CloudWatch`
 - CloudTrail event source: `monitoring.amazonaws.com`
-- Protocols: `awsJson1_0`, `awsQuery`, `awsQueryCompatible`
+- Protocols: `awsJson1_0`, `awsQuery`, `awsQueryCompatible`, `rpcv2Cbor`
+- Protocol per client ( 2026-11-25 ): the AWS SDK for Rust ( `aws-sdk-cloudwatch` 1.111 ) sends `rpcv2Cbor` to `/service/GraniteServiceVersion20100801/operation/<Op>`; AWS CLI v2 ( 2.35 ) sends `awsJson1_0` with `X-Amz-Target: GraniteServiceVersion20100801.<Op>`; the Terraform provider has been observed sending `awsQuery`. winterbaume implements `rpcv2Cbor` and `awsQuery` only, so every AWS CLI call fails with `MissingAction` ( issue #69 ).
 - Auth schemes: `sigv4`
 - Endpoint rule parameters: `Endpoint`, `Region`, `UseDualStack`, `UseFIPS`
 
@@ -60,6 +61,14 @@ Parity implications:
 - Metric storage should be keyed by namespace, name, unit, and exact dimensions, with timestamp validation and retention-aware aggregation.
 - Statistic retrieval needs period alignment, UTC timestamps, unit filtering, and percentile limitations.
 - Alarm evaluation should maintain state, evaluation windows, missing-data handling, and action-on-transition semantics.
+
+### Alarm creation and stored settings ( issue #68, 2026-11-22 )
+
+Source: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/alarm-evaluation.html ( `Metric alarm states` ).
+
+- A new metric alarm is `INSUFFICIENT_DATA`: AWS defines that state as "the alarm has just started, the metric is not available, or not enough data is available". winterbaume creates alarms in `OK`, as moto does ( `FakeAlarm.state_value = "OK"` ); the reason string `Unchecked: Initial alarm creation` is moto's too. Take initial states from the AWS documentation, not from moto.
+- `PutMetricAlarm` is parsed by hand from a `serde_json::Value`, into a `types::MetricAlarm` that has no field for `TreatMissingData`, `DatapointsToAlarm`, `ExtendedStatistic`, `Metrics`, `ThresholdMetricId` or `EvaluateLowSampleCountPercentile`. All six are accepted and dropped. `TreatMissingData` defaults to `missing`; `aws_cloudwatch_metric_alarm` reads it back, so a value other than the default can never converge.
+- The E2E cases `test_cloudwatch_metric_alarm_with_actions` ( sets `treat_missing_data = "notBreaching"` ) and the `extended_statistic` variant stop at apply, so both drops pass.
 
 ## Operation Groups
 
@@ -249,6 +258,33 @@ Mode: full distillation.
 - Additional-protocol awsQuery generation emits secondary request/response helpers for CloudWatch-class services, including nested struct deserialisers and non-XML list/timestamp handling.
 - CloudWatch remains the main request-deserialiser migration follow-up after the 2026-05 adoption sweep. Its residual body parsing is not a standard restJson1 problem; dispatch chooses between awsQuery and rpc-v2-cbor request paths from URL/body shape, so it needs a CloudWatch-specific multi-protocol migration recipe.
 - Keep `awsQueryCompatible` distinct from real awsQuery support. For services such as SQS the trait can mean query-shaped errors only, but CloudWatch has actual awsQuery request traffic to support.
+- ( 2026-11-25, issue #69 ) The note above listed `awsJson1_0` among the model's protocols, and the implementation covered only the two protocols seen in traffic: the Rust SDK's `rpcv2Cbor` and Terraform's `awsQuery`. Every protocol the model declares is one some client sends, so implement and test each one. Dispatch can key on the request: a `/service/.../operation/<Op>` path is `rpcv2Cbor`, an `X-Amz-Target` header with `application/x-amz-json-1.0` is `awsJson1_0`, and a form body with `Action=` is `awsQuery`. The `awsQueryCompatible` trait also asks JSON and CBOR error responses to carry `x-amzn-query-error: <Code>;<Sender|Receiver>`; no winterbaume crate sends that header yet.
+
+## Member Audit
+
+Coverage is counted per operation, `Operation Detail Matrix` lists required inputs only, and `HTTP Bindings` lists header and query bindings only. This section records what happens to the remaining members.
+
+### How to read the audit for this crate
+
+The audit is blind to this crate on both sides:
+
+- **Requests.** Every handler parses its request by hand from a `serde_json::Value`, so the audit lists all 43 operations under "deserialiser never called" and reports 0 unread request members. The 0 means the audit cannot see the request side, not that every member is read.
+- **Responses.** Handlers build responses as `json!` objects ( `serialize_alarm`, `serialize_composite_alarm` in `handlers.rs` ), converted to CBOR or XML afterwards. The `model::MetricAlarm` literals the audit counts are in `views.rs`, the state snapshot views, so its response-side rows describe snapshots, not what a client receives.
+
+Until the handlers move to the generated deserialisers and serialisers, compare each `body.get("...")` key set and each `json!` key set against the structure in `model.rs` by hand. For alarms, `serialize_alarm` emits 16 of the 29 `MetricAlarm` members ( plus `AlarmDescription` and `Unit` when set ) and omits `TreatMissingData`, `DatapointsToAlarm`, `ExtendedStatistic`, `Metrics`, `ThresholdMetricId`, `EvaluateLowSampleCountPercentile`, `StateReasonData`, `EvaluationState`, `AlarmConfigurationUpdatedTimestamp`, `StateUpdatedTimestamp` and `StateTransitionedTimestamp`.
+
+### Known defects
+
+- #68: `TreatMissingData`, `DatapointsToAlarm`, `ExtendedStatistic`, `Metrics`, `ThresholdMetricId` and `EvaluateLowSampleCountPercentile` are dropped by `PutMetricAlarm`; new alarms start in `OK`.
+- #69: `awsJson1_0` requests are rejected.
+
+### Open candidates ( audited 2026-11-25 )
+
+Generated by `.agents/bin/audit-wire-members.py cloudwatch --dossier`. Rows are unclassified candidates, not confirmed defects ( QUALITY_GATE.md §5.3 and §5.4 ). Regenerate after changing handlers.
+
+- Unread request members: not measurable ( see above ).
+- Operations whose generated request deserialiser is never called: 43 of 43.
+- Never-populated response members: 67 in 24 structures, and unevenly populated structures: 13. Both count `views.rs` literals ( see above ), so treat them as a list of members the snapshot views drop, which is a persistence-fidelity question, not as response defects.
 
 ## Research Checklist for Parity Work
 
