@@ -49,7 +49,7 @@ pub enum Error {
         stderr: String,
     },
     #[error(
-        "{} crate(s) are not at version {version} in this tree: {}. \
+        "{} crate(s) are not at their target version in this tree: {}. \
          The release PR has not landed here — run `release-harness version-bump --execute`, \
          merge the release PR into main, then re-run publish ( or pass --all-in-one to bump \
          in place, the pre-PR flow ).",
@@ -57,8 +57,8 @@ pub enum Error {
         .crates.join(", "),
     )]
     ManifestsBehindTarget {
+        /// `<crate> v<target>` for each crate behind its target.
         crates: Vec<String>,
-        version: String,
     },
     #[error(
         "the working tree is dirty, but this run does not own the release commit. \
@@ -130,18 +130,68 @@ impl Stages {
     }
 }
 
-/// Parameters to a single chunked release run.
+/// What each crate in a run is released at.
 ///
-/// `version_or_level` is passed verbatim as `cargo release version`'s
-/// positional argument — either a level (`patch`, `minor`, `major`, `release`,
-/// `alpha`, `beta`, `rc`) or a concrete semver. The crates.io resumability
-/// check only runs when this is a concrete semver.
+/// A target is passed verbatim as `cargo release version`'s positional
+/// argument — either a level (`patch`, `minor`, `major`, `release`, `alpha`,
+/// `beta`, `rc`) or a concrete semver. The crates.io resumability check only
+/// runs for a concrete semver.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum Targets {
+    /// One version or level for every crate: `batch`.
+    Uniform(String),
+    /// A version per crate: `publish`, from the release plan.
+    ///
+    /// One run has to carry every target version at once. Running one
+    /// version group after another publishes a dependant before the
+    /// dependency it was bumped for whenever the dependant's version sorts
+    /// first: every `0.2.1` crate depending on `winterbaume-core` `0.3.0`.
+    PerCrate(BTreeMap<String, String>),
+}
+
+impl Targets {
+    /// The target for `name`. A crate missing from a per-crate map has no
+    /// target, which `crates_needing_version_step` treats as needing one.
+    pub fn for_crate(&self, name: &str) -> Option<&str> {
+        match self {
+            Targets::Uniform(t) => Some(t),
+            Targets::PerCrate(m) => m.get(name).map(String::as_str),
+        }
+    }
+
+    fn describe(&self) -> String {
+        match self {
+            Targets::Uniform(t) => t.clone(),
+            Targets::PerCrate(m) => {
+                let distinct: BTreeSet<&str> = m.values().map(String::as_str).collect();
+                format!("{} target version(s)", distinct.len())
+            }
+        }
+    }
+
+    /// `crates` split by target, in the order each target first appears.
+    /// `cargo release version` takes one target per invocation.
+    fn split<'c>(&self, crates: &'c [String]) -> Vec<(String, Vec<&'c String>)> {
+        let mut out: Vec<(String, Vec<&'c String>)> = Vec::new();
+        for c in crates {
+            let t = self.for_crate(c).unwrap_or("<no target>").to_string();
+            match out.iter_mut().find(|(k, _)| *k == t) {
+                Some((_, v)) => v.push(c),
+                None => out.push((t, vec![c])),
+            }
+        }
+        out
+    }
+}
+
+/// Parameters to a single chunked release run.
 #[derive(Clone, Debug)]
 pub struct BatchOptions<'a> {
     pub cargo: &'a CargoExe,
     pub root: &'a Path,
-    pub version_or_level: &'a str,
-    /// Topologically sorted crate names to publish, dependencies first.
+    pub targets: Targets,
+    /// Topologically sorted crate names to publish, dependencies first, across
+    /// every target version: chunks are cut from this order as it stands.
     pub crates: Vec<String>,
     pub chunk_size: usize,
     pub sleep_between_chunks: Duration,
@@ -156,42 +206,34 @@ pub struct BatchOptions<'a> {
 }
 
 pub fn run_chunked(opts: BatchOptions<'_>) -> Result<RunOutcome, Error> {
-    let cargo = opts.cargo;
-    let root = opts.root;
-    let version_or_level = opts.version_or_level;
+    if let Targets::Uniform(t) = &opts.targets
+        && !looks_like_semver(t)
+        && !opts.skip_version_check
+    {
+        eprintln!(
+            "note: `{t}` is a level, not a concrete semver; \
+             skipping pre-flight crates.io resumability check"
+        );
+    }
 
-    let resumable_version: Option<&str> =
-        if looks_like_semver(version_or_level) && !opts.skip_version_check {
-            Some(version_or_level)
-        } else {
-            if !opts.skip_version_check {
-                eprintln!(
-                    "note: `{version_or_level}` is a level, not a concrete semver; \
-                     skipping pre-flight crates.io resumability check"
-                );
-            }
-            None
-        };
-
-    // Pre-flight prune: for literal-version runs, drop crates whose target is
-    // already on crates.io even before we start chunking. (Within-chunk resume
-    // re-checks at finer granularity.)
-    let plan: Vec<String> = match resumable_version {
-        Some(v) => {
-            let mut keep = Vec::with_capacity(opts.crates.len());
-            for name in &opts.crates {
+    // Pre-flight prune: drop crates whose literal target is already on
+    // crates.io even before we start chunking. (Within-chunk resume re-checks
+    // at finer granularity.) Pruning keeps the topological order.
+    let mut plan: Vec<String> = Vec::with_capacity(opts.crates.len());
+    for name in &opts.crates {
+        match opts.targets.for_crate(name) {
+            Some(v) if looks_like_semver(v) && !opts.skip_version_check => {
                 if already_on_crates_io(name, v) {
                     eprintln!("skip {name} v{v}: already on crates.io");
                 } else {
-                    keep.push(name.clone());
+                    plan.push(name.clone());
                 }
             }
-            keep
+            _ => plan.push(name.clone()),
         }
-        None => opts.crates.clone(),
-    };
+    }
 
-    eprintln!("to publish ({version_or_level}): {}", plan.len());
+    eprintln!("to publish ({}): {}", opts.targets.describe(), plan.len());
     if plan.is_empty() {
         eprintln!("nothing to do");
         return Ok(RunOutcome::Success);
@@ -214,7 +256,7 @@ pub fn run_chunked(opts: BatchOptions<'_>) -> Result<RunOutcome, Error> {
 
         if !opts.execute {
             print_dry_run(
-                version_or_level,
+                &opts.targets,
                 chunk,
                 opts.sign,
                 opts.no_confirm,
@@ -251,13 +293,12 @@ fn run_chunk(
 ) -> Result<Option<ExitStatus>, Error> {
     let cargo = opts.cargo;
     let root = opts.root;
-    let version_or_level = opts.version_or_level;
 
     // 1-3. Version-bump / replace / hook (only when manifests are not yet at
     //      the target version).
     let mut manifest_versions = read_versions(cargo, root, chunk)?;
     let needs_version =
-        crates_needing_version_step(version_or_level, &manifest_versions, chunk, |c, v| {
+        crates_needing_version_step(&opts.targets, &manifest_versions, chunk, |c, v| {
             already_on_crates_io(c, v)
         });
     if !needs_version.is_empty() && !opts.stages.version {
@@ -266,8 +307,10 @@ fn run_chunk(
         // the wrong tree. Bailing out here is much cheaper than discovering it
         // from a crates.io version nobody planned.
         return Err(Error::ManifestsBehindTarget {
-            crates: needs_version,
-            version: version_or_level.to_string(),
+            crates: needs_version
+                .iter()
+                .map(|c| format!("{c} v{}", opts.targets.for_crate(c).unwrap_or("?")))
+                .collect(),
         });
     }
     if !needs_version.is_empty() {
@@ -278,16 +321,20 @@ fn run_chunk(
                 chunk.len()
             );
         }
-        let (status, _) = run_release_step(
-            cargo,
-            root,
-            &["version", version_or_level],
-            &needs_version,
-            false,
-            opts.no_confirm,
-        )?;
-        if !status.success() {
-            return Ok(Some(status));
+        // One `cargo release version` per target present in the chunk.
+        for (target, crates) in opts.targets.split(&needs_version) {
+            let crates: Vec<String> = crates.into_iter().cloned().collect();
+            let (status, _) = run_release_step(
+                cargo,
+                root,
+                &["version", &target],
+                &crates,
+                false,
+                opts.no_confirm,
+            )?;
+            if !status.success() {
+                return Ok(Some(status));
+            }
         }
         let (status, _) =
             run_release_step(cargo, root, &["replace"], chunk, false, opts.no_confirm)?;
@@ -631,36 +678,40 @@ fn parse_amend_body(msg: &str) -> Vec<(String, String)> {
 /// `is_published` is injected so the level branch is testable without
 /// touching the network.
 fn crates_needing_version_step(
-    version_or_level: &str,
+    targets: &Targets,
     manifest_versions: &BTreeMap<String, String>,
     chunk: &[String],
     is_published: impl Fn(&str, &str) -> bool,
 ) -> Vec<String> {
     chunk
         .iter()
-        .filter(|c| match manifest_versions.get(*c) {
-            // Literal target: needs the step unless it is already there.
-            Some(v) if looks_like_semver(version_or_level) => v != version_or_level,
-            // Level keyword: the manifest still carrying a version that is on
-            // crates.io means this crate has not been bumped yet. An
-            // unpublished current version means a previous run already bumped
-            // it, so leave it alone.
-            //
-            // `already_on_crates_io` reports false when the lookup itself
-            // fails, which lands us on "already bumped, skip". That is the
-            // safe direction: skipping a needed bump surfaces as a failed or
-            // pruned publish, whereas a spurious bump burns a version number
-            // that cannot be unpublished.
-            Some(v) => is_published(c, v),
-            // Unknown to `cargo metadata` — let the step decide and report.
-            None => true,
-        })
+        .filter(
+            |c| match (manifest_versions.get(*c), targets.for_crate(c)) {
+                // No target for this crate: let the step decide and report.
+                (_, None) => true,
+                // Literal target: needs the step unless it is already there.
+                (Some(v), Some(t)) if looks_like_semver(t) => v != t,
+                // Level keyword: the manifest still carrying a version that is on
+                // crates.io means this crate has not been bumped yet. An
+                // unpublished current version means a previous run already bumped
+                // it, so leave it alone.
+                //
+                // `already_on_crates_io` reports false when the lookup itself
+                // fails, which lands us on "already bumped, skip". That is the
+                // safe direction: skipping a needed bump surfaces as a failed or
+                // pruned publish, whereas a spurious bump burns a version number
+                // that cannot be unpublished.
+                (Some(v), Some(_)) => is_published(c, v),
+                // Unknown to `cargo metadata` — let the step decide and report.
+                (None, Some(_)) => true,
+            },
+        )
         .cloned()
         .collect()
 }
 
 fn print_dry_run(
-    version_or_level: &str,
+    targets: &Targets,
     chunk: &[String],
     sign: bool,
     no_confirm: bool,
@@ -671,12 +722,24 @@ fn print_dry_run(
     let nc = if no_confirm { " --no-confirm" } else { "" };
     eprintln!("(steps below are gated on resume probes; some may be skipped at runtime)");
     if stages.version {
-        eprintln!("$ cargo release version {version_or_level}{p_args}{nc} --execute");
+        for (target, crates) in targets.split(chunk) {
+            let p: String = crates.iter().map(|c| format!(" -p {c}")).collect();
+            eprintln!("$ cargo release version {target}{p}{nc} --execute");
+        }
         eprintln!("$ cargo release replace{p_args}{nc} --execute");
         eprintln!("$ cargo release hook{p_args}{nc} --execute");
     } else {
+        let want: Vec<String> = targets
+            .split(chunk)
+            .into_iter()
+            .map(|(t, cs)| {
+                let names: Vec<&str> = cs.iter().map(|c| c.as_str()).collect();
+                format!("{} at {t}", names.join(", "))
+            })
+            .collect();
         eprintln!(
-            "(version/replace/hook: not this run's step — the manifests must already be at {version_or_level})"
+            "(version/replace/hook: not this run's step — the manifests must already be: {})",
+            want.join("; ")
         );
     }
     if stages.commit {
@@ -1349,6 +1412,10 @@ chunk 1 failed (rc=Some(101)); fix the cause and re-run
         );
     }
 
+    fn uniform(t: &str) -> Targets {
+        Targets::Uniform(t.to_string())
+    }
+
     /// Nothing in these tests may reach the network.
     fn never_published(_: &str, _: &str) -> bool {
         unreachable!("literal dispatch must not consult crates.io")
@@ -1358,7 +1425,10 @@ chunk 1 failed (rc=Some(101)); fix the cause and re-run
     fn should_run_version_literal_skips_when_matched() {
         let chunk = vec!["winterbaume-foo".into(), "winterbaume-bar".into()];
         let mfs = versions(&[("winterbaume-foo", "0.3.0"), ("winterbaume-bar", "0.3.0")]);
-        assert!(crates_needing_version_step("0.3.0", &mfs, &chunk, never_published).is_empty());
+        assert!(
+            crates_needing_version_step(&uniform("0.3.0"), &mfs, &chunk, never_published)
+                .is_empty()
+        );
     }
 
     #[test]
@@ -1366,7 +1436,7 @@ chunk 1 failed (rc=Some(101)); fix the cause and re-run
         let chunk = vec!["winterbaume-foo".into(), "winterbaume-bar".into()];
         let mfs = versions(&[("winterbaume-foo", "0.2.0"), ("winterbaume-bar", "0.3.0")]);
         assert_eq!(
-            crates_needing_version_step("0.3.0", &mfs, &chunk, never_published),
+            crates_needing_version_step(&uniform("0.3.0"), &mfs, &chunk, never_published),
             vec!["winterbaume-foo".to_string()]
         );
     }
@@ -1386,7 +1456,7 @@ chunk 1 failed (rc=Some(101)); fix the cause and re-run
             ("winterbaume-baz", "0.3.0"),
         ]);
         assert_eq!(
-            crates_needing_version_step("0.3.0", &mfs, &chunk, never_published),
+            crates_needing_version_step(&uniform("0.3.0"), &mfs, &chunk, never_published),
             vec!["winterbaume-bar".to_string()]
         );
     }
@@ -1400,7 +1470,7 @@ chunk 1 failed (rc=Some(101)); fix the cause and re-run
         let mfs = versions(&[("winterbaume-foo", "0.2.0"), ("winterbaume-bar", "0.2.1")]);
         let published = |_: &str, v: &str| v == "0.2.0";
         assert_eq!(
-            crates_needing_version_step("patch", &mfs, &chunk, published),
+            crates_needing_version_step(&uniform("patch"), &mfs, &chunk, published),
             vec!["winterbaume-foo".to_string()]
         );
     }
@@ -1409,7 +1479,69 @@ chunk 1 failed (rc=Some(101)); fix the cause and re-run
     fn level_dispatch_skips_the_whole_chunk_once_every_crate_is_bumped() {
         let chunk = vec!["winterbaume-foo".into(), "winterbaume-bar".into()];
         let mfs = versions(&[("winterbaume-foo", "0.2.1"), ("winterbaume-bar", "0.2.1")]);
-        assert!(crates_needing_version_step("patch", &mfs, &chunk, |_, _| false).is_empty());
+        assert!(
+            crates_needing_version_step(&uniform("patch"), &mfs, &chunk, |_, _| false).is_empty()
+        );
+    }
+
+    #[test]
+    fn per_crate_targets_compare_each_crate_with_its_own_version() {
+        // One chunk carries crates bound for different versions: the core
+        // crate and a dependant released in the same run.
+        let chunk = vec![
+            "winterbaume-core".into(),
+            "winterbaume-foo".into(),
+            "winterbaume-bar".into(),
+        ];
+        let targets = Targets::PerCrate(versions(&[
+            ("winterbaume-core", "0.3.0"),
+            ("winterbaume-foo", "0.2.1"),
+            ("winterbaume-bar", "1.0.1"),
+        ]));
+        let mfs = versions(&[
+            ("winterbaume-core", "0.3.0"),
+            ("winterbaume-foo", "0.2.0"),
+            ("winterbaume-bar", "1.0.1"),
+        ]);
+        assert_eq!(
+            crates_needing_version_step(&targets, &mfs, &chunk, never_published),
+            vec!["winterbaume-foo".to_string()]
+        );
+    }
+
+    #[test]
+    fn a_crate_without_a_target_is_reported_rather_than_skipped() {
+        let chunk = vec!["winterbaume-foo".into()];
+        let targets = Targets::PerCrate(BTreeMap::new());
+        let mfs = versions(&[("winterbaume-foo", "0.2.0")]);
+        assert_eq!(
+            crates_needing_version_step(&targets, &mfs, &chunk, never_published),
+            vec!["winterbaume-foo".to_string()]
+        );
+    }
+
+    #[test]
+    fn split_groups_by_target_in_order_of_first_appearance() {
+        let crates: Vec<String> = ["a", "b", "c", "d"].iter().map(|s| s.to_string()).collect();
+        let targets = Targets::PerCrate(versions(&[
+            ("a", "0.3.0"),
+            ("b", "0.2.1"),
+            ("c", "0.3.0"),
+            ("d", "0.2.1"),
+        ]));
+        let split: Vec<(String, Vec<&str>)> = targets
+            .split(&crates)
+            .into_iter()
+            .map(|(t, cs)| (t, cs.into_iter().map(String::as_str).collect()))
+            .collect();
+        assert_eq!(
+            split,
+            vec![
+                ("0.3.0".to_string(), vec!["a", "c"]),
+                ("0.2.1".to_string(), vec!["b", "d"]),
+            ]
+        );
+        assert_eq!(uniform("patch").split(&crates).len(), 1);
     }
 
     /// The invariant the release depends on: no `git push` may carry more than

@@ -1,8 +1,10 @@
-//! Stage 4 — group plan entries by target version and run a chunked publish
-//! per group, in-process via the `batch` module.
+//! Stage 4 — sort every planned crate into one workspace-topological order,
+//! each at its own target version, and run one chunked publish over it,
+//! in-process via the `batch` module.
 //!
-//! Grouping is by the concrete `next` version, never by bump level: see
-//! `key_for` for why a level keyword is the wrong dispatch currency.
+//! Each crate is dispatched at its concrete `next` version, never at its bump
+//! level: see `key_for` for why a level keyword is the wrong dispatch
+//! currency. See `publish_order` for why the order spans every version.
 //!
 //! By default this stage publishes and nothing else. The version bump reaches
 //! `main` through the release PR ( `version-bump` → PR → merge ) and the tags
@@ -16,7 +18,7 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 use std::time::Duration;
 
-use crate::batch::{self, BatchOptions, RunOutcome, Stages};
+use crate::batch::{self, BatchOptions, RunOutcome, Stages, Targets};
 use crate::metadata::{
     CargoExe, Package, cargo_metadata, publishable_members, topo_sort, workspace_root,
 };
@@ -82,6 +84,38 @@ pub(crate) fn key_for(entry: &CrateEntry) -> Option<String> {
     }
 }
 
+/// Every crate from every group in one workspace-topological order, with its
+/// own target version.
+///
+/// Groups are keyed by target version, and a version says nothing about the
+/// dependency graph: driving them one after another in key order published
+/// the `0.2.1` group, which depends on `winterbaume-core` `0.3.0`, before the
+/// `0.3.0` group that holds core. Crates missing from `full_order` go last, by
+/// name, so the result is deterministic.
+fn publish_order(
+    groups: &BTreeMap<String, Vec<&CrateEntry>>,
+    full_order: &[String],
+) -> (Vec<String>, Targets) {
+    let index: BTreeMap<&str, usize> = full_order
+        .iter()
+        .enumerate()
+        .map(|(i, n)| (n.as_str(), i))
+        .collect();
+    let mut targets = BTreeMap::new();
+    for (version, entries) in groups {
+        for e in entries {
+            targets.insert(e.name.clone(), version.clone());
+        }
+    }
+    let mut names: Vec<String> = targets.keys().cloned().collect();
+    names.sort_by(|a, b| {
+        let ka = index.get(a.as_str()).copied().unwrap_or(usize::MAX);
+        let kb = index.get(b.as_str()).copied().unwrap_or(usize::MAX);
+        ka.cmp(&kb).then_with(|| a.cmp(b))
+    });
+    (names, Targets::PerCrate(targets))
+}
+
 /// Whether the plan entry is expected to carry a `next` version.
 fn requires_next(bump: BumpDecision) -> bool {
     matches!(
@@ -123,16 +157,11 @@ pub fn run(cargo: &CargoExe, args: &PublishArgs) -> Result<ExitCode, Error> {
         return Ok(ExitCode::SUCCESS);
     }
 
-    // Compute a single workspace-wide topology so each group can preserve
-    // dependency-before-dependant ordering on the subset it covers.
+    // One workspace-wide topology, and one publish order across every group.
     let meta = cargo_metadata(cargo, &root)?;
     let all_publishable = publishable_members(&meta);
     let full_order = topo_sort(&meta, &all_publishable)?;
-    let order_index: BTreeMap<&str, usize> = full_order
-        .iter()
-        .enumerate()
-        .map(|(i, n)| (n.as_str(), i))
-        .collect();
+    let (names, targets) = publish_order(&groups, &full_order);
 
     let stages = if args.all_in_one {
         Stages::all()
@@ -141,7 +170,7 @@ pub fn run(cargo: &CargoExe, args: &PublishArgs) -> Result<ExitCode, Error> {
     };
 
     println!("workspace root:  {}", root.display());
-    println!("groups to drive: {}", groups.len());
+    println!("target versions: {}", groups.len());
     println!(
         "mode:            {}",
         if args.all_in_one {
@@ -151,9 +180,9 @@ pub fn run(cargo: &CargoExe, args: &PublishArgs) -> Result<ExitCode, Error> {
         }
     );
     if !args.all_in_one {
-        // Group-by-group, `batch` refuses to publish a crate whose manifest is
-        // behind the plan — but only once that group's turn comes round, by
-        // which time the earlier groups are on crates.io for good. One sweep
+        // Chunk by chunk, `batch` refuses to publish a crate whose manifest is
+        // behind the plan — but only once that chunk's turn comes round, by
+        // which time the earlier chunks are on crates.io for good. One sweep
         // up front turns a half-published release into a clean refusal.
         assert_manifests_match_plan(&groups, &all_publishable)?;
         warn_if_not_on_release_branch(&root, args)?;
@@ -161,29 +190,36 @@ pub fn run(cargo: &CargoExe, args: &PublishArgs) -> Result<ExitCode, Error> {
     println!();
 
     for (version, entries) in &groups {
-        let mut names: Vec<String> = entries.iter().map(|e| e.name.clone()).collect();
-        names.sort_by_key(|n| order_index.get(n.as_str()).copied().unwrap_or(usize::MAX));
-        println!("--- group `{version}` ({} crate(s)) ---", names.len());
-        if args.all_in_one {
-            println!(
-                "$ release-harness batch --version {version} --crates {}{}{}",
-                names.join(" "),
-                if args.sign { " --sign" } else { "" },
-                if args.no_confirm { " --no-confirm" } else { "" },
-            );
-        } else {
-            // Not `batch`-equivalent: batch owns the bump, commit, tag and push
-            // too, which is precisely what this mode leaves to the PR and to
-            // `tag`.
-            println!("publish: {}", names.join(" "));
-        }
-        if !args.execute {
-            continue;
-        }
+        println!("group `{version}`: {} crate(s)", entries.len());
+    }
+    println!(
+        "\npublish order, dependencies first, across all groups ( {} crate(s), chunks of {} ):",
+        names.len(),
+        args.chunk_size
+    );
+    for (i, chunk) in names.chunks(args.chunk_size.max(1)).enumerate() {
+        let listed: Vec<String> = chunk
+            .iter()
+            .map(|n| format!("{n} v{}", targets.for_crate(n).unwrap_or("?")))
+            .collect();
+        println!("  {:>3}: {}", i + 1, listed.join(", "));
+    }
+    if args.all_in_one {
+        println!(
+            "( all-in-one: each chunk also bumps, commits, tags and pushes; one \
+             `cargo release version` per target version present in the chunk )"
+        );
+    }
+    println!(
+        "( crates already on crates.io at their target are dropped at run time, \
+         which moves the chunk boundaries )"
+    );
+
+    if args.execute {
         let outcome = batch::run_chunked(BatchOptions {
             cargo,
             root: &root,
-            version_or_level: version,
+            targets,
             crates: names,
             chunk_size: args.chunk_size,
             sleep_between_chunks: Duration::from_secs(args.sleep),
@@ -196,7 +232,7 @@ pub fn run(cargo: &CargoExe, args: &PublishArgs) -> Result<ExitCode, Error> {
             stages,
         })?;
         if let RunOutcome::ChunkFailed(status) = outcome {
-            eprintln!("chunked publish failed for group `{version}` (status {status}); aborting");
+            eprintln!("chunked publish failed (status {status}); aborting");
             return Ok(ExitCode::from(status.code().unwrap_or(1) as u8));
         }
     }
@@ -210,7 +246,7 @@ pub fn run(cargo: &CargoExe, args: &PublishArgs) -> Result<ExitCode, Error> {
         return Ok(ExitCode::SUCCESS);
     }
 
-    println!("all groups complete.");
+    println!("all crates published.");
     if args.all_in_one {
         return Ok(ExitCode::SUCCESS);
     }
@@ -374,7 +410,7 @@ pub fn run_batch(cargo: &CargoExe, args: &crate::BatchArgs) -> Result<ExitCode, 
     let outcome = batch::run_chunked(BatchOptions {
         cargo,
         root: &root,
-        version_or_level: &args.version,
+        targets: Targets::Uniform(args.version.clone()),
         crates: order,
         chunk_size: args.chunk_size,
         sleep_between_chunks: Duration::from_secs(args.sleep),
@@ -507,6 +543,54 @@ mod tests {
             assert_manifests_match_plan(&one_group("0.2.1", &entries), &refs),
             Err(Error::UnknownCrate { .. })
         ));
+    }
+
+    #[test]
+    fn the_publish_order_follows_dependencies_across_version_groups() {
+        // The 2026-11-21 cut: `core` goes to 0.3.0 while its dependants go to
+        // 0.2.1 and 1.0.1. Key order would run `0.2.1` first; the topology
+        // must win.
+        let entries = [
+            entry("core", "0.2.0", Some("0.3.0"), BumpDecision::Minor),
+            entry("svc-a", "0.2.0", Some("0.2.1"), BumpDecision::Patch),
+            entry("svc-b", "1.0.0", Some("1.0.1"), BumpDecision::Patch),
+            entry("server", "0.2.8", Some("0.2.9"), BumpDecision::Patch),
+        ];
+        let mut groups: BTreeMap<String, Vec<&CrateEntry>> = BTreeMap::new();
+        for e in &entries {
+            groups.entry(key_for(e).unwrap()).or_default().push(e);
+        }
+        assert_eq!(
+            groups.keys().cloned().collect::<Vec<_>>(),
+            ["0.2.1", "0.2.9", "0.3.0", "1.0.1"],
+            "the groups' own order puts dependants first"
+        );
+        let full_order: Vec<String> = ["core", "svc-b", "svc-a", "server"]
+            .iter()
+            .map(|s| s.to_string())
+            .collect();
+
+        let (names, targets) = publish_order(&groups, &full_order);
+        assert_eq!(names, ["core", "svc-b", "svc-a", "server"]);
+        assert_eq!(targets.for_crate("core"), Some("0.3.0"));
+        assert_eq!(targets.for_crate("svc-a"), Some("0.2.1"));
+        assert_eq!(targets.for_crate("svc-b"), Some("1.0.1"));
+        assert_eq!(targets.for_crate("server"), Some("0.2.9"));
+    }
+
+    #[test]
+    fn crates_outside_the_topology_go_last_by_name() {
+        let entries = [
+            entry("zeta", "0.1.0", Some("0.1.1"), BumpDecision::Patch),
+            entry("alpha", "0.1.0", Some("0.1.1"), BumpDecision::Patch),
+            entry("core", "0.2.0", Some("0.3.0"), BumpDecision::Minor),
+        ];
+        let mut groups: BTreeMap<String, Vec<&CrateEntry>> = BTreeMap::new();
+        for e in &entries {
+            groups.entry(key_for(e).unwrap()).or_default().push(e);
+        }
+        let (names, _) = publish_order(&groups, &["core".to_string()]);
+        assert_eq!(names, ["core", "alpha", "zeta"]);
     }
 
     #[test]

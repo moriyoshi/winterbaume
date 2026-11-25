@@ -13,9 +13,10 @@
 //!    the plan, applying the planned versions to the manifests.
 //! 4. *(outside the harness)* open the release PR with the bump plus the
 //!    changelogs, review it, and merge it into `main`.
-//! 5. `publish` — group plan entries by target version and drive a chunked
-//!    publish once per group, from the merged tree. Publishes only: the
-//!    manifests must already be at their planned versions.
+//! 5. `publish` — sort every planned crate into one workspace-topological
+//!    order, each at its own target version, and drive a single chunked
+//!    publish over it from the merged tree. Publishes only: the manifests
+//!    must already be at their planned versions.
 //! 6. `tag` — create one signed annotated `<crate>-v<version>` tag per
 //!    published crate at the merge commit, and push them.
 //!
