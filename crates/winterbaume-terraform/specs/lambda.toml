@@ -5,7 +5,9 @@
 # dead_letter_config, ephemeral_storage, file_system_config, image_config,
 # logging_config, snap_start, tracing_config, dest/filter/source-access
 # blocks on the event source mapping, tags_all merge, and various Vec<T>
-# fields) are read straight from instance.attributes in the converter.
+# fields such as architectures and layers) are read straight from
+# instance.attributes in the converter, which translates them to and from
+# the API-shaped `FunctionSettings` of the Lambda state.
 # ARN templates and the generated UUID for event source mappings are wired
 # up by hand. The tags merge order from the original (`tags_all` first,
 # then `tags` overriding) is preserved.
@@ -73,6 +75,21 @@ default = 3
 [[resource.field]]
 hcl = "code_signing_config_arn"
 view = "code_signing_config_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "kms_key_arn"
+view = "kms_key_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "package_type"
+view = "package_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "image_uri"
+view = "image_uri"
 type = "string?"
 
 # ---------------------------------------------------------------------------

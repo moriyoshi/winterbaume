@@ -221,6 +221,9 @@ async fn test_create_describe_delete_security_group() {
     assert_eq!(sgs.len(), 1);
     assert_eq!(sgs[0].group_name().unwrap_or(""), "test-sg");
     assert_eq!(sgs[0].vpc_id().unwrap_or(""), vpc_id);
+    // The description travels as `GroupDescription` on the wire; it used to
+    // be read under the wrong name and replaced by a placeholder.
+    assert_eq!(sgs[0].description(), Some("Test security group"));
 
     // Default egress rule should exist
     let egress_rules = sgs[0].ip_permissions_egress();

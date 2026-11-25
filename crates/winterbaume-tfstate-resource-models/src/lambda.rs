@@ -24,6 +24,12 @@ pub struct LambdaFunctionTfModel {
     pub timeout: i64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub code_signing_config_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kms_key_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub package_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub image_uri: Option<String>,
 }
 
 fn default_lambda_function_memory_size() -> i64 {

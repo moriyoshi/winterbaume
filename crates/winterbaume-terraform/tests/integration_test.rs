@@ -4893,6 +4893,507 @@ async fn test_extract_lambda_event_source_mapping_arn_and_tags() {
 }
 
 // ---------------------------------------------------------------------------
+// aws_lambda_function configuration blocks ( issue #62 )
+//
+// `vpc_config`, `architectures`, `ephemeral_storage`, `tracing_config`,
+// `dead_letter_config`, `kms_key_arn`, `layers`, `file_system_config`,
+// `image_config`, `logging_config`, `snap_start` and `package_type` are held
+// in the Lambda state in API shape, so a function injected from Terraform
+// state is served by the API with them, and a function created through the
+// API is extracted with them.
+// ---------------------------------------------------------------------------
+
+#[tokio::test]
+async fn test_inject_lambda_function_settings_visible_through_api() {
+    use winterbaume_lambda::LambdaService;
+    use winterbaume_terraform::converters::lambda::AwsLambdaFunctionConverter;
+
+    let lambda = Arc::new(LambdaService::new());
+    let ctx = default_ctx();
+    let mut injector = TerraformInjector::new();
+    injector.register(AwsLambdaFunctionConverter::new(Arc::clone(&lambda)));
+
+    let layer = "arn:aws:lambda:us-east-1:123456789012:layer:shared:3";
+    let tfstate = make_tfstate(vec![
+        make_resource(
+            "aws_lambda_function",
+            "full",
+            json!({
+                "function_name": "tf-full",
+                "runtime": "java21",
+                "handler": "example.Handler::handleRequest",
+                "role": "arn:aws:iam::123456789012:role/lambda-role",
+                "architectures": ["arm64"],
+                "package_type": "Zip",
+                "kms_key_arn": "arn:aws:kms:us-east-1:123456789012:key/tf",
+                "layers": [layer],
+                "vpc_config": [{
+                    "ipv6_allowed_for_dual_stack": true,
+                    "security_group_ids": ["sg-0123456789abcdef0"],
+                    "subnet_ids": ["subnet-0123456789abcdef0", "subnet-0fedcba9876543210"],
+                    "vpc_id": "vpc-0123456789abcdef0",
+                }],
+                "ephemeral_storage": [{"size": 2048}],
+                "tracing_config": [{"mode": "Active"}],
+                "dead_letter_config": [{
+                    "target_arn": "arn:aws:sqs:us-east-1:123456789012:tf-dlq",
+                }],
+                "file_system_config": [{
+                    "arn": "arn:aws:elasticfilesystem:us-east-1:123456789012:access-point/fsap-1",
+                    "local_mount_path": "/mnt/tf",
+                }],
+                "logging_config": [{
+                    "application_log_level": "DEBUG",
+                    "log_format": "JSON",
+                    "log_group": "/custom/tf-full",
+                    "system_log_level": "WARN",
+                }],
+                "snap_start": [{
+                    "apply_on": "PublishedVersions",
+                    "optimization_status": "Off",
+                }],
+                "image_config": [],
+            }),
+        ),
+        // What the provider records for a container-image function.
+        make_resource(
+            "aws_lambda_function",
+            "image",
+            json!({
+                "function_name": "tf-image",
+                "role": "arn:aws:iam::123456789012:role/lambda-role",
+                "package_type": "Image",
+                "image_uri": "123456789012.dkr.ecr.us-east-1.amazonaws.com/app:v1",
+                "runtime": "",
+                "handler": "",
+                "image_config": [{
+                    "command": ["app.handler"],
+                    "entry_point": ["/entry.sh"],
+                    "working_directory": "/var/task",
+                }],
+            }),
+        ),
+        // What the provider records for a function with none of them: empty
+        // blocks, empty strings, and the defaults it read back.
+        make_resource(
+            "aws_lambda_function",
+            "bare",
+            json!({
+                "function_name": "tf-bare",
+                "runtime": "python3.12",
+                "handler": "index.handler",
+                "role": "arn:aws:iam::123456789012:role/lambda-role",
+                "architectures": ["x86_64"],
+                "package_type": "Zip",
+                "kms_key_arn": "",
+                "image_uri": "",
+                "layers": [],
+                "vpc_config": [],
+                "ephemeral_storage": [{"size": 512}],
+                "tracing_config": [{"mode": "PassThrough"}],
+                "dead_letter_config": [],
+                "file_system_config": [],
+                "image_config": [],
+                "logging_config": [{
+                    "application_log_level": "",
+                    "log_format": "Text",
+                    "log_group": "/aws/lambda/tf-bare",
+                    "system_log_level": "",
+                }],
+                "snap_start": [],
+            }),
+        ),
+    ]);
+    let report = injector.inject_all(&tfstate, &ctx).await;
+    assert!(report.is_success(), "errors: {:?}", report.errors);
+
+    let mock = MockAws::builder().with_service(Arc::clone(&lambda)).build();
+    let config = mock.sdk_config("us-east-1").await;
+    let client = aws_sdk_lambda::Client::new(&config);
+
+    let full = client
+        .get_function_configuration()
+        .function_name("tf-full")
+        .send()
+        .await
+        .expect("GetFunctionConfiguration should succeed");
+    let vpc = full.vpc_config().expect("VpcConfig");
+    assert_eq!(
+        vpc.subnet_ids(),
+        ["subnet-0123456789abcdef0", "subnet-0fedcba9876543210"]
+    );
+    assert_eq!(vpc.security_group_ids(), ["sg-0123456789abcdef0"]);
+    assert_eq!(vpc.ipv6_allowed_for_dual_stack(), Some(true));
+    // The Terraform state knows the VPC, so the API can report it.
+    assert_eq!(vpc.vpc_id(), Some("vpc-0123456789abcdef0"));
+    assert_eq!(
+        full.architectures()
+            .iter()
+            .map(|a| a.as_str())
+            .collect::<Vec<_>>(),
+        ["arm64"]
+    );
+    assert_eq!(full.ephemeral_storage().map(|e| e.size()), Some(2048));
+    assert_eq!(
+        full.tracing_config()
+            .and_then(|t| t.mode())
+            .map(|m| m.as_str()),
+        Some("Active")
+    );
+    assert_eq!(
+        full.dead_letter_config().and_then(|d| d.target_arn()),
+        Some("arn:aws:sqs:us-east-1:123456789012:tf-dlq")
+    );
+    assert_eq!(
+        full.kms_key_arn(),
+        Some("arn:aws:kms:us-east-1:123456789012:key/tf")
+    );
+    assert_eq!(
+        full.layers().iter().map(|l| l.arn()).collect::<Vec<_>>(),
+        [Some(layer)]
+    );
+    let fs = &full.file_system_configs()[0];
+    assert_eq!(
+        fs.arn(),
+        "arn:aws:elasticfilesystem:us-east-1:123456789012:access-point/fsap-1"
+    );
+    assert_eq!(fs.local_mount_path(), "/mnt/tf");
+    let logging = full.logging_config().expect("LoggingConfig");
+    assert_eq!(logging.log_format().map(|f| f.as_str()), Some("JSON"));
+    assert_eq!(logging.log_group(), Some("/custom/tf-full"));
+    assert_eq!(
+        logging.application_log_level().map(|l| l.as_str()),
+        Some("DEBUG")
+    );
+    assert_eq!(logging.system_log_level().map(|l| l.as_str()), Some("WARN"));
+    assert_eq!(
+        full.snap_start()
+            .and_then(|s| s.apply_on())
+            .map(|a| a.as_str()),
+        Some("PublishedVersions")
+    );
+    assert_eq!(full.package_type().map(|p| p.as_str()), Some("Zip"));
+    assert!(full.image_config_response().is_none());
+
+    let image = client
+        .get_function()
+        .function_name("tf-image")
+        .send()
+        .await
+        .expect("GetFunction should succeed");
+    let image_config = image.configuration().expect("Configuration");
+    assert_eq!(
+        image_config.package_type().map(|p| p.as_str()),
+        Some("Image")
+    );
+    assert_eq!(image_config.runtime(), None);
+    assert_eq!(image_config.handler(), None);
+    let overrides = image_config
+        .image_config_response()
+        .and_then(|r| r.image_config())
+        .expect("ImageConfig");
+    assert_eq!(overrides.command(), ["app.handler"]);
+    assert_eq!(overrides.entry_point(), ["/entry.sh"]);
+    assert_eq!(overrides.working_directory(), Some("/var/task"));
+    assert_eq!(
+        image.code().and_then(|c| c.image_uri()),
+        Some("123456789012.dkr.ecr.us-east-1.amazonaws.com/app:v1")
+    );
+
+    // Placeholders must not turn into API members.
+    let bare = client
+        .get_function_configuration()
+        .function_name("tf-bare")
+        .send()
+        .await
+        .expect("GetFunctionConfiguration should succeed");
+    assert!(bare.vpc_config().is_none());
+    assert_eq!(bare.kms_key_arn(), None);
+    assert!(bare.dead_letter_config().is_none());
+    assert!(bare.layers().is_empty());
+    assert!(bare.file_system_configs().is_empty());
+    assert!(bare.image_config_response().is_none());
+    assert_eq!(bare.ephemeral_storage().map(|e| e.size()), Some(512));
+    let logging = bare.logging_config().expect("LoggingConfig");
+    assert_eq!(logging.log_format().map(|f| f.as_str()), Some("Text"));
+    assert_eq!(logging.log_group(), Some("/aws/lambda/tf-bare"));
+    assert!(logging.application_log_level().is_none());
+    assert!(logging.system_log_level().is_none());
+    assert_eq!(
+        bare.snap_start()
+            .and_then(|s| s.apply_on())
+            .map(|a| a.as_str()),
+        Some("None")
+    );
+}
+
+#[tokio::test]
+async fn test_extract_lambda_function_settings_created_through_api() {
+    use aws_sdk_lambda::primitives::Blob;
+    use aws_sdk_lambda::types::{
+        Architecture, DeadLetterConfig, EphemeralStorage, FileSystemConfig, FunctionCode,
+        ImageConfig, LogFormat, LoggingConfig, PackageType, Runtime, SnapStart, SnapStartApplyOn,
+        TracingConfig, TracingMode, VpcConfig,
+    };
+    use winterbaume_lambda::LambdaService;
+    use winterbaume_terraform::converters::lambda::AwsLambdaFunctionConverter;
+
+    let lambda = Arc::new(LambdaService::new());
+    let ctx = default_ctx();
+    let mock = MockAws::builder().with_service(Arc::clone(&lambda)).build();
+    let config = mock.sdk_config(&ctx.default_region).await;
+    let client = aws_sdk_lambda::Client::new(&config);
+    let role = "arn:aws:iam::123456789012:role/lambda-role";
+    let zip = || {
+        FunctionCode::builder()
+            .zip_file(Blob::new(vec![0u8; 10]))
+            .build()
+    };
+    let layer = "arn:aws:lambda:us-east-1:123456789012:layer:shared:3";
+
+    client
+        .create_function()
+        .function_name("api-full")
+        .runtime(Runtime::Java21)
+        .handler("example.Handler::handleRequest")
+        .role(role)
+        .code(zip())
+        .architectures(Architecture::Arm64)
+        .kms_key_arn("arn:aws:kms:us-east-1:123456789012:key/api")
+        .layers(layer)
+        .vpc_config(
+            VpcConfig::builder()
+                .subnet_ids("subnet-0123456789abcdef0")
+                .security_group_ids("sg-0123456789abcdef0")
+                .ipv6_allowed_for_dual_stack(true)
+                .build(),
+        )
+        .ephemeral_storage(EphemeralStorage::builder().size(2048).build().unwrap())
+        .tracing_config(TracingConfig::builder().mode(TracingMode::Active).build())
+        .dead_letter_config(
+            DeadLetterConfig::builder()
+                .target_arn("arn:aws:sqs:us-east-1:123456789012:api-dlq")
+                .build(),
+        )
+        .file_system_configs(
+            FileSystemConfig::builder()
+                .arn("arn:aws:elasticfilesystem:us-east-1:123456789012:access-point/fsap-2")
+                .local_mount_path("/mnt/api")
+                .build()
+                .unwrap(),
+        )
+        .logging_config(
+            LoggingConfig::builder()
+                .log_format(LogFormat::Json)
+                .log_group("/custom/api-full")
+                .build(),
+        )
+        .snap_start(
+            SnapStart::builder()
+                .apply_on(SnapStartApplyOn::PublishedVersions)
+                .build(),
+        )
+        .send()
+        .await
+        .expect("CreateFunction should succeed");
+    client
+        .create_function()
+        .function_name("api-image")
+        .role(role)
+        .package_type(PackageType::Image)
+        .code(
+            FunctionCode::builder()
+                .image_uri("123456789012.dkr.ecr.us-east-1.amazonaws.com/app:v1")
+                .build(),
+        )
+        .image_config(
+            ImageConfig::builder()
+                .command("app.handler")
+                .working_directory("/var/task")
+                .build(),
+        )
+        .send()
+        .await
+        .expect("CreateFunction should succeed");
+    // A function that supplies none of them, and one detached from its VPC.
+    client
+        .create_function()
+        .function_name("api-bare")
+        .runtime(Runtime::Python312)
+        .handler("index.handler")
+        .role(role)
+        .code(zip())
+        .vpc_config(
+            VpcConfig::builder()
+                .subnet_ids("subnet-0aaaaaaaaaaaaaaaa")
+                .security_group_ids("sg-0aaaaaaaaaaaaaaaa")
+                .build(),
+        )
+        .send()
+        .await
+        .expect("CreateFunction should succeed");
+    client
+        .update_function_configuration()
+        .function_name("api-bare")
+        .vpc_config(
+            VpcConfig::builder()
+                .set_subnet_ids(Some(vec![]))
+                .set_security_group_ids(Some(vec![]))
+                .build(),
+        )
+        .send()
+        .await
+        .expect("UpdateFunctionConfiguration should succeed");
+
+    let converter = AwsLambdaFunctionConverter::new(Arc::clone(&lambda));
+    let extracted = converter.extract(&ctx).await.expect("extract");
+    assert_eq!(extracted.len(), 3);
+    let attrs_of = |name: &str| {
+        &extracted
+            .iter()
+            .find(|r| r.name == name)
+            .unwrap_or_else(|| panic!("extracted {name}"))
+            .attributes
+    };
+
+    let full = attrs_of("api-full");
+    assert_eq!(full["architectures"], json!(["arm64"]));
+    assert_eq!(full["package_type"], "Zip");
+    assert_eq!(
+        full["kms_key_arn"],
+        "arn:aws:kms:us-east-1:123456789012:key/api"
+    );
+    assert_eq!(full["layers"], json!([layer]));
+    assert_eq!(
+        full["vpc_config"],
+        json!([{
+            "ipv6_allowed_for_dual_stack": true,
+            "security_group_ids": ["sg-0123456789abcdef0"],
+            "subnet_ids": ["subnet-0123456789abcdef0"],
+            // Unknown to the emulator, which has no view of EC2 here.
+            "vpc_id": "",
+        }])
+    );
+    assert_eq!(full["ephemeral_storage"], json!([{"size": 2048}]));
+    assert_eq!(full["tracing_config"], json!([{"mode": "Active"}]));
+    assert_eq!(
+        full["dead_letter_config"],
+        json!([{"target_arn": "arn:aws:sqs:us-east-1:123456789012:api-dlq"}])
+    );
+    assert_eq!(
+        full["file_system_config"],
+        json!([{
+            "arn": "arn:aws:elasticfilesystem:us-east-1:123456789012:access-point/fsap-2",
+            "local_mount_path": "/mnt/api",
+        }])
+    );
+    assert_eq!(
+        full["logging_config"],
+        json!([{
+            "application_log_level": "INFO",
+            "log_format": "JSON",
+            "log_group": "/custom/api-full",
+            "system_log_level": "INFO",
+        }])
+    );
+    assert_eq!(
+        full["snap_start"],
+        json!([{"apply_on": "PublishedVersions", "optimization_status": "Off"}])
+    );
+    assert_eq!(full["image_config"], json!([]));
+    assert_eq!(full["image_uri"], "");
+
+    let image = attrs_of("api-image");
+    assert_eq!(image["package_type"], "Image");
+    assert_eq!(
+        image["image_uri"],
+        "123456789012.dkr.ecr.us-east-1.amazonaws.com/app:v1"
+    );
+    assert_eq!(
+        image["image_config"],
+        json!([{
+            "command": ["app.handler"],
+            "entry_point": [],
+            "working_directory": "/var/task",
+        }])
+    );
+
+    let bare = attrs_of("api-bare");
+    assert_eq!(bare["architectures"], json!(["x86_64"]));
+    assert_eq!(bare["package_type"], "Zip");
+    assert_eq!(bare["kms_key_arn"], "");
+    assert_eq!(bare["layers"], json!([]));
+    assert_eq!(bare["vpc_config"], json!([]), "detached: no block");
+    assert_eq!(bare["ephemeral_storage"], json!([{"size": 512}]));
+    assert_eq!(bare["tracing_config"], json!([{"mode": "PassThrough"}]));
+    assert_eq!(bare["dead_letter_config"], json!([]));
+    assert_eq!(bare["file_system_config"], json!([]));
+    assert_eq!(bare["image_config"], json!([]));
+    assert_eq!(
+        bare["logging_config"],
+        json!([{
+            "application_log_level": "",
+            "log_format": "Text",
+            "log_group": "/aws/lambda/api-bare",
+            "system_log_level": "",
+        }])
+    );
+    assert_eq!(bare["snap_start"], json!([]));
+
+    // Extract -> inject into a fresh service -> the API serves the same.
+    let restored = Arc::new(LambdaService::new());
+    let mut injector = TerraformInjector::new();
+    injector.register(AwsLambdaFunctionConverter::new(Arc::clone(&restored)));
+    let tfstate = make_tfstate(
+        extracted
+            .iter()
+            .map(|r| make_resource("aws_lambda_function", &r.name, r.attributes.clone()))
+            .collect(),
+    );
+    let report = injector.inject_all(&tfstate, &ctx).await;
+    assert!(report.is_success(), "errors: {:?}", report.errors);
+    // The second extraction must describe the same functions.  ( The stored
+    // settings may differ in form: the provider's state spells out defaults
+    // such as `package_type = "Zip"`, and those come back as explicit values. )
+    let restored_converter = AwsLambdaFunctionConverter::new(Arc::clone(&restored));
+    let again = restored_converter.extract(&ctx).await.expect("extract");
+    for name in ["api-full", "api-image", "api-bare"] {
+        let before = attrs_of(name);
+        let after = &again
+            .iter()
+            .find(|r| r.name == name)
+            .unwrap_or_else(|| panic!("re-extracted {name}"))
+            .attributes;
+        for key in [
+            "architectures",
+            "dead_letter_config",
+            "ephemeral_storage",
+            "file_system_config",
+            "image_config",
+            "image_uri",
+            "kms_key_arn",
+            "layers",
+            "logging_config",
+            "package_type",
+            "snap_start",
+            "tracing_config",
+            "vpc_config",
+        ] {
+            assert_eq!(after[key], before[key], "{name}.{key} after a round trip");
+        }
+    }
+    // A detached VPC configuration has no Terraform representation, so it
+    // comes back as "never had one".
+    let round_tripped = restored
+        .snapshot(&ctx.default_account_id, "us-east-1")
+        .await;
+    assert_eq!(
+        round_tripped.functions["api-bare"].settings.vpc_config,
+        None
+    );
+}
+
+// ---------------------------------------------------------------------------
 // SESv2 configuration set and dedicated IP pool injection tests
 // ---------------------------------------------------------------------------
 

@@ -1446,28 +1446,161 @@ impl DynamoDbState {
         Ok(results)
     }
 
+    /// `put_item` guarded by an optional condition.
+    ///
+    /// `&mut self` makes the evaluation and the write one step: the caller
+    /// holds the state's write lock for the whole call. Validation ( table
+    /// and key attributes ) comes before the condition.
+    pub fn put_item_conditional(
+        &mut self,
+        table_name: &str,
+        item: Item,
+        condition: Option<&crate::expr::Expr>,
+    ) -> Result<ConditionalWrite, DynamoDbError> {
+        let table = self.describe_table(table_name)?;
+        item_identity(&item, table)?;
+        if let Some(failed) = self.check_condition(table_name, &item, condition)? {
+            return Ok(failed);
+        }
+        let new_item = Some(item.clone());
+        let old_item = self.put_item(table_name, item)?;
+        Ok(ConditionalWrite::Applied { old_item, new_item })
+    }
+
+    /// `delete_item` guarded by an optional condition. See
+    /// [`Self::put_item_conditional`].
+    pub fn delete_item_conditional(
+        &mut self,
+        table_name: &str,
+        key: &Item,
+        condition: Option<&crate::expr::Expr>,
+    ) -> Result<ConditionalWrite, DynamoDbError> {
+        if let Some(failed) = self.check_condition(table_name, key, condition)? {
+            return Ok(failed);
+        }
+        let old_item = self.delete_item(table_name, key)?;
+        Ok(ConditionalWrite::Applied {
+            old_item,
+            new_item: None,
+        })
+    }
+
+    /// `update_item` guarded by an optional condition. See
+    /// [`Self::put_item_conditional`].
+    pub fn update_item_conditional(
+        &mut self,
+        table_name: &str,
+        key: &Item,
+        actions: &[UpdateAction],
+        condition: Option<&crate::expr::Expr>,
+    ) -> Result<ConditionalWrite, DynamoDbError> {
+        let table = self.describe_table(table_name)?;
+        item_identity(key, table)?;
+        if let Some(failed) = self.check_condition(table_name, key, condition)? {
+            return Ok(failed);
+        }
+        let old_item = self.get_item(table_name, key)?.cloned();
+        let new_item = self.update_item(table_name, key, actions)?;
+        Ok(ConditionalWrite::Applied { old_item, new_item })
+    }
+
+    /// Evaluate `condition` against the item stored at `key` ( an absent item
+    /// is evaluated as an empty one ). `Some` is the failure to report.
+    fn check_condition(
+        &self,
+        table_name: &str,
+        key: &Item,
+        condition: Option<&crate::expr::Expr>,
+    ) -> Result<Option<ConditionalWrite>, DynamoDbError> {
+        let Some(condition) = condition else {
+            return Ok(None);
+        };
+        let existing = self.get_item(table_name, key)?;
+        let empty = Item::new();
+        if crate::expr::evaluate(condition, existing.unwrap_or(&empty)) {
+            Ok(None)
+        } else {
+            Ok(Some(ConditionalWrite::ConditionFailed {
+                item: existing.cloned(),
+            }))
+        }
+    }
+
     /// Apply a transaction's actions in the order the caller supplied them.
     ///
     /// All tables are verified to exist, and no two actions may target the
     /// same item, before anything is written.
     pub fn transact_write_items(&mut self, ops: Vec<TransactOp>) -> Result<(), DynamoDbError> {
+        let actions = ops.into_iter().map(TransactWriteAction::from).collect();
+        // Without conditions nothing can cancel the transaction.
+        self.transact_write_items_conditional(actions).map(|_| ())
+    }
+
+    /// Evaluate every action's condition and, if all hold, apply the writes
+    /// in the caller's order. `&mut self` makes this one critical section.
+    ///
+    /// Before anything is evaluated or written, all tables are verified to
+    /// exist and no two actions ( a `ConditionCheck` included ) may target
+    /// the same item. Because of that rule every condition sees the item as
+    /// it was before the transaction. An `UpdateExpression` that cannot be
+    /// applied is rejected before the first write as well.
+    pub fn transact_write_items_conditional(
+        &mut self,
+        actions: Vec<TransactWriteAction>,
+    ) -> Result<TransactWriteOutcome, DynamoDbError> {
         let mut seen: HashSet<(String, String)> = HashSet::new();
-        for op in &ops {
+        for action in &actions {
             let table = &self
                 .tables
-                .get(op.table_name())
-                .ok_or_else(|| resource_not_found(op.table_name()))?
+                .get(action.table_name())
+                .ok_or_else(|| resource_not_found(action.table_name()))?
                 .table;
             let identity = (
-                op.table_name().to_string(),
-                item_identity(op.target(), table)?,
+                action.table_name().to_string(),
+                item_identity(action.target(), table)?,
             );
             if !seen.insert(identity) {
                 return Err(DynamoDbError::TransactionConflict);
             }
         }
 
-        for op in ops {
+        let mut reasons = Vec::with_capacity(actions.len());
+        let mut cancelled = false;
+        for action in &actions {
+            let failed =
+                self.check_condition(action.table_name(), action.target(), action.condition())?;
+            reasons.push(match failed {
+                Some(ConditionalWrite::ConditionFailed { item }) => {
+                    cancelled = true;
+                    TransactCancellationReason::ConditionalCheckFailed { item }
+                }
+                _ => TransactCancellationReason::None,
+            });
+        }
+        if cancelled {
+            return Ok(TransactWriteOutcome::Cancelled(reasons));
+        }
+
+        // Dry-run the updates so a rejected expression cannot leave the
+        // earlier actions of the transaction applied.
+        for action in &actions {
+            if let TransactWriteAction::Update {
+                table_name,
+                key,
+                actions: update_actions,
+                ..
+            } = action
+            {
+                let mut candidate = self
+                    .get_item(table_name, key)?
+                    .cloned()
+                    .unwrap_or_else(|| key.clone());
+                crate::expr::apply_update_actions(&mut candidate, update_actions)
+                    .map_err(DynamoDbError::ValidationError)?;
+            }
+        }
+
+        for op in actions.into_iter().filter_map(TransactWriteAction::into_op) {
             match op {
                 TransactOp::Put { table_name, item } => {
                     self.put_item(&table_name, item)?;
@@ -1484,7 +1617,7 @@ impl DynamoDbState {
                 }
             }
         }
-        Ok(())
+        Ok(TransactWriteOutcome::Committed)
     }
 
     // --- Stream record retrieval ---

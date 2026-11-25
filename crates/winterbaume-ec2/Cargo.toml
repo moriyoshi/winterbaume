@@ -15,7 +15,6 @@ tokio = { workspace = true }
 http = { workspace = true }
 uuid = { workspace = true }
 chrono = { workspace = true }
-urlencoding = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 

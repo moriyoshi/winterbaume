@@ -271,110 +271,132 @@ pub async fn execute_partiql_via_backend(
                     )
                 });
 
-            let old_item: Option<Item> = if needs_old_item {
-                backend
-                    .get_item(
+            // A statement whose new values are computed from the stored item
+            // is a read-modify-write. It is made atomic optimistically: the
+            // write carries a guard that the item is still the one that was
+            // read, and the statement is recomputed when another write got
+            // in between ( issue #61 ).
+            loop {
+                let old_item: Option<Item> = if needs_old_item {
+                    backend
+                        .get_item(
+                            account_id.clone(),
+                            region.clone(),
+                            upd.table_name.clone(),
+                            key.clone(),
+                        )
+                        .await?
+                } else {
+                    None
+                };
+
+                let mut updates: Vec<(String, AttributeValue)> = Vec::new();
+                let mut adds: Vec<(String, AttributeValue)> = Vec::new();
+                let mut removes: Vec<String> = upd.removes.clone();
+
+                for (attr, sv) in &upd.sets {
+                    match sv {
+                        SetValue::Expr(expr) => {
+                            // Recognise `target = target + literal` and
+                            // `target = target - literal` as DynamoDB's atomic
+                            // ADD action. Anything else is computed eagerly
+                            // against `old_item` and emitted as a SET. If the
+                            // expression doesn't produce a value (e.g. references
+                            // a missing path), fall back to NULL — same shape as
+                            // a regular SET against a missing source attribute.
+                            if let Some(delta) = atomic_add_delta(expr, attr) {
+                                adds.push((attr.clone(), delta));
+                            } else if let Some(delta) = atomic_sub_delta(expr, attr) {
+                                adds.push((attr.clone(), negate_number_av(&delta)));
+                            } else {
+                                let computed = evaluate_expression(expr, old_item.as_ref())
+                                    .unwrap_or(AttributeValue::Null(true));
+                                updates.push((attr.clone(), computed));
+                            }
+                        }
+                        SetValue::ListAppend(_, append_val) => {
+                            // list_append(list1, list2) concatenates two lists.
+                            let append_av = json_to_attr(append_val);
+                            let to_append: Vec<AttributeValue> = match append_av {
+                                AttributeValue::L(elems) => elems,
+                                other => vec![other],
+                            };
+                            let new_list = if let Some(ref curr) = old_item {
+                                if let Some(AttributeValue::L(mut list)) = curr.get(attr).cloned() {
+                                    list.extend(to_append);
+                                    AttributeValue::L(list)
+                                } else {
+                                    AttributeValue::L(to_append)
+                                }
+                            } else {
+                                AttributeValue::L(to_append)
+                            };
+                            updates.push((attr.clone(), new_list));
+                        }
+                        SetValue::SetAdd(_, add_vals) => {
+                            let add_av = json_to_attr(add_vals);
+                            let new_set =
+                                set_union(old_item.as_ref().and_then(|i| i.get(attr)), &add_av);
+                            updates.push((attr.clone(), new_set));
+                        }
+                        SetValue::SetDelete(_, del_vals) => {
+                            let del_av = json_to_attr(del_vals);
+                            let new_set = set_difference(
+                                old_item.as_ref().and_then(|i| i.get(attr)),
+                                &del_av,
+                            );
+                            match &new_set {
+                                AttributeValue::SS(s) if s.is_empty() => removes.push(attr.clone()),
+                                AttributeValue::NS(s) if s.is_empty() => removes.push(attr.clone()),
+                                AttributeValue::BS(s) if s.is_empty() => removes.push(attr.clone()),
+                                _ => updates.push((attr.clone(), new_set)),
+                            }
+                        }
+                    }
+                }
+
+                let mut actions: Vec<crate::types::UpdateAction> = Vec::new();
+                for (attr, value) in updates {
+                    actions.push(crate::types::UpdateAction::Set {
+                        path: vec![crate::types::PathSegment::Attr(attr)],
+                        value: crate::types::SetOperand::Value(value),
+                    });
+                }
+                for attr in removes {
+                    actions.push(crate::types::UpdateAction::Remove(vec![
+                        crate::types::PathSegment::Attr(attr),
+                    ]));
+                }
+                for (attr, delta) in adds {
+                    actions.push(crate::types::UpdateAction::Add(attr, delta));
+                }
+
+                let guard = needs_old_item
+                    .then(|| crate::expr::Expr::ItemEquals(old_item.clone().unwrap_or_default()));
+                let new_item = match backend
+                    .update_item_conditional(
                         account_id.clone(),
                         region.clone(),
                         upd.table_name.clone(),
                         key.clone(),
+                        actions,
+                        guard,
                     )
                     .await?
-            } else {
-                None
-            };
+                {
+                    crate::types::ConditionalWrite::Applied { new_item, .. } => new_item,
+                    crate::types::ConditionalWrite::ConditionFailed { .. } => continue,
+                };
 
-            let mut updates: Vec<(String, AttributeValue)> = Vec::new();
-            let mut adds: Vec<(String, AttributeValue)> = Vec::new();
-            let mut removes: Vec<String> = upd.removes.clone();
-
-            for (attr, sv) in &upd.sets {
-                match sv {
-                    SetValue::Expr(expr) => {
-                        // Recognise `target = target + literal` and
-                        // `target = target - literal` as DynamoDB's atomic
-                        // ADD action. Anything else is computed eagerly
-                        // against `old_item` and emitted as a SET. If the
-                        // expression doesn't produce a value (e.g. references
-                        // a missing path), fall back to NULL — same shape as
-                        // a regular SET against a missing source attribute.
-                        if let Some(delta) = atomic_add_delta(expr, attr) {
-                            adds.push((attr.clone(), delta));
-                        } else if let Some(delta) = atomic_sub_delta(expr, attr) {
-                            adds.push((attr.clone(), negate_number_av(&delta)));
-                        } else {
-                            let computed = evaluate_expression(expr, old_item.as_ref())
-                                .unwrap_or(AttributeValue::Null(true));
-                            updates.push((attr.clone(), computed));
-                        }
+                return match &upd.returning {
+                    None => Ok(PartiqlResult::Empty),
+                    Some(ReturningClause::AllNew) | Some(ReturningClause::ModifiedNew) => {
+                        Ok(PartiqlResult::Items(new_item.into_iter().collect()))
                     }
-                    SetValue::ListAppend(_, append_val) => {
-                        // list_append(list1, list2) concatenates two lists.
-                        let append_av = json_to_attr(append_val);
-                        let to_append: Vec<AttributeValue> = match append_av {
-                            AttributeValue::L(elems) => elems,
-                            other => vec![other],
-                        };
-                        let new_list = if let Some(ref curr) = old_item {
-                            if let Some(AttributeValue::L(mut list)) = curr.get(attr).cloned() {
-                                list.extend(to_append);
-                                AttributeValue::L(list)
-                            } else {
-                                AttributeValue::L(to_append)
-                            }
-                        } else {
-                            AttributeValue::L(to_append)
-                        };
-                        updates.push((attr.clone(), new_list));
+                    Some(ReturningClause::AllOld) | Some(ReturningClause::ModifiedOld) => {
+                        Ok(PartiqlResult::Items(old_item.into_iter().collect()))
                     }
-                    SetValue::SetAdd(_, add_vals) => {
-                        let add_av = json_to_attr(add_vals);
-                        let new_set =
-                            set_union(old_item.as_ref().and_then(|i| i.get(attr)), &add_av);
-                        updates.push((attr.clone(), new_set));
-                    }
-                    SetValue::SetDelete(_, del_vals) => {
-                        let del_av = json_to_attr(del_vals);
-                        let new_set =
-                            set_difference(old_item.as_ref().and_then(|i| i.get(attr)), &del_av);
-                        match &new_set {
-                            AttributeValue::SS(s) if s.is_empty() => removes.push(attr.clone()),
-                            AttributeValue::NS(s) if s.is_empty() => removes.push(attr.clone()),
-                            AttributeValue::BS(s) if s.is_empty() => removes.push(attr.clone()),
-                            _ => updates.push((attr.clone(), new_set)),
-                        }
-                    }
-                }
-            }
-
-            let mut actions: Vec<crate::types::UpdateAction> = Vec::new();
-            for (attr, value) in updates {
-                actions.push(crate::types::UpdateAction::Set {
-                    path: vec![crate::types::PathSegment::Attr(attr)],
-                    value: crate::types::SetOperand::Value(value),
-                });
-            }
-            for attr in removes {
-                actions.push(crate::types::UpdateAction::Remove(vec![
-                    crate::types::PathSegment::Attr(attr),
-                ]));
-            }
-            for (attr, delta) in adds {
-                actions.push(crate::types::UpdateAction::Add(attr, delta));
-            }
-
-            let new_item = backend
-                .update_item(account_id, region, upd.table_name.clone(), key, actions)
-                .await?;
-
-            match &upd.returning {
-                None => Ok(PartiqlResult::Empty),
-                Some(ReturningClause::AllNew) | Some(ReturningClause::ModifiedNew) => {
-                    Ok(PartiqlResult::Items(new_item.into_iter().collect()))
-                }
-                Some(ReturningClause::AllOld) | Some(ReturningClause::ModifiedOld) => {
-                    Ok(PartiqlResult::Items(old_item.into_iter().collect()))
-                }
+                };
             }
         }
         DdbOperation::Delete(del) => {
@@ -387,24 +409,9 @@ pub async fn execute_partiql_via_backend(
                 table.range_key_attr.as_deref(),
             )?;
 
-            // Fetch old item before deletion if RETURNING ALL OLD is requested.
-            let old_item: Option<Item> = if matches!(
-                &del.returning,
-                Some(ReturningClause::AllOld) | Some(ReturningClause::ModifiedOld)
-            ) {
-                backend
-                    .get_item(
-                        account_id.clone(),
-                        region.clone(),
-                        del.table_name.clone(),
-                        key.clone(),
-                    )
-                    .await?
-            } else {
-                None
-            };
-
-            backend
+            // The old image for RETURNING comes out of the delete itself, not
+            // from a separate read.
+            let old_item = backend
                 .delete_item(account_id, region, del.table_name.clone(), key)
                 .await?;
 

@@ -289,6 +289,14 @@ Gate checks:
 - [ ] Composite blobs use `put_composite`.
 - [ ] `BlobBackedService` implements `blob_keys()`, `blob_store()`, `export_blobs()`, and `import_blobs()`.
 
+- [ ] A decision and the write that depends on it happen in one backend call. A handler that reads through the backend, decides ( a condition expression, an existence or uniqueness check, a version or ETag comparison, a quota ), and then writes through a second call has released the lock in between, and concurrent requests can all pass the check. Issue #61 was `UpdateItem` evaluating its `ConditionExpression` this way; `PutItem`, `DeleteItem` and `TransactWriteItems` had the same shape. Pass the condition into the backend and return what the response needs ( old and new item ) from the same step. Search for the shape:
+  ```bash
+  rg -n 'backend\s*\.\s*get_|\.read\(\)\.await' crates/winterbaume-<service>/src/handlers.rs
+  ```
+  and check each hit that is followed by a write in the same handler.
+- [ ] A backend that cannot hold a lock across round trips ( Redis ) applies read-compute-write as a compare-and-swap with retry, and its plain read-modify-write operations ( counters, `ADD`, list append ) go through the same path.
+- [ ] Conditional and read-modify-write operations have a concurrency test on a multi-threaded runtime in which exactly one of N identical conditional writers may win and guarded increments must reach the exact count, shown to fail against the check-then-act version. Add a timing-free test where a seam exists ( a FIFO lock held while a competing write is queued ).
+
 ## 8. Pure Evaluator and Validator Crates
 
 Semantic engines belong in helper crates when the logic is reusable, dense, or independently testable.
@@ -308,6 +316,7 @@ Gate checks:
 - [ ] Every service crate has `tests/integration_test.rs`.
 - [ ] Tests use real `aws-sdk-rust` clients against the in-process mock, not raw HTTP.
 - [ ] Names and values that reach the service through a URI path label, a query string or a form-encoded body are tested with non-ASCII text and with characters the SDK must escape ( space, `+`, `%`, `/` ), and read back unchanged. An ASCII-only suite cannot see a decoder that treats bytes as characters: issue #58 mangled every non-ASCII S3 key and every non-ASCII form value in the query-protocol services, with all tests green. Decode with `winterbaume_core::percent_decode` ( form and query, `+` is a space ) or `percent_decode_path` ( path segments, `+` is literal ); do not write a local decoder.
+- [ ] Wire encodings that differ between SDKs are tested in each form with a raw request, because an SDK test only exercises that SDK's choice. The Rust SDK writes a space in a form body or query string as `%20`; the Go SDK ( Terraform ) and botocore write `+`. EC2 stored `two+words` for every Terraform-supplied value with a space until a Terraform E2E case caught it.
 - [ ] Read and describe tests create prerequisite resources first and use returned ARNs or identifiers instead of plausible hard-coded values.
 - [ ] Service errors are asserted with debug formatting (`format!("{:?}", err)`), not `Display`, because SDK `Display` often collapses to `service error`.
 - [ ] Tests account for SDK getter requiredness: required members return `&T`; optional members return `Option<&T>`, and sibling outputs in one service may mix both shapes.
