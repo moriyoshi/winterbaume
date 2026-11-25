@@ -24,11 +24,18 @@ jobs:
     name: Detect relevant changes
     runs-on: ubuntu-latest
     outputs:
-      code: ${{ steps.filter.outputs.code }}
+      # A tag push reaches this workflow through `workflow_call` from
+      # release.yml, where `github.event_name` is still `push`. paths-filter
+      # compares a tag with the default branch, and a release tag points at a
+      # commit already on it, so it reports no changes and every job below
+      # would be skipped. A release must always be gated, so tags count as code.
+      code: ${{ startsWith(github.ref, 'refs/tags/') && 'true' || steps.filter.outputs.code }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
       - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d  # v4.0.1
         id: filter
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         with:
           # With 'every', a file must match all patterns, so the code paths
           # are folded into one brace glob and `!**/*.md` then excludes
