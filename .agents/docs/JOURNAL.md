@@ -2749,3 +2749,35 @@ Five more reports of the same shape as #41 – #47, fixed on `fix/open-issues-50
 - **Persisted data.** Stores written by an older build hold non-ASCII keys under their mangled names; see `s3-mojibake-keys-in-persisted-stores`.
 - **Why it was missed.** Every test used ASCII names. `QUALITY_GATE.md` §9 now asks for non-ASCII and escape-needing characters in path labels and form values. With the old decoder put back, the S3 pagination test did not fail but looped: the continuation token round-tripped as double mojibake. The test has a page guard for that reason.
 - **Tests.** 10 unit tests in core, 10 S3 integration tests ( listing order across pages, prefix, delimiter, v1 and versions, copy, multipart, `DeleteObjects`, tagging, and keys with `+`, space and `%` ), an IAM form-value test and a SESv2 path-label test.
+
+## 2026-11-25 — Issues #64 – #69: why they were missed
+
+Six reports filed on 2026-11-22 against `79c452d`, which predates the member audit ( #59 ). None is fixed yet; this entry records the causes. Details are in the SQS, EventBridge and CloudWatch dossiers.
+
+- **#64 SQS `DeduplicationScope` / `FifoThroughputLimit` discarded.** `create_queue` stores a fixed subset of the `Attributes` map, and `GetQueueAttributes` returns both values as constants.
+- **#65 SQS FIFO group not gated.** `send_message` has had `let _ = message_group_id; // currently informational; FIFO ordering not yet enforced` since the initial commit.
+- **#66 SQS FIFO system attributes missing.** Messages store no group id, deduplication id or sequence number, and `ReceiveMessage` ignores `MessageSystemAttributeNames`.
+- **#67 EventBridge `PutRule` drops `Tags`.** This is a row of the 2026-11-21 audit ( `put_rule` ( 2 of 8 ): `role_arn`, `tags` ): listed, not yet worked down.
+- **#68 CloudWatch `TreatMissingData` dropped; new alarms start `OK`.** AWS starts them in `INSUFFICIENT_DATA`.
+- **#69 CloudWatch rejects `awsJson1_0`.** This is what AWS CLI v2 sends.
+
+### Why they were missed
+
+1. **Attribute maps are invisible to the member audit.** SQS carries its queue settings and message system attributes as keys of enum-keyed string maps ( `QueueAttributeName`, `MessageSystemAttributeName` ). The audit sees the map member as read and cannot tell which keys are dropped. #64 and #66 are of this kind.
+2. **Constant defaults pass presence tests.** `DeduplicationScope=queue` and `FifoThroughputLimit=perQueue` are emitted for every FIFO queue. That passes moto's `test_create_fifo_queue`, which asserts only the defaults. Attributes were added one at a time when Terraform blocked on them ( the `FIX(terraform-e2e)` comments on `ContentBasedDeduplication` and `SqsManagedSseEnabled` ), so no one walked the full enum.
+3. **A known gap with no ticket.** The `let _ = message_group_id` comment named #65 exactly, and the dossier stated the AWS rule ( "FIFO queues hold later messages in the same message group while a prior message in that group is in flight" ). Neither reached `TODO.md`, and nothing compared the dossier's parity implications with the code.
+4. **Tests that cannot fail.** `test_fifo_queue_ordered_processing` deletes each message before receiving the next, so it passes with no gating, yet the dossier cites it as covering FIFO ordering. Gating is a negative property: it needs an assertion that a receive returns nothing.
+5. **moto ports were thinned.** The port of `test_send_message_with_message_group_id` kept the send and the body check and dropped the two assertions on `MessageGroupId` and `MessageDeduplicationId`, which is #66. Of the 38 moto SQS tests that touch FIFO queues, group ids or sequence numbers, 8 are ported. The unported ones include high-throughput creation and the three message-group receive tests, so they would have caught all three SQS issues.
+6. **moto's deviations were inherited.** moto also starts alarms in `OK`, with the same reason string. A port is a test of agreement with moto, not with AWS; initial states and defaults need the AWS documentation.
+7. **The audit is blind to hand-built crates and says so quietly.** CloudWatch parses all 43 requests from a `serde_json::Value` and builds responses with `json!`. The audit therefore reports "0 unread request members", which reads as clean, and its response rows come from `views.rs` snapshot literals rather than responses. #68 was invisible to it on both sides.
+8. **Protocols were implemented by observation, not from the model.** The CloudWatch model declares `awsJson1_0`, `awsQuery`, `awsQueryCompatible` and `rpcv2Cbor`. The crate implements the two protocols seen in traffic: the Rust SDK's `rpcv2Cbor`, and `awsQuery` from Terraform. JSON 1.0, which the CLI and boto3 send, never appeared in a test because every test client is the Rust SDK. This is the lesson of the EC2 `+` decoding bug again: a test written with one SDK exercises only that SDK's encoding choices. The dossier generator also left `rpcv2Cbor` out of `Protocols:`, because it only mapped `aws.protocols#*` traits.
+9. **E2E cases still stop at apply.** `aws_cloudwatch_metric_alarm` with `treat_missing_data`, and `aws_cloudwatch_event_rule` with `tags`, both pass apply. The drift shows only on a second plan, as recorded for #50 – #54 ( `terraform-e2e-no-drift-and-default-tags-sweep` ).
+10. **The backlog was not worked down.** #67 had been listed for a day when it was reported. The audit makes the class visible; it does not reduce it.
+
+### What changed
+
+- `.agents/skills/service-dossier/scripts/extract_model_dossier.py` now maps `smithy.protocols#rpcv2Cbor`. It also lists any other `aws.protocols#` or `smithy.protocols#` trait it does not know, so a protocol is no longer dropped silently.
+- `services/sqs.md` gains `FIFO and attribute-map parity` and a `Member Audit` section. They cover the attribute keys stored and dropped, the gating and system-attribute rules, the testing traps, and two further gaps found on the way: the `MaximumMessageSize` default is 262,144 where AWS now documents 1 MiB, and content-based deduplication is keyed on MD5 where AWS uses SHA-256.
+- `services/cloudwatch.md` lists `rpcv2Cbor` and which client sends which protocol. It also records the initial alarm state and the six dropped `PutMetricAlarm` members, and adds a `Member Audit` section that explains why the audit's numbers do not apply to this crate.
+- `services/eventbridge.md` records #67 under `Known defects`, with AWS's create-only tag rule. It also notes that rules are keyed by name alone and their ARN omits the bus name, which matters to the fix.
+- `TODO.md`: `sqs-fifo-parity`, `cloudwatch-protocols-and-alarm-fidelity`, `eventbridge-rule-tags-and-bus-scoping`, `member-audit-map-keys-and-hand-built-crates`, `moto-port-assertion-audit` and `aws-query-compatible-error-header`.

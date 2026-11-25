@@ -58,8 +58,18 @@ def protocol_names(traits: dict[str, Any]) -> list[str]:
         "aws.protocols#awsQuery": "awsQuery",
         "aws.protocols#ec2Query": "ec2Query",
         "aws.protocols#awsQueryCompatible": "awsQueryCompatible",
+        # Not in the `aws.protocols` namespace, and the protocol the AWS SDK
+        # for Rust picks first when a model declares it ( CloudWatch ).
+        "smithy.protocols#rpcv2Cbor": "rpcv2Cbor",
     }
-    return [label for key, label in protocol_map.items() if key in traits]
+    labels = [label for key, label in protocol_map.items() if key in traits]
+    # Surface any other protocol trait rather than dropping it silently.
+    for key in traits:
+        if key not in protocol_map and key.startswith(
+            ("aws.protocols#", "smithy.protocols#")
+        ):
+            labels.append(key.split("#", 1)[1])
+    return labels
 
 
 def normalise_sdk_slug(sdk_id: str) -> str:
