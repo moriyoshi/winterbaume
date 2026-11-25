@@ -4,7 +4,8 @@
 # Dropped `threshold` (f64 not in spec vocabulary), `alarm_actions`,
 # `ok_actions`, `insufficient_data_actions` (Vec<String>), and
 # `dimensions` (map block) — those are read straight from
-# instance.attributes in the converter.
+# instance.attributes in the converter. `metric_query` blocks are not
+# converted.
 
 [service]
 name = "cloudwatch"
@@ -80,6 +81,35 @@ hcl = "actions_enabled"
 view = "actions_enabled"
 type = "bool"
 default = true
+
+# Issue #68: settings the alarm must store and read back, or every plan
+# after apply shows drift.
+[[resource.field]]
+hcl = "extended_statistic"
+view = "extended_statistic"
+type = "string?"
+
+[[resource.field]]
+hcl = "treat_missing_data"
+view = "treat_missing_data"
+type = "string?"
+
+# 0 in Terraform state means unset.
+[[resource.field]]
+hcl = "datapoints_to_alarm"
+view = "datapoints_to_alarm"
+type = "u32"
+default = 0
+
+[[resource.field]]
+hcl = "evaluate_low_sample_count_percentiles"
+view = "evaluate_low_sample_count_percentile"
+type = "string?"
+
+[[resource.field]]
+hcl = "threshold_metric_id"
+view = "threshold_metric_id"
+type = "string?"
 
 # ---------------------------------------------------------------------------
 # aws_cloudwatch_composite_alarm

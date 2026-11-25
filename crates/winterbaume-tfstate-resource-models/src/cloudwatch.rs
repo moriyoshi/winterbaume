@@ -25,6 +25,20 @@ pub struct MetricAlarmTfModel {
     pub unit: Option<String>,
     #[serde(default = "default_metric_alarm_actions_enabled")]
     pub actions_enabled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub extended_statistic: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub treat_missing_data: Option<String>,
+    #[serde(default = "default_metric_alarm_datapoints_to_alarm")]
+    pub datapoints_to_alarm: u32,
+    #[serde(
+        rename = "evaluate_low_sample_count_percentiles",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub evaluate_low_sample_count_percentile: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub threshold_metric_id: Option<String>,
 }
 
 fn default_metric_alarm_evaluation_periods() -> u32 {
@@ -37,6 +51,10 @@ fn default_metric_alarm_period() -> u32 {
 
 fn default_metric_alarm_actions_enabled() -> bool {
     true
+}
+
+fn default_metric_alarm_datapoints_to_alarm() -> u32 {
+    0u32
 }
 
 /// Auto-generated TF-shaped projection of the `aws_cloudwatch_composite_alarm` resource.

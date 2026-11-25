@@ -10,8 +10,8 @@ use crate::handlers::CloudWatchService;
 use crate::state::CloudWatchState;
 use crate::types::{
     AlarmMuteRule, AlarmState, AnomalyDetector, CompositeAlarm, Dashboard, Dimension, InsightRule,
-    InsightRuleState, ManagedInsightRule, MetricAlarm, MetricDatum, MetricStream,
-    MetricStreamFilter,
+    InsightRuleState, ManagedInsightRule, Metric, MetricAlarm, MetricDataQuery, MetricDatum,
+    MetricStat, MetricStream, MetricStreamFilter,
 };
 
 /// Serializable view of the entire CloudWatch state for one account/region.
@@ -63,19 +63,43 @@ pub struct MetricDatumView {
 }
 
 /// Serializable view of a metric alarm.
+///
+/// Members added after the first snapshot format carry `#[serde(default)]`,
+/// so older snapshots still load. `metric_name`, `namespace`, `threshold`,
+/// `period` and `statistic` were once plain values, which deserialise into
+/// `Some(..)`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MetricAlarmView {
     pub alarm_name: String,
     pub alarm_arn: String,
-    pub metric_name: String,
-    pub namespace: String,
-    pub threshold: f64,
+    #[serde(default)]
+    pub metric_name: Option<String>,
+    #[serde(default)]
+    pub namespace: Option<String>,
+    #[serde(default)]
+    pub threshold: Option<f64>,
     pub comparison_operator: String,
     pub evaluation_periods: u32,
-    pub period: u32,
-    pub statistic: String,
+    #[serde(default)]
+    pub period: Option<u32>,
+    #[serde(default)]
+    pub statistic: Option<String>,
+    #[serde(default)]
+    pub extended_statistic: Option<String>,
+    #[serde(default)]
+    pub datapoints_to_alarm: Option<u32>,
+    #[serde(default)]
+    pub treat_missing_data: Option<String>,
+    #[serde(default)]
+    pub evaluate_low_sample_count_percentile: Option<String>,
+    #[serde(default)]
+    pub threshold_metric_id: Option<String>,
+    #[serde(default)]
+    pub metrics: Vec<MetricDataQueryView>,
     pub state_value: String,
     pub state_reason: String,
+    #[serde(default)]
+    pub state_reason_data: Option<String>,
     pub actions_enabled: bool,
     pub alarm_description: Option<String>,
     #[serde(default)]
@@ -86,6 +110,50 @@ pub struct MetricAlarmView {
     pub insufficient_data_actions: Vec<String>,
     #[serde(default)]
     pub dimensions: Vec<DimensionView>,
+    pub unit: Option<String>,
+    /// RFC 3339; absent in older snapshots, restored as the restore time.
+    #[serde(default)]
+    pub alarm_configuration_updated_timestamp: Option<String>,
+    /// RFC 3339; absent in older snapshots, restored as the restore time.
+    #[serde(default)]
+    pub state_updated_timestamp: Option<String>,
+    /// RFC 3339; absent in older snapshots, restored as the restore time.
+    #[serde(default)]
+    pub state_transitioned_timestamp: Option<String>,
+}
+
+/// Serializable view of one `MetricDataQuery` in a metric alarm's `Metrics`.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct MetricDataQueryView {
+    pub id: String,
+    #[serde(default)]
+    pub metric_stat: Option<MetricStatView>,
+    #[serde(default)]
+    pub expression: Option<String>,
+    #[serde(default)]
+    pub label: Option<String>,
+    #[serde(default)]
+    pub return_data: Option<bool>,
+    #[serde(default)]
+    pub period: Option<u32>,
+    #[serde(default)]
+    pub account_id: Option<String>,
+}
+
+/// Serializable view of a `MetricStat`.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct MetricStatView {
+    #[serde(default)]
+    pub namespace: String,
+    #[serde(default)]
+    pub metric_name: String,
+    #[serde(default)]
+    pub dimensions: Vec<DimensionView>,
+    #[serde(default)]
+    pub period: u32,
+    #[serde(default)]
+    pub stat: String,
+    #[serde(default)]
     pub unit: Option<String>,
 }
 
@@ -265,8 +333,21 @@ impl From<&MetricAlarm> for MetricAlarmView {
             evaluation_periods: alarm.evaluation_periods,
             period: alarm.period,
             statistic: alarm.statistic.clone(),
+            extended_statistic: alarm.extended_statistic.clone(),
+            datapoints_to_alarm: alarm.datapoints_to_alarm,
+            treat_missing_data: alarm.treat_missing_data.clone(),
+            evaluate_low_sample_count_percentile: alarm
+                .evaluate_low_sample_count_percentile
+                .clone(),
+            threshold_metric_id: alarm.threshold_metric_id.clone(),
+            metrics: alarm
+                .metrics
+                .iter()
+                .map(MetricDataQueryView::from)
+                .collect(),
             state_value: alarm.state_value.as_str().to_string(),
             state_reason: alarm.state_reason.clone(),
+            state_reason_data: alarm.state_reason_data.clone(),
             actions_enabled: alarm.actions_enabled,
             alarm_description: alarm.alarm_description.clone(),
             alarm_actions: alarm.alarm_actions.clone(),
@@ -274,8 +355,69 @@ impl From<&MetricAlarm> for MetricAlarmView {
             insufficient_data_actions: alarm.insufficient_data_actions.clone(),
             dimensions: alarm.dimensions.iter().map(DimensionView::from).collect(),
             unit: alarm.unit.clone(),
+            alarm_configuration_updated_timestamp: Some(
+                alarm.alarm_configuration_updated_timestamp.to_rfc3339(),
+            ),
+            state_updated_timestamp: Some(alarm.state_updated_timestamp.to_rfc3339()),
+            state_transitioned_timestamp: Some(alarm.state_transitioned_timestamp.to_rfc3339()),
         }
     }
+}
+
+impl From<&MetricDataQuery> for MetricDataQueryView {
+    fn from(q: &MetricDataQuery) -> Self {
+        MetricDataQueryView {
+            id: q.id.clone(),
+            metric_stat: q.metric_stat.as_ref().map(|ms| MetricStatView {
+                namespace: ms.metric.namespace.clone(),
+                metric_name: ms.metric.metric_name.clone(),
+                dimensions: ms
+                    .metric
+                    .dimensions
+                    .iter()
+                    .map(DimensionView::from)
+                    .collect(),
+                period: ms.period,
+                stat: ms.stat.clone(),
+                unit: ms.unit.clone(),
+            }),
+            expression: q.expression.clone(),
+            label: q.label.clone(),
+            return_data: q.return_data,
+            period: q.period,
+            account_id: q.account_id.clone(),
+        }
+    }
+}
+
+impl From<MetricDataQueryView> for MetricDataQuery {
+    fn from(view: MetricDataQueryView) -> Self {
+        MetricDataQuery {
+            id: view.id,
+            metric_stat: view.metric_stat.map(|ms| MetricStat {
+                metric: Metric {
+                    namespace: ms.namespace,
+                    metric_name: ms.metric_name,
+                    dimensions: ms.dimensions.into_iter().map(Dimension::from).collect(),
+                },
+                period: ms.period,
+                stat: ms.stat,
+                unit: ms.unit,
+            }),
+            expression: view.expression,
+            label: view.label,
+            return_data: view.return_data,
+            period: view.period,
+            account_id: view.account_id,
+        }
+    }
+}
+
+/// Parse an optional RFC 3339 snapshot timestamp, falling back to `fallback`.
+fn parse_view_timestamp(value: Option<&str>, fallback: DateTime<Utc>) -> DateTime<Utc> {
+    value
+        .and_then(|s| s.parse::<DateTime<Utc>>().ok())
+        .unwrap_or(fallback)
 }
 
 impl From<&Dimension> for DimensionView {
@@ -476,6 +618,7 @@ impl From<MetricDatumView> for MetricDatum {
 
 impl From<MetricAlarmView> for MetricAlarm {
     fn from(view: MetricAlarmView) -> Self {
+        let now = Utc::now();
         MetricAlarm {
             alarm_name: view.alarm_name,
             alarm_arn: view.alarm_arn,
@@ -486,12 +629,23 @@ impl From<MetricAlarmView> for MetricAlarm {
             evaluation_periods: view.evaluation_periods,
             period: view.period,
             statistic: view.statistic,
+            extended_statistic: view.extended_statistic,
+            datapoints_to_alarm: view.datapoints_to_alarm,
+            treat_missing_data: view.treat_missing_data,
+            evaluate_low_sample_count_percentile: view.evaluate_low_sample_count_percentile,
+            threshold_metric_id: view.threshold_metric_id,
+            metrics: view
+                .metrics
+                .into_iter()
+                .map(MetricDataQuery::from)
+                .collect(),
             state_value: match view.state_value.as_str() {
                 "ALARM" => AlarmState::Alarm,
                 "INSUFFICIENT_DATA" => AlarmState::InsufficientData,
                 _ => AlarmState::Ok,
             },
             state_reason: view.state_reason,
+            state_reason_data: view.state_reason_data,
             actions_enabled: view.actions_enabled,
             alarm_description: view.alarm_description,
             alarm_actions: view.alarm_actions,
@@ -499,6 +653,18 @@ impl From<MetricAlarmView> for MetricAlarm {
             insufficient_data_actions: view.insufficient_data_actions,
             dimensions: view.dimensions.into_iter().map(Dimension::from).collect(),
             unit: view.unit,
+            alarm_configuration_updated_timestamp: parse_view_timestamp(
+                view.alarm_configuration_updated_timestamp.as_deref(),
+                now,
+            ),
+            state_updated_timestamp: parse_view_timestamp(
+                view.state_updated_timestamp.as_deref(),
+                now,
+            ),
+            state_transitioned_timestamp: parse_view_timestamp(
+                view.state_transitioned_timestamp.as_deref(),
+                now,
+            ),
         }
     }
 }
