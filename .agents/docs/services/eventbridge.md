@@ -295,34 +295,41 @@ Coverage is counted per operation, `Operation Detail Matrix` lists required inpu
 ### Resolved
 
 - Issue #47: a target is stored whole, so every `Target` member round-trips through `PutTargets` and `ListTargetsByRule`.
-- The list below shows the same class still open elsewhere in the crate, notably `CreateEventBus` ( `Tags`, `Description`, `DeadLetterConfig`, `KmsKeyIdentifier`, `LogConfig` ) and `EventBusName` on the rule and target operations.
+- Issue #67 ( fixed 2026-11-25 ): `PutRule` applies `Tags` when it creates the rule and ignores them on an update, as AWS documents ( https://docs.aws.amazon.com/eventbridge/latest/APIReference/API_PutRule.html ). `RoleArn` is stored and returned by `DescribeRule` and `ListRules`, and every member but `Tags` is replaced on update, so an omitted `RoleArn` is cleared. `State` keeps `ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS` instead of reading it as `ENABLED`. `DescribeRule` returns `CreatedBy` ( the account ID; no rule here is created by an AWS service, so `ManagedBy` stays unset ).
+- Rules are keyed by ( bus, name ). A rule on a custom bus has the ARN `rule/<bus>/<name>`; on the default bus it stays `rule/<name>`. `EventBusName`, as a name or an event bus ARN, is read by `PutRule`, `DeleteRule`, `DescribeRule`, `DisableRule`, `EnableRule`, `ListRules`, `ListRuleNamesByTarget`, `ListTargetsByRule`, `PutTargets` and `RemoveTargets`; omitted means `default`. `PutRule` rejects an unknown bus ( `ResourceNotFoundException`, `Event bus <bus> does not exist.` ) and a `ScheduleExpression` on a custom bus ( `ValidationException`, `ScheduleExpression is supported only on the default event bus.` ).
+- `TagResource`, `UntagResource` and `ListTagsForResource` on a rule ARN of either form require the rule to exist ( `ResourceNotFoundException`, `Rule <name> does not exist on EventBus <bus>.` ). `DeleteRule` drops the rule's tags by exact ARN. Other ARNs are not checked.
+- `ListRules`, `ListRuleNamesByTarget` and `ListTargetsByRule` honour `Limit` / `NextToken` ( the token is the offset of the next item; results are sorted by name ). `ListRuleNamesByTarget` lists each rule name once.
+- `CreateEventBus` stores `Tags` and `Description` ( the same defect as #67: `aws_cloudwatch_event_bus` drifted under `default_tags` ). `DescribeEventBus` and `ListEventBuses` return `Description`, and `DeleteEventBus` drops the bus tags.
+- Not-found messages follow moto: `DescribeRule`, `EnableRule` and `DisableRule` say `Rule <name> does not exist.`; the target and tag operations say `Rule <name> does not exist on EventBus <bus>.`. Neither form has been checked against AWS.
+- Snapshots: `EventsStateView::rules` keys a default-bus rule by name and any other by `<bus>/<name>`; restore ignores the key and uses the view's `event_bus_name` ( default `default`; an ARN is reduced to the name ) and `name`. A custom-bus rule restored with the old `rule/<name>` ARN is rewritten to `rule/<bus>/<name>`, and its tag-store entry moves with it. `RuleView::tags` is filled from the tag store on snapshot and written to it on restore / merge unless the view's `tags` map has an entry for the ARN, so tags the Terraform rule converter injects are visible to `ListTagsForResource`. `RuleView::role_arn` has a serde default.
+- Terraform: the rule converter derives the ARN from `arn` or the bus, never from `id` ( which is `<name>` or `<bus>/<name>` ), reads `role_arn`, and extracts the provider's ID. The target converter attaches the target to the rule on its `event_bus_name` and extracts the provider's state ID, `<rule>-<target>` or `<bus>-<rule>-<target>` ( it used `/`, which is only the import ID separator ). The E2E case `test_events_rule_tags_no_drift_with_default_tags` applies rules with one name on two buses, a custom-bus target and provider `default_tags`, then requires a plan with no changes.
 
-### Known defects
+### Remaining notes
 
-- Issue #67 ( reported 2026-11-22 ): `PutRule` drops `Tags`, and `RoleArn` with it. Both were already rows of the 2026-11-21 audit below ( `put_rule` ( 2 of 8 ) ); the report came from a build that predates the audit. `handle_put_rule` passes six of the eight members to `state.put_rule`. AWS applies `Tags` only when `PutRule` creates the rule; on an update "any tags you specify in the `PutRule` operation are ignored", and `TagResource` / `UntagResource` change them. Every other member is replaced on update, with omitted ones reset to null ( https://docs.aws.amazon.com/eventbridge/latest/APIReference/API_PutRule.html ). With provider `default_tags`, `aws_cloudwatch_event_rule` plans a `tags_all` change on every run. The E2E rule cases set `tags` and stop at apply, so the second plan that shows the drift never runs.
-- `EventBusName` is unread on `DeleteRule`, `DescribeRule`, `DisableRule`, `EnableRule`, `ListRules`, `ListRuleNamesByTarget` and `ListTargetsByRule`, so a rule on a custom bus is addressed as if it were on `default`. Rules with one name on two buses cannot coexist. Check this before fixing #67, because the tag store is keyed by rule ARN, and the ARN of a rule on a custom bus includes the bus name ( `rule/<bus>/<name>` ).
+- `DeleteRule` `Force` and `RemoveTargets` `Force`: AWS needs `Force=true` only for managed rules ( `ManagedBy` set, created by an AWS service ); without it such a call fails with `ManagedRuleException`. No rule here is managed, so `Force` has no effect and is correctly ignored. If managed rules are ever modelled ( for example the rules archives create ), `DeleteRule`, `RemoveTargets`, `PutRule`, `PutTargets`, `EnableRule`, `DisableRule`, `TagResource` and `UntagResource` must reject them with `ManagedRuleException` unless `Force` is given where it exists.
+- `DeleteEventBus` leaves the bus's rules in place; whether AWS refuses or cascades is unverified.
+- `DescribeEventBus` `Name` and the other bus operations do not accept an event bus ARN; only the rule and target operations resolve one.
+- `PutEvents` matches no rules and delivers nothing, and archives create no rules, so neither depends on rule keys yet. Delivery work must match rules on the bus the entry names ( `EventBusName`, default `default` ).
+- `CreateEventBus` still ignores `DeadLetterConfig`, `EventSourceName`, `KmsKeyIdentifier` and `LogConfig` ( listed below ).
 
-### Open candidates ( audited 2026-11-21 )
+### Open candidates ( audited 2026-11-25 )
 
 Generated by `.agents/bin/audit-wire-members.py eventbridge --dossier`. Rows are unclassified candidates, not confirmed defects: each one is resolved as honoured, rejected with the AWS error, ignored because AWS ignores it, or filed in `TODO.md` ( QUALITY_GATE.md §5.3 and §5.4 ). Regenerate after changing handlers.
 
-- Unread request members: 61 in 29 operations.
+- Unread request members: 42 in 21 operations.
 - Operations whose generated request deserialiser is never called: 1.
-- Never-populated response members: 85 in 34 structures ( run the script for the list ).
+- Never-populated response members: 77 in 32 structures ( run the script for the list ).
 - Response structures populated unevenly across literals: 8.
 
 #### Unread request members
 
 - `create_archive` ( 1 of 6 ): `kms_key_identifier`
 - `create_connection` ( 2 of 6 ): `invocation_connectivity_parameters`, `kms_key_identifier`
-- `create_event_bus` ( 6 of 7 ): `dead_letter_config`, `description`, `event_source_name`, `kms_key_identifier`, `log_config`, `tags`
+- `create_event_bus` ( 4 of 7 ): `dead_letter_config`, `event_source_name`, `kms_key_identifier`, `log_config`
 - `create_partner_event_source` ( 1 of 2 ): `account`
 - `delete_partner_event_source` ( 1 of 2 ): `account`
-- `delete_rule` ( 2 of 3 ): `event_bus_name`, `force`
+- `delete_rule` ( 1 of 3 ): `force`
 - `describe_endpoint` ( 1 of 2 ): `home_region`
-- `describe_rule` ( 1 of 2 ): `event_bus_name`
-- `disable_rule` ( 1 of 2 ): `event_bus_name`
-- `enable_rule` ( 1 of 2 ): `event_bus_name`
 - `list_api_destinations` ( 3 of 4 ): `connection_arn`, `limit`, `next_token`
 - `list_archives` ( 4 of 5 ): `event_source_arn`, `limit`, `next_token`, `state`
 - `list_connections` ( 3 of 4 ): `connection_state`, `limit`, `next_token`
@@ -331,14 +338,9 @@ Generated by `.agents/bin/audit-wire-members.py eventbridge --dossier`. Rows are
 - `list_event_sources` ( 2 of 3 ): `limit`, `next_token`
 - `list_partner_event_sources` ( 2 of 3 ): `limit`, `next_token`
 - `list_replays` ( 4 of 5 ): `event_source_arn`, `limit`, `next_token`, `state`
-- `list_rule_names_by_target` ( 3 of 4 ): `event_bus_name`, `limit`, `next_token`
-- `list_rules` ( 3 of 4 ): `event_bus_name`, `limit`, `next_token`
-- `list_targets_by_rule` ( 3 of 4 ): `event_bus_name`, `limit`, `next_token`
 - `put_events` ( 1 of 2 ): `endpoint_id`
 - `put_permission` ( 1 of 6 ): `condition`
-- `put_rule` ( 2 of 8 ): `role_arn`, `tags`
-- `put_targets` ( 1 of 3 ): `event_bus_name`
-- `remove_targets` ( 2 of 4 ): `event_bus_name`, `force`
+- `remove_targets` ( 1 of 4 ): `force`
 - `update_archive` ( 1 of 5 ): `kms_key_identifier`
 - `update_connection` ( 2 of 6 ): `invocation_connectivity_parameters`, `kms_key_identifier`
 - `update_event_bus` ( 2 of 5 ): `dead_letter_config`, `log_config`
@@ -353,9 +355,9 @@ Generated by `.agents/bin/audit-wire-members.py eventbridge --dossier`. Rows are
 - `Archive` ( 4 literals ): `archive_name` 1/4, `creation_time` 3/4, `event_source_arn` 2/4, `retention_days` 3/4, `size_bytes` 3/4, `state` 2/4
 - `Connection` ( 4 literals ): `authorization_type` 3/4, `connection_arn` 1/4, `connection_state` 1/4, `creation_time` 3/4, `name` 3/4
 - `Endpoint` ( 4 literals ): `arn` 3/4, `creation_time` 3/4, `description` 2/4, `endpoint_id` 3/4, `endpoint_url` 2/4, `event_buses` 3/4, `last_modified_time` 3/4, `name` 3/4, `replication_config` 2/4, `role_arn` 2/4, `routing_config` 2/4, `state` 3/4
-- `EventBus` ( 4 literals ): `description` 3/4, `policy` 3/4
+- `EventBus` ( 5 literals ): `arn` 4/5, `description` 4/5, `name` 4/5, `policy` 3/5
 - `Replay` ( 5 literals ): `event_end_time` 1/5, `event_source_arn` 2/5, `event_start_time` 1/5, `replay_end_time` 3/5, `replay_name` 1/5, `replay_start_time` 3/5, `state` 3/5
-- `Rule` ( 4 literals ): `arn` 3/4, `description` 3/4, `event_bus_name` 3/4, `event_pattern` 3/4, `name` 3/4, `schedule_expression` 3/4, `state` 3/4
+- `Rule` ( 6 literals ): `arn` 3/6, `description` 3/6, `event_bus_name` 3/6, `event_pattern` 3/6, `managed_by` 1/6, `name` 3/6, `role_arn` 2/6, `schedule_expression` 3/6, `state` 3/6
 - `Target` ( 6 literals ): `arn` 2/6, `id` 2/6, `input` 2/6, `input_path` 2/6
 
 ## Research Checklist for Parity Work

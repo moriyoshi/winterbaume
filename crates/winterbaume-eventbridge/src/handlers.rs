@@ -7,7 +7,7 @@ use winterbaume_core::{
     BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, default_account_id,
 };
 
-use crate::state::{EventsError, EventsState, PutEventsEntry};
+use crate::state::{EventsError, EventsState, PutEventsEntry, resolve_event_bus_name};
 use crate::types::{Tag, Target};
 use crate::views::EventsStateView;
 use crate::wire;
@@ -89,7 +89,10 @@ impl EventBridgeService {
                     .await
             }
             "DeleteRule" => self.handle_delete_rule(&state, body_bytes).await,
-            "DescribeRule" => self.handle_describe_rule(&state, body_bytes).await,
+            "DescribeRule" => {
+                self.handle_describe_rule(&state, body_bytes, account_id)
+                    .await
+            }
             "ListRules" => self.handle_list_rules(&state, body_bytes).await,
             "PutTargets" => self.handle_put_targets(&state, body_bytes).await,
             "RemoveTargets" => self.handle_remove_targets(&state, body_bytes).await,
@@ -222,23 +225,8 @@ impl EventBridgeService {
         if input.name.is_empty() {
             return json_error_response(400, "ValidationException", "Missing 'Name'");
         }
-        let event_pattern = input.event_pattern.as_deref();
-        let schedule_expression = input.schedule_expression.as_deref();
-        let rule_state = input.state.as_deref();
-        let description = input.description.as_deref();
-        let event_bus_name = input.event_bus_name.as_deref();
-
         let mut state = state.write().await;
-        match state.put_rule(
-            &input.name,
-            account_id,
-            region,
-            event_pattern,
-            schedule_expression,
-            rule_state,
-            description,
-            event_bus_name,
-        ) {
+        match state.put_rule(&input, account_id, region) {
             Ok(rule) => wire::serialize_put_rule_response(&wire::PutRuleResponse {
                 rule_arn: Some(rule.arn.clone()),
             }),
@@ -259,8 +247,9 @@ impl EventBridgeService {
             return json_error_response(400, "ValidationException", "Missing 'Name'");
         }
 
+        let event_bus_name = resolve_event_bus_name(input.event_bus_name.as_deref());
         let mut state = state.write().await;
-        match state.delete_rule(&input.name) {
+        match state.delete_rule(&input.name, &event_bus_name) {
             Ok(()) => wire::serialize_delete_rule_response(),
             Err(e) => events_error_response(&e),
         }
@@ -270,6 +259,7 @@ impl EventBridgeService {
         &self,
         state: &Arc<tokio::sync::RwLock<EventsState>>,
         body: &[u8],
+        account_id: &str,
     ) -> MockResponse {
         let input = match wire::deserialize_describe_rule_request(body) {
             Ok(v) => v,
@@ -279,8 +269,9 @@ impl EventBridgeService {
             return json_error_response(400, "ValidationException", "Missing 'Name'");
         }
 
+        let event_bus_name = resolve_event_bus_name(input.event_bus_name.as_deref());
         let state = state.read().await;
-        match state.describe_rule(&input.name) {
+        match state.describe_rule(&input.name, &event_bus_name) {
             Ok(rule) => wire::serialize_describe_rule_response(&wire::DescribeRuleResponse {
                 name: Some(rule.name.clone()),
                 arn: Some(rule.arn.clone()),
@@ -289,7 +280,12 @@ impl EventBridgeService {
                 event_pattern: rule.event_pattern.clone(),
                 schedule_expression: rule.schedule_expression.clone(),
                 description: rule.description.clone(),
-                ..Default::default()
+                role_arn: rule.role_arn.clone(),
+                // Rules are only created by `PutRule` here, never by an AWS
+                // service on the account's behalf, so the creator is the
+                // account and `ManagedBy` stays unset.
+                created_by: Some(account_id.to_string()),
+                managed_by: None,
             }),
             Err(e) => events_error_response(&e),
         }
@@ -305,14 +301,19 @@ impl EventBridgeService {
             Err(e) => return json_error_response(400, "ValidationException", &e),
         };
         let name_prefix = input.name_prefix.as_deref();
+        let event_bus_name = resolve_event_bus_name(input.event_bus_name.as_deref());
 
         let state = state.read().await;
-        let rules = state.list_rules(name_prefix);
-        let entries: Vec<wire::Rule> = rules.iter().map(|r| to_wire_rule(r)).collect();
+        let rules = state.list_rules(&event_bus_name, name_prefix);
+        let (page, next_token) = match paginate(rules, input.limit, input.next_token.as_deref()) {
+            Ok(v) => v,
+            Err(e) => return events_error_response(&e),
+        };
+        let entries: Vec<wire::Rule> = page.iter().map(|r| to_wire_rule(r)).collect();
 
         wire::serialize_list_rules_response(&wire::ListRulesResponse {
             rules: Some(entries),
-            next_token: None,
+            next_token,
         })
     }
 
@@ -341,8 +342,9 @@ impl EventBridgeService {
             })
             .collect();
 
+        let event_bus_name = resolve_event_bus_name(input.event_bus_name.as_deref());
         let mut state = state.write().await;
-        match state.put_targets(&input.rule, targets) {
+        match state.put_targets(&input.rule, &event_bus_name, targets) {
             Ok(()) => wire::serialize_put_targets_response(&wire::PutTargetsResponse {
                 failed_entry_count: Some(0),
                 failed_entries: Some(vec![]),
@@ -364,8 +366,9 @@ impl EventBridgeService {
             return json_error_response(400, "ValidationException", "Missing 'Rule'");
         }
 
+        let event_bus_name = resolve_event_bus_name(input.event_bus_name.as_deref());
         let mut state = state.write().await;
-        match state.remove_targets(&input.rule, &input.ids) {
+        match state.remove_targets(&input.rule, &event_bus_name, &input.ids) {
             Ok(()) => wire::serialize_remove_targets_response(&wire::RemoveTargetsResponse {
                 failed_entry_count: Some(0),
                 failed_entries: Some(vec![]),
@@ -387,17 +390,21 @@ impl EventBridgeService {
             return json_error_response(400, "ValidationException", "Missing 'Rule'");
         }
 
+        let event_bus_name = resolve_event_bus_name(input.event_bus_name.as_deref());
         let state = state.read().await;
-        match state.list_targets_by_rule(&input.rule) {
-            Ok(targets) => {
-                let entries: Vec<wire::Target> = targets.iter().map(|t| t.spec.clone()).collect();
-                wire::serialize_list_targets_by_rule_response(&wire::ListTargetsByRuleResponse {
-                    targets: Some(entries),
-                    next_token: None,
-                })
-            }
-            Err(e) => events_error_response(&e),
-        }
+        let targets = match state.list_targets_by_rule(&input.rule, &event_bus_name) {
+            Ok(targets) => targets,
+            Err(e) => return events_error_response(&e),
+        };
+        let (page, next_token) = match paginate(targets, input.limit, input.next_token.as_deref()) {
+            Ok(v) => v,
+            Err(e) => return events_error_response(&e),
+        };
+        let entries: Vec<wire::Target> = page.iter().map(|t| t.spec.clone()).collect();
+        wire::serialize_list_targets_by_rule_response(&wire::ListTargetsByRuleResponse {
+            targets: Some(entries),
+            next_token,
+        })
     }
 
     async fn handle_put_events(
@@ -452,10 +459,26 @@ impl EventBridgeService {
             return json_error_response(400, "ValidationException", "Missing 'Name'");
         }
 
+        let tags: Vec<Tag> = input
+            .tags
+            .unwrap_or_default()
+            .into_iter()
+            .map(|t| Tag {
+                key: t.key,
+                value: t.value,
+            })
+            .collect();
         let mut state = state.write().await;
-        match state.create_event_bus(&input.name, account_id, region) {
+        match state.create_event_bus(
+            &input.name,
+            account_id,
+            region,
+            input.description.as_deref(),
+            tags,
+        ) {
             Ok(bus) => wire::serialize_create_event_bus_response(&wire::CreateEventBusResponse {
                 event_bus_arn: Some(bus.arn.clone()),
+                description: bus.description.clone(),
                 ..Default::default()
             }),
             Err(e) => events_error_response(&e),
@@ -503,6 +526,8 @@ impl EventBridgeService {
                     name: Some(bus.name.clone()),
                     arn: Some(bus.arn.clone()),
                     policy: bus.policy.clone(),
+                    description: bus.description.clone(),
+                    kms_key_identifier: bus.kms_key_identifier.clone(),
                     ..Default::default()
                 })
             }
@@ -529,6 +554,7 @@ impl EventBridgeService {
                 name: Some(b.name.clone()),
                 arn: Some(b.arn.clone()),
                 policy: b.policy.clone(),
+                description: b.description.clone(),
                 ..Default::default()
             })
             .collect();
@@ -1346,8 +1372,9 @@ impl EventBridgeService {
             return json_error_response(400, "ValidationException", "Missing 'Name'");
         }
 
+        let event_bus_name = resolve_event_bus_name(input.event_bus_name.as_deref());
         let mut state = state.write().await;
-        match state.disable_rule(&input.name) {
+        match state.disable_rule(&input.name, &event_bus_name) {
             Ok(()) => wire::serialize_disable_rule_response(),
             Err(e) => events_error_response(&e),
         }
@@ -1366,8 +1393,9 @@ impl EventBridgeService {
             return json_error_response(400, "ValidationException", "Missing 'Name'");
         }
 
+        let event_bus_name = resolve_event_bus_name(input.event_bus_name.as_deref());
         let mut state = state.write().await;
-        match state.enable_rule(&input.name) {
+        match state.enable_rule(&input.name, &event_bus_name) {
             Ok(()) => wire::serialize_enable_rule_response(),
             Err(e) => events_error_response(&e),
         }
@@ -1388,12 +1416,18 @@ impl EventBridgeService {
             return json_error_response(400, "ValidationException", "Missing 'TargetArn'");
         }
 
+        let event_bus_name = resolve_event_bus_name(input.event_bus_name.as_deref());
         let state = state.read().await;
-        let rule_names = state.list_rule_names_by_target(&input.target_arn);
+        let rule_names = state.list_rule_names_by_target(&input.target_arn, &event_bus_name);
+        let (page, next_token) =
+            match paginate(rule_names, input.limit, input.next_token.as_deref()) {
+                Ok(v) => v,
+                Err(e) => return events_error_response(&e),
+            };
 
         wire::serialize_list_rule_names_by_target_response(&wire::ListRuleNamesByTargetResponse {
-            rule_names: Some(rule_names),
-            next_token: None,
+            rule_names: Some(page),
+            next_token,
         })
     }
 
@@ -1422,8 +1456,10 @@ impl EventBridgeService {
             .collect();
 
         let mut state = state.write().await;
-        state.tag_resource(&input.resource_a_r_n, tags);
-        wire::serialize_tag_resource_response(&wire::TagResourceResponse {})
+        match state.tag_resource(&input.resource_a_r_n, tags) {
+            Ok(()) => wire::serialize_tag_resource_response(&wire::TagResourceResponse {}),
+            Err(e) => events_error_response(&e),
+        }
     }
 
     async fn handle_untag_resource(
@@ -1440,8 +1476,10 @@ impl EventBridgeService {
         }
 
         let mut state = state.write().await;
-        state.untag_resource(&input.resource_a_r_n, &input.tag_keys);
-        wire::serialize_untag_resource_response(&wire::UntagResourceResponse {})
+        match state.untag_resource(&input.resource_a_r_n, &input.tag_keys) {
+            Ok(()) => wire::serialize_untag_resource_response(&wire::UntagResourceResponse {}),
+            Err(e) => events_error_response(&e),
+        }
     }
 
     async fn handle_list_tags_for_resource(
@@ -1458,7 +1496,10 @@ impl EventBridgeService {
         }
 
         let state = state.read().await;
-        let tags = state.list_tags_for_resource(&input.resource_a_r_n);
+        let tags = match state.list_tags_for_resource(&input.resource_a_r_n) {
+            Ok(tags) => tags,
+            Err(e) => return events_error_response(&e),
+        };
         let wire_tags: Vec<wire::Tag> = tags
             .iter()
             .map(|t| wire::Tag {
@@ -1962,13 +2003,44 @@ fn to_wire_rule(rule: &crate::types::Rule) -> wire::Rule {
         event_pattern: rule.event_pattern.clone(),
         schedule_expression: rule.schedule_expression.clone(),
         description: rule.description.clone(),
-        ..Default::default()
+        role_arn: rule.role_arn.clone(),
+        managed_by: None,
     }
+}
+
+/// One page of `items` for a `Limit` / `NextToken` pair. The token is the
+/// offset of the next item; a missing or non-positive limit means no limit.
+fn paginate<T>(
+    items: Vec<T>,
+    limit: Option<i32>,
+    next_token: Option<&str>,
+) -> Result<(Vec<T>, Option<String>), EventsError> {
+    let start = match next_token.filter(|t| !t.is_empty()) {
+        Some(token) => token
+            .parse::<usize>()
+            .map_err(|_| EventsError::InvalidNextToken(token.to_string()))?,
+        None => 0,
+    };
+    let total = items.len();
+    let start = start.min(total);
+    let end = match limit.filter(|l| *l > 0) {
+        Some(l) => start.saturating_add(l as usize).min(total),
+        None => total,
+    };
+    let next = (end < total).then(|| end.to_string());
+    Ok((
+        items.into_iter().skip(start).take(end - start).collect(),
+        next,
+    ))
 }
 
 fn events_error_response(err: &EventsError) -> MockResponse {
     let (status, error_type) = match err {
         EventsError::RuleHasTargets => (400, "ValidationException"),
+        EventsError::RuleNotFound(_) => (400, "ResourceNotFoundException"),
+        EventsError::RuleNotFoundOnBus(_, _) => (400, "ResourceNotFoundException"),
+        EventsError::ScheduleExpressionOnCustomBus => (400, "ValidationException"),
+        EventsError::InvalidNextToken(_) => (400, "ValidationException"),
         EventsError::EventBusAlreadyExists(_) => (400, "ResourceAlreadyExistsException"),
         EventsError::CannotDeleteDefaultBus => (400, "ValidationException"),
         EventsError::InvalidPermissionAction => (400, "ValidationException"),

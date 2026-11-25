@@ -2775,6 +2775,13 @@ async fn test_put_targets_unknown_rule() {
         err_str.contains("ResourceNotFound") || err_str.contains("does not exist"),
         "Expected not found error, got: {err_str}"
     );
+    assert_eq!(
+        error_code_and_message(&err),
+        (
+            "ResourceNotFoundException".to_string(),
+            "Rule unknown does not exist on EventBus default.".to_string()
+        )
+    );
 }
 
 // Ported from moto: test_events.py::test_remove_targets_error_unknown_rule
@@ -2793,6 +2800,13 @@ async fn test_remove_targets_unknown_rule() {
     assert!(
         err_str.contains("ResourceNotFound") || err_str.contains("does not exist"),
         "Expected not found error, got: {err_str}"
+    );
+    assert_eq!(
+        error_code_and_message(&err),
+        (
+            "ResourceNotFoundException".to_string(),
+            "Rule unknown does not exist on EventBus default.".to_string()
+        )
     );
 }
 
@@ -3928,4 +3942,1305 @@ async fn test_target_view_stays_compatible_with_older_snapshots() {
         targets[2].retry_policy().unwrap().maximum_retry_attempts(),
         Some(2)
     );
+}
+
+// ---------------------------------------------------------------------------
+// Issue #67: PutRule `Tags` / `RoleArn`, and rules scoped by event bus
+// ---------------------------------------------------------------------------
+
+const ACCOUNT_ID: &str = "123456789012";
+
+/// The error code and message of a failed call.
+fn error_code_and_message<E: aws_sdk_eventbridge::error::ProvideErrorMetadata>(
+    err: &E,
+) -> (String, String) {
+    (
+        err.code().unwrap_or_default().to_string(),
+        err.message().unwrap_or_default().to_string(),
+    )
+}
+
+fn tag(key: &str, value: &str) -> aws_sdk_eventbridge::types::Tag {
+    aws_sdk_eventbridge::types::Tag::builder()
+        .key(key)
+        .value(value)
+        .build()
+        .unwrap()
+}
+
+fn tag_pairs(tags: &[aws_sdk_eventbridge::types::Tag]) -> Vec<(String, String)> {
+    let mut pairs: Vec<(String, String)> = tags
+        .iter()
+        .map(|t| (t.key().to_string(), t.value().to_string()))
+        .collect();
+    pairs.sort();
+    pairs
+}
+
+fn pairs(items: &[(&str, &str)]) -> Vec<(String, String)> {
+    items
+        .iter()
+        .map(|(k, v)| (k.to_string(), v.to_string()))
+        .collect()
+}
+
+async fn list_tags(client: &aws_sdk_eventbridge::Client, arn: &str) -> Vec<(String, String)> {
+    let resp = client
+        .list_tags_for_resource()
+        .resource_arn(arn)
+        .send()
+        .await
+        .expect("list_tags_for_resource should succeed");
+    tag_pairs(resp.tags())
+}
+
+/// moto's `RULES` / `TARGETS` fixture ( `generate_environment` ): rules
+/// `test1` - `test3`, `test2` created with a tag, and six Lambda targets
+/// spread over them.
+async fn generate_moto_environment(client: &aws_sdk_eventbridge::Client, add_targets: bool) {
+    let rules: [(&str, Option<&str>, Option<&str>, Option<(&str, &str)>); 3] = [
+        ("test1", Some("rate(5 minutes)"), None, None),
+        (
+            "test2",
+            Some("rate(1 minute)"),
+            None,
+            Some(("tagk1", "tagv1")),
+        ),
+        ("test3", None, Some(r#"{"source": ["test-source"]}"#), None),
+    ];
+    let targets: [(&str, &[&str]); 6] = [
+        ("test-target-1", &["test1", "test2"]),
+        ("test-target-2", &["test1", "test3"]),
+        ("test-target-3", &["test1", "test2"]),
+        ("test-target-4", &["test1", "test3"]),
+        ("test-target-5", &["test1", "test2"]),
+        ("test-target-6", &["test1", "test3"]),
+    ];
+    for (name, schedule, pattern, rule_tag) in rules {
+        let mut req = client
+            .put_rule()
+            .name(name)
+            .schedule_expression(schedule.unwrap_or(""))
+            .event_pattern(pattern.unwrap_or(""));
+        if let Some((k, v)) = rule_tag {
+            req = req.tags(tag(k, v));
+        }
+        req.send().await.unwrap();
+
+        if add_targets {
+            let mut req = client.put_targets().rule(name);
+            for (id, on_rules) in targets {
+                if on_rules.contains(&name) {
+                    let n = id.trim_start_matches("test-target-");
+                    req = req.targets(
+                        aws_sdk_eventbridge::types::Target::builder()
+                            .id(id)
+                            .arn(format!(
+                                "arn:aws:lambda:us-west-2:111111111111:function:test-function-{n}"
+                            ))
+                            .build()
+                            .unwrap(),
+                    );
+                }
+            }
+            req.send().await.unwrap();
+        }
+    }
+}
+
+async fn make_events_client_with_handle() -> (
+    aws_sdk_eventbridge::Client,
+    std::sync::Arc<EventBridgeService>,
+) {
+    let handle = std::sync::Arc::new(EventBridgeService::new());
+    let mock = MockAws::builder().with_service(handle.clone()).build();
+    let config = aws_config::defaults(BehaviorVersion::latest())
+        .http_client(mock.http_client())
+        .credentials_provider(mock.credentials_provider())
+        .region(aws_sdk_eventbridge::config::Region::new("us-east-1"))
+        .load()
+        .await;
+    (aws_sdk_eventbridge::Client::new(&config), handle)
+}
+
+#[tokio::test]
+async fn test_put_rule_with_tags_is_listed_by_list_tags_for_resource() {
+    // Regression test for issue #67: PutRule dropped `Tags`.
+    let client = make_events_client().await;
+
+    let arn = client
+        .put_rule()
+        .name("wb-tag-rule")
+        .schedule_expression("rate(1 hour)")
+        .tags(tag("app", "wb"))
+        .send()
+        .await
+        .unwrap()
+        .rule_arn()
+        .unwrap()
+        .to_string();
+    assert_eq!(
+        arn,
+        format!("arn:aws:events:us-east-1:{ACCOUNT_ID}:rule/wb-tag-rule")
+    );
+    assert_eq!(list_tags(&client, &arn).await, pairs(&[("app", "wb")]));
+
+    // TagResource adds to the tags PutRule set.
+    client
+        .tag_resource()
+        .resource_arn(&arn)
+        .tags(tag("team", "wb"))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        list_tags(&client, &arn).await,
+        pairs(&[("app", "wb"), ("team", "wb")])
+    );
+}
+
+#[tokio::test]
+async fn test_put_rule_update_ignores_tags() {
+    // AWS: "If you are updating an existing rule, any tags you specify in the
+    // PutRule operation are ignored."
+    let client = make_events_client().await;
+
+    let arn = client
+        .put_rule()
+        .name("tags-on-create")
+        .schedule_expression("rate(1 hour)")
+        .tags(tag("env", "dev"))
+        .send()
+        .await
+        .unwrap()
+        .rule_arn()
+        .unwrap()
+        .to_string();
+
+    let updated_arn = client
+        .put_rule()
+        .name("tags-on-create")
+        .schedule_expression("rate(2 hours)")
+        .tags(tag("env", "prod"))
+        .tags(tag("extra", "x"))
+        .send()
+        .await
+        .unwrap()
+        .rule_arn()
+        .unwrap()
+        .to_string();
+    assert_eq!(updated_arn, arn);
+    assert_eq!(list_tags(&client, &arn).await, pairs(&[("env", "dev")]));
+
+    // An update without Tags does not clear them either.
+    client
+        .put_rule()
+        .name("tags-on-create")
+        .schedule_expression("rate(3 hours)")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(list_tags(&client, &arn).await, pairs(&[("env", "dev")]));
+
+    // The update itself was applied.
+    let desc = client
+        .describe_rule()
+        .name("tags-on-create")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(desc.schedule_expression(), Some("rate(3 hours)"));
+}
+
+#[tokio::test]
+async fn test_put_rule_role_arn_round_trip() {
+    let client = make_events_client().await;
+    let role = format!("arn:aws:iam::{ACCOUNT_ID}:role/rule-role");
+
+    client
+        .put_rule()
+        .name("role-rule")
+        .event_pattern(r#"{"source": ["app"]}"#)
+        .role_arn(&role)
+        .send()
+        .await
+        .unwrap();
+
+    let desc = client
+        .describe_rule()
+        .name("role-rule")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(desc.role_arn(), Some(role.as_str()));
+
+    let listed = client.list_rules().send().await.unwrap();
+    assert_eq!(listed.rules().len(), 1);
+    assert_eq!(listed.rules()[0].role_arn(), Some(role.as_str()));
+
+    // PutRule replaces every member but Tags, so omitting RoleArn clears it.
+    client
+        .put_rule()
+        .name("role-rule")
+        .event_pattern(r#"{"source": ["app"]}"#)
+        .send()
+        .await
+        .unwrap();
+    let desc = client
+        .describe_rule()
+        .name("role-rule")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(desc.role_arn(), None);
+}
+
+#[tokio::test]
+async fn test_put_rule_state_enabled_with_all_cloudtrail_management_events() {
+    let client = make_events_client().await;
+    client
+        .put_rule()
+        .name("ct-rule")
+        .event_pattern(r#"{"source": ["aws.ec2"]}"#)
+        .state(aws_sdk_eventbridge::types::RuleState::EnabledWithAllCloudtrailManagementEvents)
+        .send()
+        .await
+        .unwrap();
+    let desc = client.describe_rule().name("ct-rule").send().await.unwrap();
+    assert_eq!(
+        desc.state(),
+        Some(&aws_sdk_eventbridge::types::RuleState::EnabledWithAllCloudtrailManagementEvents)
+    );
+}
+
+// Ported from moto: test_events.py::test_create_rule_with_tags
+#[tokio::test]
+async fn test_moto_create_rule_with_tags() {
+    let client = make_events_client().await;
+    generate_moto_environment(&client, true).await;
+
+    let rule_arn = client
+        .describe_rule()
+        .name("test2")
+        .send()
+        .await
+        .unwrap()
+        .arn()
+        .unwrap()
+        .to_string();
+    let actual = client
+        .list_tags_for_resource()
+        .resource_arn(&rule_arn)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(actual.tags(), [tag("tagk1", "tagv1")]);
+}
+
+// Ported from moto: test_events.py::test_delete_rule_with_tags
+#[tokio::test]
+async fn test_moto_delete_rule_with_tags() {
+    let client = make_events_client().await;
+    generate_moto_environment(&client, false).await;
+
+    let rule_arn = client
+        .describe_rule()
+        .name("test2")
+        .send()
+        .await
+        .unwrap()
+        .arn()
+        .unwrap()
+        .to_string();
+    client.delete_rule().name("test2").send().await.unwrap();
+
+    let err = client
+        .list_tags_for_resource()
+        .resource_arn(&rule_arn)
+        .send()
+        .await
+        .unwrap_err();
+    assert_eq!(
+        error_code_and_message(&err).1,
+        "Rule test2 does not exist on EventBus default."
+    );
+
+    let err = client
+        .describe_rule()
+        .name("test2")
+        .send()
+        .await
+        .unwrap_err();
+    assert_eq!(error_code_and_message(&err).1, "Rule test2 does not exist.");
+}
+
+// Ported from moto: test_events.py::test_tag_resource_error_unknown_arn
+#[tokio::test]
+async fn test_moto_tag_resource_error_unknown_arn() {
+    let client = make_events_client().await;
+    let err = client
+        .tag_resource()
+        .resource_arn(format!(
+            "arn:aws:events:us-east-1:{ACCOUNT_ID}:rule/unknown"
+        ))
+        .set_tags(Some(vec![]))
+        .send()
+        .await
+        .unwrap_err();
+    assert_eq!(err.raw_response().map(|r| r.status().as_u16()), Some(400));
+    assert_eq!(
+        error_code_and_message(&err),
+        (
+            "ResourceNotFoundException".to_string(),
+            "Rule unknown does not exist on EventBus default.".to_string()
+        )
+    );
+}
+
+// Ported from moto: test_events.py::test_untag_resource_error_unknown_arn
+#[tokio::test]
+async fn test_moto_untag_resource_error_unknown_arn() {
+    let client = make_events_client().await;
+    let err = client
+        .untag_resource()
+        .resource_arn(format!(
+            "arn:aws:events:us-east-1:{ACCOUNT_ID}:rule/unknown"
+        ))
+        .set_tag_keys(Some(vec![]))
+        .send()
+        .await
+        .unwrap_err();
+    assert_eq!(err.raw_response().map(|r| r.status().as_u16()), Some(400));
+    assert_eq!(
+        error_code_and_message(&err),
+        (
+            "ResourceNotFoundException".to_string(),
+            "Rule unknown does not exist on EventBus default.".to_string()
+        )
+    );
+}
+
+// Ported from moto: test_events.py::test_list_tags_for_resource_error_unknown_arn
+#[tokio::test]
+async fn test_moto_list_tags_for_resource_error_unknown_arn() {
+    let client = make_events_client().await;
+    let err = client
+        .list_tags_for_resource()
+        .resource_arn(format!(
+            "arn:aws:events:us-east-1:{ACCOUNT_ID}:rule/unknown"
+        ))
+        .send()
+        .await
+        .unwrap_err();
+    assert_eq!(err.raw_response().map(|r| r.status().as_u16()), Some(400));
+    assert_eq!(
+        error_code_and_message(&err),
+        (
+            "ResourceNotFoundException".to_string(),
+            "Rule unknown does not exist on EventBus default.".to_string()
+        )
+    );
+}
+
+// Ported from moto: test_events.py::test_put_rule__where_event_bus_name_is_arn
+#[tokio::test]
+async fn test_moto_put_rule_where_event_bus_name_is_arn() {
+    let client = make_events_client().await;
+    let event_bus_arn = client
+        .create_event_bus()
+        .name("test-bus")
+        .send()
+        .await
+        .unwrap()
+        .event_bus_arn()
+        .unwrap()
+        .to_string();
+
+    let rule_arn = client
+        .put_rule()
+        .name("my-event")
+        .event_pattern(r#"{"source": ["test-source"]}"#)
+        .event_bus_name(&event_bus_arn)
+        .send()
+        .await
+        .unwrap()
+        .rule_arn()
+        .unwrap()
+        .to_string();
+    assert_eq!(
+        rule_arn,
+        format!("arn:aws:events:us-east-1:{ACCOUNT_ID}:rule/test-bus/my-event")
+    );
+
+    // The bus is stored by name, whichever form addressed it.
+    let desc = client
+        .describe_rule()
+        .name("my-event")
+        .event_bus_name(&event_bus_arn)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(desc.event_bus_name(), Some("test-bus"));
+}
+
+// Ported from moto: test_events.py::test_put_rule_error_schedule_expression_custom_event_bus
+#[tokio::test]
+async fn test_moto_put_rule_error_schedule_expression_custom_event_bus() {
+    let client = make_events_client().await;
+    client
+        .create_event_bus()
+        .name("test-bus")
+        .send()
+        .await
+        .unwrap();
+
+    let err = client
+        .put_rule()
+        .name("test-rule")
+        .schedule_expression("rate(5 minutes)")
+        .event_bus_name("test-bus")
+        .send()
+        .await
+        .unwrap_err();
+    assert_eq!(err.raw_response().map(|r| r.status().as_u16()), Some(400));
+    assert_eq!(
+        error_code_and_message(&err),
+        (
+            "ValidationException".to_string(),
+            "ScheduleExpression is supported only on the default event bus.".to_string()
+        )
+    );
+}
+
+#[tokio::test]
+async fn test_put_rule_on_unknown_event_bus() {
+    let client = make_events_client().await;
+    let err = client
+        .put_rule()
+        .name("orphan")
+        .event_pattern(r#"{"source": ["app"]}"#)
+        .event_bus_name("no-such-bus")
+        .send()
+        .await
+        .unwrap_err();
+    assert_eq!(
+        error_code_and_message(&err),
+        (
+            "ResourceNotFoundException".to_string(),
+            "Event bus no-such-bus does not exist.".to_string()
+        )
+    );
+}
+
+// Ported from moto: test_events.py::test_describe_rule_with_event_bus_name
+#[tokio::test]
+async fn test_moto_describe_rule_with_event_bus_name() {
+    let client = make_events_client().await;
+    let event_bus_name = "test-bus";
+    let rule_name = "test-rule";
+    client
+        .create_event_bus()
+        .name(event_bus_name)
+        .send()
+        .await
+        .unwrap();
+    client
+        .put_rule()
+        .name(rule_name)
+        .event_pattern(serde_json::json!({"account": [ACCOUNT_ID]}).to_string())
+        .state(aws_sdk_eventbridge::types::RuleState::Disabled)
+        .description("test rule")
+        .role_arn(format!("arn:aws:iam::{ACCOUNT_ID}:role/test-role"))
+        .event_bus_name(event_bus_name)
+        .send()
+        .await
+        .unwrap();
+
+    let response = client
+        .describe_rule()
+        .name(rule_name)
+        .event_bus_name(event_bus_name)
+        .send()
+        .await
+        .unwrap();
+
+    assert_eq!(
+        response.arn(),
+        Some(
+            format!("arn:aws:events:us-east-1:{ACCOUNT_ID}:rule/{event_bus_name}/{rule_name}")
+                .as_str()
+        )
+    );
+    assert_eq!(response.created_by(), Some(ACCOUNT_ID));
+    assert_eq!(response.description(), Some("test rule"));
+    assert_eq!(response.event_bus_name(), Some(event_bus_name));
+    assert_eq!(
+        serde_json::from_str::<serde_json::Value>(response.event_pattern().unwrap()).unwrap(),
+        serde_json::json!({"account": [ACCOUNT_ID]})
+    );
+    assert_eq!(response.name(), Some(rule_name));
+    assert_eq!(
+        response.role_arn(),
+        Some(format!("arn:aws:iam::{ACCOUNT_ID}:role/test-role").as_str())
+    );
+    assert_eq!(
+        response.state(),
+        Some(&aws_sdk_eventbridge::types::RuleState::Disabled)
+    );
+    assert!(response.managed_by().is_none());
+    assert!(response.schedule_expression().is_none());
+
+    // Without EventBusName the default bus is searched, which has no such rule.
+    let err = client
+        .describe_rule()
+        .name(rule_name)
+        .send()
+        .await
+        .unwrap_err();
+    assert_eq!(error_code_and_message(&err).0, "ResourceNotFoundException");
+}
+
+#[tokio::test]
+async fn test_same_rule_name_on_default_and_custom_bus() {
+    let client = make_events_client().await;
+    client
+        .create_event_bus()
+        .name("orders")
+        .send()
+        .await
+        .unwrap();
+
+    let default_arn = client
+        .put_rule()
+        .name("shared")
+        .event_pattern(r#"{"source": ["default.app"]}"#)
+        .description("on default")
+        .send()
+        .await
+        .unwrap()
+        .rule_arn()
+        .unwrap()
+        .to_string();
+    let custom_arn = client
+        .put_rule()
+        .name("shared")
+        .event_pattern(r#"{"source": ["orders.app"]}"#)
+        .description("on orders")
+        .event_bus_name("orders")
+        .send()
+        .await
+        .unwrap()
+        .rule_arn()
+        .unwrap()
+        .to_string();
+    assert_eq!(
+        default_arn,
+        format!("arn:aws:events:us-east-1:{ACCOUNT_ID}:rule/shared")
+    );
+    assert_eq!(
+        custom_arn,
+        format!("arn:aws:events:us-east-1:{ACCOUNT_ID}:rule/orders/shared")
+    );
+
+    // Each bus describes its own rule.
+    let d = client.describe_rule().name("shared").send().await.unwrap();
+    assert_eq!(d.description(), Some("on default"));
+    assert_eq!(d.arn(), Some(default_arn.as_str()));
+    assert_eq!(d.event_bus_name(), Some("default"));
+    let c = client
+        .describe_rule()
+        .name("shared")
+        .event_bus_name("orders")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(c.description(), Some("on orders"));
+    assert_eq!(c.arn(), Some(custom_arn.as_str()));
+    assert_eq!(c.event_bus_name(), Some("orders"));
+
+    // ListRules lists one bus at a time.
+    let listed = client.list_rules().send().await.unwrap();
+    assert_eq!(listed.rules().len(), 1);
+    assert_eq!(listed.rules()[0].arn(), Some(default_arn.as_str()));
+    let listed = client
+        .list_rules()
+        .event_bus_name("orders")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(listed.rules().len(), 1);
+    assert_eq!(listed.rules()[0].arn(), Some(custom_arn.as_str()));
+    assert_eq!(listed.rules()[0].event_bus_name(), Some("orders"));
+
+    // DisableRule / EnableRule address one bus.
+    client
+        .disable_rule()
+        .name("shared")
+        .event_bus_name("orders")
+        .send()
+        .await
+        .unwrap();
+    let c = client
+        .describe_rule()
+        .name("shared")
+        .event_bus_name("orders")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        c.state(),
+        Some(&aws_sdk_eventbridge::types::RuleState::Disabled)
+    );
+    let d = client.describe_rule().name("shared").send().await.unwrap();
+    assert_eq!(
+        d.state(),
+        Some(&aws_sdk_eventbridge::types::RuleState::Enabled)
+    );
+    client
+        .enable_rule()
+        .name("shared")
+        .event_bus_name("orders")
+        .send()
+        .await
+        .unwrap();
+    let c = client
+        .describe_rule()
+        .name("shared")
+        .event_bus_name("orders")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        c.state(),
+        Some(&aws_sdk_eventbridge::types::RuleState::Enabled)
+    );
+
+    // Targets are per bus, and so is ListRuleNamesByTarget.
+    let target_arn = "arn:aws:sqs:us-east-1:123456789012:orders-queue";
+    client
+        .put_targets()
+        .rule("shared")
+        .event_bus_name("orders")
+        .targets(
+            aws_sdk_eventbridge::types::Target::builder()
+                .id("q")
+                .arn(target_arn)
+                .build()
+                .unwrap(),
+        )
+        .send()
+        .await
+        .unwrap();
+    let on_default = client
+        .list_targets_by_rule()
+        .rule("shared")
+        .send()
+        .await
+        .unwrap();
+    assert!(on_default.targets().is_empty());
+    let on_orders = client
+        .list_targets_by_rule()
+        .rule("shared")
+        .event_bus_name("orders")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(on_orders.targets().len(), 1);
+    let names = client
+        .list_rule_names_by_target()
+        .target_arn(target_arn)
+        .send()
+        .await
+        .unwrap();
+    assert!(names.rule_names().is_empty());
+    let names = client
+        .list_rule_names_by_target()
+        .target_arn(target_arn)
+        .event_bus_name("orders")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(names.rule_names(), ["shared"]);
+
+    // DeleteRule on the custom bus needs its targets removed first, and then
+    // leaves the default-bus rule alone.
+    let err = client
+        .delete_rule()
+        .name("shared")
+        .event_bus_name("orders")
+        .send()
+        .await
+        .unwrap_err();
+    assert_eq!(error_code_and_message(&err).0, "ValidationException");
+    client
+        .remove_targets()
+        .rule("shared")
+        .event_bus_name("orders")
+        .ids("q")
+        .send()
+        .await
+        .unwrap();
+    client
+        .delete_rule()
+        .name("shared")
+        .event_bus_name("orders")
+        .send()
+        .await
+        .unwrap();
+    let listed = client
+        .list_rules()
+        .event_bus_name("orders")
+        .send()
+        .await
+        .unwrap();
+    assert!(listed.rules().is_empty());
+    let d = client.describe_rule().name("shared").send().await.unwrap();
+    assert_eq!(d.arn(), Some(default_arn.as_str()));
+}
+
+#[tokio::test]
+async fn test_tag_rule_on_custom_bus_by_arn() {
+    let client = make_events_client().await;
+    client
+        .create_event_bus()
+        .name("orders")
+        .send()
+        .await
+        .unwrap();
+    let default_arn = client
+        .put_rule()
+        .name("tagged")
+        .event_pattern(r#"{"source": ["a"]}"#)
+        .tags(tag("bus", "default"))
+        .send()
+        .await
+        .unwrap()
+        .rule_arn()
+        .unwrap()
+        .to_string();
+    let custom_arn = client
+        .put_rule()
+        .name("tagged")
+        .event_pattern(r#"{"source": ["a"]}"#)
+        .event_bus_name("orders")
+        .tags(tag("bus", "orders"))
+        .send()
+        .await
+        .unwrap()
+        .rule_arn()
+        .unwrap()
+        .to_string();
+
+    assert_eq!(
+        list_tags(&client, &custom_arn).await,
+        pairs(&[("bus", "orders")])
+    );
+    client
+        .tag_resource()
+        .resource_arn(&custom_arn)
+        .tags(tag("team", "fulfilment"))
+        .send()
+        .await
+        .unwrap();
+    client
+        .untag_resource()
+        .resource_arn(&custom_arn)
+        .tag_keys("bus")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        list_tags(&client, &custom_arn).await,
+        pairs(&[("team", "fulfilment")])
+    );
+    // The default-bus rule of the same name keeps its own tags.
+    assert_eq!(
+        list_tags(&client, &default_arn).await,
+        pairs(&[("bus", "default")])
+    );
+
+    // A custom-bus rule ARN for a rule that does not exist names the bus.
+    let err = client
+        .list_tags_for_resource()
+        .resource_arn(format!(
+            "arn:aws:events:us-east-1:{ACCOUNT_ID}:rule/orders/missing"
+        ))
+        .send()
+        .await
+        .unwrap_err();
+    assert_eq!(
+        error_code_and_message(&err),
+        (
+            "ResourceNotFoundException".to_string(),
+            "Rule missing does not exist on EventBus orders.".to_string()
+        )
+    );
+
+    // Deleting the custom-bus rule drops its tags only.
+    client
+        .delete_rule()
+        .name("tagged")
+        .event_bus_name("orders")
+        .send()
+        .await
+        .unwrap();
+    assert!(
+        client
+            .list_tags_for_resource()
+            .resource_arn(&custom_arn)
+            .send()
+            .await
+            .is_err()
+    );
+    assert_eq!(
+        list_tags(&client, &default_arn).await,
+        pairs(&[("bus", "default")])
+    );
+}
+
+// Ported from moto: test_events.py::test_list_targets_by_rule_for_different_event_bus
+#[tokio::test]
+async fn test_moto_list_targets_by_rule_for_different_event_bus() {
+    let client = make_events_client().await;
+    generate_moto_environment(&client, true).await;
+
+    client
+        .create_event_bus()
+        .name("newEventBus")
+        .send()
+        .await
+        .unwrap();
+    client
+        .put_rule()
+        .name("test1")
+        .event_bus_name("newEventBus")
+        .event_pattern("{}")
+        .send()
+        .await
+        .unwrap();
+    client
+        .put_targets()
+        .rule("test1")
+        .event_bus_name("newEventBus")
+        .targets(
+            aws_sdk_eventbridge::types::Target::builder()
+                .id("newtarget")
+                .arn("arn:")
+                .build()
+                .unwrap(),
+        )
+        .send()
+        .await
+        .unwrap();
+
+    // Total targets with this rule is 7, but if EventBusName is omitted the
+    // default event bus is used.
+    let targets = client
+        .list_targets_by_rule()
+        .rule("test1")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(targets.targets().len(), 6);
+
+    let targets = client
+        .list_targets_by_rule()
+        .rule("test1")
+        .event_bus_name("default")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(targets.targets().len(), 6);
+
+    let targets = client
+        .list_targets_by_rule()
+        .rule("test1")
+        .event_bus_name("newEventBus")
+        .send()
+        .await
+        .unwrap();
+    let ids: Vec<&str> = targets.targets().iter().map(|t| t.id()).collect();
+    assert_eq!(ids, ["newtarget"]);
+}
+
+// Ported from moto: test_events.py::test_list_rules_with_token
+#[tokio::test]
+async fn test_moto_list_rules_with_token() {
+    let client = make_events_client().await;
+    generate_moto_environment(&client, true).await;
+
+    let response = client.list_rules().send().await.unwrap();
+    assert!(response.next_token().is_none());
+    assert_eq!(response.rules().len(), 3);
+
+    let response = client.list_rules().limit(1).send().await.unwrap();
+    assert!(response.next_token().is_some());
+    assert_eq!(response.rules().len(), 1);
+
+    let response = client
+        .list_rules()
+        .next_token(response.next_token().unwrap())
+        .send()
+        .await
+        .unwrap();
+    assert!(response.next_token().is_none());
+    assert_eq!(response.rules().len(), 2);
+}
+
+// Ported from moto: test_events.py::test_list_rules_with_prefix_and_token
+#[tokio::test]
+async fn test_moto_list_rules_with_prefix_and_token() {
+    let client = make_events_client().await;
+    generate_moto_environment(&client, true).await;
+
+    let response = client
+        .list_rules()
+        .name_prefix("test")
+        .send()
+        .await
+        .unwrap();
+    assert!(response.next_token().is_none());
+    assert_eq!(response.rules().len(), 3);
+
+    let response = client
+        .list_rules()
+        .name_prefix("test")
+        .limit(1)
+        .send()
+        .await
+        .unwrap();
+    assert!(response.next_token().is_some());
+    assert_eq!(response.rules().len(), 1);
+
+    let response = client
+        .list_rules()
+        .name_prefix("test")
+        .next_token(response.next_token().unwrap())
+        .send()
+        .await
+        .unwrap();
+    assert!(response.next_token().is_none());
+    assert_eq!(response.rules().len(), 2);
+}
+
+// Ported from moto: test_events.py::test_list_rule_names_by_target
+#[tokio::test]
+async fn test_moto_list_rule_names_by_target() {
+    let client = make_events_client().await;
+    generate_moto_environment(&client, true).await;
+
+    let target_1 = "arn:aws:lambda:us-west-2:111111111111:function:test-function-1";
+    let rules = client
+        .list_rule_names_by_target()
+        .target_arn(target_1)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(rules.rule_names().len(), 2);
+    for rule in rules.rule_names() {
+        assert!(["test1", "test2"].contains(&rule.as_str()));
+    }
+
+    let target_2 = "arn:aws:lambda:us-west-2:111111111111:function:test-function-2";
+    let rules = client
+        .list_rule_names_by_target()
+        .target_arn(target_2)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(rules.rule_names().len(), 2);
+    for rule in rules.rule_names() {
+        assert!(["test1", "test3"].contains(&rule.as_str()));
+    }
+}
+
+// Ported from moto: test_events.py::test_list_rule_names_by_target_deduplicates_rule_names_for_same_target_arn
+#[tokio::test]
+async fn test_moto_list_rule_names_by_target_deduplicates_rule_names_for_same_target_arn() {
+    let client = make_events_client().await;
+    let rule_name = "rule-with-duplicate-target-arn";
+    let target_arn = "arn:aws:lambda:us-east-1:123456789012:function:test";
+
+    client
+        .put_rule()
+        .name(rule_name)
+        .event_pattern(r#"{"source": ["test-source"]}"#)
+        .send()
+        .await
+        .unwrap();
+    let mut req = client.put_targets().rule(rule_name);
+    for id in ["target-1", "target-2"] {
+        req = req.targets(
+            aws_sdk_eventbridge::types::Target::builder()
+                .id(id)
+                .arn(target_arn)
+                .build()
+                .unwrap(),
+        );
+    }
+    req.send().await.unwrap();
+
+    let response = client
+        .list_rule_names_by_target()
+        .target_arn(target_arn)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(response.rule_names(), [rule_name]);
+}
+
+// Ported from moto: test_events.py::test_list_rule_names_by_target_using_limit
+#[tokio::test]
+async fn test_moto_list_rule_names_by_target_using_limit() {
+    let client = make_events_client().await;
+    generate_moto_environment(&client, true).await;
+    let target_1 = "arn:aws:lambda:us-west-2:111111111111:function:test-function-1";
+
+    let response = client
+        .list_rule_names_by_target()
+        .target_arn(target_1)
+        .limit(1)
+        .send()
+        .await
+        .unwrap();
+    assert!(response.next_token().is_some());
+    assert_eq!(response.rule_names().len(), 1);
+
+    let response = client
+        .list_rule_names_by_target()
+        .target_arn(target_1)
+        .next_token(response.next_token().unwrap())
+        .send()
+        .await
+        .unwrap();
+    assert!(response.next_token().is_none());
+    assert_eq!(response.rule_names().len(), 1);
+}
+
+// Ported from moto: test_events.py::test_list_targets_by_rule_pagination
+#[tokio::test]
+async fn test_moto_list_targets_by_rule_pagination() {
+    let client = make_events_client().await;
+    generate_moto_environment(&client, true).await;
+
+    let page1 = client
+        .list_targets_by_rule()
+        .rule("test1")
+        .limit(1)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(page1.targets().len(), 1);
+    assert!(page1.next_token().is_some());
+
+    let page2 = client
+        .list_targets_by_rule()
+        .rule("test1")
+        .next_token(page1.next_token().unwrap())
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(page2.targets().len(), 5);
+
+    let large_page = client
+        .list_targets_by_rule()
+        .rule("test1")
+        .limit(4)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(large_page.targets().len(), 4);
+}
+
+#[tokio::test]
+async fn test_rule_tags_and_bus_survive_snapshot_and_restore() {
+    use winterbaume_core::StatefulService;
+
+    let (client, handle) = make_events_client_with_handle().await;
+    client
+        .create_event_bus()
+        .name("orders")
+        .send()
+        .await
+        .unwrap();
+    client
+        .put_rule()
+        .name("snap")
+        .event_pattern(r#"{"source": ["a"]}"#)
+        .tags(tag("k", "default"))
+        .send()
+        .await
+        .unwrap();
+    let custom_arn = client
+        .put_rule()
+        .name("snap")
+        .event_pattern(r#"{"source": ["a"]}"#)
+        .event_bus_name("orders")
+        .role_arn("arn:aws:iam::123456789012:role/r")
+        .tags(tag("k", "orders"))
+        .send()
+        .await
+        .unwrap()
+        .rule_arn()
+        .unwrap()
+        .to_string();
+
+    let view = handle.snapshot(ACCOUNT_ID, "us-east-1").await;
+    assert_eq!(view.rules.len(), 2);
+    let custom = &view.rules["orders/snap"];
+    assert_eq!(custom.event_bus_name, "orders");
+    assert_eq!(custom.arn, custom_arn);
+    assert_eq!(
+        custom.role_arn.as_deref(),
+        Some("arn:aws:iam::123456789012:role/r")
+    );
+    assert_eq!(custom.tags.len(), 1);
+    assert_eq!(custom.tags[0].value, "orders");
+    assert_eq!(view.rules["snap"].tags[0].value, "default");
+
+    let json = serde_json::to_string(&view).unwrap();
+    let (client2, handle2) = make_events_client_with_handle().await;
+    handle2
+        .restore(
+            ACCOUNT_ID,
+            "us-east-1",
+            serde_json::from_str(&json).unwrap(),
+        )
+        .await
+        .unwrap();
+    let c = client2
+        .describe_rule()
+        .name("snap")
+        .event_bus_name("orders")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(c.arn(), Some(custom_arn.as_str()));
+    assert_eq!(c.role_arn(), Some("arn:aws:iam::123456789012:role/r"));
+    assert_eq!(
+        list_tags(&client2, &custom_arn).await,
+        pairs(&[("k", "orders")])
+    );
+}
+
+#[tokio::test]
+async fn test_restore_snapshot_from_before_bus_scoping() {
+    use winterbaume_core::StatefulService;
+
+    // Before rules were bus-scoped, `rules` was keyed by name, a rule on a
+    // custom bus had the ARN `rule/<name>`, and the tag store used that ARN.
+    // `legacy-tf` is the shape the Terraform rule converter wrote: tags only
+    // on the rule, not in the tag store, and no `event_bus_name`.
+    let json = serde_json::json!({
+        "event_buses": {
+            "default": {"name": "default", "arn": "arn:aws:events:us-east-1:123456789012:event-bus/default", "policy": null},
+            "orders": {"name": "orders", "arn": "arn:aws:events:us-east-1:123456789012:event-bus/orders", "policy": null}
+        },
+        "rules": {
+            "legacy": {
+                "name": "legacy",
+                "arn": "arn:aws:events:us-east-1:123456789012:rule/legacy",
+                "event_pattern": "{\"source\": [\"a\"]}",
+                "schedule_expression": null,
+                "state": "ENABLED",
+                "description": null,
+                "event_bus_name": "orders",
+                "targets": [],
+                "tags": []
+            },
+            "legacy-tf": {
+                "name": "legacy-tf",
+                "arn": "arn:aws:events:us-east-1:123456789012:rule/legacy-tf",
+                "event_pattern": null,
+                "schedule_expression": "rate(1 hour)",
+                "state": "ENABLED",
+                "description": null,
+                "tags": [{"key": "Environment", "value": "test"}]
+            }
+        },
+        "tags": {
+            "arn:aws:events:us-east-1:123456789012:rule/legacy": [{"key": "old", "value": "tag"}]
+        }
+    });
+    let (client, handle) = make_events_client_with_handle().await;
+    handle
+        .restore(
+            ACCOUNT_ID,
+            "us-east-1",
+            serde_json::from_value(json).unwrap(),
+        )
+        .await
+        .unwrap();
+
+    let migrated = format!("arn:aws:events:us-east-1:{ACCOUNT_ID}:rule/orders/legacy");
+    let desc = client
+        .describe_rule()
+        .name("legacy")
+        .event_bus_name("orders")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(desc.arn(), Some(migrated.as_str()));
+    assert_eq!(
+        list_tags(&client, &migrated).await,
+        pairs(&[("old", "tag")])
+    );
+
+    let tf_arn = format!("arn:aws:events:us-east-1:{ACCOUNT_ID}:rule/legacy-tf");
+    let desc = client
+        .describe_rule()
+        .name("legacy-tf")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(desc.event_bus_name(), Some("default"));
+    assert_eq!(
+        list_tags(&client, &tf_arn).await,
+        pairs(&[("Environment", "test")])
+    );
+}
+
+#[tokio::test]
+async fn test_create_event_bus_with_tags_and_description() {
+    // The same defect as issue #67 on CreateEventBus: `Tags` were dropped,
+    // which makes `aws_cloudwatch_event_bus` drift under `default_tags`.
+    let client = make_events_client().await;
+    let resp = client
+        .create_event_bus()
+        .name("tagged-bus")
+        .description("bus for orders")
+        .tags(tag("ManagedBy", "tf"))
+        .send()
+        .await
+        .unwrap();
+    let arn = resp.event_bus_arn().unwrap().to_string();
+    assert_eq!(resp.description(), Some("bus for orders"));
+    assert_eq!(
+        list_tags(&client, &arn).await,
+        pairs(&[("ManagedBy", "tf")])
+    );
+
+    let desc = client
+        .describe_event_bus()
+        .name("tagged-bus")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(desc.description(), Some("bus for orders"));
+
+    // Deleting the bus drops its tags; a bus created again with the same
+    // name starts untagged.
+    client
+        .delete_event_bus()
+        .name("tagged-bus")
+        .send()
+        .await
+        .unwrap();
+    client
+        .create_event_bus()
+        .name("tagged-bus")
+        .send()
+        .await
+        .unwrap();
+    assert!(list_tags(&client, &arn).await.is_empty());
 }

@@ -1340,6 +1340,161 @@ async fn test_inject_eventbridge_rule_and_target() {
     assert_eq!(view.rules["daily-job"].targets[0].id, "MyLambdaTarget");
 }
 
+#[tokio::test]
+async fn test_inject_eventbridge_rule_tags_and_custom_bus() {
+    // Issue #67: tags and role_arn of an injected rule must be visible
+    // through the API, and a rule on a custom bus gets the
+    // `rule/<bus>/<name>` ARN and the `<bus>/<name>` Terraform ID.
+    use winterbaume_eventbridge::EventBridgeService;
+    use winterbaume_terraform::converters::events::{
+        AwsCloudwatchEventRuleConverter, AwsCloudwatchEventTargetConverter,
+    };
+
+    let events = Arc::new(EventBridgeService::new());
+    let ctx = default_ctx();
+
+    let mut injector = TerraformInjector::new();
+    injector.register(AwsCloudwatchEventRuleConverter::new(Arc::clone(&events)));
+    injector.register(AwsCloudwatchEventTargetConverter::new(Arc::clone(&events)));
+
+    let tfstate = make_tfstate(vec![
+        make_resource(
+            "aws_cloudwatch_event_rule",
+            "on_default",
+            json!({
+                "id": "shared",
+                "name": "shared",
+                "schedule_expression": "rate(1 day)",
+                "event_bus_name": "default",
+                "role_arn": "arn:aws:iam::123456789012:role/rule-role",
+                "tags": {"Environment": "test"},
+                "tags_all": {"Environment": "test", "ManagedBy": "tf"},
+            }),
+        ),
+        make_resource(
+            "aws_cloudwatch_event_rule",
+            "on_orders",
+            json!({
+                "id": "orders/shared",
+                "name": "shared",
+                "event_pattern": "{\"source\":[\"orders\"]}",
+                "event_bus_name": "arn:aws:events:us-east-1:123456789012:event-bus/orders",
+                "tags": {"Bus": "orders"},
+            }),
+        ),
+        make_resource(
+            "aws_cloudwatch_event_target",
+            "orders_target",
+            json!({
+                "rule": "shared",
+                "target_id": "q",
+                "arn": "arn:aws:sqs:us-east-1:123456789012:orders",
+                "event_bus_name": "orders",
+            }),
+        ),
+    ]);
+    let report = injector.inject_all(&tfstate, &ctx).await;
+    assert!(report.is_success(), "errors: {:?}", report.errors);
+
+    let view = events.snapshot(&ctx.default_account_id, "us-east-1").await;
+    assert_eq!(view.rules.len(), 2);
+    assert!(view.rules["shared"].targets.is_empty());
+    assert_eq!(view.rules["orders/shared"].targets.len(), 1);
+
+    let mock = MockAws::builder().with_service(Arc::clone(&events)).build();
+    let config = mock.sdk_config("us-east-1").await;
+    let client = aws_sdk_eventbridge::Client::new(&config);
+
+    let default_rule = client.describe_rule().name("shared").send().await.unwrap();
+    assert_eq!(
+        default_rule.arn(),
+        Some("arn:aws:events:us-east-1:123456789012:rule/shared")
+    );
+    assert_eq!(
+        default_rule.role_arn(),
+        Some("arn:aws:iam::123456789012:role/rule-role")
+    );
+    let tags = client
+        .list_tags_for_resource()
+        .resource_arn("arn:aws:events:us-east-1:123456789012:rule/shared")
+        .send()
+        .await
+        .unwrap();
+    let mut tags: Vec<(String, String)> = tags
+        .tags()
+        .iter()
+        .map(|t| (t.key().to_string(), t.value().to_string()))
+        .collect();
+    tags.sort();
+    assert_eq!(
+        tags,
+        vec![
+            ("Environment".to_string(), "test".to_string()),
+            ("ManagedBy".to_string(), "tf".to_string()),
+        ]
+    );
+
+    let orders_arn = "arn:aws:events:us-east-1:123456789012:rule/orders/shared";
+    let orders_rule = client
+        .describe_rule()
+        .name("shared")
+        .event_bus_name("orders")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(orders_rule.arn(), Some(orders_arn));
+    assert_eq!(orders_rule.event_bus_name(), Some("orders"));
+    let tags = client
+        .list_tags_for_resource()
+        .resource_arn(orders_arn)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(tags.tags().len(), 1);
+    assert_eq!(tags.tags()[0].key(), "Bus");
+    let targets = client
+        .list_targets_by_rule()
+        .rule("shared")
+        .event_bus_name("orders")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(targets.targets().len(), 1);
+
+    // Extraction gives the provider's IDs.
+    let rules = AwsCloudwatchEventRuleConverter::new(Arc::clone(&events))
+        .extract(&ctx)
+        .await
+        .unwrap();
+    let mut rule_ids: Vec<String> = rules
+        .iter()
+        .map(|r| r.attributes["id"].as_str().unwrap().to_string())
+        .collect();
+    rule_ids.sort();
+    assert_eq!(rule_ids, ["orders/shared", "shared"]);
+    let orders = rules
+        .iter()
+        .find(|r| r.attributes["id"] == "orders/shared")
+        .unwrap();
+    assert_eq!(orders.attributes["arn"], orders_arn);
+    assert_eq!(orders.attributes["tags"], json!({"Bus": "orders"}));
+    let shared = rules
+        .iter()
+        .find(|r| r.attributes["id"] == "shared")
+        .unwrap();
+    assert_eq!(
+        shared.attributes["role_arn"],
+        "arn:aws:iam::123456789012:role/rule-role"
+    );
+    let targets = AwsCloudwatchEventTargetConverter::new(Arc::clone(&events))
+        .extract(&ctx)
+        .await
+        .unwrap();
+    assert_eq!(targets.len(), 1);
+    assert_eq!(targets[0].attributes["id"], "orders-shared-q");
+    assert_eq!(targets[0].attributes["event_bus_name"], "orders");
+}
+
 /// A tfstate target carrying every nested block the converter reshapes.
 fn eventbridge_full_target_attributes() -> serde_json::Value {
     json!({
@@ -1815,7 +1970,9 @@ async fn test_extract_eventbridge_target_created_through_put_targets() {
     assert_eq!(extracted.len(), 1);
     let attrs = &extracted[0].attributes;
 
-    assert_eq!(attrs["id"], "api-made/FromApi");
+    // The provider's state ID joins rule and target with `-` ( the import ID
+    // uses `/` ); AWS provider 6.x writes `<rule>-<target>`.
+    assert_eq!(attrs["id"], "api-made-FromApi");
     assert_eq!(attrs["rule"], "api-made");
     assert_eq!(attrs["target_id"], "FromApi");
     assert_eq!(
