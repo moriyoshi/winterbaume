@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.3.0 - 2026-11-25
+
+### Terraform
+- `aws_sqs_queue`: `deduplication_scope` and `fifo_throughput_limit` (#64, #74).
+- `aws_cloudwatch_metric_alarm`: `extended_statistic`, `treat_missing_data`, `datapoints_to_alarm`, `evaluate_low_sample_count_percentiles` and `threshold_metric_id` (#68, #76).
+- `aws_cloudwatch_event_rule` and `aws_cloudwatch_event_target`: rules on a custom bus get bus-aware ARNs, and targets use the provider's `-`-joined state ID (#67, #75).
+- `aws_lambda_function`: VPC configuration, architectures, layers and the other function settings are translated to and from the Lambda state's `FunctionSettings`, and `kms_key_arn`, `package_type` and `image_uri` are carried (#62, #73).
+
+### Changed
+- Built against `winterbaume-lambda` v3.0.0, `winterbaume-tfstate-resource-models` v0.3.0 and the new SQS, CloudWatch, EventBridge and DynamoDB releases. Its public API re-exports `winterbaume-tfstate-resource-models` as `generated` and takes those services' types, so this is a breaking release.
+
 ## v0.2.7 - 2026-11-21
 
 ### Terraform

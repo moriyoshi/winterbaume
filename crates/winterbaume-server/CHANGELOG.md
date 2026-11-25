@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.2.10 - 2026-11-25
+
+### Added
+- `--relax RULE` ( repeatable, or a comma-separated list ), `WB_RELAX` or `relax = [...]` in the config file enables named relaxations of AWS request validation; none are enabled by default. An unknown name stops the server with the list of known ones, `--help` lists every rule, and each enabled rule is logged at startup. The first rule is `sts-assume-role-without-role-arn` (#77, #78).
+
+### Changed
+- Picks up the fixes in this release's service crates: atomic DynamoDB conditional writes (#61), Lambda function settings (#62), SQS FIFO parity (#64 – #66), EventBridge rule tags and bus scoping (#67), CloudWatch alarm settings and AWS JSON 1.0 (#68, #69), and EC2 security group descriptions.
+
 ## v0.2.9 - 2026-11-21
 
 ### Added

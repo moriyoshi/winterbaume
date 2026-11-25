@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.2 - 2026-11-25
+
+### Fixed
+- `CreateSecurityGroup` stores the group's description. It read `Description`, but the wire name is `GroupDescription`, so every group was stored as "No description" and Terraform planned to replace every `aws_security_group` (#73).
+- Form-encoded requests decode `+` as a space. The Go SDK, and so Terraform, encodes spaces that way; the Rust SDK sends `%20` (#73).
+
 ## v1.0.1 - 2026-11-21
 
 ### Internal

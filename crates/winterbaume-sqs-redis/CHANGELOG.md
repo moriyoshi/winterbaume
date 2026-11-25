@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.3.0 - 2026-11-25
+
+### Fixed
+- The FIFO fixes of `winterbaume-sqs` v0.3.0 in the Redis backend: deduplication scope, per-group delivery gating, `MessageGroupId`, `MessageDeduplicationId` and `SequenceNumber`, and SHA-256 content-based deduplication (#64 – #66, #74).
+
+### Changed
+- Built against `winterbaume-sqs` v0.3.0, whose `SqsBackend` it implements, so this is a breaking release.
+
 ## v0.2.2 - 2026-11-21
 
 ### Internal

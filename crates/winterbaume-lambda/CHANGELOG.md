@@ -1,5 +1,13 @@
 # Changelog
 
+## v3.0.0 - 2026-11-25
+
+### Fixed
+- `CreateFunction` and `UpdateFunctionConfiguration` store, and the function reads return, `VpcConfig`, `Architectures`, `EphemeralStorage`, `TracingConfig`, `LoggingConfig` and the other function settings they used to drop (#62, #73).
+
+### Changed
+- Breaking: function configuration is one API-shaped `FunctionSettings` ( `settings` ) on the stored function. It replaces eight `Option<serde_json::Value>` fields ( `vpc_config`, `dead_letter_config`, `ephemeral_storage`, `file_system_config`, `image_config`, `logging_config`, `snap_start`, `tracing_config` ) that only the Terraform converter wrote, in Terraform's shape (#73).
+
 ## v2.1.0 - 2026-11-21
 
 ### Fixed

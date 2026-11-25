@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.5.0 - 2026-11-25
+
+### Fixed
+- Conditional `PutItem`, `UpdateItem`, `DeleteItem` and `TransactWriteItems` evaluate their condition inside the backend, in the same step as the write. The handler used to read, evaluate and write in separate calls, so concurrent conditional writers could all succeed (#61, #73).
+- A transaction no longer leaves earlier actions applied when a later one fails (#73).
+
+### Changed
+- A conditional write to a missing table answers `ResourceNotFoundException`. It used to answer `ConditionalCheckFailedException` (#73).
+- `DynamoDbBackend` gains `put_item_conditional`, `update_item_conditional`, `delete_item_conditional` and `transact_write_items_conditional`, with `ConditionalWrite`, `TransactWriteAction`, `TransactWriteOutcome` and `TransactCancellationReason`. The default bodies read and then write, which is not atomic, so a backend that can be written to concurrently should override all four (#73).
+
 ## v0.4.0 - 2026-11-21
 
 ### Added
