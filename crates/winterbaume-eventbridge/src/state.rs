@@ -5,8 +5,8 @@ use crate::types::*;
 /// In-memory state for the EventBridge service.
 #[derive(Debug)]
 pub struct EventsState {
-    /// Rules keyed by rule name.
-    pub rules: HashMap<String, Rule>,
+    /// Rules keyed by ( event bus name, rule name ).
+    pub rules: HashMap<RuleKey, Rule>,
     /// Event buses keyed by name.
     pub event_buses: HashMap<String, EventBus>,
     /// Archives keyed by name.
@@ -57,6 +57,16 @@ impl Default for EventsState {
 pub enum EventsError {
     #[error("Rule can't be deleted since it has targets.")]
     RuleHasTargets,
+    /// The message `DescribeRule`, `EnableRule` and `DisableRule` give.
+    #[error("Rule {0} does not exist.")]
+    RuleNotFound(String),
+    /// The message the target and tag operations give: rule name, bus name.
+    #[error("Rule {0} does not exist on EventBus {1}.")]
+    RuleNotFoundOnBus(String, String),
+    #[error("ScheduleExpression is supported only on the default event bus.")]
+    ScheduleExpressionOnCustomBus,
+    #[error("Invalid NextToken: {0}")]
+    InvalidNextToken(String),
     #[error("Event bus {0} already exists.")]
     EventBusAlreadyExists(String),
     #[error("Cannot delete event bus default.")]
@@ -98,23 +108,52 @@ impl EventsState {
         }
     }
 
-    pub fn put_rule(
+    /// The rule on `event_bus_name`, or `RuleNotFoundOnBus`.
+    fn rule_on_bus_mut(
         &mut self,
         name: &str,
+        event_bus_name: &str,
+    ) -> Result<&mut Rule, EventsError> {
+        self.rules
+            .get_mut(&RuleKey::new(event_bus_name, name))
+            .ok_or_else(|| {
+                EventsError::RuleNotFoundOnBus(name.to_string(), event_bus_name.to_string())
+            })
+    }
+
+    /// Create or update a rule.
+    ///
+    /// `Tags` apply only when the call creates the rule: on an update AWS
+    /// ignores them, and `TagResource` / `UntagResource` change the tags.
+    /// Every other member is replaced on update, so an omitted one is cleared.
+    pub fn put_rule(
+        &mut self,
+        input: &crate::model::PutRuleRequest,
         account_id: &str,
         region: &str,
-        event_pattern: Option<&str>,
-        schedule_expression: Option<&str>,
-        state: Option<&str>,
-        description: Option<&str>,
-        event_bus_name: Option<&str>,
     ) -> Result<&Rule, EventsError> {
-        let arn = format!("arn:aws:events:{region}:{account_id}:rule/{name}");
-        let rule_state = state.map(RuleState::parse).unwrap_or(RuleState::Enabled);
-        let bus_name = event_bus_name.unwrap_or("default").to_string();
+        let name = input.name.as_str();
+        let bus_name = resolve_event_bus_name(input.event_bus_name.as_deref());
+        if bus_name != DEFAULT_EVENT_BUS && !self.event_buses.contains_key(&bus_name) {
+            return Err(not_found_error("Event bus", &bus_name));
+        }
+        let schedule_expression = input
+            .schedule_expression
+            .as_deref()
+            .filter(|s| !s.is_empty());
+        if bus_name != DEFAULT_EVENT_BUS && schedule_expression.is_some() {
+            return Err(EventsError::ScheduleExpressionOnCustomBus);
+        }
+        let arn = rule_arn(region, account_id, &bus_name, name);
+        let rule_state = input
+            .state
+            .as_deref()
+            .map(RuleState::parse)
+            .unwrap_or(RuleState::Enabled);
+        let key = RuleKey::new(&bus_name, name);
+        let created = !self.rules.contains_key(&key);
 
-        // PutRule is idempotent - update if exists, create if not
-        let rule = self.rules.entry(name.to_string()).or_insert_with(|| Rule {
+        let rule = self.rules.entry(key.clone()).or_insert_with(|| Rule {
             name: name.to_string(),
             arn: arn.clone(),
             event_pattern: None,
@@ -122,67 +161,78 @@ impl EventsState {
             state: RuleState::Enabled,
             description: None,
             event_bus_name: bus_name.clone(),
+            role_arn: None,
             targets: Vec::new(),
-            tags: Vec::new(),
         });
-
-        rule.arn = arn;
-        rule.event_pattern = event_pattern.map(|s| s.to_string());
-        rule.schedule_expression = schedule_expression.map(|s| s.to_string());
+        rule.arn = arn.clone();
+        rule.event_pattern = input.event_pattern.clone().filter(|s| !s.is_empty());
+        rule.schedule_expression = schedule_expression.map(str::to_string);
         rule.state = rule_state;
-        rule.description = description.map(|s| s.to_string());
-        rule.event_bus_name = bus_name;
+        rule.description = input.description.clone();
+        rule.role_arn = input.role_arn.clone();
 
-        Ok(self.rules.get(name).unwrap())
+        if created {
+            let tags: Vec<Tag> = input
+                .tags
+                .iter()
+                .flatten()
+                .map(|t| Tag {
+                    key: t.key.clone(),
+                    value: t.value.clone(),
+                })
+                .collect();
+            if tags.is_empty() {
+                self.tags.remove(&arn);
+            } else {
+                self.tags.insert(arn, tags);
+            }
+        }
+
+        Ok(self.rules.get(&key).unwrap())
     }
 
-    pub fn delete_rule(&mut self, name: &str) -> Result<(), EventsError> {
-        if let Some(rule) = self.rules.get(name)
+    /// Delete a rule. Deleting an unknown rule succeeds ( verified against AWS ).
+    pub fn delete_rule(&mut self, name: &str, event_bus_name: &str) -> Result<(), EventsError> {
+        let key = RuleKey::new(event_bus_name, name);
+        if let Some(rule) = self.rules.get(&key)
             && !rule.targets.is_empty()
         {
             return Err(EventsError::RuleHasTargets);
         }
-        // Deleting an unknown rule succeeds silently (verified against AWS)
-        self.rules.remove(name);
-        // Also remove tags for this rule
-        let arn_suffix = format!("rule/{name}");
-        let keys_to_remove: Vec<String> = self
-            .tags
-            .keys()
-            .filter(|k| k.ends_with(&arn_suffix))
-            .cloned()
-            .collect();
-        for key in keys_to_remove {
-            self.tags.remove(&key);
+        if let Some(rule) = self.rules.remove(&key) {
+            self.tags.remove(&rule.arn);
         }
         Ok(())
     }
 
-    pub fn describe_rule(&self, name: &str) -> Result<&Rule, EventsError> {
+    pub fn describe_rule(&self, name: &str, event_bus_name: &str) -> Result<&Rule, EventsError> {
         self.rules
-            .get(name)
-            .ok_or_else(|| not_found_error("Rule", name))
+            .get(&RuleKey::new(event_bus_name, name))
+            .ok_or_else(|| EventsError::RuleNotFound(name.to_string()))
     }
 
-    pub fn list_rules(&self, name_prefix: Option<&str>) -> Vec<&Rule> {
-        self.rules
+    /// The rules on `event_bus_name`, sorted by name.
+    pub fn list_rules(&self, event_bus_name: &str, name_prefix: Option<&str>) -> Vec<&Rule> {
+        let mut rules: Vec<&Rule> = self
+            .rules
             .values()
+            .filter(|r| r.event_bus_name == event_bus_name)
             .filter(|r| match name_prefix {
                 Some(prefix) => r.name.starts_with(prefix),
                 None => true,
             })
-            .collect()
+            .collect();
+        rules.sort_by(|a, b| a.name.cmp(&b.name));
+        rules
     }
 
     pub fn put_targets(
         &mut self,
         rule_name: &str,
+        event_bus_name: &str,
         targets: Vec<Target>,
     ) -> Result<(), EventsError> {
-        let rule = self
-            .rules
-            .get_mut(rule_name)
-            .ok_or_else(|| not_found_error("Rule", rule_name))?;
+        let rule = self.rule_on_bus_mut(rule_name, event_bus_name)?;
 
         for target in targets {
             // Replace existing target with same ID, or add new
@@ -199,21 +249,28 @@ impl EventsState {
         Ok(())
     }
 
-    pub fn remove_targets(&mut self, rule_name: &str, ids: &[String]) -> Result<(), EventsError> {
-        let rule = self
-            .rules
-            .get_mut(rule_name)
-            .ok_or_else(|| not_found_error("Rule", rule_name))?;
-
+    pub fn remove_targets(
+        &mut self,
+        rule_name: &str,
+        event_bus_name: &str,
+        ids: &[String],
+    ) -> Result<(), EventsError> {
+        let rule = self.rule_on_bus_mut(rule_name, event_bus_name)?;
         rule.targets.retain(|t| !ids.contains(&t.spec.id));
         Ok(())
     }
 
-    pub fn list_targets_by_rule(&self, rule_name: &str) -> Result<Vec<&Target>, EventsError> {
+    pub fn list_targets_by_rule(
+        &self,
+        rule_name: &str,
+        event_bus_name: &str,
+    ) -> Result<Vec<&Target>, EventsError> {
         let rule = self
             .rules
-            .get(rule_name)
-            .ok_or_else(|| not_found_error("Rule", rule_name))?;
+            .get(&RuleKey::new(event_bus_name, rule_name))
+            .ok_or_else(|| {
+                EventsError::RuleNotFoundOnBus(rule_name.to_string(), event_bus_name.to_string())
+            })?;
         Ok(rule.targets.iter().collect())
     }
 
@@ -233,18 +290,25 @@ impl EventsState {
         name: &str,
         account_id: &str,
         region: &str,
+        description: Option<&str>,
+        tags: Vec<Tag>,
     ) -> Result<&EventBus, EventsError> {
         if self.event_buses.contains_key(name) {
             return Err(EventsError::EventBusAlreadyExists(name.to_string()));
         }
         let arn = format!("arn:aws:events:{region}:{account_id}:event-bus/{name}");
+        if tags.is_empty() {
+            self.tags.remove(&arn);
+        } else {
+            self.tags.insert(arn.clone(), tags);
+        }
         self.event_buses.insert(
             name.to_string(),
             EventBus {
                 name: name.to_string(),
                 arn,
                 policy: None,
-                description: None,
+                description: description.map(str::to_string),
                 kms_key_identifier: None,
             },
         );
@@ -256,7 +320,9 @@ impl EventsState {
             return Err(EventsError::CannotDeleteDefaultBus);
         }
         // Deleting a non-existing event bus succeeds silently (verified against AWS)
-        self.event_buses.remove(name);
+        if let Some(bus) = self.event_buses.remove(name) {
+            self.tags.remove(&bus.arn);
+        }
         Ok(())
     }
 
@@ -804,37 +870,57 @@ impl EventsState {
 
     // --- Rule enable/disable ---
 
-    pub fn disable_rule(&mut self, name: &str) -> Result<(), EventsError> {
+    pub fn disable_rule(&mut self, name: &str, event_bus_name: &str) -> Result<(), EventsError> {
         let rule = self
             .rules
-            .get_mut(name)
-            .ok_or_else(|| not_found_error("Rule", name))?;
+            .get_mut(&RuleKey::new(event_bus_name, name))
+            .ok_or_else(|| EventsError::RuleNotFound(name.to_string()))?;
         rule.state = RuleState::Disabled;
         Ok(())
     }
 
-    pub fn enable_rule(&mut self, name: &str) -> Result<(), EventsError> {
+    pub fn enable_rule(&mut self, name: &str, event_bus_name: &str) -> Result<(), EventsError> {
         let rule = self
             .rules
-            .get_mut(name)
-            .ok_or_else(|| not_found_error("Rule", name))?;
+            .get_mut(&RuleKey::new(event_bus_name, name))
+            .ok_or_else(|| EventsError::RuleNotFound(name.to_string()))?;
         rule.state = RuleState::Enabled;
         Ok(())
     }
 
     // --- ListRuleNamesByTarget ---
 
-    pub fn list_rule_names_by_target(&self, target_arn: &str) -> Vec<String> {
-        self.rules
+    /// Names of the rules on `event_bus_name` with a target whose ARN is
+    /// `target_arn`, sorted, each name once.
+    pub fn list_rule_names_by_target(&self, target_arn: &str, event_bus_name: &str) -> Vec<String> {
+        let mut names: Vec<String> = self
+            .rules
             .values()
+            .filter(|r| r.event_bus_name == event_bus_name)
             .filter(|r| r.targets.iter().any(|t| t.spec.arn == target_arn))
             .map(|r| r.name.clone())
-            .collect()
+            .collect();
+        names.sort();
+        names.dedup();
+        names
     }
 
     // --- Tag operations ---
 
-    pub fn tag_resource(&mut self, arn: &str, tags: Vec<Tag>) {
+    /// A rule ARN must name an existing rule; other resource ARNs are not
+    /// checked.
+    fn check_tag_target(&self, arn: &str) -> Result<(), EventsError> {
+        if let Some(key) = parse_rule_arn(arn) {
+            let exists = self.rules.get(&key).is_some_and(|r| r.arn == arn);
+            if !exists {
+                return Err(EventsError::RuleNotFoundOnBus(key.name, key.event_bus_name));
+            }
+        }
+        Ok(())
+    }
+
+    pub fn tag_resource(&mut self, arn: &str, tags: Vec<Tag>) -> Result<(), EventsError> {
+        self.check_tag_target(arn)?;
         let existing = self.tags.entry(arn.to_string()).or_default();
         for tag in tags {
             if let Some(pos) = existing.iter().position(|t| t.key == tag.key) {
@@ -843,19 +929,24 @@ impl EventsState {
                 existing.push(tag);
             }
         }
+        Ok(())
     }
 
-    pub fn untag_resource(&mut self, arn: &str, tag_keys: &[String]) {
+    pub fn untag_resource(&mut self, arn: &str, tag_keys: &[String]) -> Result<(), EventsError> {
+        self.check_tag_target(arn)?;
         if let Some(existing) = self.tags.get_mut(arn) {
             existing.retain(|t| !tag_keys.contains(&t.key));
         }
+        Ok(())
     }
 
-    pub fn list_tags_for_resource(&self, arn: &str) -> Vec<&Tag> {
-        self.tags
+    pub fn list_tags_for_resource(&self, arn: &str) -> Result<Vec<&Tag>, EventsError> {
+        self.check_tag_target(arn)?;
+        Ok(self
+            .tags
             .get(arn)
             .map(|tags| tags.iter().collect())
-            .unwrap_or_default()
+            .unwrap_or_default())
     }
 
     // --- TestEventPattern ---
@@ -1020,6 +1111,58 @@ pub struct PutEventsEntry {
 /// Result entry for PutEvents.
 pub struct PutEventsResultEntry {
     pub event_id: String,
+}
+
+/// The name of the default event bus.
+pub const DEFAULT_EVENT_BUS: &str = "default";
+
+/// Resolve an `EventBusName` request member, which may be a bus name or an
+/// event bus ARN, to the bus name. Omitted or empty means the default bus.
+pub fn resolve_event_bus_name(input: Option<&str>) -> String {
+    match input.filter(|s| !s.is_empty()) {
+        None => DEFAULT_EVENT_BUS.to_string(),
+        Some(s) if s.starts_with("arn:") => s
+            .split_once(":event-bus/")
+            .map(|(_, name)| name.to_string())
+            .unwrap_or_else(|| s.to_string()),
+        Some(s) => s.to_string(),
+    }
+}
+
+/// The ARN of rule `name` on bus `event_bus_name`: `rule/<name>` on the
+/// default bus, `rule/<bus>/<name>` on any other bus.
+pub fn rule_arn(region: &str, account_id: &str, event_bus_name: &str, name: &str) -> String {
+    if event_bus_name == DEFAULT_EVENT_BUS {
+        format!("arn:aws:events:{region}:{account_id}:rule/{name}")
+    } else {
+        format!("arn:aws:events:{region}:{account_id}:rule/{event_bus_name}/{name}")
+    }
+}
+
+/// The ( bus, name ) a rule ARN names, or `None` when `arn` is not an
+/// EventBridge rule ARN. Rule names cannot contain `/`, so the last segment is
+/// the name and anything before it is the bus.
+pub fn parse_rule_arn(arn: &str) -> Option<RuleKey> {
+    if !arn.starts_with("arn:") {
+        return None;
+    }
+    let mut parts = arn.splitn(6, ':');
+    let (_, _, service, _, _, resource) = (
+        parts.next()?,
+        parts.next()?,
+        parts.next()?,
+        parts.next()?,
+        parts.next()?,
+        parts.next()?,
+    );
+    if service != "events" {
+        return None;
+    }
+    let rest = resource.strip_prefix("rule/")?;
+    match rest.rsplit_once('/') {
+        Some((bus, name)) => Some(RuleKey::new(bus, name)),
+        None => Some(RuleKey::new(DEFAULT_EVENT_BUS, rest)),
+    }
 }
 
 fn not_found_error(resource_type: &str, name: &str) -> EventsError {

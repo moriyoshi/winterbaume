@@ -179,3 +179,85 @@ resource "aws_cloudwatch_event_archive" "events_full_archive" {
     assert!(result.state.contains("order-processor"));
     assert!(result.state.contains("terraform-full-stack-archive"));
 }
+
+// Issue #67: with provider `default_tags`, a rule whose `PutRule` tags were
+// dropped plans a `tags_all` change on every run. Apply, then require a plan
+// with no changes. Rules with one name on the default and a custom bus, and a
+// target on the custom bus, cover the bus-scoped rule ARN and IDs. Uses its
+// own server and directory, since `batch_apply` does not plan.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+#[ignore]
+async fn test_events_rule_tags_no_drift_with_default_tags() {
+    let port = start_server(test_services()).await;
+    let url = format!("http://127.0.0.1:{port}");
+    let dir = create_tf_dir("events-rule-tags-no-drift");
+
+    write_provider_tf(&dir, &url);
+    let provider_path = dir.join("provider.tf");
+    let provider = std::fs::read_to_string(&provider_path).unwrap();
+    let provider = provider.replacen(
+        "  access_key = \"test\"",
+        "  default_tags {\n    tags = {\n      ManagedBy = \"winterbaume-e2e\"\n    }\n  }\n\n  access_key = \"test\"",
+        1,
+    );
+    assert!(provider.contains("default_tags"));
+    std::fs::write(&provider_path, provider).unwrap();
+
+    std::fs::write(
+        dir.join("main.tf"),
+        r#"
+resource "aws_cloudwatch_event_bus" "drift" {
+  name = "terraform-drift-bus"
+}
+
+resource "aws_cloudwatch_event_rule" "drift_default" {
+  name                = "terraform-drift-rule"
+  schedule_expression = "rate(1 hour)"
+  role_arn            = "arn:aws:iam::123456789012:role/terraform-drift-role"
+
+  tags = {
+    Environment = "test"
+  }
+}
+
+resource "aws_cloudwatch_event_rule" "drift_custom" {
+  name           = "terraform-drift-rule"
+  event_bus_name = aws_cloudwatch_event_bus.drift.name
+
+  event_pattern = jsonencode({
+    source = ["custom.drift"]
+  })
+
+  tags = {
+    Environment = "custom"
+  }
+}
+
+resource "aws_cloudwatch_event_target" "drift_custom" {
+  rule           = aws_cloudwatch_event_rule.drift_custom.name
+  event_bus_name = aws_cloudwatch_event_bus.drift.name
+  target_id      = "drift-target"
+  arn            = "arn:aws:sqs:us-east-1:123456789012:drift-queue"
+}
+"#,
+    )
+    .unwrap();
+
+    terraform_init(&dir).await;
+
+    let (ok, _stdout, stderr) = terraform_apply(&dir).await;
+    assert!(ok, "terraform apply failed:\n{stderr}");
+
+    // With -detailed-exitcode: 0 = no changes, 2 = changes pending
+    let (ok, stdout, stderr) = terraform_plan(&dir).await;
+    assert!(
+        ok,
+        "terraform plan shows changes after apply (expected no drift):\nstdout:\n{stdout}\nstderr:\n{stderr}"
+    );
+    assert!(
+        stdout.contains("No changes"),
+        "Expected 'No changes' in plan output:\n{stdout}"
+    );
+
+    cleanup_tf_dir(&dir);
+}

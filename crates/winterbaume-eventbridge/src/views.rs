@@ -6,16 +6,21 @@ use serde::{Deserialize, Serialize};
 use winterbaume_core::{StateChangeNotifier, StateViewError, StatefulService};
 
 use crate::handlers::EventBridgeService;
-use crate::state::EventsState;
+use crate::state::{DEFAULT_EVENT_BUS, EventsState, resolve_event_bus_name};
 use crate::types::{
     ApiDestination, Archive, Connection, Endpoint, EventBus, PartnerEventSource, Replay, Rule,
-    RuleState, Tag, Target,
+    RuleKey, RuleState, Tag, Target,
 };
 
 /// Serializable view of the entire EventBridge state for one account/region.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct EventsStateView {
-    /// Rules keyed by rule name.
+    /// Rules. A snapshot keys a rule on the default bus by its name and a
+    /// rule on any other bus by `<bus>/<name>` ( the Terraform resource ID
+    /// format ). Restore ignores the key: the rule is identified by its
+    /// `event_bus_name` and `name` fields, so hand-written views and
+    /// snapshots taken before rules were bus-scoped ( keyed by name only )
+    /// restore the same way.
     #[serde(default)]
     pub rules: HashMap<String, RuleView>,
     /// Event buses keyed by name.
@@ -48,14 +53,41 @@ pub struct EventsStateView {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RuleView {
     pub name: String,
+    /// The rule ARN. Restore rewrites the pre-bus-scoping form
+    /// `rule/<name>` of a rule on a custom bus to `rule/<bus>/<name>`, and
+    /// moves that ARN's entry in `EventsStateView::tags` along with it.
     pub arn: String,
     pub event_pattern: Option<String>,
     pub schedule_expression: Option<String>,
     pub state: String,
     pub description: Option<String>,
+    /// The bus name ( an event bus ARN is accepted and reduced to the name ).
+    #[serde(default = "default_event_bus_name")]
     pub event_bus_name: String,
+    #[serde(default)]
+    pub role_arn: Option<String>,
+    #[serde(default)]
     pub targets: Vec<TargetView>,
+    /// The rule's tags. A snapshot copies them from `EventsStateView::tags`
+    /// ( the store the tag operations use ). On restore and merge they are
+    /// written to that store unless the view's `tags` map already has an
+    /// entry for the rule ARN, so a view that sets only this field ( as the
+    /// Terraform converter does ) still tags the rule.
+    #[serde(default)]
     pub tags: Vec<TagView>,
+}
+
+fn default_event_bus_name() -> String {
+    DEFAULT_EVENT_BUS.to_string()
+}
+
+/// The `EventsStateView::rules` key a snapshot gives a rule.
+pub fn rule_view_key(event_bus_name: &str, name: &str) -> String {
+    if event_bus_name == DEFAULT_EVENT_BUS {
+        name.to_string()
+    } else {
+        format!("{event_bus_name}/{name}")
+    }
 }
 
 /// Serializable view of a rule target.
@@ -209,8 +241,16 @@ impl From<&EventsState> for EventsStateView {
         EventsStateView {
             rules: state
                 .rules
-                .iter()
-                .map(|(k, v)| (k.clone(), RuleView::from(v)))
+                .values()
+                .map(|rule| {
+                    let mut view = RuleView::from(rule);
+                    view.tags = state
+                        .tags
+                        .get(&rule.arn)
+                        .map(|tags| tags.iter().map(TagView::from).collect())
+                        .unwrap_or_default();
+                    (rule_view_key(&rule.event_bus_name, &rule.name), view)
+                })
                 .collect(),
             event_buses: state
                 .event_buses
@@ -266,8 +306,10 @@ impl From<&Rule> for RuleView {
             state: r.state.as_str().to_string(),
             description: r.description.clone(),
             event_bus_name: r.event_bus_name.clone(),
+            role_arn: r.role_arn.clone(),
             targets: r.targets.iter().map(TargetView::from).collect(),
-            tags: r.tags.iter().map(TagView::from).collect(),
+            // Filled in from the tag store by the state snapshot.
+            tags: Vec::new(),
         }
     }
 }
@@ -413,14 +455,48 @@ impl From<&PartnerEventSource> for PartnerEventSourceView {
 
 // --- From view types to internal types ---
 
+/// Insert the rules of a view into `rules` and `tags` ( see `RuleView::tags`
+/// and `RuleView::arn` ). `view_tags` is the view's own `tags` map, which has
+/// already been written to `tags`.
+fn insert_rule_views(
+    rules: &mut HashMap<RuleKey, Rule>,
+    tags: &mut HashMap<String, Vec<Tag>>,
+    view_tags: &std::collections::HashSet<String>,
+    rule_views: HashMap<String, RuleView>,
+) {
+    for (_, view) in rule_views {
+        let legacy_arn = view.arn.clone();
+        let rule_tags: Vec<Tag> = view.tags.iter().cloned().map(Tag::from).collect();
+        let rule = Rule::from(view);
+        if rule.arn != legacy_arn
+            && !tags.contains_key(&rule.arn)
+            && let Some(moved) = tags.remove(&legacy_arn)
+        {
+            tags.insert(rule.arn.clone(), moved);
+        }
+        if !view_tags.contains(&rule.arn) && !view_tags.contains(&legacy_arn) {
+            if rule_tags.is_empty() {
+                tags.remove(&rule.arn);
+            } else {
+                tags.insert(rule.arn.clone(), rule_tags);
+            }
+        }
+        rules.insert(RuleKey::new(&rule.event_bus_name, &rule.name), rule);
+    }
+}
+
 impl From<EventsStateView> for EventsState {
     fn from(view: EventsStateView) -> Self {
+        let view_tag_arns = view.tags.keys().cloned().collect();
+        let mut tags: HashMap<String, Vec<Tag>> = view
+            .tags
+            .into_iter()
+            .map(|(k, v)| (k, v.into_iter().map(Tag::from).collect()))
+            .collect();
+        let mut rules = HashMap::new();
+        insert_rule_views(&mut rules, &mut tags, &view_tag_arns, view.rules);
         EventsState {
-            rules: view
-                .rules
-                .into_iter()
-                .map(|(k, v)| (k, Rule::from(v)))
-                .collect(),
+            rules,
             event_buses: view
                 .event_buses
                 .into_iter()
@@ -451,11 +527,7 @@ impl From<EventsStateView> for EventsState {
                 .into_iter()
                 .map(|(k, v)| (k, PartnerEventSource::from(v)))
                 .collect(),
-            tags: view
-                .tags
-                .into_iter()
-                .map(|(k, v)| (k, v.into_iter().map(Tag::from).collect()))
-                .collect(),
+            tags,
             endpoints: view
                 .endpoints
                 .into_iter()
@@ -466,18 +538,33 @@ impl From<EventsStateView> for EventsState {
 }
 
 impl From<RuleView> for Rule {
+    /// Ignores `v.tags`, which live in the tag store ( see `RuleView::tags` ).
     fn from(v: RuleView) -> Self {
+        let event_bus_name = resolve_event_bus_name(Some(&v.event_bus_name));
         Rule {
+            arn: migrate_rule_arn(&v.arn, &event_bus_name, &v.name),
             name: v.name,
-            arn: v.arn,
             event_pattern: v.event_pattern,
             schedule_expression: v.schedule_expression,
             state: RuleState::parse(&v.state),
             description: v.description,
-            event_bus_name: v.event_bus_name,
+            event_bus_name,
+            role_arn: v.role_arn,
             targets: v.targets.into_iter().map(Target::from).collect(),
-            tags: v.tags.into_iter().map(Tag::from).collect(),
         }
+    }
+}
+
+/// Rewrite the ARN `...:rule/<name>` that rules on a custom bus were given
+/// before rules were bus-scoped to `...:rule/<bus>/<name>`. Any other ARN is
+/// returned unchanged.
+fn migrate_rule_arn(arn: &str, event_bus_name: &str, name: &str) -> String {
+    let legacy_suffix = format!(":rule/{name}");
+    match arn.strip_suffix(&legacy_suffix) {
+        Some(prefix) if event_bus_name != DEFAULT_EVENT_BUS => {
+            format!("{prefix}:rule/{event_bus_name}/{name}")
+        }
+        _ => arn.to_string(),
     }
 }
 
@@ -690,9 +777,20 @@ impl StatefulService for EventBridgeService {
         let state = self.state.get(account_id, region);
         {
             let mut guard = state.write().await;
-            for (name, rule_view) in view.rules {
-                guard.rules.insert(name, Rule::from(rule_view));
+            let guard = &mut *guard;
+            let view_tag_arns: std::collections::HashSet<String> =
+                view.tags.keys().cloned().collect();
+            for (arn, tag_views) in view.tags {
+                guard
+                    .tags
+                    .insert(arn, tag_views.into_iter().map(Tag::from).collect());
             }
+            insert_rule_views(
+                &mut guard.rules,
+                &mut guard.tags,
+                &view_tag_arns,
+                view.rules,
+            );
             for (name, bus_view) in view.event_buses {
                 guard.event_buses.insert(name, EventBus::from(bus_view));
             }
@@ -714,11 +812,6 @@ impl StatefulService for EventBridgeService {
                 guard
                     .partner_event_sources
                     .insert(name, PartnerEventSource::from(pes_view));
-            }
-            for (arn, tag_views) in view.tags {
-                guard
-                    .tags
-                    .insert(arn, tag_views.into_iter().map(Tag::from).collect());
             }
             for (name, ep_view) in view.endpoints {
                 guard.endpoints.insert(name, Endpoint::from(ep_view));

@@ -8,9 +8,10 @@ use std::sync::Arc;
 use chrono::Utc;
 use winterbaume_core::StatefulService;
 use winterbaume_eventbridge::EventBridgeService;
+use winterbaume_eventbridge::state::{DEFAULT_EVENT_BUS, resolve_event_bus_name, rule_arn};
 use winterbaume_eventbridge::views::{
     ApiDestinationView, ArchiveView, ConnectionView, EndpointView, EventBusView, EventsStateView,
-    RuleView, TagView, TargetView,
+    RuleView, TagView, TargetView, rule_view_key,
 };
 use winterbaume_tfstate::ResourceInstance;
 
@@ -218,16 +219,18 @@ impl AwsCloudwatchEventRuleConverter {
         let attrs = &instance.attributes;
         let name = model.name.clone();
 
-        let arn = model.arn.or(model.id).unwrap_or_else(|| {
-            format!(
-                "arn:aws:events:{}:{}:rule/{}",
-                region, ctx.default_account_id, name
-            )
-        });
-
-        let event_bus_name = model
-            .event_bus_name
-            .unwrap_or_else(|| "default".to_string());
+        // `event_bus_name` may be a bus name or ARN. The Terraform `id` is
+        // `<name>` or `<bus>/<name>`, never an ARN, so it is not used here.
+        let event_bus_name = resolve_event_bus_name(model.event_bus_name.as_deref());
+        let arn = model
+            .arn
+            .filter(|a| !a.is_empty())
+            .unwrap_or_else(|| rule_arn(&region, &ctx.default_account_id, &event_bus_name, &name));
+        let role_arn = attrs
+            .get("role_arn")
+            .and_then(|v| v.as_str())
+            .filter(|s| !s.is_empty())
+            .map(str::to_string);
 
         // Tags
         let tags: Vec<TagView> = {
@@ -259,7 +262,10 @@ impl AwsCloudwatchEventRuleConverter {
             state: model.state.unwrap_or_else(|| "ENABLED".to_string()),
             description: model.description,
             event_bus_name,
+            role_arn,
             targets: vec![],
+            // Merge writes these to the tag store under the rule ARN, where
+            // `ListTagsForResource` reads them.
             tags,
         };
 
@@ -289,8 +295,11 @@ impl AwsCloudwatchEventRuleConverter {
                 .iter()
                 .map(|t| (t.key.clone(), t.value.clone()))
                 .collect();
+            // The provider's ID: `<name>` on the default bus, `<bus>/<name>`
+            // on any other.
+            let id = rule_view_key(&rule.event_bus_name, &rule.name);
             let attrs = serde_json::json!({
-                "id": rule.name,
+                "id": id,
                 "name": rule.name,
                 "arn": rule.arn,
                 "event_pattern": rule.event_pattern,
@@ -298,10 +307,11 @@ impl AwsCloudwatchEventRuleConverter {
                 "state": rule.state,
                 "description": rule.description,
                 "event_bus_name": rule.event_bus_name,
+                "role_arn": rule.role_arn,
                 "tags": tags,
             });
             results.push(ExtractedResource {
-                name: rule.name.clone(),
+                name: id.clone(),
                 account_id: ctx.default_account_id.clone(),
                 region: ctx.default_region.clone(),
                 attributes: attrs,
@@ -823,36 +833,42 @@ impl AwsCloudwatchEventTargetConverter {
             extra,
         };
 
-        // Snapshot, add target to the rule, restore.
+        // Snapshot, add target to the rule on the target's bus, restore.
+        let event_bus_name = resolve_event_bus_name(model.event_bus_name.as_deref());
         let mut state_view = self
             .service
             .snapshot(&ctx.default_account_id, &region)
             .await;
-        if let Some(rule) = state_view.rules.get_mut(&rule_name) {
+        if let Some(rule) = state_view
+            .rules
+            .values_mut()
+            .find(|r| r.name == rule_name && r.event_bus_name == event_bus_name)
+        {
             // Remove any existing target with the same ID to avoid duplicates.
             rule.targets.retain(|t| t.id != target_id);
             rule.targets.push(target_view);
         } else {
             // Rule not injected yet; create a placeholder rule.
-            let rule_arn = format!(
-                "arn:aws:events:{}:{}:rule/{}",
-                region, ctx.default_account_id, rule_name
-            );
             let rule_view = RuleView {
                 name: rule_name.clone(),
-                arn: rule_arn,
+                arn: rule_arn(
+                    &region,
+                    &ctx.default_account_id,
+                    &event_bus_name,
+                    &rule_name,
+                ),
                 event_pattern: None,
                 schedule_expression: None,
                 state: "ENABLED".to_string(),
                 description: None,
-                event_bus_name: model
-                    .event_bus_name
-                    .clone()
-                    .unwrap_or_else(|| "default".to_string()),
+                event_bus_name: event_bus_name.clone(),
+                role_arn: None,
                 targets: vec![target_view],
                 tags: vec![],
             };
-            state_view.rules.insert(rule_name.clone(), rule_view);
+            state_view
+                .rules
+                .insert(rule_view_key(&event_bus_name, &rule_name), rule_view);
         }
         self.service
             .restore(&ctx.default_account_id, &region, state_view)
@@ -875,7 +891,15 @@ impl AwsCloudwatchEventTargetConverter {
         let mut results = vec![];
         for rule in view.rules.values() {
             for target in &rule.targets {
-                let id = format!("{}/{}", rule.name, target.id);
+                // The provider's state ID ( `targetCreateResourceID` ):
+                // `<rule>-<target>` on the default bus,
+                // `<bus>-<rule>-<target>` on any other. The import ID uses
+                // `/`, the state ID `-`.
+                let id = if rule.event_bus_name == DEFAULT_EVENT_BUS {
+                    format!("{}-{}", rule.name, target.id)
+                } else {
+                    format!("{}-{}-{}", rule.event_bus_name, rule.name, target.id)
+                };
                 let mut attr_map = serde_json::json!({
                     "id": id,
                     "rule": rule.name,
@@ -1796,7 +1820,7 @@ impl AwsCloudwatchEventPermissionConverter {
 
 fn minimal_events_state_view_with_rule(rule: RuleView) -> EventsStateView {
     let mut rules = HashMap::new();
-    rules.insert(rule.name.clone(), rule);
+    rules.insert(rule_view_key(&rule.event_bus_name, &rule.name), rule);
     EventsStateView {
         rules,
         event_buses: HashMap::new(),

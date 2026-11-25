@@ -1,15 +1,40 @@
 /// An EventBridge rule.
+///
+/// A rule belongs to one event bus, and rules are keyed by ( bus, name ):
+/// two buses can each hold a rule with the same name. The rule's tags are not
+/// stored here but in `EventsState::tags` under the rule ARN, which is where
+/// `TagResource` / `UntagResource` / `ListTagsForResource` look.
 #[derive(Debug, Clone)]
 pub struct Rule {
     pub name: String,
+    /// `arn:aws:events:<region>:<account>:rule/<name>` on the default bus,
+    /// `arn:aws:events:<region>:<account>:rule/<bus>/<name>` on any other bus.
     pub arn: String,
     pub event_pattern: Option<String>,
     pub schedule_expression: Option<String>,
     pub state: RuleState,
     pub description: Option<String>,
+    /// The bus name ( never an ARN ).
     pub event_bus_name: String,
+    /// `RoleArn` as given to the latest `PutRule`.
+    pub role_arn: Option<String>,
     pub targets: Vec<Target>,
-    pub tags: Vec<Tag>,
+}
+
+/// Identifies a rule: the name of its event bus and the rule name.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub struct RuleKey {
+    pub event_bus_name: String,
+    pub name: String,
+}
+
+impl RuleKey {
+    pub fn new(event_bus_name: &str, name: &str) -> Self {
+        Self {
+            event_bus_name: event_bus_name.to_string(),
+            name: name.to_string(),
+        }
+    }
 }
 
 /// Rule state enum.
@@ -17,6 +42,7 @@ pub struct Rule {
 pub enum RuleState {
     Enabled,
     Disabled,
+    EnabledWithAllCloudtrailManagementEvents,
 }
 
 impl RuleState {
@@ -24,12 +50,18 @@ impl RuleState {
         match self {
             RuleState::Enabled => "ENABLED",
             RuleState::Disabled => "DISABLED",
+            RuleState::EnabledWithAllCloudtrailManagementEvents => {
+                "ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS"
+            }
         }
     }
 
     pub fn parse(s: &str) -> Self {
         match s {
             "DISABLED" => RuleState::Disabled,
+            "ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS" => {
+                RuleState::EnabledWithAllCloudtrailManagementEvents
+            }
             _ => RuleState::Enabled,
         }
     }

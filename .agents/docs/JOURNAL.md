@@ -2806,3 +2806,16 @@ Fixed on `fix/sqs-fifo-64-66`, in the in-memory and Redis backends. The causes a
 - **Also.** `MaximumMessageSize` defaults to 1 MiB. The Terraform converter and spec carry `deduplication_scope` and `fifo_throughput_limit`, and the FIFO E2E case ends with a no-change plan ( run against real Terraform ).
 - **Tests.** Seven moto tests ported with every assertion, the two dropped assertions restored, and a negative gating test. Against the old code 17 of the new or changed tests fail. The Redis tests ran against `redis:7-alpine`.
 - **Found on the way.** `ReceiveMessage` treats an explicit `VisibilityTimeout=0` as "use the queue default", a workaround for clients that send omitted numbers as 0; AWS honours 0. Recorded as `sqs-receive-visibility-timeout-zero`. The moto ports of tests that pass system attribute names through the deprecated `AttributeNames` need `QueueAttributeName::from("SenderId")` under `#[allow(deprecated)]` in the Rust SDK.
+
+
+## 2026-11-25 — Issue #67: EventBridge rule tags and bus scoping
+
+Fixed on `fix/eventbridge-put-rule-tags-67`. The causes are in the 2026-11-25 entry on #64 – #69.
+
+- **#67.** `PutRule` applies `Tags` on creation only and ignores them on update, as AWS documents. `RoleArn` is stored and returned. Every other member is replaced on update.
+- **Bus scoping.** Rules are keyed by ( bus, name ), custom-bus rules get `rule/<bus>/<name>` ARNs, and `EventBusName` ( name or ARN ) is honoured by every rule and target operation. A schedule on a custom bus and an unknown bus are rejected. Tag operations on a missing rule fail with `ResourceNotFoundException`. `DeleteRule` removes tags by exact ARN: the old suffix match on `rule/<name>` could have removed another bus's rule tags once ARNs carry the bus.
+- **`CreateEventBus` dropped `Tags` and `Description`.** Found by the new Terraform case: with provider `default_tags`, the rules stopped drifting and the bus started. A `default_tags` no-drift plan checks every resource in the configuration, not just the one under test, so one per service E2E suite is cheap coverage for this whole defect class.
+- **Two tag stores.** API tags lived in `EventsState::tags` by ARN; tags injected from Terraform lived on `RuleView.tags`, which the API never read. There is now one store, kept in sync on snapshot, restore and merge. Other crates' views may split tags the same way.
+- **Terraform converter.** It took the rule ARN from `model.arn.or(model.id)`, but `id` is a name, so a state without `arn` produced a name where an ARN belonged; other converters may share the pattern. The provider's `aws_cloudwatch_event_target` state ID joins with `-` ( `<bus>-<rule>-<target>` ), while its import ID uses `/`; the converter used `/`.
+- **Also.** `ListRules`, `ListRuleNamesByTarget` and `ListTargetsByRule` paginate. Old snapshots restore, with custom-bus rule ARNs rewritten. Unread request members fell from 61 in 29 operations to 42 in 21; `Force` on `DeleteRule` / `RemoveTargets` only matters for managed rules, which winterbaume does not have.
+- **Tests.** 26 new tests ( 15 moto ports ), two earlier ports' dropped assertions restored, and a Terraform no-drift case with `default_tags`, the same rule name on two buses and a custom-bus target, run against real Terraform. The new unit tests were not run against the old code.
