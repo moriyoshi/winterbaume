@@ -6,12 +6,13 @@ use std::sync::Arc;
 use chrono::{Duration, Utc};
 use winterbaume_core::urldecode;
 use winterbaume_core::{
-    BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
-    default_account_id,
+    BackendState, MockRequest, MockResponse, MockService, Relaxations, StateChangeNotifier,
+    StatefulService, default_account_id,
 };
 
+use crate::relaxations::ASSUME_ROLE_WITHOUT_ROLE_ARN;
 use crate::state::{StsError, StsState};
-use crate::types::AssumedRole;
+use crate::types::{AssumedRole, CallerSession};
 use crate::views::StsStateView;
 use crate::wire;
 
@@ -34,6 +35,8 @@ fn sts_error_response(err: StsError) -> MockResponse {
 pub struct StsService {
     pub(crate) state: Arc<BackendState<StsState>>,
     pub(crate) notifier: StateChangeNotifier<StsStateView>,
+    /// See [`ASSUME_ROLE_WITHOUT_ROLE_ARN`].
+    pub(crate) assume_role_without_role_arn: bool,
 }
 
 impl StsService {
@@ -41,7 +44,34 @@ impl StsService {
         Self {
             state: Arc::new(BackendState::new()),
             notifier: StateChangeNotifier::new(),
+            assume_role_without_role_arn: false,
         }
+    }
+
+    /// Enables the STS relaxations in `relaxations` ( see
+    /// [`RELAXATIONS`](crate::RELAXATIONS) ) and ignores the rest. With none
+    /// enabled, the default, STS refuses what AWS refuses.
+    ///
+    /// ```
+    /// use winterbaume_core::Relaxations;
+    /// use winterbaume_sts::{ASSUME_ROLE_WITHOUT_ROLE_ARN, StsService};
+    ///
+    /// let service = StsService::new()
+    ///     .with_relaxations(&Relaxations::new().with(ASSUME_ROLE_WITHOUT_ROLE_ARN));
+    /// assert!(service.relaxations().is_enabled(ASSUME_ROLE_WITHOUT_ROLE_ARN));
+    /// ```
+    pub fn with_relaxations(mut self, relaxations: &Relaxations) -> Self {
+        self.assume_role_without_role_arn = relaxations.is_enabled(ASSUME_ROLE_WITHOUT_ROLE_ARN);
+        self
+    }
+
+    /// The STS relaxations this service has enabled.
+    pub fn relaxations(&self) -> Relaxations {
+        let mut enabled = Relaxations::new();
+        if self.assume_role_without_role_arn {
+            enabled.enable(ASSUME_ROLE_WITHOUT_ROLE_ARN);
+        }
+        enabled
     }
 }
 
@@ -89,9 +119,20 @@ impl StsService {
 
         let state = self.state.get(account_id, &region);
 
+        // The caller's access key, from the SigV4 credential scope. Signatures
+        // are not verified; the key only selects the caller's identity.
+        let caller_access_key =
+            winterbaume_core::auth::extract_access_key_from_headers(&request.headers);
+
         let response = match action {
-            "GetCallerIdentity" => self.handle_get_caller_identity(&state).await,
-            "AssumeRole" => self.handle_assume_role(&state, &params, account_id).await,
+            "GetCallerIdentity" => {
+                self.handle_get_caller_identity(&state, caller_access_key.as_deref())
+                    .await
+            }
+            "AssumeRole" => {
+                self.handle_assume_role(&state, &params, account_id, caller_access_key.as_deref())
+                    .await
+            }
             "GetSessionToken" => self.handle_get_session_token(&params).await,
             "AssumeRoleWithSAML" => {
                 self.handle_assume_role_with_saml(&state, &params, account_id)
@@ -123,9 +164,10 @@ impl StsService {
     async fn handle_get_caller_identity(
         &self,
         state: &std::sync::Arc<tokio::sync::RwLock<StsState>>,
+        caller_access_key: Option<&str>,
     ) -> MockResponse {
         let state = state.read().await;
-        let identity = state.get_caller_identity("AKIAIOSFODNN7EXAMPLE");
+        let identity = state.get_caller_identity(caller_access_key.unwrap_or(""));
 
         wire::serialize_get_caller_identity_response(&wire::GetCallerIdentityResponse {
             arn: Some(identity.arn.clone()),
@@ -139,18 +181,25 @@ impl StsService {
         state: &std::sync::Arc<tokio::sync::RwLock<StsState>>,
         params: &HashMap<String, String>,
         account_id: &str,
+        caller_access_key: Option<&str>,
     ) -> MockResponse {
         let input = match wire::deserialize_assume_role_request(params) {
             Ok(v) => v,
             Err(e) => return sts_error_response(StsError::InvalidParameterValue(e)),
         };
-        if input.role_arn.is_empty() {
+        if input.role_arn.is_empty() && !self.assume_role_without_role_arn {
             return sts_error_response(StsError::MissingParameter("RoleArn"));
         }
         if input.role_session_name.is_empty() {
             return sts_error_response(StsError::MissingParameter("RoleSessionName"));
         }
         let duration_seconds: i64 = input.duration_seconds.map(|d| d as i64).unwrap_or(3600);
+
+        if input.role_arn.is_empty() {
+            return self
+                .assume_role_for_caller(state, caller_access_key, duration_seconds)
+                .await;
+        }
 
         // Extract account ID from role ARN if present
         let target_account =
@@ -477,6 +526,45 @@ impl StsService {
         wire::serialize_get_web_identity_token_response(&wire::GetWebIdentityTokenResponse {
             web_identity_token: Some(token),
             expiration: Some(expiration.format("%Y-%m-%dT%H:%M:%SZ").to_string()),
+        })
+    }
+
+    /// `AssumeRole` without `RoleArn`, under [`ASSUME_ROLE_WITHOUT_ROLE_ARN`]:
+    /// issue temporary credentials that keep the caller's own identity, as
+    /// MinIO does. No role is assumed, so the response has no `AssumedRoleUser`.
+    async fn assume_role_for_caller(
+        &self,
+        state: &std::sync::Arc<tokio::sync::RwLock<StsState>>,
+        caller_access_key: Option<&str>,
+        duration_seconds: i64,
+    ) -> MockResponse {
+        let access_key_id = format!("ASIA{}", random_alphanumeric(16));
+        let secret_access_key = random_alphanumeric(40);
+        let session_token = generate_session_token();
+        let expiration = Utc::now() + Duration::seconds(duration_seconds);
+
+        {
+            let mut state = state.write().await;
+            let identity = state.get_caller_identity(caller_access_key.unwrap_or(""));
+            state.caller_sessions.push(CallerSession {
+                access_key_id: access_key_id.clone(),
+                secret_access_key: secret_access_key.clone(),
+                session_token: session_token.clone(),
+                expiration,
+                identity,
+            });
+        }
+
+        wire::serialize_assume_role_response(&wire::AssumeRoleResponse {
+            assumed_role_user: None,
+            credentials: Some(wire::Credentials {
+                access_key_id: Some(access_key_id),
+                secret_access_key: Some(secret_access_key),
+                session_token: Some(session_token),
+                expiration: Some(expiration.format("%Y-%m-%dT%H:%M:%SZ").to_string()),
+            }),
+            packed_policy_size: None,
+            source_identity: None,
         })
     }
 

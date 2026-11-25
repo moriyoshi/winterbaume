@@ -62,6 +62,22 @@ pub fn extract_region_from_headers(headers: &http::HeaderMap) -> Option<String> 
     }
 }
 
+/// Extract the access key ID from the Authorization header's SigV4 credential scope.
+///
+/// Parses headers like:
+/// `AWS4-HMAC-SHA256 Credential=AKID/20260224/us-east-1/s3/aws4_request, ...`
+/// and returns the access key ID (e.g., "AKID"). The signature is not checked.
+pub fn extract_access_key_from_headers(headers: &http::HeaderMap) -> Option<String> {
+    let credential = extract_credential_from_headers(headers)?;
+    // Credential format: AKID/date/region/service/aws4_request
+    let access_key = credential.split('/').next()?;
+    if access_key.is_empty() {
+        None
+    } else {
+        Some(access_key.to_string())
+    }
+}
+
 /// Extract the Credential value from a SigV4 Authorization header.
 fn extract_credential_from_headers(headers: &http::HeaderMap) -> Option<String> {
     let auth = headers.get(http::header::AUTHORIZATION)?.to_str().ok()?;
@@ -167,6 +183,21 @@ mod tests {
         assert_eq!(
             extract_service_from_headers(&headers),
             Some("sts".to_string())
+        );
+    }
+
+    #[test]
+    fn test_extract_access_key_from_headers() {
+        let headers = make_auth_header("ASIAEXAMPLE/20260224/us-east-1/sts/aws4_request");
+        assert_eq!(
+            extract_access_key_from_headers(&headers),
+            Some("ASIAEXAMPLE".to_string())
+        );
+        let headers = make_auth_header("/20260224/us-east-1/sts/aws4_request");
+        assert_eq!(extract_access_key_from_headers(&headers), None);
+        assert_eq!(
+            extract_access_key_from_headers(&http::HeaderMap::new()),
+            None
         );
     }
 }

@@ -6,12 +6,57 @@ use winterbaume_core::{StateChangeNotifier, StateViewError, StatefulService};
 
 use crate::handlers::StsService;
 use crate::state::StsState;
-use crate::types::AssumedRole;
+use crate::types::{AssumedRole, CallerIdentity, CallerSession};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct StsStateView {
     #[serde(default)]
     pub assumed_roles: Vec<AssumedRoleView>,
+    /// Credentials issued for a caller's own identity ( `AssumeRole` without
+    /// `RoleArn`, under the `sts-assume-role-without-role-arn` relaxation ).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub caller_sessions: Vec<CallerSessionView>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CallerSessionView {
+    pub access_key_id: String,
+    pub secret_access_key: String,
+    pub session_token: String,
+    pub expiration: DateTime<Utc>,
+    pub user_id: String,
+    pub account: String,
+    pub arn: String,
+}
+
+impl From<&CallerSession> for CallerSessionView {
+    fn from(s: &CallerSession) -> Self {
+        CallerSessionView {
+            access_key_id: s.access_key_id.clone(),
+            secret_access_key: s.secret_access_key.clone(),
+            session_token: s.session_token.clone(),
+            expiration: s.expiration,
+            user_id: s.identity.user_id.clone(),
+            account: s.identity.account.clone(),
+            arn: s.identity.arn.clone(),
+        }
+    }
+}
+
+impl From<CallerSessionView> for CallerSession {
+    fn from(v: CallerSessionView) -> Self {
+        CallerSession {
+            access_key_id: v.access_key_id,
+            secret_access_key: v.secret_access_key,
+            session_token: v.session_token,
+            expiration: v.expiration,
+            identity: CallerIdentity {
+                user_id: v.user_id,
+                account: v.account,
+                arn: v.arn,
+            },
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -43,6 +88,11 @@ impl From<&StsState> for StsStateView {
                     assumed_role_id: r.assumed_role_id.clone(),
                 })
                 .collect(),
+            caller_sessions: state
+                .caller_sessions
+                .iter()
+                .map(CallerSessionView::from)
+                .collect(),
         }
     }
 }
@@ -63,6 +113,11 @@ impl From<StsStateView> for StsState {
                     expiration: r.expiration,
                     assumed_role_id: r.assumed_role_id,
                 })
+                .collect(),
+            caller_sessions: view
+                .caller_sessions
+                .into_iter()
+                .map(CallerSession::from)
                 .collect(),
         }
     }
@@ -113,6 +168,9 @@ impl StatefulService for StsService {
                     assumed_role_id: r.assumed_role_id,
                 });
             }
+            guard
+                .caller_sessions
+                .extend(view.caller_sessions.into_iter().map(CallerSession::from));
         }
         self.notify_state_changed(account_id, region).await;
         Ok(())

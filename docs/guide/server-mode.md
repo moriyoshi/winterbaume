@@ -50,6 +50,10 @@ Behaviour options (all off by default):
       --s3-enforce-bucket-policies
                              Answer 403 AccessDenied for S3 requests matched by an
                              explicit Deny in the bucket policy
+
+Relaxations (all off by default):
+      --relax RULE           Accept a request AWS refuses, by rule name; repeat
+                             the flag or separate names with commas
 ```
 
 ## Environment variables
@@ -68,6 +72,7 @@ Every option has a corresponding environment variable. Variables are applied aft
 | `WB_DYNAMODB_BACKEND` | `--dynamodb-backend` |
 | `WB_VFS_DIR` | `--vfs-dir` |
 | `WB_S3_ENFORCE_BUCKET_POLICIES` | `--s3-enforce-bucket-policies` |
+| `WB_RELAX` | `--relax` (comma-separated) |
 
 **Configuration precedence:** CLI flags > environment variables > config file > built-in defaults.
 
@@ -84,6 +89,9 @@ region     = "us-east-1"
 
 # Optional: load Terraform state at startup
 tfstate = "/path/to/terraform.tfstate"
+
+# Optional: accept requests AWS refuses ( see "Relaxations" below )
+relax = ["sts-assume-role-without-role-arn"]
 
 [backends]
 # Requires: --features backend-sqs-redis
@@ -267,6 +275,25 @@ Enables `--s3-enforce-bucket-policies` / `WB_S3_ENFORCE_BUCKET_POLICIES` / `[s3]
 - Bucket configuration requests, including `PutBucketPolicy` and `DeleteBucketPolicy`, are never denied, so a test can always repair a policy that locks it out.
 - The server does not authenticate callers. A `Deny` statement applies when its `Principal` is a wildcard (`"*"` or `{"AWS": "*"}`); statements naming a specific principal, using `NotPrincipal`, or conditioned on caller identity keys such as `aws:PrincipalArn` or `aws:userid` are skipped.
 - The server listens on plain HTTP, so `aws:SecureTransport` is `false` unless a TLS-terminating proxy in front sets `X-Forwarded-Proto: https`. A TLS-only policy therefore denies direct requests, as it would deny plain HTTP on AWS. `aws:SourceIp` is the client address, or `X-Forwarded-For` when a proxy supplies it.
+
+## Relaxations
+
+By default a service refuses what AWS refuses. A relaxation names one request that AWS rejects but that the server accepts when you enable it, usually because a client was written against another AWS-compatible server. Each relaxation is enabled on its own, by name:
+
+```sh
+./winterbaume-server --relax sts-assume-role-without-role-arn
+WB_RELAX=sts-assume-role-without-role-arn ./winterbaume-server
+```
+
+- Repeat `--relax`, or separate names with commas, to enable several. `relax = [...]` in the config file does the same.
+- A list from the command line or `WB_RELAX` replaces the config file's list rather than adding to it, as for every other option.
+- An unknown name stops the server with an error that lists the known names. `--help` lists them too, and the server logs each enabled relaxation at startup.
+
+| Rule | What it accepts | AWS behaviour |
+|---|---|---|
+| `sts-assume-role-without-role-arn` | `AssumeRole` without `RoleArn`, as MinIO accepts it. The server issues temporary credentials that keep the caller's own identity: `GetCallerIdentity` with them answers the caller's ARN. `RoleSessionName` is still required, and the response has no `AssumedRoleUser`. Clients such as Lakekeeper send this for `"flavor": "minio"` storage profiles. | `400 MissingParameter` |
+
+In library mode, pass the same set to the service: `StsService::new().with_relaxations(&Relaxations::new().with(winterbaume_sts::ASSUME_ROLE_WITHOUT_ROLE_ARN))`.
 
 ## Routing
 

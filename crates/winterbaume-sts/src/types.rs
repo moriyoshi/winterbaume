@@ -48,3 +48,17 @@ pub struct CallerIdentity {
     pub account: String,
     pub arn: String,
 }
+
+/// Temporary credentials issued for the caller's own identity rather than for
+/// a role: `AssumeRole` without `RoleArn`, accepted only under the
+/// [`ASSUME_ROLE_WITHOUT_ROLE_ARN`](crate::ASSUME_ROLE_WITHOUT_ROLE_ARN)
+/// relaxation. `GetCallerIdentity` with these credentials answers `identity`.
+#[derive(Debug, Clone)]
+pub struct CallerSession {
+    pub access_key_id: String,
+    pub secret_access_key: String,
+    pub session_token: String,
+    pub expiration: DateTime<Utc>,
+    /// The identity of the caller that requested the credentials.
+    pub identity: CallerIdentity,
+}

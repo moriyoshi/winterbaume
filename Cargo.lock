@@ -15342,6 +15342,7 @@ dependencies = [
  "http 1.4.0",
  "quick-xml",
  "serde",
+ "serde_json",
  "thiserror 2.0.18",
  "tokio",
  "tracing",

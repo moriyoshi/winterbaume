@@ -32,6 +32,12 @@ Security Token Service Security Token Service (STS) enables you to request tempo
 - 9 operations declare modelled service errors; parity work should map exact error names and retryability where documented.
 - Documentation and model terms indicate cross-service dependencies or identifiers: `IAM`, `STS`.
 
+## Winterbaume Notes
+
+- **Caller identity.** `GetCallerIdentity` resolves the caller from the access key in the SigV4 `Credential=` scope, without checking the signature. Credentials from `AssumeRole`, `AssumeRoleWithSAML` and `AssumeRoleWithWebIdentity` answer the assumed-role ARN; any other key answers the default `arn:aws:sts::<account>:user/moto`. Before 2026-11-25 the handler ignored the request and always looked up `AKIAIOSFODNN7EXAMPLE`, so assumed-role credentials also got the default identity.
+- **Relaxations** ( `winterbaume_sts::RELAXATIONS`, server `--relax` ). `sts-assume-role-without-role-arn` ( issue #77 ): `AssumeRole` without `RoleArn` issues credentials for the caller's own identity, as MinIO does; AWS answers `400 MissingParameter`. Only `RoleArn` is waived: Lakekeeper, the client behind the issue, always sends `RoleSessionName` ( `"lakekeeper-sts"` ). The credentials are kept in `StsState::caller_sessions` and the `caller_sessions` field of the state view, so they survive snapshot and restore. The response omits `AssumedRoleUser` and `PackedPolicySize`.
+- `GetSessionToken` returns fixed credentials ( `ASIAIOSTOKENEXAMPLE` ) and stores nothing, so `GetCallerIdentity` with them answers the default identity.
+
 ## Official AWS Documentation Research
 
 Sources:
