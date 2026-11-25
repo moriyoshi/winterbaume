@@ -2261,6 +2261,11 @@ async fn test_inject_cloudwatch_metric_alarm() {
             "statistic": "Average",
             "actions_enabled": true,
             "dimensions": {"InstanceId": "i-0123456789abcdef0"},
+            "treat_missing_data": "notBreaching",
+            "datapoints_to_alarm": 2,
+            "extended_statistic": "",
+            "evaluate_low_sample_count_percentiles": "",
+            "threshold_metric_id": "",
         }),
     )]);
 
@@ -2270,10 +2275,63 @@ async fn test_inject_cloudwatch_metric_alarm() {
     let view = cw.snapshot(&ctx.default_account_id, "us-east-1").await;
     assert!(view.alarms.contains_key("high-cpu"));
     let alarm = &view.alarms["high-cpu"];
-    assert_eq!(alarm.threshold, 80.0);
-    assert_eq!(alarm.metric_name, "CPUUtilization");
+    assert_eq!(alarm.threshold, Some(80.0));
+    assert_eq!(alarm.metric_name.as_deref(), Some("CPUUtilization"));
     assert_eq!(alarm.dimensions.len(), 1);
     assert_eq!(alarm.dimensions[0].name, "InstanceId");
+    // Issue #68: settings Terraform reads back must survive injection, and
+    // the "" Terraform stores for unset strings must not.
+    assert_eq!(alarm.treat_missing_data.as_deref(), Some("notBreaching"));
+    assert_eq!(alarm.datapoints_to_alarm, Some(2));
+    assert_eq!(alarm.statistic.as_deref(), Some("Average"));
+    assert_eq!(alarm.extended_statistic, None);
+    assert_eq!(alarm.evaluate_low_sample_count_percentile, None);
+    assert_eq!(alarm.threshold_metric_id, None);
+    assert_eq!(alarm.state_value, "INSUFFICIENT_DATA");
+}
+
+#[tokio::test]
+async fn test_inject_cloudwatch_metric_alarm_extended_statistic() {
+    use winterbaume_cloudwatch::CloudWatchService;
+    use winterbaume_terraform::converters::cloudwatch::AwsCloudwatchMetricAlarmConverter;
+
+    let cw = Arc::new(CloudWatchService::new());
+    let ctx = default_ctx();
+
+    let mut injector = TerraformInjector::new();
+    injector.register(AwsCloudwatchMetricAlarmConverter::new(Arc::clone(&cw)));
+
+    let tfstate = make_tfstate(vec![make_resource(
+        "aws_cloudwatch_metric_alarm",
+        "latency_p99",
+        json!({
+            "alarm_name": "latency-p99",
+            "metric_name": "Latency",
+            "namespace": "AWS/ApiGateway",
+            "threshold": 1000.0,
+            "comparison_operator": "GreaterThanThreshold",
+            "evaluation_periods": 3,
+            "period": 60,
+            "statistic": "",
+            "extended_statistic": "p99",
+            "evaluate_low_sample_count_percentiles": "ignore",
+            "datapoints_to_alarm": 0,
+        }),
+    )]);
+
+    let report = injector.inject_all(&tfstate, &ctx).await;
+    assert!(report.is_success(), "errors: {:?}", report.errors);
+
+    let view = cw.snapshot(&ctx.default_account_id, "us-east-1").await;
+    let alarm = &view.alarms["latency-p99"];
+    assert_eq!(alarm.statistic, None);
+    assert_eq!(alarm.extended_statistic.as_deref(), Some("p99"));
+    assert_eq!(
+        alarm.evaluate_low_sample_count_percentile.as_deref(),
+        Some("ignore")
+    );
+    assert_eq!(alarm.datapoints_to_alarm, None);
+    assert_eq!(alarm.treat_missing_data, None);
 }
 
 // ---------------------------------------------------------------------------

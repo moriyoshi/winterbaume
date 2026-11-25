@@ -2,7 +2,8 @@
 
 use aws_sdk_cloudwatch::config::BehaviorVersion;
 use aws_sdk_cloudwatch::types::{
-    ComparisonOperator, Dimension, MetricDatum, StateValue, Statistic, Tag,
+    ComparisonOperator, Dimension, MetricDataQuery, MetricDatum, MetricStat, StateValue, Statistic,
+    Tag,
 };
 use winterbaume_cloudwatch::CloudWatchService;
 use winterbaume_core::MockAws;
@@ -540,16 +541,31 @@ async fn test_alarm_state() {
     );
     assert_eq!(resp.metric_alarms()[0].actions_enabled(), Some(true));
 
+    // moto asserts that the untouched testalarm2 is `OK`, because moto
+    // creates alarms in `OK`. CloudWatch creates them in `INSUFFICIENT_DATA`
+    // ( PutMetricAlarm: "the alarm state is immediately set to
+    // INSUFFICIENT_DATA" ), so this port asserts that instead ( issue #68 ).
+    let resp = client
+        .describe_alarms()
+        .state_value(StateValue::InsufficientData)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(resp.metric_alarms().len(), 1);
+    assert_eq!(resp.metric_alarms()[0].alarm_name(), Some("testalarm2"));
+    assert_eq!(
+        resp.metric_alarms()[0].state_value(),
+        Some(&StateValue::InsufficientData)
+    );
+    assert_eq!(resp.metric_alarms()[0].actions_enabled(), Some(true));
+
     let resp = client
         .describe_alarms()
         .state_value(StateValue::Ok)
         .send()
         .await
         .unwrap();
-    assert_eq!(resp.metric_alarms().len(), 1);
-    assert_eq!(resp.metric_alarms()[0].alarm_name(), Some("testalarm2"));
-    assert_eq!(resp.metric_alarms()[0].state_value(), Some(&StateValue::Ok));
-    assert_eq!(resp.metric_alarms()[0].actions_enabled(), Some(true));
+    assert!(resp.metric_alarms().is_empty());
 
     // Sanity check - all alarms
     let resp = client.describe_alarms().send().await.unwrap();
@@ -1711,6 +1727,13 @@ async fn test_put_composite_alarm_smoke() {
     // Verify the metric alarms are still present
     let resp = client.describe_alarms().send().await.unwrap();
     assert_eq!(resp.metric_alarms().len(), 2);
+    // PutCompositeAlarm: "When this operation creates an alarm, the alarm
+    // state is immediately set to INSUFFICIENT_DATA."
+    assert_eq!(resp.composite_alarms().len(), 1);
+    assert_eq!(
+        resp.composite_alarms()[0].state_value(),
+        Some(&StateValue::InsufficientData)
+    );
 }
 
 // ============================================================================
@@ -1830,4 +1853,345 @@ async fn test_get_insight_rule_report() {
 
     // The mock returns empty results
     assert_eq!(resp.approximate_unique_count(), Some(0));
+}
+
+// ============================================================================
+// Alarm settings and state ( issue #68 )
+// ============================================================================
+
+#[tokio::test]
+async fn test_put_metric_alarm_round_trips_all_settings() {
+    let client = make_cw_client().await;
+
+    client
+        .put_metric_alarm()
+        .alarm_name("wb-alarm")
+        .namespace("AWS/SQS")
+        .metric_name("ApproximateNumberOfMessagesVisible")
+        .dimensions(
+            Dimension::builder()
+                .name("QueueName")
+                .value("wb-dlq")
+                .build(),
+        )
+        .extended_statistic("p99")
+        .evaluate_low_sample_count_percentile("ignore")
+        .period(60)
+        .evaluation_periods(5)
+        .datapoints_to_alarm(3)
+        .threshold(0.0)
+        .comparison_operator(ComparisonOperator::GreaterThanThreshold)
+        .treat_missing_data("notBreaching")
+        .unit(aws_sdk_cloudwatch::types::StandardUnit::Count)
+        .send()
+        .await
+        .unwrap();
+
+    let resp = client
+        .describe_alarms()
+        .alarm_names("wb-alarm")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(resp.metric_alarms().len(), 1);
+    let alarm = &resp.metric_alarms()[0];
+    assert_eq!(alarm.treat_missing_data(), Some("notBreaching"));
+    assert_eq!(alarm.datapoints_to_alarm(), Some(3));
+    assert_eq!(alarm.extended_statistic(), Some("p99"));
+    assert_eq!(alarm.statistic(), None);
+    assert_eq!(alarm.evaluate_low_sample_count_percentile(), Some("ignore"));
+    assert_eq!(alarm.evaluation_periods(), Some(5));
+    assert_eq!(alarm.period(), Some(60));
+    assert_eq!(
+        alarm.unit(),
+        Some(&aws_sdk_cloudwatch::types::StandardUnit::Count)
+    );
+    assert_eq!(alarm.dimensions()[0].value(), Some("wb-dlq"));
+}
+
+#[tokio::test]
+async fn test_new_alarm_starts_in_insufficient_data() {
+    let client = make_cw_client().await;
+    let before = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs() as i64;
+
+    client
+        .put_metric_alarm()
+        .alarm_name("fresh-alarm")
+        .namespace("NS")
+        .metric_name("M")
+        .statistic(Statistic::Maximum)
+        .period(60)
+        .evaluation_periods(1)
+        .threshold(1.0)
+        .comparison_operator(ComparisonOperator::GreaterThanThreshold)
+        .send()
+        .await
+        .unwrap();
+
+    let resp = client
+        .describe_alarms()
+        .alarm_names("fresh-alarm")
+        .send()
+        .await
+        .unwrap();
+    let alarm = &resp.metric_alarms()[0];
+    assert_eq!(alarm.state_value(), Some(&StateValue::InsufficientData));
+    assert_eq!(
+        alarm.state_reason(),
+        Some("Unchecked: Initial alarm creation")
+    );
+    assert_eq!(alarm.state_reason_data(), None);
+    // TreatMissingData is returned only when it was set; `missing` applies.
+    assert_eq!(alarm.treat_missing_data(), None);
+    assert_eq!(alarm.datapoints_to_alarm(), None);
+    for ts in [
+        alarm.alarm_configuration_updated_timestamp(),
+        alarm.state_updated_timestamp(),
+        alarm.state_transitioned_timestamp(),
+    ] {
+        let ts = ts.expect("alarm timestamps are set on creation");
+        assert!(ts.secs() >= before, "timestamp {ts:?} predates creation");
+    }
+
+    let resp = client
+        .describe_alarms()
+        .state_value(StateValue::InsufficientData)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(resp.metric_alarms().len(), 1);
+    let resp = client
+        .describe_alarms()
+        .state_value(StateValue::Ok)
+        .send()
+        .await
+        .unwrap();
+    assert!(resp.metric_alarms().is_empty());
+}
+
+#[tokio::test]
+async fn test_put_metric_alarm_metrics_array_round_trip() {
+    let client = make_cw_client().await;
+
+    client
+        .put_metric_alarm()
+        .alarm_name("anomaly-alarm")
+        .evaluation_periods(2)
+        .comparison_operator(ComparisonOperator::LessThanLowerOrGreaterThanUpperThreshold)
+        .threshold_metric_id("ad1")
+        .metrics(
+            MetricDataQuery::builder()
+                .id("m1")
+                .return_data(true)
+                .metric_stat(
+                    MetricStat::builder()
+                        .metric(
+                            aws_sdk_cloudwatch::types::Metric::builder()
+                                .namespace("AWS/EC2")
+                                .metric_name("CPUUtilization")
+                                .dimensions(
+                                    Dimension::builder()
+                                        .name("InstanceId")
+                                        .value("i-0123")
+                                        .build(),
+                                )
+                                .build(),
+                        )
+                        .period(300)
+                        .stat("Average")
+                        .build(),
+                )
+                .build(),
+        )
+        .metrics(
+            MetricDataQuery::builder()
+                .id("ad1")
+                .expression("ANOMALY_DETECTION_BAND(m1, 2)")
+                .label("CPUUtilization (expected)")
+                .return_data(true)
+                .build(),
+        )
+        .send()
+        .await
+        .expect("an alarm on Metrics needs no MetricName");
+
+    let resp = client
+        .describe_alarms()
+        .alarm_names("anomaly-alarm")
+        .send()
+        .await
+        .unwrap();
+    let alarm = &resp.metric_alarms()[0];
+    assert_eq!(alarm.threshold_metric_id(), Some("ad1"));
+    assert_eq!(alarm.metric_name(), None);
+    assert_eq!(alarm.namespace(), None);
+    assert_eq!(alarm.threshold(), None);
+    assert_eq!(alarm.period(), None);
+    assert_eq!(alarm.statistic(), None);
+    let metrics = alarm.metrics();
+    assert_eq!(metrics.len(), 2);
+    assert_eq!(metrics[0].id(), Some("m1"));
+    let stat = metrics[0].metric_stat().unwrap();
+    assert_eq!(stat.period(), Some(300));
+    assert_eq!(stat.stat(), Some("Average"));
+    let metric = stat.metric().unwrap();
+    assert_eq!(metric.metric_name(), Some("CPUUtilization"));
+    assert_eq!(metric.dimensions()[0].value(), Some("i-0123"));
+    assert_eq!(
+        metrics[1].expression(),
+        Some("ANOMALY_DETECTION_BAND(m1, 2)")
+    );
+    assert_eq!(metrics[1].label(), Some("CPUUtilization (expected)"));
+    assert_eq!(metrics[1].return_data(), Some(true));
+}
+
+#[tokio::test]
+async fn test_put_metric_alarm_without_metric_name_or_metrics_fails() {
+    let client = make_cw_client().await;
+    let err = client
+        .put_metric_alarm()
+        .alarm_name("no-metric")
+        .evaluation_periods(1)
+        .threshold(1.0)
+        .comparison_operator(ComparisonOperator::GreaterThanThreshold)
+        .send()
+        .await
+        .expect_err("neither MetricName nor Metrics");
+    assert_eq!(
+        err.into_service_error().meta().code(),
+        Some("MissingParameter")
+    );
+}
+
+#[tokio::test]
+async fn test_put_metric_alarm_update_keeps_state_and_tags() {
+    let client = make_cw_client().await;
+    let put = |threshold: f64, tag_value: &'static str| {
+        client
+            .put_metric_alarm()
+            .alarm_name("updated-alarm")
+            .namespace("NS")
+            .metric_name("M")
+            .statistic(Statistic::Average)
+            .period(60)
+            .evaluation_periods(1)
+            .threshold(threshold)
+            .comparison_operator(ComparisonOperator::GreaterThanThreshold)
+            .tags(Tag::builder().key("team").value(tag_value).build())
+            .send()
+    };
+    put(1.0, "a").await.unwrap();
+    client
+        .set_alarm_state()
+        .alarm_name("updated-alarm")
+        .state_value(StateValue::Alarm)
+        .state_reason("forced")
+        .send()
+        .await
+        .unwrap();
+    let first = client
+        .describe_alarms()
+        .alarm_names("updated-alarm")
+        .send()
+        .await
+        .unwrap();
+    let first = &first.metric_alarms()[0];
+
+    tokio::time::sleep(std::time::Duration::from_millis(20)).await;
+    put(5.0, "b").await.unwrap();
+
+    let resp = client
+        .describe_alarms()
+        .alarm_names("updated-alarm")
+        .send()
+        .await
+        .unwrap();
+    let alarm = &resp.metric_alarms()[0];
+    // "When you update an existing alarm, its state is left unchanged, but
+    // the update completely overwrites the previous configuration."
+    assert_eq!(alarm.threshold(), Some(5.0));
+    assert_eq!(alarm.state_value(), Some(&StateValue::Alarm));
+    assert_eq!(alarm.state_reason(), Some("forced"));
+    assert_eq!(
+        alarm.state_updated_timestamp(),
+        first.state_updated_timestamp()
+    );
+    assert!(
+        alarm.alarm_configuration_updated_timestamp()
+            > first.alarm_configuration_updated_timestamp()
+    );
+
+    // "If you are using this operation to update an existing alarm, any tags
+    // you specify in this parameter are ignored."
+    let tags = client
+        .list_tags_for_resource()
+        .resource_arn(alarm.alarm_arn().unwrap())
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(tags.tags().len(), 1);
+    assert_eq!(tags.tags()[0].value(), Some("a"));
+}
+
+#[tokio::test]
+async fn test_set_alarm_state_updates_reason_data_and_timestamps() {
+    let client = make_cw_client().await;
+    client
+        .put_metric_alarm()
+        .alarm_name("stateful")
+        .namespace("NS")
+        .metric_name("M")
+        .statistic(Statistic::Sum)
+        .period(60)
+        .evaluation_periods(1)
+        .threshold(1.0)
+        .comparison_operator(ComparisonOperator::GreaterThanThreshold)
+        .send()
+        .await
+        .unwrap();
+    let describe = || client.describe_alarms().alarm_names("stateful").send();
+    let created = describe().await.unwrap();
+    let created = &created.metric_alarms()[0];
+
+    tokio::time::sleep(std::time::Duration::from_millis(20)).await;
+    client
+        .set_alarm_state()
+        .alarm_name("stateful")
+        .state_value(StateValue::Alarm)
+        .state_reason("breach")
+        .state_reason_data(r#"{"version":"1.0"}"#)
+        .send()
+        .await
+        .unwrap();
+    let alarmed = describe().await.unwrap();
+    let alarmed = &alarmed.metric_alarms()[0];
+    assert_eq!(alarmed.state_reason_data(), Some(r#"{"version":"1.0"}"#));
+    assert!(alarmed.state_updated_timestamp() > created.state_updated_timestamp());
+    assert!(alarmed.state_transitioned_timestamp() > created.state_transitioned_timestamp());
+    assert_eq!(
+        alarmed.alarm_configuration_updated_timestamp(),
+        created.alarm_configuration_updated_timestamp()
+    );
+
+    // Same state again: the state record is updated, the state did not change.
+    tokio::time::sleep(std::time::Duration::from_millis(20)).await;
+    client
+        .set_alarm_state()
+        .alarm_name("stateful")
+        .state_value(StateValue::Alarm)
+        .state_reason("still breaching")
+        .send()
+        .await
+        .unwrap();
+    let again = describe().await.unwrap();
+    let again = &again.metric_alarms()[0];
+    assert_eq!(again.state_reason(), Some("still breaching"));
+    assert!(again.state_updated_timestamp() > alarmed.state_updated_timestamp());
+    assert_eq!(
+        again.state_transitioned_timestamp(),
+        alarmed.state_transitioned_timestamp()
+    );
 }

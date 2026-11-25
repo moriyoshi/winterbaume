@@ -23,21 +23,58 @@ pub struct Dimension {
 pub struct MetricAlarm {
     pub alarm_name: String,
     pub alarm_arn: String,
-    pub metric_name: String,
-    pub namespace: String,
-    pub threshold: f64,
+    /// Absent for alarms defined through `Metrics` (metric math, anomaly detection).
+    pub metric_name: Option<String>,
+    pub namespace: Option<String>,
+    /// Absent for anomaly-detection alarms, which use `ThresholdMetricId`.
+    pub threshold: Option<f64>,
     pub comparison_operator: String,
     pub evaluation_periods: u32,
-    pub period: u32,
-    pub statistic: String,
+    pub period: Option<u32>,
+    pub statistic: Option<String>,
+    pub extended_statistic: Option<String>,
+    pub datapoints_to_alarm: Option<u32>,
+    /// Stored only when the caller sent it; AWS applies `missing` otherwise.
+    pub treat_missing_data: Option<String>,
+    pub evaluate_low_sample_count_percentile: Option<String>,
+    pub threshold_metric_id: Option<String>,
+    pub metrics: Vec<MetricDataQuery>,
     pub state_value: AlarmState,
     pub state_reason: String,
+    pub state_reason_data: Option<String>,
     pub actions_enabled: bool,
     pub alarm_description: Option<String>,
     pub alarm_actions: Vec<String>,
     pub ok_actions: Vec<String>,
     pub insufficient_data_actions: Vec<String>,
     pub dimensions: Vec<Dimension>,
+    pub unit: Option<String>,
+    /// Last `PutMetricAlarm` that created or updated the configuration.
+    pub alarm_configuration_updated_timestamp: DateTime<Utc>,
+    /// Last update of the alarm state record ( `StateValue`, reason ).
+    pub state_updated_timestamp: DateTime<Utc>,
+    /// Last time `StateValue` changed.
+    pub state_transitioned_timestamp: DateTime<Utc>,
+}
+
+/// One entry of a metric alarm's `Metrics` array ( `MetricDataQuery` ).
+#[derive(Debug, Clone, Default)]
+pub struct MetricDataQuery {
+    pub id: String,
+    pub metric_stat: Option<MetricStat>,
+    pub expression: Option<String>,
+    pub label: Option<String>,
+    pub return_data: Option<bool>,
+    pub period: Option<u32>,
+    pub account_id: Option<String>,
+}
+
+/// The metric, period and statistic of a `MetricDataQuery`.
+#[derive(Debug, Clone, Default)]
+pub struct MetricStat {
+    pub metric: Metric,
+    pub period: u32,
+    pub stat: String,
     pub unit: Option<String>,
 }
 
@@ -62,13 +99,19 @@ impl AlarmState {
 /// Input parameters for the PutMetricAlarm operation.
 pub struct PutMetricAlarmInput {
     pub alarm_name: String,
-    pub metric_name: String,
-    pub namespace: String,
-    pub threshold: f64,
+    pub metric_name: Option<String>,
+    pub namespace: Option<String>,
+    pub threshold: Option<f64>,
     pub comparison_operator: String,
     pub evaluation_periods: u32,
-    pub period: u32,
-    pub statistic: String,
+    pub period: Option<u32>,
+    pub statistic: Option<String>,
+    pub extended_statistic: Option<String>,
+    pub datapoints_to_alarm: Option<u32>,
+    pub treat_missing_data: Option<String>,
+    pub evaluate_low_sample_count_percentile: Option<String>,
+    pub threshold_metric_id: Option<String>,
+    pub metrics: Vec<MetricDataQuery>,
     pub alarm_description: Option<String>,
     pub alarm_actions: Vec<String>,
     pub ok_actions: Vec<String>,
@@ -80,7 +123,7 @@ pub struct PutMetricAlarmInput {
 }
 
 /// A metric for ListMetrics.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Metric {
     pub namespace: String,
     pub metric_name: String,

@@ -4,6 +4,10 @@ use chrono::Utc;
 
 use crate::types::*;
 
+/// `StateReason` of a newly created alarm, as CloudWatch reports it before
+/// the first evaluation.
+pub const INITIAL_ALARM_STATE_REASON: &str = "Unchecked: Initial alarm creation";
+
 /// In-memory state for CloudWatch.
 #[derive(Debug, Default)]
 pub struct CloudWatchState {
@@ -115,6 +119,13 @@ impl CloudWatchState {
         seen.into_values().collect()
     }
 
+    /// Create or update a metric alarm.
+    ///
+    /// AWS: "When this operation creates an alarm, the alarm state is
+    /// immediately set to `INSUFFICIENT_DATA`" and "When you update an
+    /// existing alarm, its state is left unchanged, but the update completely
+    /// overwrites the previous configuration of the alarm". `Tags` are applied
+    /// on creation only.
     pub fn put_metric_alarm(
         &mut self,
         input: PutMetricAlarmInput,
@@ -125,6 +136,31 @@ impl CloudWatchState {
             "arn:aws:cloudwatch:{region}:{account_id}:alarm:{}",
             input.alarm_name
         );
+        let now = Utc::now();
+        let existing = self.alarms.get(&input.alarm_name);
+        let is_new = existing.is_none();
+        let (
+            state_value,
+            state_reason,
+            state_reason_data,
+            state_updated_timestamp,
+            state_transitioned_timestamp,
+        ) = match existing {
+            Some(a) => (
+                a.state_value.clone(),
+                a.state_reason.clone(),
+                a.state_reason_data.clone(),
+                a.state_updated_timestamp,
+                a.state_transitioned_timestamp,
+            ),
+            None => (
+                AlarmState::InsufficientData,
+                INITIAL_ALARM_STATE_REASON.to_string(),
+                None,
+                now,
+                now,
+            ),
+        };
 
         let alarm = MetricAlarm {
             alarm_name: input.alarm_name.clone(),
@@ -136,8 +172,15 @@ impl CloudWatchState {
             evaluation_periods: input.evaluation_periods,
             period: input.period,
             statistic: input.statistic,
-            state_value: AlarmState::Ok,
-            state_reason: "Unchecked: Initial alarm creation".to_string(),
+            extended_statistic: input.extended_statistic,
+            datapoints_to_alarm: input.datapoints_to_alarm,
+            treat_missing_data: input.treat_missing_data,
+            evaluate_low_sample_count_percentile: input.evaluate_low_sample_count_percentile,
+            threshold_metric_id: input.threshold_metric_id,
+            metrics: input.metrics,
+            state_value,
+            state_reason,
+            state_reason_data,
             actions_enabled: input.actions_enabled,
             alarm_description: input.alarm_description,
             alarm_actions: input.alarm_actions,
@@ -145,12 +188,15 @@ impl CloudWatchState {
             insufficient_data_actions: input.insufficient_data_actions,
             dimensions: input.dimensions,
             unit: input.unit,
+            alarm_configuration_updated_timestamp: now,
+            state_updated_timestamp,
+            state_transitioned_timestamp,
         };
 
         self.alarms.insert(input.alarm_name.clone(), alarm);
 
-        // Store tags if provided
-        if !input.tags.is_empty() {
+        // Tags apply on creation only; AWS ignores them on update.
+        if is_new && !input.tags.is_empty() {
             self.resource_tags
                 .entry(arn)
                 .or_default()
@@ -185,7 +231,10 @@ impl CloudWatchState {
     ) -> Vec<&MetricAlarm> {
         self.alarms
             .values()
-            .filter(|a| a.metric_name == metric_name && a.namespace == namespace)
+            .filter(|a| {
+                a.metric_name.as_deref() == Some(metric_name)
+                    && a.namespace.as_deref() == Some(namespace)
+            })
             .collect()
     }
 
@@ -320,6 +369,7 @@ impl CloudWatchState {
         alarm_name: &str,
         state_value: &str,
         state_reason: &str,
+        state_reason_data: Option<String>,
     ) -> Result<(), CloudWatchError> {
         let alarm = self
             .alarms
@@ -327,7 +377,7 @@ impl CloudWatchState {
             .ok_or(CloudWatchError::AlarmNotFound {
                 name: alarm_name.to_string(),
             })?;
-        alarm.state_value = match state_value {
+        let new_state = match state_value {
             "OK" => AlarmState::Ok,
             "ALARM" => AlarmState::Alarm,
             "INSUFFICIENT_DATA" => AlarmState::InsufficientData,
@@ -337,7 +387,14 @@ impl CloudWatchState {
                 });
             }
         };
+        let now = Utc::now();
+        if alarm.state_value != new_state {
+            alarm.state_transitioned_timestamp = now;
+        }
+        alarm.state_value = new_state;
         alarm.state_reason = state_reason.to_string();
+        alarm.state_reason_data = state_reason_data;
+        alarm.state_updated_timestamp = now;
         Ok(())
     }
 
@@ -432,6 +489,15 @@ impl CloudWatchState {
         insufficient_data_actions: Vec<String>,
     ) {
         let arn = format!("arn:aws:cloudwatch:{region}:{account_id}:alarm:{alarm_name}");
+        // As for metric alarms: a new composite alarm starts in
+        // INSUFFICIENT_DATA, and an update leaves the state unchanged.
+        let (state_value, state_reason) = match self.composite_alarms.get(alarm_name) {
+            Some(a) => (a.state_value.clone(), a.state_reason.clone()),
+            None => (
+                AlarmState::InsufficientData,
+                INITIAL_ALARM_STATE_REASON.to_string(),
+            ),
+        };
         let alarm = CompositeAlarm {
             alarm_name: alarm_name.to_string(),
             alarm_arn: arn,
@@ -441,8 +507,8 @@ impl CloudWatchState {
             alarm_actions,
             ok_actions,
             insufficient_data_actions,
-            state_value: AlarmState::Ok,
-            state_reason: "Unchecked: Initial alarm creation".to_string(),
+            state_value,
+            state_reason,
         };
         self.composite_alarms.insert(alarm_name.to_string(), alarm);
     }

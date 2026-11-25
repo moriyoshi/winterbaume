@@ -134,18 +134,35 @@ impl AwsCloudwatchMetricAlarmConverter {
             })
             .unwrap_or_default();
 
+        // Terraform state records unset optional strings as "".
+        let non_empty = |v: Option<String>| v.filter(|s| !s.is_empty());
+        let extended_statistic = non_empty(model.extended_statistic);
+        let statistic = non_empty(model.statistic)
+            .or_else(|| extended_statistic.is_none().then(|| "Average".to_string()));
+
         let alarm_view = MetricAlarmView {
             alarm_name: model.alarm_name.clone(),
             alarm_arn: arn,
-            metric_name: model.metric_name,
-            namespace: model.namespace,
-            threshold,
+            metric_name: Some(model.metric_name).filter(|s| !s.is_empty()),
+            namespace: Some(model.namespace).filter(|s| !s.is_empty()),
+            threshold: Some(threshold),
             comparison_operator: model.comparison_operator,
             evaluation_periods: model.evaluation_periods,
-            period: model.period,
-            statistic: model.statistic.unwrap_or_else(|| "Average".to_string()),
-            state_value: "OK".to_string(),
-            state_reason: String::new(),
+            period: Some(model.period),
+            statistic,
+            extended_statistic,
+            datapoints_to_alarm: (model.datapoints_to_alarm > 0)
+                .then_some(model.datapoints_to_alarm),
+            treat_missing_data: non_empty(model.treat_missing_data),
+            evaluate_low_sample_count_percentile: non_empty(
+                model.evaluate_low_sample_count_percentile,
+            ),
+            threshold_metric_id: non_empty(model.threshold_metric_id),
+            metrics: vec![],
+            // A materialised alarm has not been evaluated yet, like a new one.
+            state_value: "INSUFFICIENT_DATA".to_string(),
+            state_reason: winterbaume_cloudwatch::state::INITIAL_ALARM_STATE_REASON.to_string(),
+            state_reason_data: None,
             actions_enabled: model.actions_enabled,
             alarm_description: model.alarm_description,
             alarm_actions,
@@ -153,6 +170,9 @@ impl AwsCloudwatchMetricAlarmConverter {
             insufficient_data_actions,
             dimensions,
             unit: model.unit,
+            alarm_configuration_updated_timestamp: None,
+            state_updated_timestamp: None,
+            state_transitioned_timestamp: None,
         };
 
         let mut state_view = CloudwatchStateView {
@@ -203,6 +223,12 @@ impl AwsCloudwatchMetricAlarmConverter {
                 "evaluation_periods": alarm.evaluation_periods,
                 "period": alarm.period,
                 "statistic": alarm.statistic,
+                "extended_statistic": alarm.extended_statistic,
+                "datapoints_to_alarm": alarm.datapoints_to_alarm.unwrap_or(0),
+                // The provider's default when the alarm carries none.
+                "treat_missing_data": alarm.treat_missing_data.as_deref().unwrap_or("missing"),
+                "evaluate_low_sample_count_percentiles": alarm.evaluate_low_sample_count_percentile,
+                "threshold_metric_id": alarm.threshold_metric_id,
                 "actions_enabled": alarm.actions_enabled,
                 "alarm_description": alarm.alarm_description,
                 "alarm_actions": alarm.alarm_actions,

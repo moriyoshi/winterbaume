@@ -14,12 +14,22 @@ use crate::types::{Dimension, ManagedInsightRule, MetricDatum, PutMetricAlarmInp
 use crate::views::CloudwatchStateView;
 use crate::wire;
 
-/// CloudWatch service handler that processes rpc-v2-cbor protocol requests.
+/// CloudWatch service handler.
 ///
-/// The latest AWS SDK sends CloudWatch requests using the Smithy rpc-v2-cbor
-/// protocol with URLs like:
-///   POST /service/GraniteServiceVersion20100801/operation/{Action}
-/// Body is CBOR-encoded. Response is also CBOR-encoded.
+/// CloudWatch declares three request protocols, and clients use all of them:
+///
+/// * `rpcv2Cbor` (the AWS SDK for Rust):
+///   `POST /service/GraniteServiceVersion20100801/operation/{Action}` with a
+///   CBOR body; answered in CBOR.
+/// * `awsJson1_0` (AWS CLI v2, boto3): `X-Amz-Target:
+///   GraniteServiceVersion20100801.{Action}` with an
+///   `application/x-amz-json-1.0` body; answered in JSON 1.0.
+/// * `awsQuery` (older SDKs, Terraform): a form-encoded body with
+///   `Action=...`; answered in XML.
+///
+/// Every request is decoded into a `serde_json::Value`, handled by the same
+/// handler, which answers in CBOR, and the CBOR response is re-encoded for
+/// JSON and query callers.
 pub struct CloudWatchService {
     pub(crate) state: Arc<BackendState<CloudWatchState>>,
     pub(crate) notifier: StateChangeNotifier<CloudwatchStateView>,
@@ -65,43 +75,57 @@ impl CloudWatchService {
         let region = winterbaume_core::auth::extract_region_from_uri(&request.uri);
         let account_id = default_account_id();
 
-        // Detect protocol: CBOR (path-based) vs Query (form-encoded body)
-        let is_cbor = extract_action_from_path(&request.uri).is_some();
-
-        let (action, body) = if is_cbor {
-            // CBOR protocol: action from URL path, body from CBOR
-            let action = extract_action_from_path(&request.uri).unwrap();
-            let body: Value = if request.body.is_empty() {
-                json!({})
-            } else {
-                match ciborium::from_reader::<ciborium::Value, _>(&request.body[..]) {
-                    Ok(cbor_val) => wire::cbor_to_json(cbor_val),
-                    Err(_) => {
-                        return wire::cbor_error_response(
+        let protocol = detect_protocol(&request);
+        let (action, body) = match &protocol {
+            Protocol::Json(action) => {
+                let body: Value = if request.body.iter().all(u8::is_ascii_whitespace) {
+                    json!({})
+                } else {
+                    match serde_json::from_slice::<Value>(&request.body) {
+                        Ok(v @ Value::Object(_)) => v,
+                        _ => {
+                            return json_error_response(
+                                400,
+                                "SerializationException",
+                                "Invalid JSON body",
+                            );
+                        }
+                    }
+                };
+                (action.clone(), body)
+            }
+            Protocol::Cbor(action) => {
+                let body: Value = if request.body.is_empty() {
+                    json!({})
+                } else {
+                    match ciborium::from_reader::<ciborium::Value, _>(&request.body[..]) {
+                        Ok(cbor_val) => wire::cbor_to_json(cbor_val),
+                        Err(_) => {
+                            return with_query_error_header(wire::cbor_error_response(
+                                400,
+                                "SerializationException",
+                                "Invalid CBOR body",
+                            ));
+                        }
+                    }
+                };
+                (action.clone(), body)
+            }
+            Protocol::Query => {
+                let body_str = std::str::from_utf8(&request.body).unwrap_or("");
+                let params = winterbaume_core::protocol::parse_query_string(body_str);
+                let action = match params.get("Action") {
+                    Some(a) => a.clone(),
+                    None => {
+                        return query_error_response(
                             400,
-                            "SerializationException",
-                            "Invalid CBOR body",
+                            "MissingAction",
+                            "Missing 'Action' parameter",
                         );
                     }
-                }
-            };
-            (action, body)
-        } else {
-            // Query protocol: action and params from form-encoded body
-            let body_str = std::str::from_utf8(&request.body).unwrap_or("");
-            let params = winterbaume_core::protocol::parse_query_string(body_str);
-            let action = match params.get("Action") {
-                Some(a) => a.clone(),
-                None => {
-                    return query_error_response(
-                        400,
-                        "MissingAction",
-                        "Missing 'Action' parameter",
-                    );
-                }
-            };
-            let body = query_params_to_json(&params);
-            (action, body)
+                };
+                (action, query_params_to_json(&params))
+            }
         };
 
         let state = self.state.get(account_id, &region);
@@ -110,19 +134,15 @@ impl CloudWatchService {
             .dispatch_action(&action, &state, &body, account_id, &region)
             .await;
 
-        if is_cbor {
-            if response.status >= 200 && response.status < 300 {
-                self.notify_state_changed(account_id, &region).await;
-            }
-            response
-        } else {
-            // Convert CBOR response to XML for query protocol callers
-            let xml_resp = cbor_response_to_xml(&action, response);
-            if xml_resp.status >= 200 && xml_resp.status < 300 {
-                self.notify_state_changed(account_id, &region).await;
-            }
-            xml_resp
+        let response = match protocol {
+            Protocol::Cbor(_) => with_query_error_header(response),
+            Protocol::Json(_) => cbor_response_to_json(response),
+            Protocol::Query => cbor_response_to_xml(&action, response),
+        };
+        if response.status >= 200 && response.status < 300 {
+            self.notify_state_changed(account_id, &region).await;
         }
+        response
     }
 
     async fn dispatch_action(
@@ -287,72 +307,64 @@ impl CloudWatchService {
                 return wire::cbor_error_response(400, "MissingParameter", "Missing 'AlarmName'");
             }
         };
-        let metric_name = match body.get("MetricName").and_then(|v| v.as_str()) {
-            Some(n) => n,
-            None => {
-                return wire::cbor_error_response(400, "MissingParameter", "Missing 'MetricName'");
-            }
-        };
-        let namespace = match body.get("Namespace").and_then(|v| v.as_str()) {
-            Some(n) => n,
-            None => {
-                return wire::cbor_error_response(400, "MissingParameter", "Missing 'Namespace'");
-            }
-        };
-        let threshold = body
-            .get("Threshold")
-            .and_then(|v| v.as_f64())
-            .unwrap_or(0.0);
-        let comparison_operator = body
-            .get("ComparisonOperator")
-            .and_then(|v| v.as_str())
-            .unwrap_or("GreaterThanThreshold");
-        let evaluation_periods = body
-            .get("EvaluationPeriods")
-            .and_then(|v| v.as_u64())
-            .unwrap_or(1) as u32;
-        let period = body.get("Period").and_then(|v| v.as_u64()).unwrap_or(60) as u32;
-        let statistic = body
-            .get("Statistic")
-            .and_then(|v| v.as_str())
-            .unwrap_or("Average");
-        let alarm_description = body.get("AlarmDescription").and_then(|v| v.as_str());
-
-        let alarm_actions: Vec<String> = extract_string_list(body, "AlarmActions");
-        let ok_actions: Vec<String> = extract_string_list(body, "OKActions");
-        let insufficient_data_actions: Vec<String> =
-            extract_string_list(body, "InsufficientDataActions");
-
-        let actions_enabled = body
-            .get("ActionsEnabled")
-            .and_then(|v| v.as_bool())
-            .unwrap_or(true);
-
-        let unit = body
-            .get("Unit")
-            .and_then(|v| v.as_str())
-            .map(|s| s.to_string());
-
-        let dimensions = extract_dimensions_from_json(body, "Dimensions");
-        let tags = extract_tags_from_json(body);
+        let metric_name = get_string(body, "MetricName");
+        let metrics = extract_metric_data_queries(body, "Metrics");
+        // AWS: "you must specify either MetricName, a Metrics array, or an
+        // EvaluationCriteria".
+        if metric_name.is_none() && metrics.is_empty() {
+            return wire::cbor_error_response(
+                400,
+                "MissingParameter",
+                "One of 'MetricName' or 'Metrics' must be specified",
+            );
+        }
+        let namespace = get_string(body, "Namespace");
+        if metric_name.is_some() && namespace.is_none() {
+            return wire::cbor_error_response(400, "MissingParameter", "Missing 'Namespace'");
+        }
+        let threshold_metric_id = get_string(body, "ThresholdMetricId");
+        let threshold = get_f64(body, "Threshold").or(if threshold_metric_id.is_none() {
+            Some(0.0)
+        } else {
+            None
+        });
+        let comparison_operator = get_string(body, "ComparisonOperator")
+            .unwrap_or_else(|| "GreaterThanThreshold".to_string());
+        let evaluation_periods = get_u32(body, "EvaluationPeriods").unwrap_or(1);
+        let extended_statistic = get_string(body, "ExtendedStatistic");
+        // A single-metric alarm needs a period and a statistic; an alarm on
+        // `Metrics` carries them per query instead.
+        let single_metric = metrics.is_empty();
+        let period = get_u32(body, "Period").or(single_metric.then_some(60));
+        let statistic = get_string(body, "Statistic")
+            .or((single_metric && extended_statistic.is_none()).then(|| "Average".to_string()));
 
         let input = PutMetricAlarmInput {
             alarm_name: alarm_name.to_string(),
-            metric_name: metric_name.to_string(),
-            namespace: namespace.to_string(),
+            metric_name,
+            namespace,
             threshold,
-            comparison_operator: comparison_operator.to_string(),
+            comparison_operator,
             evaluation_periods,
             period,
-            statistic: statistic.to_string(),
-            alarm_description: alarm_description.map(|s| s.to_string()),
-            alarm_actions,
-            ok_actions,
-            insufficient_data_actions,
-            actions_enabled,
-            dimensions,
-            unit,
-            tags,
+            statistic,
+            extended_statistic,
+            datapoints_to_alarm: get_u32(body, "DatapointsToAlarm"),
+            treat_missing_data: get_string(body, "TreatMissingData"),
+            evaluate_low_sample_count_percentile: get_string(
+                body,
+                "EvaluateLowSampleCountPercentile",
+            ),
+            threshold_metric_id,
+            metrics,
+            alarm_description: get_string(body, "AlarmDescription"),
+            alarm_actions: extract_string_list(body, "AlarmActions"),
+            ok_actions: extract_string_list(body, "OKActions"),
+            insufficient_data_actions: extract_string_list(body, "InsufficientDataActions"),
+            actions_enabled: get_bool(body, "ActionsEnabled").unwrap_or(true),
+            dimensions: extract_dimensions_from_json(body, "Dimensions"),
+            unit: get_string(body, "Unit"),
+            tags: extract_tags_from_json(body),
         };
 
         let mut state = state.write().await;
@@ -747,8 +759,9 @@ impl CloudWatchService {
             .get("StateReason")
             .and_then(|v| v.as_str())
             .unwrap_or("");
+        let state_reason_data = get_string(body, "StateReasonData");
         let mut state = state.write().await;
-        match state.set_alarm_state(alarm_name, state_value, state_reason) {
+        match state.set_alarm_state(alarm_name, state_value, state_reason, state_reason_data) {
             Ok(()) => cbor_response(200, json!({})),
             Err(e) => cw_error_response(&e),
         }
@@ -907,10 +920,7 @@ impl CloudWatchService {
             .get("AlarmDescription")
             .and_then(|v| v.as_str())
             .map(|s| s.to_string());
-        let actions_enabled = body
-            .get("ActionsEnabled")
-            .and_then(|v| v.as_bool())
-            .unwrap_or(true);
+        let actions_enabled = get_bool(body, "ActionsEnabled").unwrap_or(true);
         let alarm_actions = extract_string_list(body, "AlarmActions");
         let ok_actions = extract_string_list(body, "OKActions");
         let insufficient_data_actions = extract_string_list(body, "InsufficientDataActions");
@@ -1332,21 +1342,14 @@ impl CloudWatchService {
 // --- Alarm serialization helper ---
 
 fn serialize_alarm(a: &crate::types::MetricAlarm) -> Value {
-    let dims: Vec<Value> = a
-        .dimensions
-        .iter()
-        .map(|d| json!({"Name": d.name, "Value": d.value}))
-        .collect();
+    let dims: Vec<Value> = a.dimensions.iter().map(serialize_dimension).collect();
+    // Timestamps are plain epoch seconds here; `alarm_to_model` feeds this
+    // into the generated `MetricAlarm`, whose serializer tags them for CBOR.
     let mut v = json!({
         "AlarmName": a.alarm_name,
         "AlarmArn": a.alarm_arn,
-        "MetricName": a.metric_name,
-        "Namespace": a.namespace,
-        "Threshold": a.threshold,
         "ComparisonOperator": a.comparison_operator,
         "EvaluationPeriods": a.evaluation_periods,
-        "Period": a.period,
-        "Statistic": a.statistic,
         "StateValue": a.state_value.as_str(),
         "StateReason": a.state_reason,
         "ActionsEnabled": a.actions_enabled,
@@ -1354,14 +1357,93 @@ fn serialize_alarm(a: &crate::types::MetricAlarm) -> Value {
         "OKActions": a.ok_actions,
         "InsufficientDataActions": a.insufficient_data_actions,
         "Dimensions": dims,
+        "AlarmConfigurationUpdatedTimestamp": epoch_seconds(&a.alarm_configuration_updated_timestamp),
+        "StateUpdatedTimestamp": epoch_seconds(&a.state_updated_timestamp),
+        "StateTransitionedTimestamp": epoch_seconds(&a.state_transitioned_timestamp),
     });
-    if let Some(ref desc) = a.alarm_description {
-        v["AlarmDescription"] = json!(desc);
+    let optional_strings = [
+        ("MetricName", &a.metric_name),
+        ("Namespace", &a.namespace),
+        ("Statistic", &a.statistic),
+        ("ExtendedStatistic", &a.extended_statistic),
+        ("TreatMissingData", &a.treat_missing_data),
+        (
+            "EvaluateLowSampleCountPercentile",
+            &a.evaluate_low_sample_count_percentile,
+        ),
+        ("ThresholdMetricId", &a.threshold_metric_id),
+        ("StateReasonData", &a.state_reason_data),
+        ("AlarmDescription", &a.alarm_description),
+        ("Unit", &a.unit),
+    ];
+    for (key, value) in optional_strings {
+        if let Some(value) = value {
+            v[key] = json!(value);
+        }
     }
-    if let Some(ref unit) = a.unit {
-        v["Unit"] = json!(unit);
+    if let Some(threshold) = a.threshold {
+        v["Threshold"] = json!(threshold);
+    }
+    if let Some(period) = a.period {
+        v["Period"] = json!(period);
+    }
+    if let Some(datapoints) = a.datapoints_to_alarm {
+        v["DatapointsToAlarm"] = json!(datapoints);
+    }
+    if !a.metrics.is_empty() {
+        v["Metrics"] = Value::Array(a.metrics.iter().map(serialize_metric_data_query).collect());
     }
     v
+}
+
+fn serialize_dimension(d: &Dimension) -> Value {
+    json!({"Name": d.name, "Value": d.value})
+}
+
+fn serialize_metric_data_query(q: &crate::types::MetricDataQuery) -> Value {
+    let mut v = json!({ "Id": q.id });
+    if let Some(stat) = &q.metric_stat {
+        let mut metric = json!({
+            "Dimensions": stat.metric.dimensions.iter().map(serialize_dimension).collect::<Vec<_>>(),
+        });
+        if !stat.metric.namespace.is_empty() {
+            metric["Namespace"] = json!(stat.metric.namespace);
+        }
+        if !stat.metric.metric_name.is_empty() {
+            metric["MetricName"] = json!(stat.metric.metric_name);
+        }
+        let mut metric_stat = json!({
+            "Metric": metric,
+            "Period": stat.period,
+            "Stat": stat.stat,
+        });
+        if let Some(unit) = &stat.unit {
+            metric_stat["Unit"] = json!(unit);
+        }
+        v["MetricStat"] = metric_stat;
+    }
+    for (key, value) in [
+        ("Expression", &q.expression),
+        ("Label", &q.label),
+        ("AccountId", &q.account_id),
+    ] {
+        if let Some(value) = value {
+            v[key] = json!(value);
+        }
+    }
+    if let Some(return_data) = q.return_data {
+        v["ReturnData"] = json!(return_data);
+    }
+    if let Some(period) = q.period {
+        v["Period"] = json!(period);
+    }
+    v
+}
+
+/// Epoch seconds with millisecond precision, the unit every protocol's
+/// timestamp encoding starts from.
+fn epoch_seconds(t: &chrono::DateTime<Utc>) -> f64 {
+    t.timestamp_millis() as f64 / 1000.0
 }
 
 // --- Composite alarm serialization helper ---
@@ -1526,6 +1608,91 @@ fn extract_string_list(body: &Value, key: &str) -> Vec<String> {
         .unwrap_or_default()
 }
 
+// --- Scalar extraction helpers ---
+//
+// The query protocol delivers every scalar as a string ( see
+// `query_params_to_json` ), while JSON and CBOR deliver typed numbers and
+// booleans, so numeric and boolean members are read through these helpers,
+// which accept both.
+
+fn get_string(body: &Value, key: &str) -> Option<String> {
+    body.get(key).and_then(|v| v.as_str()).map(str::to_string)
+}
+
+fn value_as_f64(v: &Value) -> Option<f64> {
+    match v {
+        Value::Number(n) => n.as_f64(),
+        Value::String(s) => s.trim().parse().ok(),
+        _ => None,
+    }
+}
+
+fn get_f64(body: &Value, key: &str) -> Option<f64> {
+    body.get(key).and_then(value_as_f64)
+}
+
+fn value_as_u32(v: &Value) -> Option<u32> {
+    match v {
+        Value::Number(n) => n
+            .as_u64()
+            .or_else(|| {
+                n.as_f64()
+                    .filter(|f| f.fract() == 0.0 && *f >= 0.0)
+                    .map(|f| f as u64)
+            })
+            .and_then(|n| u32::try_from(n).ok()),
+        Value::String(s) => s.trim().parse().ok(),
+        _ => None,
+    }
+}
+
+fn get_u32(body: &Value, key: &str) -> Option<u32> {
+    body.get(key).and_then(value_as_u32)
+}
+
+fn get_bool(body: &Value, key: &str) -> Option<bool> {
+    match body.get(key)? {
+        Value::Bool(b) => Some(*b),
+        Value::String(s) if s.eq_ignore_ascii_case("true") => Some(true),
+        Value::String(s) if s.eq_ignore_ascii_case("false") => Some(false),
+        _ => None,
+    }
+}
+
+/// Parse a `Metrics` array of `MetricDataQuery` structures.
+fn extract_metric_data_queries(body: &Value, key: &str) -> Vec<crate::types::MetricDataQuery> {
+    let Some(arr) = body.get(key).and_then(|v| v.as_array()) else {
+        return Vec::new();
+    };
+    arr.iter()
+        .filter(|q| q.is_object())
+        .map(|q| {
+            let metric_stat = q.get("MetricStat").filter(|v| v.is_object()).map(|ms| {
+                let metric = ms.get("Metric").cloned().unwrap_or_else(|| json!({}));
+                crate::types::MetricStat {
+                    metric: crate::types::Metric {
+                        namespace: get_string(&metric, "Namespace").unwrap_or_default(),
+                        metric_name: get_string(&metric, "MetricName").unwrap_or_default(),
+                        dimensions: extract_dimensions_from_json(&metric, "Dimensions"),
+                    },
+                    period: get_u32(ms, "Period").unwrap_or_default(),
+                    stat: get_string(ms, "Stat").unwrap_or_default(),
+                    unit: get_string(ms, "Unit"),
+                }
+            });
+            crate::types::MetricDataQuery {
+                id: get_string(q, "Id").unwrap_or_default(),
+                metric_stat,
+                expression: get_string(q, "Expression"),
+                label: get_string(q, "Label"),
+                return_data: get_bool(q, "ReturnData"),
+                period: get_u32(q, "Period"),
+                account_id: get_string(q, "AccountId"),
+            }
+        })
+        .collect()
+}
+
 // --- Tag extraction helper ---
 
 fn extract_tags_from_json(body: &Value) -> std::collections::HashMap<String, String> {
@@ -1573,6 +1740,100 @@ fn extract_metric_stream_filters(body: &Value, key: &str) -> Vec<crate::types::M
                 .collect()
         })
         .unwrap_or_default()
+}
+
+// --- Protocol detection ---
+
+/// `X-Amz-Target` prefix of CloudWatch's `awsJson1_0` protocol.
+const JSON_TARGET_PREFIX: &str = "GraniteServiceVersion20100801.";
+
+/// The request protocol, with the operation name where the protocol carries
+/// it outside the body.
+enum Protocol {
+    Json(String),
+    Cbor(String),
+    Query,
+}
+
+/// `X-Amz-Target` selects `awsJson1_0`, a `/service/.../operation/<Op>` path
+/// selects `rpcv2Cbor`, and anything else is `awsQuery`.
+fn detect_protocol(request: &MockRequest) -> Protocol {
+    let target = request
+        .headers
+        .get("x-amz-target")
+        .and_then(|v| v.to_str().ok());
+    if let Some(target) = target {
+        let action = target.strip_prefix(JSON_TARGET_PREFIX).unwrap_or(target);
+        return Protocol::Json(action.to_string());
+    }
+    match extract_action_from_path(&request.uri) {
+        Some(action) => Protocol::Cbor(action),
+        None => Protocol::Query,
+    }
+}
+
+// --- awsJson1_0 / awsQueryCompatible support ---
+
+/// `x-amzn-query-error: <Code>;<Sender|Receiver>`, which the model's
+/// `awsQueryCompatible` trait asks JSON and CBOR error responses to carry so
+/// SDKs can recover the awsQuery error code.
+fn insert_query_error_header(headers: &mut http::HeaderMap, status: u16, code: &str) {
+    let fault = if status >= 500 { "Receiver" } else { "Sender" };
+    if let Ok(value) = http::HeaderValue::from_str(&format!("{code};{fault}")) {
+        headers.insert("x-amzn-query-error", value);
+    }
+}
+
+/// Decode a handler's CBOR response body to JSON. CBOR Tag 1 timestamps
+/// become plain epoch-second numbers and byte strings base64 text, which is
+/// what `awsJson1_0` uses for timestamps and blobs.
+fn decode_cbor_body(response: &MockResponse) -> Option<Value> {
+    if response.body.is_empty() {
+        return Some(json!({}));
+    }
+    ciborium::from_reader::<ciborium::Value, _>(&response.body[..])
+        .ok()
+        .map(wire::cbor_to_json)
+}
+
+/// Add `x-amzn-query-error` to a CBOR error response.
+fn with_query_error_header(mut response: MockResponse) -> MockResponse {
+    if response.status >= 300
+        && let Some(code) = decode_cbor_body(&response)
+            .as_ref()
+            .and_then(|v| v.get("__type"))
+            .and_then(|v| v.as_str())
+    {
+        insert_query_error_header(&mut response.headers, response.status, code);
+    }
+    response
+}
+
+/// Build an `awsJson1_0` error response.
+fn json_error_response(status: u16, code: &str, message: &str) -> MockResponse {
+    let body = json!({ "__type": code, "message": message });
+    let mut response = MockResponse::json(status, body.to_string());
+    insert_query_error_header(&mut response.headers, status, code);
+    response
+}
+
+/// Re-encode a handler's CBOR response as an `awsJson1_0` response.
+fn cbor_response_to_json(response: MockResponse) -> MockResponse {
+    let Some(body) = decode_cbor_body(&response) else {
+        return json_error_response(500, "InternalServiceError", "Unreadable response");
+    };
+    if response.status >= 300 {
+        let code = body
+            .get("__type")
+            .and_then(|v| v.as_str())
+            .unwrap_or("InternalServiceError");
+        let message = body
+            .get("message")
+            .and_then(|v| v.as_str())
+            .unwrap_or("Unknown error");
+        return json_error_response(response.status, code, message);
+    }
+    MockResponse::json(response.status, body.to_string())
 }
 
 // --- CBOR utilities ---
@@ -1634,7 +1895,7 @@ fn extract_metric_data_from_json(body: &Value) -> Vec<MetricDatum> {
                 .and_then(|v| v.as_str())
                 .unwrap_or("")
                 .to_string();
-            let value = item.get("Value").and_then(|v| v.as_f64());
+            let value = get_f64(item, "Value");
             let unit = item
                 .get("Unit")
                 .and_then(|v| v.as_str())
@@ -1701,20 +1962,11 @@ fn insert_nested(map: &mut serde_json::Map<String, Value>, parts: &[&str], value
         return;
     }
     if parts.len() == 1 {
-        // Try to parse as number or boolean, otherwise store as string
-        let val = if parts[0].parse::<i64>().is_ok() {
-            // Don't convert standalone numeric keys
-            Value::String(value.to_string())
-        } else if value == "true" {
-            Value::Bool(true)
-        } else if value == "false" {
-            Value::Bool(false)
-        } else if let Ok(f) = value.parse::<f64>() {
-            serde_json::json!(f)
-        } else {
-            Value::String(value.to_string())
-        };
-        map.insert(parts[0].to_string(), val);
+        // Scalars stay strings: the query protocol carries no types, and
+        // guessing from the text turns `Dimensions.member.1.Value=123` into
+        // a number and `Period=300` into the float 300.0. Handlers read
+        // numbers and booleans through `get_f64` / `get_u32` / `get_bool`.
+        map.insert(parts[0].to_string(), Value::String(value.to_string()));
         return;
     }
 
