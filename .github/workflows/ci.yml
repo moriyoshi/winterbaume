@@ -50,18 +50,33 @@ jobs:
           # With 'every', a file must match all patterns, so the code paths
           # are folded into one brace glob and `!**/*.md` then excludes
           # Markdown (e.g. per-crate CHANGELOG.md). Keep the path list in sync
-          # with the `hashFiles` call in the fingerprint job.
+          # with the `git ls-tree` call in the fingerprint job.
           predicate-quantifier: 'every'
           filters: |
             code:
               - '{crates/**,src/**,tools/**,examples/**,vendor/**,Cargo.toml,Cargo.lock,rustfmt.toml,dist-workspace.toml,.gitmodules,.github/workflows/ci.yml,.github/actions/**}'
               - '!**/*.md'
 
-  # Hash the code-relevant tree and probe per-job cache markers. A marker for
-  # `ci-pass-<job>-<os>-<hash>` exists only when a prior run finished that job
-  # successfully against the exact same source tree; in that case the job
-  # below is skipped via its own `if:`, and downstream jobs use `!failure() &&
-  # !cancelled()` so a `skipped` upstream still lets them run.
+  # Content-address the code-relevant tree and probe per-job pass markers.
+  #
+  # A job that succeeds uploads an empty artifact named
+  # `ci-pass-<job>-<os>-<key>`, where <key> hashes the git objects of the
+  # code-relevant paths ( Markdown excluded ) and the toolchain the job
+  # resolves. A later run whose key matches skips that job via its own `if:`;
+  # downstream jobs use `!failure() && !cancelled()` so a `skipped` upstream
+  # still lets them run.
+  #
+  # Markers are artifacts, not cache entries, because GitHub scopes a cache
+  # entry to the branch that saved it: `main` could not see a PR's markers, so
+  # the post-merge run repeated what the PR run had just tested. Artifacts are
+  # listed repository-wide. So a PR tested against the tip of `main` and then
+  # merged produces a merge commit with the same key, and the run on `main`
+  # skips. A rebase onto a `main` that has gained code is a new tree and runs in
+  # full, as it should.
+  #
+  # Only markers uploaded by runs whose head repository is this one count: a
+  # fork's PR run executes the fork's workflow and could upload a marker under
+  # any name.
   fingerprint:
     name: Fingerprint and probe prior-pass markers
     runs-on: ubuntu-latest
@@ -70,50 +85,82 @@ jobs:
     if: |
       github.event_name != 'push' ||
       needs.changes.outputs.code == 'true'
+    permissions:
+      contents: read
+      # List artifacts across runs.
+      actions: read
     outputs:
       hash: ${{ steps.hash.outputs.value }}
-      fmt-hit: ${{ steps.fmt.outputs.cache-hit }}
-      clippy-hit: ${{ steps.clippy.outputs.cache-hit }}
-      test-hit: ${{ steps.test.outputs.cache-hit }}
-      examples-hit: ${{ steps.examples.outputs.cache-hit }}
-      e2e-hit: ${{ steps.e2e.outputs.cache-hit }}
+      e2e-hash: ${{ steps.hash.outputs.e2e }}
+      fmt-hit: ${{ steps.probe.outputs.fmt }}
+      clippy-hit: ${{ steps.probe.outputs.clippy }}
+      test-hit: ${{ steps.probe.outputs.test }}
+      examples-hit: ${{ steps.probe.outputs.examples }}
+      e2e-hit: ${{ steps.probe.outputs.e2e }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
         with:
           ref: ${{ inputs.ref }}
       - id: hash
+        name: Content-address the source tree and toolchains
+        env:
+          # Unresolvable toolchain versions fall back to a value unique to this
+          # run, so a failed lookup can only cause a rerun, never a false hit.
+          UNRESOLVED: unresolved-${{ github.run_id }}-${{ github.run_attempt }}
         run: |
-          echo "value=${{ hashFiles('crates/**', 'src/**', 'tools/**', 'examples/**', 'Cargo.toml', 'Cargo.lock', 'rustfmt.toml', 'dist-workspace.toml', '.gitmodules', '.github/workflows/ci.yml', '.github/actions/**', '!**/*.md') }}" >> "$GITHUB_OUTPUT"
-      - id: fmt
-        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
-        with:
-          path: .ci-marker
-          key: ci-pass-fmt-${{ runner.os }}-${{ steps.hash.outputs.value }}
-          lookup-only: true
-      - id: clippy
-        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
-        with:
-          path: .ci-marker
-          key: ci-pass-clippy-${{ runner.os }}-${{ steps.hash.outputs.value }}
-          lookup-only: true
-      - id: test
-        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
-        with:
-          path: .ci-marker
-          key: ci-pass-test-${{ runner.os }}-${{ steps.hash.outputs.value }}
-          lookup-only: true
-      - id: examples
-        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
-        with:
-          path: .ci-marker
-          key: ci-pass-examples-${{ runner.os }}-${{ steps.hash.outputs.value }}
-          lookup-only: true
-      - id: e2e
-        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
-        with:
-          path: .ci-marker
-          key: ci-pass-e2e-${{ runner.os }}-${{ steps.hash.outputs.value }}
-          lookup-only: true
+          set -euo pipefail
+          # Git objects of the paths, not the files on disk, so the address
+          # does not depend on the runner. The submodule under vendor/ counts
+          # as its commit. Keep the path list in sync with the `changes` filter.
+          tree=$(
+            git ls-tree -r HEAD -- crates src tools examples vendor \
+              Cargo.toml Cargo.lock rustfmt.toml dist-workspace.toml .gitmodules \
+              .github/workflows/ci.yml .github/actions \
+              | awk -F'\t' '$2 !~ /\.md$/' \
+              | git hash-object --stdin
+          )
+          # setup-rust-toolchain installs the current stable release and
+          # setup-terraform the current Terraform release, neither of which the
+          # tree pins.
+          rust="$UNRESOLVED"
+          if curl -fsSL --retry 3 -o "$RUNNER_TEMP/channel-rust-stable.toml" \
+              https://static.rust-lang.org/dist/channel-rust-stable.toml; then
+            v=$(awk '/^\[pkg\.rust\]$/ { f = 1; next } f && /^version = / { print; exit }' \
+              "$RUNNER_TEMP/channel-rust-stable.toml")
+            [ -n "$v" ] && rust="$v"
+          fi
+          terraform="$UNRESOLVED"
+          if v=$(curl -fsSL --retry 3 https://api.releases.hashicorp.com/v1/releases/terraform/latest | jq -er .version); then
+            terraform="$v"
+          fi
+          echo "tree $tree; rust $rust; terraform $terraform"
+          value=$(printf 'tree %s\nrust %s\n' "$tree" "$rust" | sha256sum | cut -c1-40)
+          e2e=$(printf 'tree %s\nrust %s\nterraform %s\n' "$tree" "$rust" "$terraform" | sha256sum | cut -c1-40)
+          echo "value=$value" >> "$GITHUB_OUTPUT"
+          echo "e2e=$e2e" >> "$GITHUB_OUTPUT"
+      - id: probe
+        name: Look up pass markers
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO_ID: ${{ github.repository_id }}
+          HASH: ${{ steps.hash.outputs.value }}
+          E2E_HASH: ${{ steps.hash.outputs.e2e }}
+        run: |
+          set -euo pipefail
+          for job in fmt clippy test examples e2e; do
+            key="$HASH"
+            [ "$job" = e2e ] && key="$E2E_HASH"
+            name="ci-pass-$job-$RUNNER_OS-$key"
+            # A failed lookup counts as a miss.
+            n=$(gh api -X GET "repos/$GITHUB_REPOSITORY/actions/artifacts" \
+                  -f name="$name" -f per_page=100 \
+                  --jq "[.artifacts[] | select(.expired == false and .workflow_run.head_repository_id == $REPO_ID)] | length" \
+                || echo 0)
+            hit=false
+            [ "${n:-0}" -gt 0 ] && hit=true
+            echo "$job: $name -> $hit"
+            echo "$job=$hit" >> "$GITHUB_OUTPUT"
+          done
 
   fmt:
     name: Rustfmt
@@ -134,11 +181,14 @@ jobs:
         with:
           components: rustfmt
       - run: cargo fmt --all --check
-      - run: mkdir -p .ci-marker && echo "${{ needs.fingerprint.outputs.hash }}" > .ci-marker/marker
-      - uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
+      - run: echo "${{ needs.fingerprint.outputs.hash }}" > "$RUNNER_TEMP/ci-pass-marker"
+      - name: Record the pass marker
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
         with:
-          path: .ci-marker
-          key: ci-pass-fmt-${{ runner.os }}-${{ needs.fingerprint.outputs.hash }}
+          name: ci-pass-fmt-${{ runner.os }}-${{ needs.fingerprint.outputs.hash }}
+          path: ${{ runner.temp }}/ci-pass-marker
+          retention-days: 30
+          overwrite: true
 
   clippy:
     name: Clippy
@@ -164,11 +214,14 @@ jobs:
       - uses: ./.github/actions/setup-duckdb
       - run: cargo clippy --workspace --exclude winterbaume-sqlengine-duckdb --all-targets --all-features -- -D warnings
       - run: cargo clippy -p winterbaume-sqlengine-duckdb --no-default-features --all-targets -- -D warnings
-      - run: mkdir -p .ci-marker && echo "${{ needs.fingerprint.outputs.hash }}" > .ci-marker/marker
-      - uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
+      - run: echo "${{ needs.fingerprint.outputs.hash }}" > "$RUNNER_TEMP/ci-pass-marker"
+      - name: Record the pass marker
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
         with:
-          path: .ci-marker
-          key: ci-pass-clippy-${{ runner.os }}-${{ needs.fingerprint.outputs.hash }}
+          name: ci-pass-clippy-${{ runner.os }}-${{ needs.fingerprint.outputs.hash }}
+          path: ${{ runner.temp }}/ci-pass-marker
+          retention-days: 30
+          overwrite: true
 
   test:
     name: Tests
@@ -192,11 +245,14 @@ jobs:
       - uses: ./.github/actions/setup-duckdb
       - run: cargo test --workspace --exclude winterbaume-sqlengine-duckdb --no-fail-fast
       - run: cargo test -p winterbaume-sqlengine-duckdb --no-default-features --no-fail-fast
-      - run: mkdir -p .ci-marker && echo "${{ needs.fingerprint.outputs.hash }}" > .ci-marker/marker
-      - uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
+      - run: echo "${{ needs.fingerprint.outputs.hash }}" > "$RUNNER_TEMP/ci-pass-marker"
+      - name: Record the pass marker
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
         with:
-          path: .ci-marker
-          key: ci-pass-test-${{ runner.os }}-${{ needs.fingerprint.outputs.hash }}
+          name: ci-pass-test-${{ runner.os }}-${{ needs.fingerprint.outputs.hash }}
+          path: ${{ runner.temp }}/ci-pass-marker
+          retention-days: 30
+          overwrite: true
 
   examples:
     name: Examples
@@ -218,11 +274,14 @@ jobs:
       - uses: actions-rust-lang/setup-rust-toolchain@150fca883cd4034361b621bd4e6a9d34e5143606
       - uses: mozilla-actions/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad  # v0.0.9
       - run: cargo build --examples -p winterbaume
-      - run: mkdir -p .ci-marker && echo "${{ needs.fingerprint.outputs.hash }}" > .ci-marker/marker
-      - uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
+      - run: echo "${{ needs.fingerprint.outputs.hash }}" > "$RUNNER_TEMP/ci-pass-marker"
+      - name: Record the pass marker
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
         with:
-          path: .ci-marker
-          key: ci-pass-examples-${{ runner.os }}-${{ needs.fingerprint.outputs.hash }}
+          name: ci-pass-examples-${{ runner.os }}-${{ needs.fingerprint.outputs.hash }}
+          path: ${{ runner.temp }}/ci-pass-marker
+          retention-days: 30
+          overwrite: true
 
   e2e:
     name: E2E (Terraform)
@@ -256,8 +315,11 @@ jobs:
           name: tf-logs
           path: ${{ runner.temp }}/winterbaume/tf-logs/
           if-no-files-found: ignore
-      - run: mkdir -p .ci-marker && echo "${{ needs.fingerprint.outputs.hash }}" > .ci-marker/marker
-      - uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
+      - run: echo "${{ needs.fingerprint.outputs.e2e-hash }}" > "$RUNNER_TEMP/ci-pass-marker"
+      - name: Record the pass marker
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
         with:
-          path: .ci-marker
-          key: ci-pass-e2e-${{ runner.os }}-${{ needs.fingerprint.outputs.hash }}
+          name: ci-pass-e2e-${{ runner.os }}-${{ needs.fingerprint.outputs.e2e-hash }}
+          path: ${{ runner.temp }}/ci-pass-marker
+          retention-days: 30
+          overwrite: true

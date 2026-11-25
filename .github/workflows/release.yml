@@ -51,6 +51,12 @@ jobs:
     needs:
       - resolve
     uses: ./.github/workflows/ci.yml
+    # A called workflow gets at most the caller's permissions. CI's fingerprint
+    # job lists artifacts to find prior-pass markers, which needs
+    # `actions: read`; the workflow-level grant above has only `contents`.
+    permissions:
+      contents: read
+      actions: read
     with:
       ref: ${{ needs.resolve.outputs.ref }}
 
