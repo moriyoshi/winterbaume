@@ -10,8 +10,9 @@ use winterbaume_core::StatefulService;
 use winterbaume_lambda::LambdaService;
 use winterbaume_lambda::types::{
     CodeSigningConfigEntry, EventSourceMappingScalingSettings, EventSourceMappingSettings,
-    FunctionRecursionConfig, ProvisionedConcurrencyConfig, RuntimeManagementConfig,
-    event_source_mapping_arn,
+    FunctionFileSystemConfig, FunctionImageConfig, FunctionLayer, FunctionLoggingConfig,
+    FunctionRecursionConfig, FunctionSettings, FunctionVpcConfig, ProvisionedConcurrencyConfig,
+    RuntimeManagementConfig, event_source_mapping_arn,
 };
 use winterbaume_lambda::views::{
     AliasView, EventSourceMappingView, FunctionEventInvokeConfigView, FunctionUrlConfigView,
@@ -71,30 +72,24 @@ impl AwsLambdaFunctionConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
-        let model: lambda_gen::LambdaFunctionTfModel = serde_json::from_value(attrs.clone())
+        let mut model: lambda_gen::LambdaFunctionTfModel = serde_json::from_value(attrs.clone())
             .map_err(|e| classify_deserialize_error("aws_lambda_function", e))?;
 
         // Additional fields for coverage (TF-only / not stored in state).
         let _ = attrs.get("tags_all");
-        let _ = attrs.get("architectures");
-        let _ = attrs.get("image_uri");
-        let _ = attrs.get("kms_key_arn");
-        let _ = attrs.get("layers");
-        let _ = attrs.get("package_type");
         let _ = attrs.get("publish");
         let _ = attrs.get("s3_bucket");
         let _ = attrs.get("replace_security_groups_on_destroy");
         let _ = attrs.get("skip_destroy");
 
-        // Nested blocks — stored for round-trip fidelity.
-        let dead_letter_config = attrs.get("dead_letter_config").cloned();
-        let ephemeral_storage = attrs.get("ephemeral_storage").cloned();
-        let file_system_config = attrs.get("file_system_config").cloned();
-        let image_config = attrs.get("image_config").cloned();
-        let logging_config = attrs.get("logging_config").cloned();
-        let snap_start = attrs.get("snap_start").cloned();
-        let tracing_config = attrs.get("tracing_config").cloned();
-        let vpc_config = attrs.get("vpc_config").cloned();
+        // Nested blocks and lists, translated to the API-shaped settings the
+        // Lambda handlers serve.
+        let settings = function_settings_from_tf(
+            attrs,
+            model.kms_key_arn.take(),
+            model.package_type.take(),
+            model.image_uri.take(),
+        );
 
         let function_name = model.function_name.clone();
         let runtime = model.runtime.unwrap_or_else(|| "provided".to_string());
@@ -150,14 +145,7 @@ impl AwsLambdaFunctionConverter {
                 .and_then(|v| v.as_i64())
                 .map(|v| v as i32),
             code_signing_config_arn: model.code_signing_config_arn,
-            dead_letter_config,
-            ephemeral_storage,
-            file_system_config,
-            image_config,
-            logging_config,
-            snap_start,
-            tracing_config,
-            vpc_config,
+            settings,
             revision_id: uuid::Uuid::new_v4().to_string(),
         };
 
@@ -210,7 +198,6 @@ impl AwsLambdaFunctionConverter {
                 "code_signing_config_arn": func.code_signing_config_arn,
                 "environment": environment_block,
                 "tags_all": func.tags,
-                "architectures": ["x86_64"],
                 "invoke_arn": format!("arn:aws:apigateway:{}:lambda:path/2015-03-31/functions/{}/invocations", ctx.default_region, func.function_arn),
                 "qualified_arn": format!("{}:$LATEST", func.function_arn),
                 "qualified_invoke_arn": "",
@@ -218,24 +205,9 @@ impl AwsLambdaFunctionConverter {
                 "signing_profile_version_arn": "",
                 "source_code_size": 0,
             });
-            // Emit nested blocks if present
+            // Nested blocks and lists, in the shape the provider stores them.
             let obj = attrs.as_object_mut().unwrap();
-            for (key, val) in [
-                ("dead_letter_config", &func.dead_letter_config),
-                ("ephemeral_storage", &func.ephemeral_storage),
-                ("file_system_config", &func.file_system_config),
-                ("image_config", &func.image_config),
-                ("logging_config", &func.logging_config),
-                ("snap_start", &func.snap_start),
-                ("tracing_config", &func.tracing_config),
-                ("vpc_config", &func.vpc_config),
-            ] {
-                if let Some(v) = val {
-                    obj.insert(key.to_string(), v.clone());
-                } else {
-                    obj.insert(key.to_string(), serde_json::json!([]));
-                }
-            }
+            obj.extend(function_settings_to_tf(&func.function_name, &func.settings));
             results.push(ExtractedResource {
                 name: func.function_name.clone(),
                 account_id: ctx.default_account_id.clone(),
@@ -245,6 +217,212 @@ impl AwsLambdaFunctionConverter {
         }
         Ok(results)
     }
+}
+
+/// First element of a Terraform single-block list ( `vpc_config = [{...}]` ).
+fn tf_block<'a>(attrs: &'a serde_json::Value, key: &str) -> Option<&'a serde_json::Value> {
+    attrs
+        .get(key)
+        .and_then(|v| v.as_array())
+        .and_then(|blocks| blocks.first())
+        .filter(|block| block.is_object())
+}
+
+fn tf_string(block: &serde_json::Value, key: &str) -> Option<String> {
+    block
+        .get(key)
+        .and_then(|v| v.as_str())
+        .filter(|s| !s.is_empty())
+        .map(str::to_string)
+}
+
+fn tf_string_list(value: Option<&serde_json::Value>) -> Vec<String> {
+    value
+        .and_then(|v| v.as_array())
+        .map(|items| {
+            items
+                .iter()
+                .filter_map(|item| item.as_str().map(str::to_string))
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+/// Translate the `aws_lambda_function` attributes that the Lambda API calls
+/// `VpcConfig`, `Architectures`, `EphemeralStorage`, `TracingConfig`,
+/// `DeadLetterConfig`, `KMSKeyArn`, `Layers`, `FileSystemConfigs`,
+/// `ImageConfig`, `LoggingConfig`, `SnapStart` and `PackageType` into the
+/// API-shaped settings of the Lambda state.
+fn function_settings_from_tf(
+    attrs: &serde_json::Value,
+    kms_key_arn: Option<String>,
+    package_type: Option<String>,
+    image_uri: Option<String>,
+) -> FunctionSettings {
+    let non_empty = |v: Option<String>| v.filter(|s| !s.is_empty());
+    let architectures = tf_string_list(attrs.get("architectures"));
+    FunctionSettings {
+        architectures: (!architectures.is_empty()).then_some(architectures),
+        dead_letter_target_arn: tf_block(attrs, "dead_letter_config")
+            .and_then(|b| tf_string(b, "target_arn")),
+        ephemeral_storage_size: tf_block(attrs, "ephemeral_storage")
+            .and_then(|b| b.get("size"))
+            .and_then(|v| v.as_i64())
+            .map(|v| v as i32),
+        file_system_configs: attrs
+            .get("file_system_config")
+            .and_then(|v| v.as_array())
+            .map(|blocks| {
+                blocks
+                    .iter()
+                    .filter(|b| b.is_object())
+                    .map(|b| FunctionFileSystemConfig {
+                        arn: tf_string(b, "arn").unwrap_or_default(),
+                        local_mount_path: tf_string(b, "local_mount_path").unwrap_or_default(),
+                    })
+                    .collect()
+            })
+            .unwrap_or_default(),
+        image_config: tf_block(attrs, "image_config")
+            .map(|b| {
+                let list = |key: &str| {
+                    let items = tf_string_list(b.get(key));
+                    (!items.is_empty()).then_some(items)
+                };
+                FunctionImageConfig {
+                    command: list("command"),
+                    entry_point: list("entry_point"),
+                    working_directory: tf_string(b, "working_directory"),
+                }
+            })
+            .filter(|c| !c.is_empty()),
+        image_uri: non_empty(image_uri),
+        kms_key_arn: non_empty(kms_key_arn),
+        layers: tf_string_list(attrs.get("layers"))
+            .into_iter()
+            // The Terraform state records layer ARNs only.
+            .map(|arn| FunctionLayer { arn, code_size: 0 })
+            .collect(),
+        logging_config: tf_block(attrs, "logging_config").map(|b| FunctionLoggingConfig {
+            application_log_level: tf_string(b, "application_log_level"),
+            log_format: tf_string(b, "log_format"),
+            log_group: tf_string(b, "log_group"),
+            system_log_level: tf_string(b, "system_log_level"),
+        }),
+        package_type: non_empty(package_type),
+        snap_start_apply_on: tf_block(attrs, "snap_start").and_then(|b| tf_string(b, "apply_on")),
+        tracing_mode: tf_block(attrs, "tracing_config").and_then(|b| tf_string(b, "mode")),
+        vpc_config: tf_block(attrs, "vpc_config").map(|b| FunctionVpcConfig {
+            subnet_ids: tf_string_list(b.get("subnet_ids")),
+            security_group_ids: tf_string_list(b.get("security_group_ids")),
+            ipv6_allowed_for_dual_stack: b
+                .get("ipv6_allowed_for_dual_stack")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false),
+            vpc_id: tf_string(b, "vpc_id"),
+        }),
+    }
+}
+
+/// The reverse of [`function_settings_from_tf`]: the attributes as the AWS
+/// provider writes them to its state after reading the function back, which
+/// includes the documented defaults for members that were never set.
+fn function_settings_to_tf(
+    function_name: &str,
+    settings: &FunctionSettings,
+) -> serde_json::Map<String, serde_json::Value> {
+    use serde_json::json;
+
+    let logging = settings.effective_logging_config(function_name);
+    let snap_start_apply_on = settings.effective_snap_start_apply_on();
+    let mut out = serde_json::Map::new();
+    out.insert(
+        "architectures".into(),
+        json!(settings.effective_architectures()),
+    );
+    out.insert(
+        "dead_letter_config".into(),
+        match &settings.dead_letter_target_arn {
+            Some(arn) => json!([{ "target_arn": arn }]),
+            None => json!([]),
+        },
+    );
+    out.insert(
+        "ephemeral_storage".into(),
+        json!([{ "size": settings.effective_ephemeral_storage_size() }]),
+    );
+    out.insert(
+        "file_system_config".into(),
+        settings
+            .file_system_configs
+            .iter()
+            .map(|c| json!({ "arn": c.arn, "local_mount_path": c.local_mount_path }))
+            .collect(),
+    );
+    out.insert(
+        "image_config".into(),
+        match &settings.image_config {
+            Some(c) => json!([{
+                "command": c.command.clone().unwrap_or_default(),
+                "entry_point": c.entry_point.clone().unwrap_or_default(),
+                "working_directory": c.working_directory.clone().unwrap_or_default(),
+            }]),
+            None => json!([]),
+        },
+    );
+    out.insert(
+        "image_uri".into(),
+        json!(settings.image_uri.clone().unwrap_or_default()),
+    );
+    out.insert(
+        "kms_key_arn".into(),
+        json!(settings.kms_key_arn.clone().unwrap_or_default()),
+    );
+    out.insert(
+        "layers".into(),
+        settings.layers.iter().map(|l| json!(l.arn)).collect(),
+    );
+    out.insert(
+        "logging_config".into(),
+        json!([{
+            "application_log_level": logging.application_log_level.unwrap_or_default(),
+            "log_format": logging.log_format.unwrap_or_default(),
+            "log_group": logging.log_group.unwrap_or_default(),
+            "system_log_level": logging.system_log_level.unwrap_or_default(),
+        }]),
+    );
+    out.insert(
+        "package_type".into(),
+        json!(settings.effective_package_type()),
+    );
+    out.insert(
+        "snap_start".into(),
+        // The provider keeps no block for `ApplyOn = None`.
+        if snap_start_apply_on == "None" {
+            json!([])
+        } else {
+            json!([{ "apply_on": snap_start_apply_on, "optimization_status": "Off" }])
+        },
+    );
+    out.insert(
+        "tracing_config".into(),
+        json!([{ "mode": settings.effective_tracing_mode() }]),
+    );
+    out.insert(
+        "vpc_config".into(),
+        // The provider keeps no block for a function outside a VPC, whether
+        // it never had one or was detached.
+        match settings.vpc_config.as_ref().filter(|v| v.is_attached()) {
+            Some(vpc) => json!([{
+                "ipv6_allowed_for_dual_stack": vpc.ipv6_allowed_for_dual_stack,
+                "security_group_ids": vpc.security_group_ids,
+                "subnet_ids": vpc.subnet_ids,
+                "vpc_id": vpc.vpc_id.clone().unwrap_or_default(),
+            }]),
+            None => json!([]),
+        },
+    );
+    out
 }
 
 // ---------------------------------------------------------------------------

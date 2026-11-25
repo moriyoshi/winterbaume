@@ -28,15 +28,294 @@ pub struct LambdaFunction {
     pub versions: Vec<FunctionVersion>,
     pub reserved_concurrent_executions: Option<i32>,
     pub code_signing_config_arn: Option<String>,
-    /// Round-trip storage for nested Terraform blocks not otherwise tracked.
-    pub dead_letter_config: Option<serde_json::Value>,
-    pub ephemeral_storage: Option<serde_json::Value>,
-    pub file_system_config: Option<serde_json::Value>,
-    pub image_config: Option<serde_json::Value>,
-    pub logging_config: Option<serde_json::Value>,
-    pub snap_start: Option<serde_json::Value>,
-    pub tracing_config: Option<serde_json::Value>,
-    pub vpc_config: Option<serde_json::Value>,
+    /// Version-specific configuration accepted by `CreateFunction` /
+    /// `UpdateFunctionConfiguration` and echoed back on every read.
+    pub settings: FunctionSettings,
+}
+
+/// Store-and-echo configuration of a function, in the shape of the Lambda
+/// API ( not of Terraform's `aws_lambda_function` blocks; the converter
+/// translates ).
+///
+/// `None` / empty means "never supplied".  The documented defaults
+/// ( `x86_64`, 512 MB, `PassThrough`, `Zip`, the `/aws/lambda/<name>` log
+/// group ) are applied on read through the `effective_*` accessors, so that
+/// snapshots written before these members were tracked load unchanged.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct FunctionSettings {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub architectures: Option<Vec<String>>,
+    /// `DeadLetterConfig.TargetArn`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dead_letter_target_arn: Option<String>,
+    /// `EphemeralStorage.Size`, in MB.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ephemeral_storage_size: Option<i32>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub file_system_configs: Vec<FunctionFileSystemConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub image_config: Option<FunctionImageConfig>,
+    /// `Code.ImageUri` of a container-image function.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub image_uri: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub kms_key_arn: Option<String>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub layers: Vec<FunctionLayer>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub logging_config: Option<FunctionLoggingConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub package_type: Option<String>,
+    /// `SnapStart.ApplyOn`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub snap_start_apply_on: Option<String>,
+    /// `TracingConfig.Mode`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tracing_mode: Option<String>,
+    /// `None` for a function that never had a `VpcConfig`; a value with
+    /// empty id lists for a function that was detached from its VPC.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub vpc_config: Option<FunctionVpcConfig>,
+}
+
+pub const DEFAULT_ARCHITECTURE: &str = "x86_64";
+pub const DEFAULT_EPHEMERAL_STORAGE_SIZE: i32 = 512;
+pub const DEFAULT_TRACING_MODE: &str = "PassThrough";
+pub const DEFAULT_PACKAGE_TYPE: &str = "Zip";
+pub const DEFAULT_LOG_FORMAT: &str = "Text";
+pub const DEFAULT_SNAP_START_APPLY_ON: &str = "None";
+
+impl FunctionSettings {
+    pub fn effective_architectures(&self) -> Vec<String> {
+        match &self.architectures {
+            Some(a) if !a.is_empty() => a.clone(),
+            _ => vec![DEFAULT_ARCHITECTURE.to_string()],
+        }
+    }
+
+    pub fn effective_ephemeral_storage_size(&self) -> i32 {
+        self.ephemeral_storage_size
+            .unwrap_or(DEFAULT_EPHEMERAL_STORAGE_SIZE)
+    }
+
+    pub fn effective_tracing_mode(&self) -> &str {
+        self.tracing_mode.as_deref().unwrap_or(DEFAULT_TRACING_MODE)
+    }
+
+    pub fn effective_package_type(&self) -> &str {
+        self.package_type.as_deref().unwrap_or(DEFAULT_PACKAGE_TYPE)
+    }
+
+    pub fn is_image(&self) -> bool {
+        self.effective_package_type() == "Image"
+    }
+
+    pub fn effective_snap_start_apply_on(&self) -> &str {
+        self.snap_start_apply_on
+            .as_deref()
+            .unwrap_or(DEFAULT_SNAP_START_APPLY_ON)
+    }
+
+    /// The logging configuration as Lambda reports it: `Text` format and the
+    /// `/aws/lambda/<function name>` log group unless configured otherwise,
+    /// and, for the `JSON` format only, log levels that default to `INFO`.
+    pub fn effective_logging_config(&self, function_name: &str) -> FunctionLoggingConfig {
+        let stored = self.logging_config.clone().unwrap_or_default();
+        let log_format = stored
+            .log_format
+            .unwrap_or_else(|| DEFAULT_LOG_FORMAT.to_string());
+        let json = log_format == "JSON";
+        let level = |v: Option<String>| json.then(|| v.unwrap_or_else(|| "INFO".to_string()));
+        FunctionLoggingConfig {
+            application_log_level: level(stored.application_log_level),
+            system_log_level: level(stored.system_log_level),
+            log_group: Some(
+                stored
+                    .log_group
+                    .unwrap_or_else(|| format!("/aws/lambda/{function_name}")),
+            ),
+            log_format: Some(log_format),
+        }
+    }
+
+    /// Apply the members a `CreateFunction` / `UpdateFunctionConfiguration`
+    /// request supplied, leaving the rest alone.  `layers` carries the code
+    /// size of each layer version, resolved by the caller.
+    pub fn apply(&mut self, patch: FunctionSettingsPatch, layers: Option<Vec<FunctionLayer>>) {
+        fn set<T>(slot: &mut Option<T>, value: Option<T>) {
+            if value.is_some() {
+                *slot = value;
+            }
+        }
+        /// An empty string clears the member ( `KMSKeyArn: ""` ).
+        fn set_or_clear(slot: &mut Option<String>, value: Option<String>) {
+            if let Some(v) = value {
+                *slot = (!v.is_empty()).then_some(v);
+            }
+        }
+        if patch.architectures.as_ref().is_some_and(|a| !a.is_empty()) {
+            self.architectures = patch.architectures;
+        }
+        set_or_clear(
+            &mut self.dead_letter_target_arn,
+            patch.dead_letter_target_arn,
+        );
+        set(
+            &mut self.ephemeral_storage_size,
+            patch.ephemeral_storage_size,
+        );
+        if let Some(configs) = patch.file_system_configs {
+            self.file_system_configs = configs;
+        }
+        if let Some(image_config) = patch.image_config {
+            self.image_config = (!image_config.is_empty()).then_some(image_config);
+        }
+        set_or_clear(&mut self.image_uri, patch.image_uri);
+        set_or_clear(&mut self.kms_key_arn, patch.kms_key_arn);
+        if let Some(layers) = layers {
+            self.layers = layers;
+        }
+        if let Some(logging) = patch.logging_config {
+            let current = self.logging_config.get_or_insert_with(Default::default);
+            set(&mut current.log_format, logging.log_format);
+            set(&mut current.log_group, logging.log_group);
+            set(
+                &mut current.application_log_level,
+                logging.application_log_level,
+            );
+            set(&mut current.system_log_level, logging.system_log_level);
+        }
+        set(&mut self.package_type, patch.package_type);
+        set(&mut self.snap_start_apply_on, patch.snap_start_apply_on);
+        set(&mut self.tracing_mode, patch.tracing_mode);
+        if let Some(vpc) = patch.vpc_config {
+            let current = self.vpc_config.take().unwrap_or_default();
+            let subnet_ids = vpc.subnet_ids.unwrap_or_else(|| current.subnet_ids.clone());
+            // The VPC is a property of the subnets: an id learnt for one set
+            // of subnets says nothing about another.
+            let vpc_id = current
+                .vpc_id
+                .filter(|_| same_ids(&subnet_ids, &current.subnet_ids));
+            self.vpc_config = Some(FunctionVpcConfig {
+                security_group_ids: vpc.security_group_ids.unwrap_or(current.security_group_ids),
+                ipv6_allowed_for_dual_stack: vpc
+                    .ipv6_allowed_for_dual_stack
+                    .unwrap_or(current.ipv6_allowed_for_dual_stack),
+                subnet_ids,
+                vpc_id,
+            });
+        }
+    }
+}
+
+fn same_ids(a: &[String], b: &[String]) -> bool {
+    let (mut a, mut b) = (a.to_vec(), b.to_vec());
+    a.sort();
+    b.sort();
+    a == b
+}
+
+/// The settings a `CreateFunction` / `UpdateFunctionConfiguration` request
+/// carries.  `None` means the request did not mention the member.
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct FunctionSettingsPatch {
+    pub architectures: Option<Vec<String>>,
+    /// `Some("")` removes the dead-letter queue.
+    pub dead_letter_target_arn: Option<String>,
+    pub ephemeral_storage_size: Option<i32>,
+    pub file_system_configs: Option<Vec<FunctionFileSystemConfig>>,
+    /// An image configuration with no member set removes the overrides.
+    pub image_config: Option<FunctionImageConfig>,
+    pub image_uri: Option<String>,
+    /// `Some("")` reverts to the AWS-owned key.
+    pub kms_key_arn: Option<String>,
+    /// Layer version ARNs; `Some(vec![])` removes all layers.
+    pub layers: Option<Vec<String>>,
+    pub logging_config: Option<FunctionLoggingConfig>,
+    pub package_type: Option<String>,
+    /// `Role`, the one member here that is not part of [`FunctionSettings`].
+    pub role: Option<String>,
+    pub snap_start_apply_on: Option<String>,
+    pub tracing_mode: Option<String>,
+    pub vpc_config: Option<FunctionVpcConfigPatch>,
+}
+
+/// `VpcConfig` as stored.  Both id lists empty means "not connected to a VPC".
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct FunctionVpcConfig {
+    pub subnet_ids: Vec<String>,
+    pub security_group_ids: Vec<String>,
+    pub ipv6_allowed_for_dual_stack: bool,
+    /// Lambda derives `VpcId` from the subnets.  This crate has no view of
+    /// EC2, so the id is known only when something that does know it supplied
+    /// it ( a Terraform state import ); otherwise it is not reported.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub vpc_id: Option<String>,
+}
+
+impl FunctionVpcConfig {
+    pub fn is_attached(&self) -> bool {
+        !self.subnet_ids.is_empty() || !self.security_group_ids.is_empty()
+    }
+}
+
+/// `VpcConfig` of a request.
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct FunctionVpcConfigPatch {
+    pub subnet_ids: Option<Vec<String>>,
+    pub security_group_ids: Option<Vec<String>>,
+    pub ipv6_allowed_for_dual_stack: Option<bool>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct FunctionFileSystemConfig {
+    pub arn: String,
+    pub local_mount_path: String,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct FunctionImageConfig {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub command: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub entry_point: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub working_directory: Option<String>,
+}
+
+impl FunctionImageConfig {
+    pub fn is_empty(&self) -> bool {
+        self.command.as_ref().is_none_or(|c| c.is_empty())
+            && self.entry_point.as_ref().is_none_or(|e| e.is_empty())
+            && self.working_directory.as_ref().is_none_or(|w| w.is_empty())
+    }
+}
+
+/// A layer attached to a function, as reported in `Layers`.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct FunctionLayer {
+    pub arn: String,
+    /// Size of the layer archive; 0 when the layer version is not one this
+    /// account and region holds.
+    pub code_size: i64,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct FunctionLoggingConfig {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub application_log_level: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub log_format: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub log_group: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub system_log_level: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -46,6 +325,10 @@ pub struct FunctionVersion {
     pub code_sha256: String,
     pub code_size: i64,
     pub created_at: DateTime<Utc>,
+    /// The settings the version was published with.  A published version is
+    /// immutable: later `UpdateFunctionConfiguration` calls change `$LATEST`
+    /// only.
+    pub settings: FunctionSettings,
 }
 
 #[derive(Debug, Clone)]

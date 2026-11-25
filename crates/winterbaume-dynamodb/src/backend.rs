@@ -21,9 +21,19 @@ use std::sync::Arc;
 
 use winterbaume_core::{BackendState, StateViewError};
 
+use crate::expr::Expr;
 use crate::state::{DynamoDbError, DynamoDbState, QueryResult};
 use crate::types::*;
 use crate::views::DynamodbStateView;
+
+/// Evaluate a condition the way DynamoDB does for a possibly absent item: an
+/// absent item is an empty one.
+fn evaluate_on(condition: &Expr, item: Option<&Item>) -> bool {
+    match item {
+        Some(item) => crate::expr::evaluate(condition, item),
+        None => crate::expr::evaluate(condition, &Item::new()),
+    }
+}
 
 // ---------------------------------------------------------------------------
 // Trait
@@ -263,6 +273,182 @@ pub trait DynamoDbBackend: Send + Sync {
         region: String,
         ops: Vec<TransactOp>,
     ) -> Pin<Box<dyn Future<Output = Result<(), DynamoDbError>> + Send>>;
+
+    // --- Conditional ( atomic ) writes ---
+    //
+    // The four methods below take the parsed `ConditionExpression` so that a
+    // backend can evaluate it and apply the write as ONE atomic step: no
+    // other write to the item may land between the evaluation and the write
+    // ( issue #61 ). The images they return come out of that same step.
+    //
+    // They have provided implementations so that a backend written against
+    // an earlier version of this trait keeps compiling. Those fall back to a
+    // read through `get_item` followed by a separate write, which is NOT
+    // atomic: two concurrent conditional writes can both pass the check.
+    // They also assume, like `scan_index`, that the futures returned by the
+    // other trait methods do nothing until polled. Every backend that can be
+    // written to concurrently should override all four; both backends in
+    // this repository do.
+
+    /// `PutItem` with an optional condition, evaluated against the stored
+    /// item ( an absent item is evaluated as an empty one ) atomically with
+    /// the write. Table and key validation come before the condition.
+    fn put_item_conditional(
+        &self,
+        account_id: String,
+        region: String,
+        table_name: String,
+        item: Item,
+        condition: Option<Expr>,
+    ) -> Pin<Box<dyn Future<Output = Result<ConditionalWrite, DynamoDbError>> + Send>> {
+        let read = condition.as_ref().map(|_| {
+            self.get_item(
+                account_id.clone(),
+                region.clone(),
+                table_name.clone(),
+                item.clone(),
+            )
+        });
+        let new_item = Some(item.clone());
+        let write = self.put_item(account_id, region, table_name, item);
+        Box::pin(async move {
+            if let (Some(condition), Some(read)) = (condition, read) {
+                let existing = read.await?;
+                if !evaluate_on(&condition, existing.as_ref()) {
+                    return Ok(ConditionalWrite::ConditionFailed { item: existing });
+                }
+            }
+            let old_item = write.await?;
+            Ok(ConditionalWrite::Applied { old_item, new_item })
+        })
+    }
+
+    /// `DeleteItem` with an optional condition. See
+    /// [`Self::put_item_conditional`].
+    fn delete_item_conditional(
+        &self,
+        account_id: String,
+        region: String,
+        table_name: String,
+        key: Item,
+        condition: Option<Expr>,
+    ) -> Pin<Box<dyn Future<Output = Result<ConditionalWrite, DynamoDbError>> + Send>> {
+        let read = condition.as_ref().map(|_| {
+            self.get_item(
+                account_id.clone(),
+                region.clone(),
+                table_name.clone(),
+                key.clone(),
+            )
+        });
+        let write = self.delete_item(account_id, region, table_name, key);
+        Box::pin(async move {
+            if let (Some(condition), Some(read)) = (condition, read) {
+                let existing = read.await?;
+                if !evaluate_on(&condition, existing.as_ref()) {
+                    return Ok(ConditionalWrite::ConditionFailed { item: existing });
+                }
+            }
+            let old_item = write.await?;
+            Ok(ConditionalWrite::Applied {
+                old_item,
+                new_item: None,
+            })
+        })
+    }
+
+    /// `UpdateItem` with an optional condition. See
+    /// [`Self::put_item_conditional`]. The condition comes before the
+    /// evaluation of the update actions.
+    fn update_item_conditional(
+        &self,
+        account_id: String,
+        region: String,
+        table_name: String,
+        key: Item,
+        actions: Vec<UpdateAction>,
+        condition: Option<Expr>,
+    ) -> Pin<Box<dyn Future<Output = Result<ConditionalWrite, DynamoDbError>> + Send>> {
+        // Read even without a condition: `update_item` reports the new image
+        // only.
+        let read = self.get_item(
+            account_id.clone(),
+            region.clone(),
+            table_name.clone(),
+            key.clone(),
+        );
+        let write = self.update_item(account_id, region, table_name, key, actions);
+        Box::pin(async move {
+            let old_item = read.await?;
+            if let Some(condition) = condition
+                && !evaluate_on(&condition, old_item.as_ref())
+            {
+                return Ok(ConditionalWrite::ConditionFailed { item: old_item });
+            }
+            let new_item = write.await?;
+            Ok(ConditionalWrite::Applied { old_item, new_item })
+        })
+    }
+
+    /// `TransactWriteItems`: evaluate the conditions of all actions
+    /// ( `ConditionCheck` included ) and, if every one holds, apply the
+    /// writes in the caller's order, all in one critical section.
+    ///
+    /// A failed condition is not an error: the result is
+    /// [`TransactWriteOutcome::Cancelled`] with one reason per action and
+    /// nothing is written. As with [`Self::transact_write_items`], two
+    /// actions targeting the same item must be rejected before anything is
+    /// evaluated or written; here that includes a `ConditionCheck`.
+    fn transact_write_items_conditional(
+        &self,
+        account_id: String,
+        region: String,
+        actions: Vec<TransactWriteAction>,
+    ) -> Pin<Box<dyn Future<Output = Result<TransactWriteOutcome, DynamoDbError>> + Send>> {
+        // `None` for an action without a condition.
+        let reads: Vec<_> = actions
+            .iter()
+            .map(|action| {
+                action.condition().map(|condition| {
+                    (
+                        condition.clone(),
+                        self.get_item(
+                            account_id.clone(),
+                            region.clone(),
+                            action.table_name().to_string(),
+                            action.target().clone(),
+                        ),
+                    )
+                })
+            })
+            .collect();
+        let ops = actions
+            .into_iter()
+            .filter_map(TransactWriteAction::into_op)
+            .collect();
+        let write = self.transact_write_items(account_id, region, ops);
+        Box::pin(async move {
+            let mut reasons = Vec::with_capacity(reads.len());
+            let mut cancelled = false;
+            for read in reads {
+                let mut reason = TransactCancellationReason::None;
+                if let Some((condition, read)) = read {
+                    let existing = read.await?;
+                    if !evaluate_on(&condition, existing.as_ref()) {
+                        cancelled = true;
+                        reason =
+                            TransactCancellationReason::ConditionalCheckFailed { item: existing };
+                    }
+                }
+                reasons.push(reason);
+            }
+            if cancelled {
+                return Ok(TransactWriteOutcome::Cancelled(reasons));
+            }
+            write.await?;
+            Ok(TransactWriteOutcome::Committed)
+        })
+    }
 
     // --- Backup operations ---
 
@@ -971,6 +1157,70 @@ impl DynamoDbBackend for InMemoryDynamoDbBackend {
         })
     }
 
+    fn put_item_conditional(
+        &self,
+        account_id: String,
+        region: String,
+        table_name: String,
+        item: Item,
+        condition: Option<Expr>,
+    ) -> Pin<Box<dyn Future<Output = Result<ConditionalWrite, DynamoDbError>> + Send>> {
+        let state = Arc::clone(&self.state);
+        Box::pin(async move {
+            let lock = state.get(&account_id, &region);
+            // One write lock around evaluate + apply.
+            let mut s = lock.write().await;
+            s.put_item_conditional(&table_name, item, condition.as_ref())
+        })
+    }
+
+    fn delete_item_conditional(
+        &self,
+        account_id: String,
+        region: String,
+        table_name: String,
+        key: Item,
+        condition: Option<Expr>,
+    ) -> Pin<Box<dyn Future<Output = Result<ConditionalWrite, DynamoDbError>> + Send>> {
+        let state = Arc::clone(&self.state);
+        Box::pin(async move {
+            let lock = state.get(&account_id, &region);
+            let mut s = lock.write().await;
+            s.delete_item_conditional(&table_name, &key, condition.as_ref())
+        })
+    }
+
+    fn update_item_conditional(
+        &self,
+        account_id: String,
+        region: String,
+        table_name: String,
+        key: Item,
+        actions: Vec<UpdateAction>,
+        condition: Option<Expr>,
+    ) -> Pin<Box<dyn Future<Output = Result<ConditionalWrite, DynamoDbError>> + Send>> {
+        let state = Arc::clone(&self.state);
+        Box::pin(async move {
+            let lock = state.get(&account_id, &region);
+            let mut s = lock.write().await;
+            s.update_item_conditional(&table_name, &key, &actions, condition.as_ref())
+        })
+    }
+
+    fn transact_write_items_conditional(
+        &self,
+        account_id: String,
+        region: String,
+        actions: Vec<TransactWriteAction>,
+    ) -> Pin<Box<dyn Future<Output = Result<TransactWriteOutcome, DynamoDbError>> + Send>> {
+        let state = Arc::clone(&self.state);
+        Box::pin(async move {
+            let lock = state.get(&account_id, &region);
+            let mut s = lock.write().await;
+            s.transact_write_items_conditional(actions)
+        })
+    }
+
     fn create_backup(
         &self,
         account_id: String,
@@ -1613,5 +1863,262 @@ impl DynamoDbBackend for InMemoryDynamoDbBackend {
             }
             Ok(())
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::HashMap;
+
+    use super::*;
+
+    const ACCOUNT: &str = "123456789012";
+    const REGION: &str = "us-east-1";
+    const TABLE: &str = "t";
+
+    fn item(rev: i64) -> Item {
+        Item::from([
+            ("pk".to_string(), AttributeValue::S("k".to_string())),
+            ("rev".to_string(), AttributeValue::N(rev.to_string())),
+        ])
+    }
+
+    fn key() -> Item {
+        Item::from([("pk".to_string(), AttributeValue::S("k".to_string()))])
+    }
+
+    /// `rev = 0`
+    fn rev_is_zero() -> Expr {
+        let values = HashMap::from([(":zero".to_string(), AttributeValue::N("0".to_string()))]);
+        crate::expr::parse_expression("rev = :zero", &HashMap::new(), &values).unwrap()
+    }
+
+    /// `SET rev = 1`
+    fn set_rev_to_one() -> Vec<UpdateAction> {
+        let values = HashMap::from([(":one".to_string(), AttributeValue::N("1".to_string()))]);
+        crate::expr::parse_update_expression("SET rev = :one", &HashMap::new(), &values).unwrap()
+    }
+
+    async fn backend_with_item() -> InMemoryDynamoDbBackend {
+        backend_with_item_and_stream(false).await
+    }
+
+    async fn backend_with_item_and_stream(stream_enabled: bool) -> InMemoryDynamoDbBackend {
+        let backend = InMemoryDynamoDbBackend::new();
+        backend
+            .create_table(
+                ACCOUNT.to_string(),
+                REGION.to_string(),
+                TABLE.to_string(),
+                vec![KeySchemaElement {
+                    attribute_name: "pk".to_string(),
+                    key_type: "HASH".to_string(),
+                }],
+                vec![AttributeDefinition {
+                    attribute_name: "pk".to_string(),
+                    attribute_type: "S".to_string(),
+                }],
+                Some("PAY_PER_REQUEST".to_string()),
+                None,
+                stream_enabled,
+                stream_enabled.then(|| "NEW_AND_OLD_IMAGES".to_string()),
+                vec![],
+                vec![],
+            )
+            .await
+            .unwrap();
+        backend
+            .put_item(
+                ACCOUNT.to_string(),
+                REGION.to_string(),
+                TABLE.to_string(),
+                item(0),
+            )
+            .await
+            .unwrap();
+        backend
+    }
+
+    /// Let every spawned task run until it is parked.
+    async fn settle() {
+        for _ in 0..16 {
+            tokio::task::yield_now().await;
+        }
+    }
+
+    /// Atomicity without relying on timing ( issue #61 ).
+    ///
+    /// The state lock is the seam. `tokio::sync::RwLock` serves its waiters
+    /// in FIFO order, so on a single-threaded runtime the interleaving below
+    /// is fixed: while the test holds the lock, a conditional write `A`
+    /// ( condition `rev = 0` ) queues first and a competing unconditional
+    /// `Put` of `rev = 5` queues second.
+    ///
+    /// An atomic `A` evaluates its condition and writes in its one turn, the
+    /// competing put then runs after it, and the item ends as the put left
+    /// it. A check-then-act `A` only reads in its turn; its write queues
+    /// behind the competing put and is then applied to an item whose `rev`
+    /// is 5, although the condition `rev = 0` no longer holds — the final
+    /// item is `A`'s.
+    #[tokio::test]
+    async fn competing_write_cannot_land_between_condition_and_write() {
+        type Write = Pin<Box<dyn Future<Output = bool> + Send>>;
+        let args = || (ACCOUNT.to_string(), REGION.to_string(), TABLE.to_string());
+        let conditional_writes: [(&str, fn(&InMemoryDynamoDbBackend) -> Write); 4] = [
+            ("UpdateItem", |b| {
+                let (a, r, t) = (ACCOUNT.to_string(), REGION.to_string(), TABLE.to_string());
+                let w = b.update_item_conditional(
+                    a,
+                    r,
+                    t,
+                    key(),
+                    set_rev_to_one(),
+                    Some(rev_is_zero()),
+                );
+                Box::pin(async move { matches!(w.await, Ok(ConditionalWrite::Applied { .. })) })
+            }),
+            ("PutItem", |b| {
+                let (a, r, t) = (ACCOUNT.to_string(), REGION.to_string(), TABLE.to_string());
+                let w = b.put_item_conditional(a, r, t, item(1), Some(rev_is_zero()));
+                Box::pin(async move { matches!(w.await, Ok(ConditionalWrite::Applied { .. })) })
+            }),
+            ("DeleteItem", |b| {
+                let (a, r, t) = (ACCOUNT.to_string(), REGION.to_string(), TABLE.to_string());
+                let w = b.delete_item_conditional(a, r, t, key(), Some(rev_is_zero()));
+                Box::pin(async move { matches!(w.await, Ok(ConditionalWrite::Applied { .. })) })
+            }),
+            ("TransactWriteItems", |b| {
+                let w = b.transact_write_items_conditional(
+                    ACCOUNT.to_string(),
+                    REGION.to_string(),
+                    vec![TransactWriteAction::Update {
+                        table_name: TABLE.to_string(),
+                        key: key(),
+                        actions: set_rev_to_one(),
+                        condition: Some(rev_is_zero()),
+                    }],
+                );
+                Box::pin(async move { matches!(w.await, Ok(TransactWriteOutcome::Committed)) })
+            }),
+        ];
+        let mut interleaved = Vec::new();
+        for (name, conditional_write) in conditional_writes {
+            let backend = backend_with_item().await;
+            let lock = backend.state.get(ACCOUNT, REGION);
+            let gate = lock.write().await;
+
+            let first = tokio::spawn(conditional_write(&backend));
+            settle().await;
+            let (a, r, t) = args();
+            let second = tokio::spawn(backend.put_item(a, r, t, item(5)));
+            settle().await;
+            drop(gate);
+
+            assert!(
+                first.await.unwrap(),
+                "{name}: the condition held when its turn came"
+            );
+            second.await.unwrap().unwrap();
+
+            let (a, r, t) = args();
+            let stored = backend.get_item(a, r, t, key()).await.unwrap();
+            // The competing put must come after the whole conditional write.
+            if stored != Some(item(5)) {
+                interleaved.push((name, stored));
+            }
+        }
+        assert!(
+            interleaved.is_empty(),
+            "a competing put landed between the condition check and the write of: {interleaved:?}"
+        );
+    }
+
+    /// A stream record is emitted once per applied write and never for a
+    /// write whose condition failed or whose transaction was cancelled.
+    #[tokio::test]
+    async fn stream_records_follow_applied_writes_only() {
+        let backend = backend_with_item_and_stream(true).await;
+        let args = || (ACCOUNT.to_string(), REGION.to_string(), TABLE.to_string());
+        let events = || async {
+            let lock = backend.state.get(ACCOUNT, REGION);
+            let state = lock.read().await;
+            state.tables[TABLE]
+                .stream_records
+                .iter()
+                .map(|r| r.event_name.clone())
+                .collect::<Vec<_>>()
+        };
+        // The seeding put.
+        assert_eq!(events().await, ["INSERT"]);
+
+        // Applied: `rev = 0` holds.
+        let (a, r, t) = args();
+        let applied = backend
+            .update_item_conditional(a, r, t, key(), set_rev_to_one(), Some(rev_is_zero()))
+            .await
+            .unwrap();
+        assert_eq!(
+            applied,
+            ConditionalWrite::Applied {
+                old_item: Some(item(0)),
+                new_item: Some(item(1)),
+            }
+        );
+        assert_eq!(events().await, ["INSERT", "MODIFY"]);
+
+        // Rejected from here on: `rev` is 1 now.
+        let rejected = ConditionalWrite::ConditionFailed {
+            item: Some(item(1)),
+        };
+        let (a, r, t) = args();
+        let update = backend
+            .update_item_conditional(a, r, t, key(), set_rev_to_one(), Some(rev_is_zero()))
+            .await
+            .unwrap();
+        let (a, r, t) = args();
+        let put = backend
+            .put_item_conditional(a, r, t, item(7), Some(rev_is_zero()))
+            .await
+            .unwrap();
+        let (a, r, t) = args();
+        let delete = backend
+            .delete_item_conditional(a, r, t, key(), Some(rev_is_zero()))
+            .await
+            .unwrap();
+        assert_eq!([&update, &put, &delete], [&rejected; 3]);
+
+        // A cancelled transaction writes none of its actions.
+        let other = Item::from([("pk".to_string(), AttributeValue::S("other".to_string()))]);
+        let outcome = backend
+            .transact_write_items_conditional(
+                ACCOUNT.to_string(),
+                REGION.to_string(),
+                vec![
+                    TransactWriteAction::Put {
+                        table_name: TABLE.to_string(),
+                        item: other.clone(),
+                        condition: None,
+                    },
+                    TransactWriteAction::ConditionCheck {
+                        table_name: TABLE.to_string(),
+                        key: key(),
+                        condition: rev_is_zero(),
+                    },
+                ],
+            )
+            .await
+            .unwrap();
+        assert_eq!(
+            outcome,
+            TransactWriteOutcome::Cancelled(vec![
+                TransactCancellationReason::None,
+                TransactCancellationReason::ConditionalCheckFailed {
+                    item: Some(item(1)),
+                },
+            ])
+        );
+        let (a, r, t) = args();
+        assert_eq!(backend.get_item(a, r, t, other).await.unwrap(), None);
+        assert_eq!(events().await, ["INSERT", "MODIFY"]);
     }
 }

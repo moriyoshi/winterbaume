@@ -641,6 +641,7 @@ impl DynamoDbService {
         let table_name = input.table_name;
         let item: Item = item_from_wire(input.item);
         let return_values = input.return_values.as_deref().unwrap_or("NONE");
+        let return_on_failure = input.return_values_on_condition_check_failure;
 
         // --- ConditionExpression ---
         let expr_names = input.expression_attribute_names.unwrap_or_default();
@@ -658,30 +659,15 @@ impl DynamoDbService {
             },
             None => None,
         };
-        if let Some(ref cond_expr) = cond {
-            let existing = self
-                .backend
-                .get_item(
-                    account_id.clone(),
-                    region.clone(),
-                    table_name.clone(),
-                    item.clone(),
-                )
-                .await
-                .ok()
-                .flatten()
-                .unwrap_or_default();
-            if !crate::expr::evaluate(cond_expr, &existing) {
-                return dynamodb_error_response(&conditional_check_failed());
-            }
-        }
 
+        // The condition travels to the backend, which evaluates it and
+        // applies the write as one atomic step ( issue #61 ).
         match self
             .backend
-            .put_item(account_id, region, table_name, item)
+            .put_item_conditional(account_id, region, table_name, item, cond)
             .await
         {
-            Ok(old_item) => {
+            Ok(ConditionalWrite::Applied { old_item, .. }) => {
                 let attributes = if return_values == "ALL_OLD" {
                     old_item.map(|old| convert_item_to_wire(&old))
                 } else {
@@ -692,6 +678,9 @@ impl DynamoDbService {
                     ..Default::default()
                 };
                 wire::serialize_put_item_response(&output)
+            }
+            Ok(ConditionalWrite::ConditionFailed { item }) => {
+                conditional_check_failed_response(item.as_ref(), return_on_failure.as_deref())
             }
             Err(e) => dynamodb_error_response(&e),
         }
@@ -802,6 +791,7 @@ impl DynamoDbService {
         let table_name = input.table_name;
         let key: Item = item_from_wire(input.key);
         let return_values = input.return_values.as_deref().unwrap_or("NONE");
+        let return_on_failure = input.return_values_on_condition_check_failure;
 
         // --- ConditionExpression ---
         let expr_names = input.expression_attribute_names.unwrap_or_default();
@@ -819,30 +809,13 @@ impl DynamoDbService {
             },
             None => None,
         };
-        if let Some(ref cond_expr) = cond {
-            let existing = self
-                .backend
-                .get_item(
-                    account_id.clone(),
-                    region.clone(),
-                    table_name.clone(),
-                    key.clone(),
-                )
-                .await
-                .ok()
-                .flatten()
-                .unwrap_or_default();
-            if !crate::expr::evaluate(cond_expr, &existing) {
-                return dynamodb_error_response(&conditional_check_failed());
-            }
-        }
 
         match self
             .backend
-            .delete_item(account_id, region, table_name, key.clone())
+            .delete_item_conditional(account_id, region, table_name, key, cond)
             .await
         {
-            Ok(old_item) => {
+            Ok(ConditionalWrite::Applied { old_item, .. }) => {
                 let attributes = if return_values == "ALL_OLD" {
                     old_item.map(|old| convert_item_to_wire(&old))
                 } else {
@@ -853,6 +826,9 @@ impl DynamoDbService {
                     ..Default::default()
                 };
                 wire::serialize_delete_item_response(&output)
+            }
+            Ok(ConditionalWrite::ConditionFailed { item }) => {
+                conditional_check_failed_response(item.as_ref(), return_on_failure.as_deref())
             }
             Err(e) => dynamodb_error_response(&e),
         }
@@ -1245,6 +1221,7 @@ impl DynamoDbService {
         let table_name = input.table_name;
         let key: Item = item_from_wire(input.key);
         let return_values = input.return_values.as_deref().unwrap_or("NONE");
+        let return_on_failure = input.return_values_on_condition_check_failure;
 
         let expr_names = input.expression_attribute_names.unwrap_or_default();
         let expr_values = attr_map_from_wire(input.expression_attribute_values);
@@ -1277,40 +1254,28 @@ impl DynamoDbService {
             },
             None => None,
         };
-        if let Some(ref cond_expr) = cond {
-            let existing = self
-                .backend
-                .get_item(
-                    account_id.clone(),
-                    region.clone(),
-                    table_name.clone(),
-                    key.clone(),
-                )
-                .await
-                .ok()
-                .flatten()
-                .unwrap_or_default();
-            if !crate::expr::evaluate(cond_expr, &existing) {
-                return dynamodb_error_response(&conditional_check_failed());
-            }
-        }
 
         match self
             .backend
-            .update_item(account_id, region, table_name, key.clone(), actions)
+            .update_item_conditional(account_id, region, table_name, key, actions, cond)
             .await
         {
-            Ok(updated_item) => {
-                let attributes = if return_values == "ALL_NEW" {
-                    updated_item.map(|item| convert_item_to_wire(&item))
-                } else {
-                    None
+            Ok(ConditionalWrite::Applied { old_item, new_item }) => {
+                // Both images come out of the atomic step that applied the
+                // update. `UPDATED_OLD` / `UPDATED_NEW` are not implemented.
+                let attributes = match return_values {
+                    "ALL_NEW" => new_item.map(|item| convert_item_to_wire(&item)),
+                    "ALL_OLD" => old_item.map(|item| convert_item_to_wire(&item)),
+                    _ => None,
                 };
                 let output = wire::UpdateItemOutput {
                     attributes,
                     ..Default::default()
                 };
                 wire::serialize_update_item_response(&output)
+            }
+            Ok(ConditionalWrite::ConditionFailed { item }) => {
+                conditional_check_failed_response(item.as_ref(), return_on_failure.as_deref())
             }
             Err(e) => dynamodb_error_response(&e),
         }
@@ -2377,12 +2342,6 @@ impl DynamoDbService {
         };
         let transact_items = input.transact_items;
 
-        // One ordered list, not three batches: DynamoDB applies a transaction
-        // in the caller's order, so `[Delete(k), Put(k)]` must leave the item
-        // present.
-        let mut ops: Vec<crate::types::TransactOp> = Vec::new();
-
-        // Track cancellation reasons (one per transact item, in order).
         let item_count = transact_items.len();
         if item_count > MAX_TRANSACT_ITEMS {
             return json_error_response(
@@ -2393,211 +2352,145 @@ impl DynamoDbService {
                 ),
             );
         }
-        let mut cancellation_reasons: Vec<Option<String>> = vec![None; item_count];
-        let mut any_cancelled = false;
 
-        // A normalised view of one transact-item's sub-body: the wire types
-        // for Put/Delete/Update/ConditionCheck have similar but not identical
-        // fields, so we reduce them all to (op, table_name, key/item,
-        // condition_expression, expr_names, expr_values).
-        struct SubBody {
-            op: &'static str,
-            table_name: String,
-            // For Put: this is the full item; for the others, the primary key.
-            key_or_item: Item,
-            condition_expression: Option<String>,
-            expression_attribute_names: HashMap<String, String>,
-            expression_attribute_values: HashMap<String, AttributeValue>,
-        }
+        // One ordered list, not three batches: DynamoDB applies a transaction
+        // in the caller's order, so `[Delete(k), Put(k)]` must leave the item
+        // present. Each action carries its parsed condition: the backend
+        // evaluates all of them and applies the writes in one critical
+        // section ( issue #61 ), so nothing is evaluated here.
+        let mut actions: Vec<TransactWriteAction> = Vec::with_capacity(item_count);
+        // `ReturnValuesOnConditionCheckFailure` of each collected action.
+        let mut return_on_failure: Vec<Option<String>> = Vec::with_capacity(item_count);
 
-        for (idx, t) in transact_items.into_iter().enumerate() {
-            let (sub_body, update_for_action): (Option<SubBody>, Option<crate::model::Update>) =
-                if let Some(put) = t.put {
-                    (
-                        Some(SubBody {
-                            op: "Put",
-                            table_name: put.table_name,
-                            key_or_item: item_from_wire(put.item),
-                            condition_expression: put.condition_expression,
-                            expression_attribute_names: put
-                                .expression_attribute_names
-                                .unwrap_or_default(),
-                            expression_attribute_values: attr_map_from_wire(
-                                put.expression_attribute_values,
-                            ),
-                        }),
-                        None,
+        let parse_condition = |expression: Option<&str>,
+                               names: &HashMap<String, String>,
+                               values: &HashMap<String, AttributeValue>|
+         -> Result<Option<crate::expr::Expr>, MockResponse> {
+            expression
+                .map(|s| crate::expr::parse_expression(s, names, values))
+                .transpose()
+                .map_err(|msg| {
+                    json_error_response(
+                        400,
+                        "com.amazonaws.dynamodb.v20120810#ValidationException",
+                        &msg,
                     )
-                } else if let Some(del) = t.delete {
-                    (
-                        Some(SubBody {
-                            op: "Delete",
-                            table_name: del.table_name,
-                            key_or_item: item_from_wire(del.key),
-                            condition_expression: del.condition_expression,
-                            expression_attribute_names: del
-                                .expression_attribute_names
-                                .unwrap_or_default(),
-                            expression_attribute_values: attr_map_from_wire(
-                                del.expression_attribute_values,
-                            ),
-                        }),
-                        None,
-                    )
-                } else if let Some(upd) = t.update {
-                    (
-                        Some(SubBody {
-                            op: "Update",
-                            table_name: upd.table_name.clone(),
-                            key_or_item: item_from_wire(upd.key.clone()),
-                            condition_expression: upd.condition_expression.clone(),
-                            expression_attribute_names: upd
-                                .expression_attribute_names
-                                .clone()
-                                .unwrap_or_default(),
-                            expression_attribute_values: attr_map_from_wire(
-                                upd.expression_attribute_values.clone(),
-                            ),
-                        }),
-                        Some(upd),
-                    )
-                } else if let Some(chk) = t.condition_check {
-                    (
-                        Some(SubBody {
-                            op: "ConditionCheck",
-                            table_name: chk.table_name,
-                            key_or_item: item_from_wire(chk.key),
-                            condition_expression: Some(chk.condition_expression),
-                            expression_attribute_names: chk
-                                .expression_attribute_names
-                                .unwrap_or_default(),
-                            expression_attribute_values: attr_map_from_wire(
-                                chk.expression_attribute_values,
-                            ),
-                        }),
-                        None,
-                    )
-                } else {
-                    (None, None)
-                };
-
-            if let Some(sub) = sub_body {
-                // Parse and evaluate ConditionExpression if present
-                let cond = match sub.condition_expression.as_deref() {
-                    Some(s) => match crate::expr::parse_expression(
-                        s,
-                        &sub.expression_attribute_names,
-                        &sub.expression_attribute_values,
-                    ) {
-                        Ok(e) => Some(e),
-                        Err(msg) => {
-                            return json_error_response(
-                                400,
-                                "com.amazonaws.dynamodb.v20120810#ValidationException",
-                                &msg,
-                            );
-                        }
-                    },
-                    None => None,
-                };
-
-                if let Some(ref cond_expr) = cond {
-                    // For Put, the existing item key needs deriving from the
-                    // table schema; the simple fallback here is to use the
-                    // full item as the key search (the backend's
-                    // build_key_for_item would be ideal but we don't have
-                    // access to state inside dispatch). The original code
-                    // similarly passed the full Put item as the key value.
-                    let key_for_lookup: Item = sub.key_or_item.clone();
-                    let existing = self
-                        .backend
-                        .get_item(
-                            account_id.clone(),
-                            region.clone(),
-                            sub.table_name.clone(),
-                            key_for_lookup,
-                        )
-                        .await
-                        .ok()
-                        .flatten()
-                        .unwrap_or_default();
-                    if !crate::expr::evaluate(cond_expr, &existing) {
-                        cancellation_reasons[idx] = Some("ConditionalCheckFailed".to_string());
-                        any_cancelled = true;
-                    }
-                }
-
-                // Collect the operation (skip ConditionCheck — it's check-only)
-                match sub.op {
-                    "Put" => {
-                        ops.push(crate::types::TransactOp::Put {
-                            table_name: sub.table_name,
-                            item: sub.key_or_item,
-                        });
-                    }
-                    "Delete" => {
-                        ops.push(crate::types::TransactOp::Delete {
-                            table_name: sub.table_name,
-                            key: sub.key_or_item,
-                        });
-                    }
-                    "Update" => {
-                        let upd = update_for_action.expect("Update branch sets update_for_action");
-                        let upd_expr_names = upd.expression_attribute_names.unwrap_or_default();
-                        let upd_expr_values = attr_map_from_wire(upd.expression_attribute_values);
-                        let actions = match crate::expr::parse_update_expression(
-                            &upd.update_expression,
-                            &upd_expr_names,
-                            &upd_expr_values,
-                        ) {
-                            Ok(actions) => actions,
-                            Err(msg) => {
-                                return json_error_response(
-                                    400,
-                                    "com.amazonaws.dynamodb.v20120810#ValidationException",
-                                    &msg,
-                                );
-                            }
-                        };
-                        ops.push(crate::types::TransactOp::Update {
-                            table_name: sub.table_name,
-                            key: sub.key_or_item,
-                            actions,
-                        });
-                    }
-                    _ => {} // ConditionCheck — no mutation
-                }
-            }
-        }
-
-        // If any condition failed, cancel the entire transaction
-        if any_cancelled {
-            let reasons: Vec<Value> = cancellation_reasons
-                .iter()
-                .map(|r| match r {
-                    Some(code) => json!({
-                        "Code": code,
-                        "Message": "The conditional request failed",
-                    }),
-                    None => json!({ "Code": "None" }),
                 })
-                .collect();
-            let body = json!({
-                "__type": "com.amazonaws.dynamodb.v20120810#TransactionCanceledException",
-                "message": "Transaction cancelled, please refer cancellation reasons for specific reasons [ConditionalCheckFailed]",
-                "CancellationReasons": reasons,
-            });
-            return MockResponse::json(400, body.to_string());
+        };
+
+        for t in transact_items {
+            if let Some(put) = t.put {
+                let names = put.expression_attribute_names.unwrap_or_default();
+                let values = attr_map_from_wire(put.expression_attribute_values);
+                let condition =
+                    match parse_condition(put.condition_expression.as_deref(), &names, &values) {
+                        Ok(c) => c,
+                        Err(resp) => return resp,
+                    };
+                actions.push(TransactWriteAction::Put {
+                    table_name: put.table_name,
+                    item: item_from_wire(put.item),
+                    condition,
+                });
+                return_on_failure.push(put.return_values_on_condition_check_failure);
+            } else if let Some(del) = t.delete {
+                let names = del.expression_attribute_names.unwrap_or_default();
+                let values = attr_map_from_wire(del.expression_attribute_values);
+                let condition =
+                    match parse_condition(del.condition_expression.as_deref(), &names, &values) {
+                        Ok(c) => c,
+                        Err(resp) => return resp,
+                    };
+                actions.push(TransactWriteAction::Delete {
+                    table_name: del.table_name,
+                    key: item_from_wire(del.key),
+                    condition,
+                });
+                return_on_failure.push(del.return_values_on_condition_check_failure);
+            } else if let Some(upd) = t.update {
+                let names = upd.expression_attribute_names.unwrap_or_default();
+                let values = attr_map_from_wire(upd.expression_attribute_values);
+                let condition =
+                    match parse_condition(upd.condition_expression.as_deref(), &names, &values) {
+                        Ok(c) => c,
+                        Err(resp) => return resp,
+                    };
+                let update_actions = match crate::expr::parse_update_expression(
+                    &upd.update_expression,
+                    &names,
+                    &values,
+                ) {
+                    Ok(actions) => actions,
+                    Err(msg) => {
+                        return json_error_response(
+                            400,
+                            "com.amazonaws.dynamodb.v20120810#ValidationException",
+                            &msg,
+                        );
+                    }
+                };
+                actions.push(TransactWriteAction::Update {
+                    table_name: upd.table_name,
+                    key: item_from_wire(upd.key),
+                    actions: update_actions,
+                    condition,
+                });
+                return_on_failure.push(upd.return_values_on_condition_check_failure);
+            } else if let Some(chk) = t.condition_check {
+                let names = chk.expression_attribute_names.unwrap_or_default();
+                let values = attr_map_from_wire(chk.expression_attribute_values);
+                let condition =
+                    match parse_condition(Some(&chk.condition_expression), &names, &values) {
+                        Ok(Some(c)) => c,
+                        Ok(None) => unreachable!("a ConditionCheck always has an expression"),
+                        Err(resp) => return resp,
+                    };
+                actions.push(TransactWriteAction::ConditionCheck {
+                    table_name: chk.table_name,
+                    key: item_from_wire(chk.key),
+                    condition,
+                });
+                return_on_failure.push(chk.return_values_on_condition_check_failure);
+            }
         }
 
         match self
             .backend
-            .transact_write_items(account_id, region, ops)
+            .transact_write_items_conditional(account_id, region, actions)
             .await
         {
-            Ok(()) => {
+            Ok(TransactWriteOutcome::Committed) => {
                 let output = wire::TransactWriteItemsOutput::default();
                 wire::serialize_transact_write_items_response(&output)
+            }
+            // A failed condition cancels the entire transaction: one reason
+            // per action, in the caller's order.
+            Ok(TransactWriteOutcome::Cancelled(reasons)) => {
+                let reasons: Vec<Value> = reasons
+                    .iter()
+                    .zip(&return_on_failure)
+                    .map(|(reason, return_on_failure)| match reason {
+                        TransactCancellationReason::ConditionalCheckFailed { item } => {
+                            let mut reason = json!({
+                                "Code": "ConditionalCheckFailed",
+                                "Message": "The conditional request failed",
+                            });
+                            if let Some(item) = item
+                                && return_on_failure.as_deref() == Some("ALL_OLD")
+                            {
+                                reason["Item"] = json!(item);
+                            }
+                            reason
+                        }
+                        TransactCancellationReason::None => json!({ "Code": "None" }),
+                    })
+                    .collect();
+                let body = json!({
+                    "__type": "com.amazonaws.dynamodb.v20120810#TransactionCanceledException",
+                    "message": "Transaction cancelled, please refer cancellation reasons for specific reasons [ConditionalCheckFailed]",
+                    "CancellationReasons": reasons,
+                });
+                MockResponse::json(400, body.to_string())
             }
             Err(e) => dynamodb_error_response(&e),
         }
@@ -4794,9 +4687,25 @@ fn wire_attrs_to_json(parameters: Option<Vec<crate::model::AttributeValue>>) -> 
         .collect()
 }
 
-/// Return a ConditionalCheckFailedException DynamoDbError.
-fn conditional_check_failed() -> DynamoDbError {
-    DynamoDbError::ConditionalCheckFailed
+/// The `ConditionalCheckFailedException` of a single-item write. With
+/// `ReturnValuesOnConditionCheckFailure=ALL_OLD` it carries the item the
+/// condition was evaluated against, which the backend reports from the same
+/// atomic step that evaluated it.
+fn conditional_check_failed_response(
+    item: Option<&Item>,
+    return_on_failure: Option<&str>,
+) -> MockResponse {
+    match item {
+        Some(item) if return_on_failure == Some("ALL_OLD") => {
+            let body = json!({
+                "__type": "com.amazonaws.dynamodb.v20120810#ConditionalCheckFailedException",
+                "message": DynamoDbError::ConditionalCheckFailed.to_string(),
+                "Item": item,
+            });
+            MockResponse::json(400, body.to_string())
+        }
+        _ => dynamodb_error_response(&DynamoDbError::ConditionalCheckFailed),
+    }
 }
 
 /// Look up and clone the item currently stored at `key` in `table_name`.

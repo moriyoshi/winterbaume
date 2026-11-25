@@ -952,3 +952,207 @@ resource "aws_lambda_function" "lambda_code_update" {{
 
     cleanup_tf_dir(&dir);
 }
+
+/// `main.tf` for [`test_lambda_function_vpc_and_configuration_blocks_no_drift`].
+/// `function_body` is the part of the `aws_lambda_function` resource that
+/// changes between the steps.
+fn lambda_config_blocks_tf(zip_str: &str, function_body: &str) -> String {
+    format!(
+        r#"
+resource "aws_vpc" "lambda_cfg" {{
+  cidr_block = "10.62.0.0/16"
+}}
+
+resource "aws_subnet" "lambda_cfg_a" {{
+  vpc_id     = aws_vpc.lambda_cfg.id
+  cidr_block = "10.62.1.0/24"
+}}
+
+resource "aws_subnet" "lambda_cfg_b" {{
+  vpc_id     = aws_vpc.lambda_cfg.id
+  cidr_block = "10.62.2.0/24"
+}}
+
+resource "aws_security_group" "lambda_cfg_one" {{
+  name        = "lambda-cfg-one"
+  description = "First security group for the Lambda configuration test"
+  vpc_id      = aws_vpc.lambda_cfg.id
+}}
+
+resource "aws_security_group" "lambda_cfg_two" {{
+  name        = "lambda-cfg-two"
+  description = "Second security group for the Lambda configuration test"
+  vpc_id      = aws_vpc.lambda_cfg.id
+}}
+
+resource "aws_iam_role" "lambda_cfg_role" {{
+  name = "lambda-cfg-blocks-role"
+  assume_role_policy = {LAMBDA_ASSUME_ROLE_POLICY}
+}}
+
+resource "aws_lambda_function" "lambda_cfg" {{
+  filename      = "{zip_str}"
+  function_name = "terraform-cfg-blocks-fn"
+  role          = aws_iam_role.lambda_cfg_role.arn
+  handler       = "index.handler"
+  runtime       = "nodejs22.x"
+{function_body}
+}}
+"#
+    )
+}
+
+/// Issue #62: `vpc_config` and the sibling configuration blocks of
+/// `aws_lambda_function` must read back as applied.  Before the fix the
+/// handler dropped them, so every plan after an apply showed the blocks as
+/// pending changes.  Three steps, each followed by a `-detailed-exitcode`
+/// plan that must report no changes: create with the blocks set, change them
+/// in place, then detach the function from the VPC.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+#[ignore]
+async fn test_lambda_function_vpc_and_configuration_blocks_no_drift() {
+    let zip_path = make_test_lambda_zip();
+    let zip_str = zip_path.display().to_string();
+
+    let port = start_server(test_services()).await;
+    let url = format!("http://127.0.0.1:{port}");
+    let dir = create_tf_dir("lambda-config-blocks");
+    write_provider_tf(&dir, &url);
+
+    async fn assert_no_drift(dir: &std::path::Path, step: &str) {
+        // -detailed-exitcode: 0 = no changes, 2 = changes pending.
+        let (ok, stdout, stderr) = terraform_plan(dir).await;
+        assert!(
+            ok,
+            "terraform plan shows changes after {step}:\nstdout:\n{stdout}\nstderr:\n{stderr}"
+        );
+        assert!(
+            stdout.contains("No changes"),
+            "Expected 'No changes' in plan output after {step}:\n{stdout}"
+        );
+    }
+
+    // Step 1: create with every block set to a non-default value.
+    std::fs::write(
+        dir.join("main.tf"),
+        lambda_config_blocks_tf(
+            &zip_str,
+            r#"
+  architectures = ["arm64"]
+
+  vpc_config {
+    subnet_ids         = [aws_subnet.lambda_cfg_a.id, aws_subnet.lambda_cfg_b.id]
+    security_group_ids = [aws_security_group.lambda_cfg_one.id]
+  }
+
+  ephemeral_storage {
+    size = 1024
+  }
+
+  tracing_config {
+    mode = "Active"
+  }
+
+  logging_config {
+    log_format = "JSON"
+    log_group  = "/custom/terraform-cfg-blocks"
+  }
+
+  tags = {
+    app = "demo"
+    env = "test"
+  }
+"#,
+        ),
+    )
+    .unwrap();
+
+    terraform_init(&dir).await;
+    let (ok, stdout, stderr) = terraform_apply(&dir).await;
+    assert!(ok, "first apply failed:\n{stderr}");
+    assert!(
+        stdout.contains("Resources: 7 added, 0 changed, 0 destroyed"),
+        "Expected 7 resources created:\n{stdout}"
+    );
+    assert_no_drift(&dir, "the first apply").await;
+
+    // Step 2: change every block in place.
+    std::fs::write(
+        dir.join("main.tf"),
+        lambda_config_blocks_tf(
+            &zip_str,
+            r#"
+  architectures = ["x86_64"]
+
+  vpc_config {
+    subnet_ids = [aws_subnet.lambda_cfg_a.id]
+    security_group_ids = [
+      aws_security_group.lambda_cfg_one.id,
+      aws_security_group.lambda_cfg_two.id,
+    ]
+  }
+
+  ephemeral_storage {
+    size = 2048
+  }
+
+  tracing_config {
+    mode = "PassThrough"
+  }
+
+  logging_config {
+    log_format            = "JSON"
+    log_group             = "/custom/terraform-cfg-blocks-moved"
+    application_log_level = "DEBUG"
+    system_log_level      = "WARN"
+  }
+
+  tags = {
+    app = "demo"
+    env = "prod"
+  }
+"#,
+        ),
+    )
+    .unwrap();
+    let (ok, stdout, stderr) = terraform_apply(&dir).await;
+    assert!(ok, "second apply (modify) failed:\n{stderr}");
+    assert!(
+        stdout.contains("Resources: 0 added, 1 changed, 0 destroyed"),
+        "Expected in-place update:\n{stdout}"
+    );
+    assert_no_drift(&dir, "the in-place change").await;
+
+    // Step 3: remove the vpc_config block, which detaches the function.
+    std::fs::write(
+        dir.join("main.tf"),
+        lambda_config_blocks_tf(
+            &zip_str,
+            r#"
+  architectures = ["x86_64"]
+
+  ephemeral_storage {
+    size = 2048
+  }
+
+  tags = {
+    app = "demo"
+    env = "prod"
+  }
+"#,
+        ),
+    )
+    .unwrap();
+    let (ok, stdout, stderr) = terraform_apply(&dir).await;
+    assert!(ok, "third apply (detach) failed:\n{stderr}");
+    assert!(
+        stdout.contains("Resources: 0 added, 1 changed, 0 destroyed"),
+        "Expected in-place update:\n{stdout}"
+    );
+    assert_no_drift(&dir, "detaching from the VPC").await;
+
+    let (ok, _stdout, stderr) = terraform_destroy(&dir).await;
+    assert!(ok, "terraform destroy failed:\n{stderr}");
+
+    cleanup_tf_dir(&dir);
+}

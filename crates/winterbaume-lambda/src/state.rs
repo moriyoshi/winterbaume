@@ -135,14 +135,7 @@ impl LambdaState {
             versions: Vec::new(),
             reserved_concurrent_executions: None,
             code_signing_config_arn: None,
-            dead_letter_config: None,
-            ephemeral_storage: None,
-            file_system_config: None,
-            image_config: None,
-            logging_config: None,
-            snap_start: None,
-            tracing_config: None,
-            vpc_config: None,
+            settings: FunctionSettings::default(),
         };
 
         self.functions.insert(name.to_string(), func);
@@ -302,6 +295,43 @@ impl LambdaState {
         func.last_modified = Utc::now();
         func.revision_id = uuid::Uuid::new_v4().to_string();
 
+        Ok(self.functions.get(&resolved).unwrap())
+    }
+
+    /// Apply the store-and-echo settings of a `CreateFunction` /
+    /// `UpdateFunctionConfiguration` request to `$LATEST`.
+    ///
+    /// Kept apart from [`Self::create_function`] and
+    /// [`Self::update_function_configuration`], which run first and own the
+    /// existence and revision checks, so this cannot fail half-way.
+    pub fn apply_function_settings(
+        &mut self,
+        name: &str,
+        mut patch: FunctionSettingsPatch,
+    ) -> Result<&LambdaFunction, LambdaError> {
+        let resolved = self.resolve_name(name);
+        // `Layers` reports the archive size of each layer version.  Versions
+        // owned by another account or region ( AWS-published extensions, for
+        // one ) are accepted as they are and report a size of 0.
+        let layers = patch.layers.take().map(|arns| {
+            arns.into_iter()
+                .map(|arn| FunctionLayer {
+                    code_size: self
+                        .get_layer_version_by_arn(&arn)
+                        .map(|lv| lv.code_size)
+                        .unwrap_or(0),
+                    arn,
+                })
+                .collect()
+        });
+        let func = self
+            .functions
+            .get_mut(&resolved)
+            .ok_or_else(|| LambdaError::FunctionNotFound(resolved.clone()))?;
+        if let Some(role) = patch.role.take().filter(|r| !r.is_empty()) {
+            func.role = role;
+        }
+        func.settings.apply(patch, layers);
         Ok(self.functions.get(&resolved).unwrap())
     }
 
@@ -1247,6 +1277,7 @@ impl LambdaState {
             code_sha256: func.code_sha256.clone(),
             code_size: func.code_size,
             created_at: Utc::now(),
+            settings: func.settings.clone(),
         };
         func.versions.push(fv);
 

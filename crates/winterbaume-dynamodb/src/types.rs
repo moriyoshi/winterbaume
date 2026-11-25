@@ -571,8 +571,8 @@ pub enum UpdateAction {
 /// The actions are carried as a single ordered list rather than as separate
 /// put / delete / update batches, because DynamoDB applies a transaction in
 /// the order the caller supplied: `[Delete(k), Put(k)]` must leave the item
-/// present, not deleted. `ConditionCheck` is evaluated in the handler and
-/// never reaches a backend, so it has no variant here.
+/// present, not deleted. `ConditionCheck` has no variant here; the form that
+/// carries conditions is [`TransactWriteAction`].
 #[derive(Debug, Clone, PartialEq)]
 pub enum TransactOp {
     Put {
@@ -608,6 +608,160 @@ impl TransactOp {
             TransactOp::Delete { key, .. } | TransactOp::Update { key, .. } => key,
         }
     }
+}
+
+/// The result of a single-item write that carries an optional condition
+/// ( `DynamoDbBackend::put_item_conditional` and its siblings ).
+///
+/// Both variants are produced by the same atomic step that evaluated the
+/// condition, so the images they carry are the ones the condition saw.
+#[derive(Debug, Clone, PartialEq)]
+pub enum ConditionalWrite {
+    /// The condition held ( or there was none ) and the write was applied.
+    Applied {
+        /// The item as it was before the write; `None` when it did not exist.
+        old_item: Option<Item>,
+        /// The item as stored by the write; `None` after a delete.
+        new_item: Option<Item>,
+    },
+    /// The condition did not hold; nothing was written.
+    ConditionFailed {
+        /// The item the condition was evaluated against; `None` when it did
+        /// not exist. Serves `ReturnValuesOnConditionCheckFailure`.
+        item: Option<Item>,
+    },
+}
+
+/// One action of a `TransactWriteItems` request together with its parsed
+/// condition, for `DynamoDbBackend::transact_write_items_conditional`.
+///
+/// Unlike [`TransactOp`] this includes `ConditionCheck`, because the
+/// conditions of all actions are evaluated by the backend in the same
+/// critical section that applies the writes.
+#[derive(Debug, Clone)]
+pub enum TransactWriteAction {
+    Put {
+        table_name: String,
+        item: Item,
+        condition: Option<crate::expr::Expr>,
+    },
+    Delete {
+        table_name: String,
+        key: Item,
+        condition: Option<crate::expr::Expr>,
+    },
+    Update {
+        table_name: String,
+        key: Item,
+        actions: Vec<UpdateAction>,
+        condition: Option<crate::expr::Expr>,
+    },
+    ConditionCheck {
+        table_name: String,
+        key: Item,
+        condition: crate::expr::Expr,
+    },
+}
+
+impl TransactWriteAction {
+    pub fn table_name(&self) -> &str {
+        match self {
+            Self::Put { table_name, .. }
+            | Self::Delete { table_name, .. }
+            | Self::Update { table_name, .. }
+            | Self::ConditionCheck { table_name, .. } => table_name,
+        }
+    }
+
+    /// The item or key this action targets ( see [`TransactOp::target`] ).
+    pub fn target(&self) -> &Item {
+        match self {
+            Self::Put { item, .. } => item,
+            Self::Delete { key, .. }
+            | Self::Update { key, .. }
+            | Self::ConditionCheck { key, .. } => key,
+        }
+    }
+
+    pub fn condition(&self) -> Option<&crate::expr::Expr> {
+        match self {
+            Self::Put { condition, .. }
+            | Self::Delete { condition, .. }
+            | Self::Update { condition, .. } => condition.as_ref(),
+            Self::ConditionCheck { condition, .. } => Some(condition),
+        }
+    }
+
+    /// The write this action performs, without its condition; `None` for a
+    /// `ConditionCheck`.
+    pub fn into_op(self) -> Option<TransactOp> {
+        match self {
+            Self::Put {
+                table_name, item, ..
+            } => Some(TransactOp::Put { table_name, item }),
+            Self::Delete {
+                table_name, key, ..
+            } => Some(TransactOp::Delete { table_name, key }),
+            Self::Update {
+                table_name,
+                key,
+                actions,
+                ..
+            } => Some(TransactOp::Update {
+                table_name,
+                key,
+                actions,
+            }),
+            Self::ConditionCheck { .. } => None,
+        }
+    }
+}
+
+impl From<TransactOp> for TransactWriteAction {
+    fn from(op: TransactOp) -> Self {
+        match op {
+            TransactOp::Put { table_name, item } => Self::Put {
+                table_name,
+                item,
+                condition: None,
+            },
+            TransactOp::Delete { table_name, key } => Self::Delete {
+                table_name,
+                key,
+                condition: None,
+            },
+            TransactOp::Update {
+                table_name,
+                key,
+                actions,
+            } => Self::Update {
+                table_name,
+                key,
+                actions,
+                condition: None,
+            },
+        }
+    }
+}
+
+/// Why one action of a cancelled transaction did, or did not, fail.
+#[derive(Debug, Clone, PartialEq)]
+pub enum TransactCancellationReason {
+    /// This action's condition held, or it had none.
+    None,
+    /// This action's condition did not hold. `item` is the item it was
+    /// evaluated against ( `None` when it did not exist ).
+    ConditionalCheckFailed { item: Option<Item> },
+}
+
+/// The result of `DynamoDbBackend::transact_write_items_conditional`.
+#[derive(Debug, Clone, PartialEq)]
+pub enum TransactWriteOutcome {
+    /// Every condition held and every write was applied.
+    Committed,
+    /// At least one condition failed and nothing was written. One reason per
+    /// action, in the caller's order.
+    Cancelled(Vec<TransactCancellationReason>),
 }
 
 /// A captured stream change record from a DynamoDB write operation.

@@ -17,7 +17,9 @@ use crate::model;
 use crate::state::{LambdaError, LambdaState};
 use crate::types::{
     EventSourceMappingLoggingSettings, EventSourceMappingScalingSettings,
-    EventSourceMappingSettings, Permission,
+    EventSourceMappingSettings, FunctionFileSystemConfig, FunctionImageConfig,
+    FunctionLoggingConfig, FunctionSettings, FunctionSettingsPatch, FunctionVpcConfigPatch,
+    Permission,
 };
 use crate::views::LambdaStateView;
 use crate::wire;
@@ -1245,8 +1247,40 @@ impl LambdaService {
             return rest_json_error(400, "ValidationException", "Missing 'Role'");
         }
         let name = input.function_name.as_str();
-        let runtime = input.runtime.as_deref().unwrap_or("python3.12");
-        let handler = input.handler.as_deref().unwrap_or("index.handler");
+        // A container-image function has neither a runtime nor a handler.
+        let is_image = input.package_type.as_deref() == Some("Image");
+        let runtime = input
+            .runtime
+            .as_deref()
+            .unwrap_or(if is_image { "" } else { "python3.12" });
+        let handler =
+            input
+                .handler
+                .as_deref()
+                .unwrap_or(if is_image { "" } else { "index.handler" });
+        // Store-and-echo settings ( VpcConfig, Architectures, ... ), applied
+        // once the function exists.
+        let settings = FunctionSettingsPatch {
+            architectures: input.architectures.clone(),
+            dead_letter_target_arn: dead_letter_target_arn_from(&input.dead_letter_config),
+            ephemeral_storage_size: input.ephemeral_storage.as_ref().map(|e| e.size),
+            file_system_configs: file_system_configs_from(&input.file_system_configs),
+            image_config: input.image_config.as_ref().map(image_config_from),
+            image_uri: input.code.image_uri.clone(),
+            kms_key_arn: input.k_m_s_key_arn.clone(),
+            layers: input.layers.clone(),
+            logging_config: input.logging_config.as_ref().map(logging_config_from),
+            package_type: input.package_type.clone(),
+            role: None,
+            snap_start_apply_on: input.snap_start.as_ref().and_then(|s| s.apply_on.clone()),
+            tracing_mode: input.tracing_config.as_ref().and_then(|t| t.mode.clone()),
+            vpc_config: input.vpc_config.as_ref().map(vpc_config_patch_from),
+        };
+        let code_signing_config_arn = input
+            .code_signing_config_arn
+            .clone()
+            .filter(|arn| !arn.is_empty());
+        let publish = input.publish.unwrap_or(false);
         let role = input.role.as_str();
         let description = input.description.as_deref().unwrap_or("");
         let memory_size = input.memory_size;
@@ -1302,6 +1336,11 @@ impl LambdaService {
         let tags = input.tags.unwrap_or_default();
 
         let mut state = state.write().await;
+        if let Some(arn) = code_signing_config_arn.as_deref()
+            && let Err(e) = state.get_code_signing_config(arn)
+        {
+            return lambda_error_response(&e);
+        }
         match state.create_function(
             name,
             runtime,
@@ -1317,10 +1356,16 @@ impl LambdaService {
             &code_sha256,
             code_size,
         ) {
-            Ok(func) => {
-                let resp = function_configuration_from(func);
-                wire::serialize_create_function_response(&resp)
-            }
+            Ok(_) => match complete_create_function(
+                &mut state,
+                name,
+                settings,
+                code_signing_config_arn.as_deref(),
+                publish,
+            ) {
+                Ok(resp) => wire::serialize_create_function_response(&resp),
+                Err(e) => lambda_error_response(&e),
+            },
             Err(e) => lambda_error_response(&e),
         }
     }
@@ -1343,14 +1388,7 @@ impl LambdaService {
                 let config = function_configuration_from(func);
                 let resp = model::GetFunctionResponse {
                     configuration: Some(config),
-                    code: Some(model::FunctionCodeLocation {
-                        repository_type: Some("S3".to_string()),
-                        location: Some(format!(
-                            "https://awslambda-us-east-1-tasks.s3.amazonaws.com/snapshots/123456789012/{}",
-                            func.function_name
-                        )),
-                        ..Default::default()
-                    }),
+                    code: Some(function_code_location_from(func)),
                     tags: Some(func.tags.clone()),
                     ..Default::default()
                 };
@@ -1431,8 +1469,19 @@ impl LambdaService {
             Ok(v) => v,
             Err(e) => return rest_json_error(400, "ValidationException", &e),
         };
+        // `Architectures` and `ImageUri` are configuration that only this
+        // operation can change.
+        let settings = FunctionSettingsPatch {
+            architectures: input.architectures.clone(),
+            image_uri: input.image_uri.clone(),
+            ..Default::default()
+        };
         let mut state = state.write().await;
-        match state.update_function_code(&input.function_name, input.revision_id.as_deref()) {
+        match state
+            .update_function_code(&input.function_name, input.revision_id.as_deref())
+            .map(|_| ())
+            .and_then(|()| state.apply_function_settings(&input.function_name, settings))
+        {
             Ok(func) => {
                 let resp = function_configuration_from(func);
                 wire::serialize_update_function_code_response(&resp)
@@ -1481,19 +1530,42 @@ impl LambdaService {
             );
         }
 
+        // Store-and-echo settings ( VpcConfig, Role, ... ), applied once the
+        // revision check has passed.
+        let settings = FunctionSettingsPatch {
+            architectures: None,
+            dead_letter_target_arn: dead_letter_target_arn_from(&input.dead_letter_config),
+            ephemeral_storage_size: input.ephemeral_storage.as_ref().map(|e| e.size),
+            file_system_configs: file_system_configs_from(&input.file_system_configs),
+            image_config: input.image_config.as_ref().map(image_config_from),
+            image_uri: None,
+            kms_key_arn: input.k_m_s_key_arn.clone(),
+            layers: input.layers.clone(),
+            logging_config: input.logging_config.as_ref().map(logging_config_from),
+            package_type: None,
+            role: input.role.clone(),
+            snap_start_apply_on: input.snap_start.as_ref().and_then(|s| s.apply_on.clone()),
+            tracing_mode: input.tracing_config.as_ref().and_then(|t| t.mode.clone()),
+            vpc_config: input.vpc_config.as_ref().map(vpc_config_patch_from),
+        };
+
         let environment = input.environment.and_then(|e| e.variables);
 
         let mut state = state.write().await;
-        match state.update_function_configuration(
-            &input.function_name,
-            input.description.as_deref(),
-            input.handler.as_deref(),
-            memory_size,
-            timeout,
-            input.runtime.as_deref(),
-            environment,
-            input.revision_id.as_deref(),
-        ) {
+        match state
+            .update_function_configuration(
+                &input.function_name,
+                input.description.as_deref(),
+                input.handler.as_deref(),
+                memory_size,
+                timeout,
+                input.runtime.as_deref(),
+                environment,
+                input.revision_id.as_deref(),
+            )
+            .map(|_| ())
+            .and_then(|()| state.apply_function_settings(&input.function_name, settings))
+        {
             Ok(func) => {
                 let resp = function_configuration_from(func);
                 wire::serialize_update_function_configuration_response(&resp)
@@ -2642,14 +2714,7 @@ impl LambdaService {
             input.revision_id.as_deref(),
         ) {
             Ok((func, version_str)) => {
-                let mut resp = function_configuration_from(func);
-                resp.version = Some(version_str.clone());
-                // The function ARN for a published version includes the version qualifier
-                resp.function_arn = Some(format!("{}:{}", func.function_arn, version_str));
-                // Use the description from the published version, not $LATEST
-                if let Some(fv) = func.versions.iter().find(|v| v.version == version_str) {
-                    resp.description = Some(fv.description.clone());
-                }
+                let resp = published_version_configuration_from(func, &version_str);
                 wire::serialize_publish_version_response(&resp)
             }
             Err(e) => lambda_error_response(&e),
@@ -2674,25 +2739,14 @@ impl LambdaService {
             Ok(versions) => {
                 let entries: Vec<model::FunctionConfiguration> = versions
                     .iter()
-                    .map(|(func, ver)| {
-                        let mut config = function_configuration_from(func);
-                        match ver {
-                            Some(v) => {
-                                config.version = Some(v.version.clone());
-                                config.description = Some(v.description.clone());
-                                config.code_sha256 = Some(v.code_sha256.clone());
-                                config.code_size = Some(v.code_size);
-                                // Include version qualifier in ARN
-                                config.function_arn =
-                                    Some(format!("{}:{}", func.function_arn, v.version));
-                            }
-                            None => {
-                                // $LATEST version also includes qualifier in ARN
-                                config.function_arn =
-                                    Some(format!("{}:$LATEST", func.function_arn));
-                            }
+                    .map(|(func, ver)| match ver {
+                        Some(v) => version_configuration_from(func, v),
+                        None => {
+                            let mut config = function_configuration_from(func);
+                            // $LATEST version also includes qualifier in ARN
+                            config.function_arn = Some(format!("{}:$LATEST", func.function_arn));
+                            config
                         }
-                        config
                     })
                     .collect();
                 let resp = model::ListVersionsByFunctionResponse {
@@ -3830,6 +3884,41 @@ impl LambdaService {
 fn function_configuration_from(
     func: &crate::types::LambdaFunction,
 ) -> model::FunctionConfiguration {
+    function_configuration_with(func, &func.settings, false)
+}
+
+/// Configuration of a published version: the settings, code and description
+/// it was published with, under the version-qualified ARN.
+fn version_configuration_from(
+    func: &crate::types::LambdaFunction,
+    version: &crate::types::FunctionVersion,
+) -> model::FunctionConfiguration {
+    let mut config = function_configuration_with(func, &version.settings, true);
+    config.version = Some(version.version.clone());
+    config.description = Some(version.description.clone());
+    config.code_sha256 = Some(version.code_sha256.clone());
+    config.code_size = Some(version.code_size);
+    config.function_arn = Some(format!("{}:{}", func.function_arn, version.version));
+    config
+}
+
+fn published_version_configuration_from(
+    func: &crate::types::LambdaFunction,
+    version: &str,
+) -> model::FunctionConfiguration {
+    match func.versions.iter().find(|v| v.version == version) {
+        Some(v) => version_configuration_from(func, v),
+        None => function_configuration_from(func),
+    }
+}
+
+/// The single place a `FunctionConfiguration` is built.  `settings` are those
+/// of `$LATEST` or of a published version.
+fn function_configuration_with(
+    func: &crate::types::LambdaFunction,
+    settings: &FunctionSettings,
+    published: bool,
+) -> model::FunctionConfiguration {
     let env = if func.environment.is_empty() {
         None
     } else {
@@ -3838,13 +3927,21 @@ fn function_configuration_from(
             ..Default::default()
         })
     };
+    let is_image = settings.is_image();
+    // A container-image function reports neither `Runtime` nor `Handler`.
+    let zip_only = |value: &str| (!is_image || !value.is_empty()).then(|| value.to_string());
+    let logging = settings.effective_logging_config(&func.function_name);
+    let snap_start_apply_on = settings.effective_snap_start_apply_on();
+    // `OptimizationStatus` is `On` only for a published version of a function
+    // whose SnapStart applies to published versions.
+    let snap_start_on = published && snap_start_apply_on == "PublishedVersions";
 
     model::FunctionConfiguration {
         function_name: Some(func.function_name.clone()),
         function_arn: Some(func.function_arn.clone()),
-        runtime: Some(func.runtime.clone()),
+        runtime: zip_only(&func.runtime),
         role: Some(func.role.clone()),
-        handler: Some(func.handler.clone()),
+        handler: zip_only(&func.handler),
         code_size: Some(func.code_size),
         code_sha256: Some(func.code_sha256.clone()),
         description: Some(func.description.clone()),
@@ -3858,20 +3955,177 @@ fn function_configuration_from(
         version: Some(func.version.clone()),
         state: Some(func.state.clone()),
         revision_id: Some(func.revision_id.clone()),
-        package_type: Some("Zip".to_string()),
-        architectures: Some(vec!["x86_64".to_string()]),
-        ephemeral_storage: Some(model::EphemeralStorage { size: 512 }),
-        tracing_config: Some(model::TracingConfigResponse {
-            mode: Some("PassThrough".to_string()),
+        package_type: Some(settings.effective_package_type().to_string()),
+        architectures: Some(settings.effective_architectures()),
+        ephemeral_storage: Some(model::EphemeralStorage {
+            size: settings.effective_ephemeral_storage_size(),
         }),
-        layers: Some(vec![]),
+        tracing_config: Some(model::TracingConfigResponse {
+            mode: Some(settings.effective_tracing_mode().to_string()),
+        }),
+        layers: Some(
+            settings
+                .layers
+                .iter()
+                .map(|l| model::Layer {
+                    arn: Some(l.arn.clone()),
+                    code_size: Some(l.code_size),
+                    ..Default::default()
+                })
+                .collect(),
+        ),
         last_update_status: Some("Successful".to_string()),
         snap_start: Some(model::SnapStartResponse {
-            apply_on: Some("None".to_string()),
-            optimization_status: Some("Off".to_string()),
+            apply_on: Some(snap_start_apply_on.to_string()),
+            optimization_status: Some(if snap_start_on { "On" } else { "Off" }.to_string()),
         }),
         environment: env,
+        dead_letter_config: settings.dead_letter_target_arn.as_ref().map(|arn| {
+            model::DeadLetterConfig {
+                target_arn: Some(arn.clone()),
+            }
+        }),
+        file_system_configs: (!settings.file_system_configs.is_empty()).then(|| {
+            settings
+                .file_system_configs
+                .iter()
+                .map(|c| model::FileSystemConfig {
+                    arn: c.arn.clone(),
+                    local_mount_path: c.local_mount_path.clone(),
+                })
+                .collect()
+        }),
+        image_config_response: settings
+            .image_config
+            .as_ref()
+            .map(|c| model::ImageConfigResponse {
+                image_config: Some(model::ImageConfig {
+                    command: c.command.clone(),
+                    entry_point: c.entry_point.clone(),
+                    working_directory: c.working_directory.clone(),
+                }),
+                error: None,
+            }),
+        k_m_s_key_arn: settings.kms_key_arn.clone(),
+        logging_config: Some(model::LoggingConfig {
+            application_log_level: logging.application_log_level,
+            log_format: logging.log_format,
+            log_group: logging.log_group,
+            system_log_level: logging.system_log_level,
+        }),
+        // Omitted for a function that never had a VPC configuration; a
+        // function detached from its VPC keeps the structure, emptied.
+        vpc_config: settings
+            .vpc_config
+            .as_ref()
+            .map(|vpc| model::VpcConfigResponse {
+                subnet_ids: Some(vpc.subnet_ids.clone()),
+                security_group_ids: Some(vpc.security_group_ids.clone()),
+                ipv6_allowed_for_dual_stack: Some(vpc.ipv6_allowed_for_dual_stack),
+                // Lambda derives the VPC from the subnets.  Without a view of
+                // EC2 the id is reported only when it is known ( Terraform
+                // state import ), never invented.
+                vpc_id: if vpc.is_attached() {
+                    vpc.vpc_id.clone()
+                } else {
+                    Some(String::new())
+                },
+            }),
         ..Default::default()
+    }
+}
+
+/// `Code` of `GetFunction`: the ECR image of a container-image function, or
+/// the ( placeholder ) download location of a .zip deployment package.
+fn function_code_location_from(func: &crate::types::LambdaFunction) -> model::FunctionCodeLocation {
+    if let Some(image_uri) = func
+        .settings
+        .image_uri
+        .as_ref()
+        .filter(|_| func.settings.is_image())
+    {
+        return model::FunctionCodeLocation {
+            repository_type: Some("ECR".to_string()),
+            image_uri: Some(image_uri.clone()),
+            resolved_image_uri: Some(image_uri.clone()),
+            ..Default::default()
+        };
+    }
+    model::FunctionCodeLocation {
+        repository_type: Some("S3".to_string()),
+        location: Some(format!(
+            "https://awslambda-us-east-1-tasks.s3.amazonaws.com/snapshots/123456789012/{}",
+            func.function_name
+        )),
+        ..Default::default()
+    }
+}
+
+/// Everything `CreateFunction` does after the function record exists: apply
+/// the store-and-echo settings, attach the code signing configuration and,
+/// with `Publish`, publish version 1 and answer with it.
+fn complete_create_function(
+    state: &mut LambdaState,
+    name: &str,
+    settings: FunctionSettingsPatch,
+    code_signing_config_arn: Option<&str>,
+    publish: bool,
+) -> Result<model::FunctionConfiguration, LambdaError> {
+    state.apply_function_settings(name, settings)?;
+    if let Some(arn) = code_signing_config_arn {
+        state.put_function_code_signing_config(name, arn)?;
+    }
+    if publish {
+        let (func, version) = state.publish_version(name, None, None)?;
+        return Ok(published_version_configuration_from(func, &version));
+    }
+    state.get_function(name).map(function_configuration_from)
+}
+
+fn dead_letter_target_arn_from(config: &Option<model::DeadLetterConfig>) -> Option<String> {
+    // A `DeadLetterConfig` without a `TargetArn` removes the queue, as an
+    // empty `TargetArn` does.
+    config
+        .as_ref()
+        .map(|c| c.target_arn.clone().unwrap_or_default())
+}
+
+fn file_system_configs_from(
+    configs: &Option<Vec<model::FileSystemConfig>>,
+) -> Option<Vec<FunctionFileSystemConfig>> {
+    configs.as_ref().map(|configs| {
+        configs
+            .iter()
+            .map(|c| FunctionFileSystemConfig {
+                arn: c.arn.clone(),
+                local_mount_path: c.local_mount_path.clone(),
+            })
+            .collect()
+    })
+}
+
+fn image_config_from(config: &model::ImageConfig) -> FunctionImageConfig {
+    FunctionImageConfig {
+        command: config.command.clone(),
+        entry_point: config.entry_point.clone(),
+        working_directory: config.working_directory.clone(),
+    }
+}
+
+fn logging_config_from(config: &model::LoggingConfig) -> FunctionLoggingConfig {
+    FunctionLoggingConfig {
+        application_log_level: config.application_log_level.clone(),
+        log_format: config.log_format.clone(),
+        log_group: config.log_group.clone(),
+        system_log_level: config.system_log_level.clone(),
+    }
+}
+
+fn vpc_config_patch_from(config: &model::VpcConfig) -> FunctionVpcConfigPatch {
+    FunctionVpcConfigPatch {
+        subnet_ids: config.subnet_ids.clone(),
+        security_group_ids: config.security_group_ids.clone(),
+        ipv6_allowed_for_dual_stack: config.ipv6_allowed_for_dual_stack,
     }
 }
 

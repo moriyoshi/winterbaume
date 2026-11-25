@@ -6718,3 +6718,984 @@ async fn test_capacity_provider_tags_round_trip() {
         .expect_err("list_tags on unknown capacity provider");
     assert!(err.into_service_error().is_resource_not_found_exception());
 }
+
+// ========== Function configuration members ( issue #62 ) ==========
+//
+// `VpcConfig` and its sibling members of `FunctionConfiguration` are stored
+// by CreateFunction / UpdateFunctionConfiguration and returned wherever a
+// `FunctionConfiguration` is.  Expected defaults are the documented ones:
+// `x86_64`, 512 MB of ephemeral storage, `Zip`, the `Text` log format and the
+// `/aws/lambda/<function name>` log group ( Lambda API reference,
+// CreateFunction and LoggingConfig ).
+
+/// The store-and-echo members of a `FunctionConfiguration`, flattened so the
+/// three output types that carry them can be compared with one another.
+#[derive(Debug, Clone, PartialEq, Default)]
+struct ConfigMembers {
+    /// `( SubnetIds, SecurityGroupIds, Ipv6AllowedForDualStack, VpcId )`.
+    vpc: Option<(Vec<String>, Vec<String>, Option<bool>, Option<String>)>,
+    architectures: Vec<String>,
+    ephemeral_storage: Option<i32>,
+    tracing_mode: Option<String>,
+    dead_letter_target_arn: Option<String>,
+    kms_key_arn: Option<String>,
+    /// `( Arn, CodeSize )`.
+    layers: Vec<(Option<String>, i64)>,
+    /// `( Arn, LocalMountPath )`.
+    file_systems: Vec<(String, String)>,
+    /// `( Command, EntryPoint, WorkingDirectory )`.
+    image_config: Option<(Vec<String>, Vec<String>, Option<String>)>,
+    /// `( LogFormat, LogGroup, ApplicationLogLevel, SystemLogLevel )`.
+    logging: Option<(
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+    )>,
+    /// `( ApplyOn, OptimizationStatus )`.
+    snap_start: Option<(Option<String>, Option<String>)>,
+    package_type: Option<String>,
+    role: Option<String>,
+}
+
+macro_rules! config_members {
+    ($config:expr) => {{
+        let c = &$config;
+        ConfigMembers {
+            vpc: c.vpc_config().map(|v| {
+                (
+                    v.subnet_ids().to_vec(),
+                    v.security_group_ids().to_vec(),
+                    v.ipv6_allowed_for_dual_stack(),
+                    v.vpc_id().map(str::to_string),
+                )
+            }),
+            architectures: c
+                .architectures()
+                .iter()
+                .map(|a| a.as_str().to_string())
+                .collect(),
+            ephemeral_storage: c.ephemeral_storage().map(|e| e.size()),
+            tracing_mode: c
+                .tracing_config()
+                .and_then(|t| t.mode())
+                .map(|m| m.as_str().to_string()),
+            dead_letter_target_arn: c
+                .dead_letter_config()
+                .and_then(|d| d.target_arn())
+                .map(str::to_string),
+            kms_key_arn: c.kms_key_arn().map(str::to_string),
+            layers: c
+                .layers()
+                .iter()
+                .map(|l| (l.arn().map(str::to_string), l.code_size()))
+                .collect(),
+            file_systems: c
+                .file_system_configs()
+                .iter()
+                .map(|f| (f.arn().to_string(), f.local_mount_path().to_string()))
+                .collect(),
+            image_config: c
+                .image_config_response()
+                .and_then(|r| r.image_config())
+                .map(|i| {
+                    (
+                        i.command().to_vec(),
+                        i.entry_point().to_vec(),
+                        i.working_directory().map(str::to_string),
+                    )
+                }),
+            logging: c.logging_config().map(|l| {
+                (
+                    l.log_format().map(|f| f.as_str().to_string()),
+                    l.log_group().map(str::to_string),
+                    l.application_log_level().map(|f| f.as_str().to_string()),
+                    l.system_log_level().map(|f| f.as_str().to_string()),
+                )
+            }),
+            snap_start: c.snap_start().map(|s| {
+                (
+                    s.apply_on().map(|a| a.as_str().to_string()),
+                    s.optimization_status().map(|o| o.as_str().to_string()),
+                )
+            }),
+            package_type: c.package_type().map(|p| p.as_str().to_string()),
+            role: c.role().map(str::to_string),
+        }
+    }};
+}
+
+const CFG_ROLE: &str = "arn:aws:iam::123456789012:role/lambda-role";
+
+/// What a function created with none of the optional members reports.
+fn default_config_members(function_name: &str) -> ConfigMembers {
+    ConfigMembers {
+        vpc: None,
+        architectures: vec!["x86_64".to_string()],
+        ephemeral_storage: Some(512),
+        tracing_mode: Some("PassThrough".to_string()),
+        dead_letter_target_arn: None,
+        kms_key_arn: None,
+        layers: vec![],
+        file_systems: vec![],
+        image_config: None,
+        logging: Some((
+            Some("Text".to_string()),
+            Some(format!("/aws/lambda/{function_name}")),
+            None,
+            None,
+        )),
+        snap_start: Some((Some("None".to_string()), Some("Off".to_string()))),
+        package_type: Some("Zip".to_string()),
+        role: Some(CFG_ROLE.to_string()),
+    }
+}
+
+fn zip_code() -> aws_sdk_lambda::types::FunctionCode {
+    aws_sdk_lambda::types::FunctionCode::builder()
+        .zip_file(Blob::new(vec![0u8; 10]))
+        .build()
+}
+
+/// The configuration of `name` as each read operation reports it:
+/// GetFunctionConfiguration, GetFunction and ListFunctions.
+async fn read_config_members(client: &aws_sdk_lambda::Client, name: &str) -> [ConfigMembers; 3] {
+    let get_config = client
+        .get_function_configuration()
+        .function_name(name)
+        .send()
+        .await
+        .expect("GetFunctionConfiguration");
+    let get_function = client
+        .get_function()
+        .function_name(name)
+        .send()
+        .await
+        .expect("GetFunction");
+    let listed = client.list_functions().send().await.expect("ListFunctions");
+    let listed = listed
+        .functions()
+        .iter()
+        .find(|f| f.function_name() == Some(name))
+        .expect("function in ListFunctions");
+    [
+        config_members!(get_config),
+        config_members!(get_function.configuration().expect("Configuration")),
+        config_members!(listed),
+    ]
+}
+
+/// Assert that all three read operations report `expected`.
+async fn assert_config_members(
+    client: &aws_sdk_lambda::Client,
+    name: &str,
+    expected: &ConfigMembers,
+) {
+    for (op, actual) in ["GetFunctionConfiguration", "GetFunction", "ListFunctions"]
+        .iter()
+        .zip(read_config_members(client, name).await)
+    {
+        assert_eq!(&actual, expected, "{op} for {name}");
+    }
+}
+
+fn vpc_members(
+    subnets: &[&str],
+    security_groups: &[&str],
+    ipv6: bool,
+    vpc_id: Option<&str>,
+) -> Option<(Vec<String>, Vec<String>, Option<bool>, Option<String>)> {
+    Some((
+        subnets.iter().map(|s| s.to_string()).collect(),
+        security_groups.iter().map(|s| s.to_string()).collect(),
+        Some(ipv6),
+        vpc_id.map(str::to_string),
+    ))
+}
+
+/// The scenario of issue #62: `VpcConfig` on CreateFunction comes back from
+/// the create response and from every read.
+#[tokio::test]
+async fn test_function_vpc_config_returned_after_create() {
+    use aws_sdk_lambda::types::VpcConfig;
+
+    let client = make_lambda_client().await;
+    let created = client
+        .create_function()
+        .function_name("wb-vpc")
+        .runtime(Runtime::Nodejs22x)
+        .handler("index.handler")
+        .role(CFG_ROLE)
+        .code(zip_code())
+        .vpc_config(
+            VpcConfig::builder()
+                .subnet_ids("subnet-0123456789abcdef0")
+                .subnet_ids("subnet-0fedcba9876543210")
+                .security_group_ids("sg-0123456789abcdef0")
+                .build(),
+        )
+        .send()
+        .await
+        .expect("CreateFunction");
+
+    let expected = ConfigMembers {
+        vpc: vpc_members(
+            &["subnet-0123456789abcdef0", "subnet-0fedcba9876543210"],
+            &["sg-0123456789abcdef0"],
+            false,
+            None,
+        ),
+        ..default_config_members("wb-vpc")
+    };
+    assert_eq!(config_members!(created), expected);
+    assert_config_members(&client, "wb-vpc", &expected).await;
+}
+
+/// UpdateFunctionConfiguration replaces the VPC configuration, and an update
+/// with empty `SubnetIds` and `SecurityGroupIds` detaches the function: the
+/// structure stays, emptied, with an empty `VpcId`.
+#[tokio::test]
+async fn test_function_vpc_config_update_and_detach() {
+    use aws_sdk_lambda::types::VpcConfig;
+
+    let client = make_lambda_client().await;
+    create_test_function(&client, "wb-vpc-upd").await;
+
+    let attached = client
+        .update_function_configuration()
+        .function_name("wb-vpc-upd")
+        .vpc_config(
+            VpcConfig::builder()
+                .subnet_ids("subnet-0aaaaaaaaaaaaaaaa")
+                .security_group_ids("sg-0aaaaaaaaaaaaaaaa")
+                .security_group_ids("sg-0bbbbbbbbbbbbbbbb")
+                .ipv6_allowed_for_dual_stack(true)
+                .build(),
+        )
+        .send()
+        .await
+        .expect("UpdateFunctionConfiguration attaching");
+    let expected = ConfigMembers {
+        vpc: vpc_members(
+            &["subnet-0aaaaaaaaaaaaaaaa"],
+            &["sg-0aaaaaaaaaaaaaaaa", "sg-0bbbbbbbbbbbbbbbb"],
+            true,
+            None,
+        ),
+        ..default_config_members("wb-vpc-upd")
+    };
+    assert_eq!(config_members!(attached), expected);
+    assert_config_members(&client, "wb-vpc-upd", &expected).await;
+
+    // An update that does not mention VpcConfig leaves it alone.
+    client
+        .update_function_configuration()
+        .function_name("wb-vpc-upd")
+        .description("unrelated change")
+        .send()
+        .await
+        .expect("UpdateFunctionConfiguration without VpcConfig");
+    assert_config_members(&client, "wb-vpc-upd", &expected).await;
+
+    let moved = client
+        .update_function_configuration()
+        .function_name("wb-vpc-upd")
+        .vpc_config(
+            VpcConfig::builder()
+                .subnet_ids("subnet-0cccccccccccccccc")
+                .security_group_ids("sg-0cccccccccccccccc")
+                .ipv6_allowed_for_dual_stack(false)
+                .build(),
+        )
+        .send()
+        .await
+        .expect("UpdateFunctionConfiguration moving");
+    let expected = ConfigMembers {
+        vpc: vpc_members(
+            &["subnet-0cccccccccccccccc"],
+            &["sg-0cccccccccccccccc"],
+            false,
+            None,
+        ),
+        ..default_config_members("wb-vpc-upd")
+    };
+    assert_eq!(config_members!(moved), expected);
+    assert_config_members(&client, "wb-vpc-upd", &expected).await;
+
+    let detached = client
+        .update_function_configuration()
+        .function_name("wb-vpc-upd")
+        .vpc_config(
+            VpcConfig::builder()
+                .set_subnet_ids(Some(vec![]))
+                .set_security_group_ids(Some(vec![]))
+                .build(),
+        )
+        .send()
+        .await
+        .expect("UpdateFunctionConfiguration detaching");
+    let expected = ConfigMembers {
+        vpc: vpc_members(&[], &[], false, Some("")),
+        ..default_config_members("wb-vpc-upd")
+    };
+    assert_eq!(config_members!(detached), expected);
+    assert_config_members(&client, "wb-vpc-upd", &expected).await;
+}
+
+/// A function created with none of the optional members reports the
+/// documented defaults and no `VpcConfig` at all.
+#[tokio::test]
+async fn test_function_configuration_defaults() {
+    let client = make_lambda_client().await;
+    let created = client
+        .create_function()
+        .function_name("wb-defaults")
+        .runtime(Runtime::Python312)
+        .handler("index.handler")
+        .role(CFG_ROLE)
+        .code(zip_code())
+        .send()
+        .await
+        .expect("CreateFunction");
+
+    let expected = default_config_members("wb-defaults");
+    assert!(created.vpc_config().is_none(), "no VPC, no VpcConfig");
+    assert_eq!(config_members!(created), expected);
+    assert_config_members(&client, "wb-defaults", &expected).await;
+    assert_eq!(created.version(), Some("$LATEST"));
+}
+
+async fn publish_test_layer(client: &aws_sdk_lambda::Client, name: &str) -> (String, i64) {
+    let layer = client
+        .publish_layer_version()
+        .layer_name(name)
+        .content(
+            aws_sdk_lambda::types::LayerVersionContentInput::builder()
+                .zip_file(Blob::new(vec![0u8; 10]))
+                .build(),
+        )
+        .send()
+        .await
+        .expect("PublishLayerVersion");
+    (
+        layer
+            .layer_version_arn()
+            .expect("LayerVersionArn")
+            .to_string(),
+        layer.content().expect("Content").code_size(),
+    )
+}
+
+/// Every sibling member with a non-default value on CreateFunction, read back
+/// through the create response and all three read operations.
+#[tokio::test]
+async fn test_function_configuration_members_on_create() {
+    use aws_sdk_lambda::types::{
+        ApplicationLogLevel, Architecture, DeadLetterConfig, EphemeralStorage, FileSystemConfig,
+        LogFormat, LoggingConfig, SnapStart, SnapStartApplyOn, SystemLogLevel, TracingConfig,
+        TracingMode,
+    };
+
+    let client = make_lambda_client().await;
+    let (layer_arn, layer_size) = publish_test_layer(&client, "wb-cfg-layer").await;
+    // A layer version this account does not hold ( an AWS-published
+    // extension ) is accepted as it is.
+    let foreign_layer = "arn:aws:lambda:us-east-1:580247275435:layer:LambdaInsightsExtension:14";
+
+    let created = client
+        .create_function()
+        .function_name("wb-cfg-create")
+        .runtime(Runtime::Java21)
+        .handler("example.Handler::handleRequest")
+        .role(CFG_ROLE)
+        .code(zip_code())
+        .architectures(Architecture::Arm64)
+        .ephemeral_storage(EphemeralStorage::builder().size(2048).build().unwrap())
+        .tracing_config(TracingConfig::builder().mode(TracingMode::Active).build())
+        .dead_letter_config(
+            DeadLetterConfig::builder()
+                .target_arn("arn:aws:sqs:us-east-1:123456789012:wb-dlq")
+                .build(),
+        )
+        .kms_key_arn("arn:aws:kms:us-east-1:123456789012:key/1111")
+        .layers(&layer_arn)
+        .layers(foreign_layer)
+        .file_system_configs(
+            FileSystemConfig::builder()
+                .arn("arn:aws:elasticfilesystem:us-east-1:123456789012:access-point/fsap-0123")
+                .local_mount_path("/mnt/data")
+                .build()
+                .unwrap(),
+        )
+        .logging_config(
+            LoggingConfig::builder()
+                .log_format(LogFormat::Json)
+                .log_group("/custom/wb-cfg")
+                .application_log_level(ApplicationLogLevel::Debug)
+                .system_log_level(SystemLogLevel::Warn)
+                .build(),
+        )
+        .snap_start(
+            SnapStart::builder()
+                .apply_on(SnapStartApplyOn::PublishedVersions)
+                .build(),
+        )
+        .send()
+        .await
+        .expect("CreateFunction");
+
+    let expected = ConfigMembers {
+        vpc: None,
+        architectures: vec!["arm64".to_string()],
+        ephemeral_storage: Some(2048),
+        tracing_mode: Some("Active".to_string()),
+        dead_letter_target_arn: Some("arn:aws:sqs:us-east-1:123456789012:wb-dlq".to_string()),
+        kms_key_arn: Some("arn:aws:kms:us-east-1:123456789012:key/1111".to_string()),
+        layers: vec![
+            (Some(layer_arn.clone()), layer_size),
+            (Some(foreign_layer.to_string()), 0),
+        ],
+        file_systems: vec![(
+            "arn:aws:elasticfilesystem:us-east-1:123456789012:access-point/fsap-0123".to_string(),
+            "/mnt/data".to_string(),
+        )],
+        image_config: None,
+        logging: Some((
+            Some("JSON".to_string()),
+            Some("/custom/wb-cfg".to_string()),
+            Some("DEBUG".to_string()),
+            Some("WARN".to_string()),
+        )),
+        // `$LATEST` is never snapshotted: OptimizationStatus stays `Off`.
+        snap_start: Some((
+            Some("PublishedVersions".to_string()),
+            Some("Off".to_string()),
+        )),
+        package_type: Some("Zip".to_string()),
+        role: Some(CFG_ROLE.to_string()),
+    };
+    assert_eq!(config_members!(created), expected);
+    assert_config_members(&client, "wb-cfg-create", &expected).await;
+}
+
+/// Every sibling member changed through UpdateFunctionConfiguration, one
+/// request per member so that an update of one cannot hide in another, and
+/// then the members that can be cleared, cleared.
+#[tokio::test]
+async fn test_function_configuration_members_on_update() {
+    use aws_sdk_lambda::types::{
+        DeadLetterConfig, EphemeralStorage, FileSystemConfig, LogFormat, LoggingConfig, SnapStart,
+        SnapStartApplyOn, TracingConfig, TracingMode,
+    };
+
+    let client = make_lambda_client().await;
+    let name = "wb-cfg-update";
+    create_test_function(&client, name).await;
+    let (layer_arn, layer_size) = publish_test_layer(&client, "wb-cfg-upd-layer").await;
+    let mut expected = default_config_members(name);
+    assert_config_members(&client, name, &expected).await;
+
+    let update = || client.update_function_configuration().function_name(name);
+
+    let out = update()
+        .role("arn:aws:iam::123456789012:role/other-role")
+        .send()
+        .await
+        .expect("update Role");
+    expected.role = Some("arn:aws:iam::123456789012:role/other-role".to_string());
+    assert_eq!(config_members!(out), expected, "Role");
+    assert_config_members(&client, name, &expected).await;
+
+    let out = update()
+        .ephemeral_storage(EphemeralStorage::builder().size(1024).build().unwrap())
+        .send()
+        .await
+        .expect("update EphemeralStorage");
+    expected.ephemeral_storage = Some(1024);
+    assert_eq!(config_members!(out), expected, "EphemeralStorage");
+    assert_config_members(&client, name, &expected).await;
+
+    let out = update()
+        .tracing_config(TracingConfig::builder().mode(TracingMode::Active).build())
+        .send()
+        .await
+        .expect("update TracingConfig");
+    expected.tracing_mode = Some("Active".to_string());
+    assert_eq!(config_members!(out), expected, "TracingConfig");
+    assert_config_members(&client, name, &expected).await;
+
+    let out = update()
+        .dead_letter_config(
+            DeadLetterConfig::builder()
+                .target_arn("arn:aws:sns:us-east-1:123456789012:wb-dlq-topic")
+                .build(),
+        )
+        .send()
+        .await
+        .expect("update DeadLetterConfig");
+    expected.dead_letter_target_arn =
+        Some("arn:aws:sns:us-east-1:123456789012:wb-dlq-topic".to_string());
+    assert_eq!(config_members!(out), expected, "DeadLetterConfig");
+    assert_config_members(&client, name, &expected).await;
+
+    let out = update()
+        .kms_key_arn("arn:aws:kms:us-east-1:123456789012:key/2222")
+        .send()
+        .await
+        .expect("update KMSKeyArn");
+    expected.kms_key_arn = Some("arn:aws:kms:us-east-1:123456789012:key/2222".to_string());
+    assert_eq!(config_members!(out), expected, "KMSKeyArn");
+    assert_config_members(&client, name, &expected).await;
+
+    let out = update()
+        .layers(&layer_arn)
+        .send()
+        .await
+        .expect("update Layers");
+    expected.layers = vec![(Some(layer_arn.clone()), layer_size)];
+    assert_eq!(config_members!(out), expected, "Layers");
+    assert_config_members(&client, name, &expected).await;
+
+    let out = update()
+        .file_system_configs(
+            FileSystemConfig::builder()
+                .arn("arn:aws:elasticfilesystem:us-east-1:123456789012:access-point/fsap-0456")
+                .local_mount_path("/mnt/shared")
+                .build()
+                .unwrap(),
+        )
+        .send()
+        .await
+        .expect("update FileSystemConfigs");
+    expected.file_systems = vec![(
+        "arn:aws:elasticfilesystem:us-east-1:123456789012:access-point/fsap-0456".to_string(),
+        "/mnt/shared".to_string(),
+    )];
+    assert_eq!(config_members!(out), expected, "FileSystemConfigs");
+    assert_config_members(&client, name, &expected).await;
+
+    // JSON without explicit levels: both levels default to INFO.
+    let out = update()
+        .logging_config(LoggingConfig::builder().log_format(LogFormat::Json).build())
+        .send()
+        .await
+        .expect("update LoggingConfig");
+    expected.logging = Some((
+        Some("JSON".to_string()),
+        Some(format!("/aws/lambda/{name}")),
+        Some("INFO".to_string()),
+        Some("INFO".to_string()),
+    ));
+    assert_eq!(config_members!(out), expected, "LoggingConfig format");
+    assert_config_members(&client, name, &expected).await;
+
+    // A later LoggingConfig that names only the log group keeps the format.
+    let out = update()
+        .logging_config(LoggingConfig::builder().log_group("/custom/moved").build())
+        .send()
+        .await
+        .expect("update LoggingConfig log group");
+    expected.logging = Some((
+        Some("JSON".to_string()),
+        Some("/custom/moved".to_string()),
+        Some("INFO".to_string()),
+        Some("INFO".to_string()),
+    ));
+    assert_eq!(config_members!(out), expected, "LoggingConfig log group");
+    assert_config_members(&client, name, &expected).await;
+
+    let out = update()
+        .snap_start(
+            SnapStart::builder()
+                .apply_on(SnapStartApplyOn::PublishedVersions)
+                .build(),
+        )
+        .send()
+        .await
+        .expect("update SnapStart");
+    expected.snap_start = Some((
+        Some("PublishedVersions".to_string()),
+        Some("Off".to_string()),
+    ));
+    assert_eq!(config_members!(out), expected, "SnapStart");
+    assert_config_members(&client, name, &expected).await;
+
+    // Clearing: an empty KMSKeyArn, an empty DeadLetterConfig target, and
+    // empty Layers / FileSystemConfigs lists remove the member.
+    let out = update()
+        .kms_key_arn("")
+        .dead_letter_config(DeadLetterConfig::builder().target_arn("").build())
+        .set_layers(Some(vec![]))
+        .set_file_system_configs(Some(vec![]))
+        .send()
+        .await
+        .expect("update clearing");
+    expected.kms_key_arn = None;
+    expected.dead_letter_target_arn = None;
+    expected.layers = vec![];
+    expected.file_systems = vec![];
+    assert_eq!(config_members!(out), expected, "cleared");
+    assert_config_members(&client, name, &expected).await;
+}
+
+/// A container-image function: `PackageType`, `ImageConfig` and the image URI
+/// round-trip, and neither `Runtime` nor `Handler` is invented for it.
+#[tokio::test]
+async fn test_function_image_package_type_and_image_config() {
+    use aws_sdk_lambda::types::{FunctionCode, ImageConfig, PackageType};
+
+    let client = make_lambda_client().await;
+    let image = "123456789012.dkr.ecr.us-east-1.amazonaws.com/wb-app:v1";
+    let created = client
+        .create_function()
+        .function_name("wb-image")
+        .role(CFG_ROLE)
+        .package_type(PackageType::Image)
+        .code(FunctionCode::builder().image_uri(image).build())
+        .image_config(
+            ImageConfig::builder()
+                .command("app.handler")
+                .entry_point("/lambda-entrypoint.sh")
+                .working_directory("/var/task")
+                .build(),
+        )
+        .send()
+        .await
+        .expect("CreateFunction");
+
+    let expected = ConfigMembers {
+        package_type: Some("Image".to_string()),
+        image_config: Some((
+            vec!["app.handler".to_string()],
+            vec!["/lambda-entrypoint.sh".to_string()],
+            Some("/var/task".to_string()),
+        )),
+        ..default_config_members("wb-image")
+    };
+    assert_eq!(config_members!(created), expected);
+    assert_eq!(created.runtime(), None);
+    assert_eq!(created.handler(), None);
+    assert_config_members(&client, "wb-image", &expected).await;
+
+    let got = client
+        .get_function()
+        .function_name("wb-image")
+        .send()
+        .await
+        .unwrap();
+    let code = got.code().expect("Code");
+    assert_eq!(code.repository_type(), Some("ECR"));
+    assert_eq!(code.image_uri(), Some(image));
+
+    // UpdateFunctionConfiguration replaces the overrides; an ImageConfig with
+    // no member set removes them.
+    let updated = client
+        .update_function_configuration()
+        .function_name("wb-image")
+        .image_config(ImageConfig::builder().command("other.handler").build())
+        .send()
+        .await
+        .expect("UpdateFunctionConfiguration");
+    let expected = ConfigMembers {
+        image_config: Some((vec!["other.handler".to_string()], vec![], None)),
+        ..expected
+    };
+    assert_eq!(config_members!(updated), expected);
+    assert_config_members(&client, "wb-image", &expected).await;
+
+    client
+        .update_function_configuration()
+        .function_name("wb-image")
+        .image_config(ImageConfig::builder().build())
+        .send()
+        .await
+        .expect("UpdateFunctionConfiguration clearing ImageConfig");
+    let expected = ConfigMembers {
+        image_config: None,
+        ..expected
+    };
+    assert_config_members(&client, "wb-image", &expected).await;
+
+    // UpdateFunctionCode moves the function to another image.
+    let image_v2 = "123456789012.dkr.ecr.us-east-1.amazonaws.com/wb-app:v2";
+    client
+        .update_function_code()
+        .function_name("wb-image")
+        .image_uri(image_v2)
+        .send()
+        .await
+        .expect("UpdateFunctionCode");
+    let got = client
+        .get_function()
+        .function_name("wb-image")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(got.code().and_then(|c| c.image_uri()), Some(image_v2));
+}
+
+/// `Architectures` is changed by UpdateFunctionCode, which is the only
+/// operation that accepts it after creation.
+#[tokio::test]
+async fn test_update_function_code_changes_architectures() {
+    use aws_sdk_lambda::types::Architecture;
+
+    let client = make_lambda_client().await;
+    create_test_function(&client, "wb-arch").await;
+    let updated = client
+        .update_function_code()
+        .function_name("wb-arch")
+        .zip_file(Blob::new(vec![1u8; 10]))
+        .architectures(Architecture::Arm64)
+        .send()
+        .await
+        .expect("UpdateFunctionCode");
+    let expected = ConfigMembers {
+        architectures: vec!["arm64".to_string()],
+        ..default_config_members("wb-arch")
+    };
+    assert_eq!(config_members!(updated), expected);
+    assert_config_members(&client, "wb-arch", &expected).await;
+
+    // A code update that does not name an architecture keeps it.
+    client
+        .update_function_code()
+        .function_name("wb-arch")
+        .zip_file(Blob::new(vec![2u8; 10]))
+        .send()
+        .await
+        .expect("UpdateFunctionCode");
+    assert_config_members(&client, "wb-arch", &expected).await;
+}
+
+/// A published version is a snapshot: it keeps the configuration it was
+/// published with while `$LATEST` moves on.
+#[tokio::test]
+async fn test_published_version_keeps_its_configuration() {
+    use aws_sdk_lambda::types::{
+        EphemeralStorage, SnapStart, SnapStartApplyOn, TracingConfig, TracingMode, VpcConfig,
+    };
+
+    let client = make_lambda_client().await;
+    let name = "wb-versioned";
+    client
+        .create_function()
+        .function_name(name)
+        .runtime(Runtime::Java21)
+        .handler("example.Handler::handleRequest")
+        .role(CFG_ROLE)
+        .code(zip_code())
+        .vpc_config(
+            VpcConfig::builder()
+                .subnet_ids("subnet-0aaaaaaaaaaaaaaaa")
+                .security_group_ids("sg-0aaaaaaaaaaaaaaaa")
+                .build(),
+        )
+        .ephemeral_storage(EphemeralStorage::builder().size(1024).build().unwrap())
+        .snap_start(
+            SnapStart::builder()
+                .apply_on(SnapStartApplyOn::PublishedVersions)
+                .build(),
+        )
+        .send()
+        .await
+        .expect("CreateFunction");
+
+    let published = client
+        .publish_version()
+        .function_name(name)
+        .send()
+        .await
+        .expect("PublishVersion");
+    assert_eq!(published.version(), Some("1"));
+    let version_one = ConfigMembers {
+        vpc: vpc_members(
+            &["subnet-0aaaaaaaaaaaaaaaa"],
+            &["sg-0aaaaaaaaaaaaaaaa"],
+            false,
+            None,
+        ),
+        ephemeral_storage: Some(1024),
+        // SnapStart is active on the published version.
+        snap_start: Some((
+            Some("PublishedVersions".to_string()),
+            Some("On".to_string()),
+        )),
+        ..default_config_members(name)
+    };
+    assert_eq!(config_members!(published), version_one);
+
+    // Change $LATEST: detach from the VPC, resize /tmp, switch tracing on.
+    client
+        .update_function_configuration()
+        .function_name(name)
+        .vpc_config(
+            VpcConfig::builder()
+                .set_subnet_ids(Some(vec![]))
+                .set_security_group_ids(Some(vec![]))
+                .build(),
+        )
+        .ephemeral_storage(EphemeralStorage::builder().size(4096).build().unwrap())
+        .tracing_config(TracingConfig::builder().mode(TracingMode::Active).build())
+        .send()
+        .await
+        .expect("UpdateFunctionConfiguration");
+    let latest = ConfigMembers {
+        vpc: vpc_members(&[], &[], false, Some("")),
+        ephemeral_storage: Some(4096),
+        tracing_mode: Some("Active".to_string()),
+        snap_start: Some((
+            Some("PublishedVersions".to_string()),
+            Some("Off".to_string()),
+        )),
+        ..default_config_members(name)
+    };
+    assert_config_members(&client, name, &latest).await;
+
+    let versions = client
+        .list_versions_by_function()
+        .function_name(name)
+        .send()
+        .await
+        .expect("ListVersionsByFunction");
+    let by_version = |v: &str| {
+        versions
+            .versions()
+            .iter()
+            .find(|c| c.version() == Some(v))
+            .unwrap_or_else(|| panic!("version {v} listed"))
+    };
+    assert_eq!(config_members!(by_version("1")), version_one);
+    assert_eq!(config_members!(by_version("$LATEST")), latest);
+}
+
+/// `Publish: true` on CreateFunction publishes version 1 from the initial
+/// configuration and answers with it.
+#[tokio::test]
+async fn test_create_function_with_publish_publishes_version_one() {
+    use aws_sdk_lambda::types::{TracingConfig, TracingMode};
+
+    let client = make_lambda_client().await;
+    let created = client
+        .create_function()
+        .function_name("wb-publish")
+        .runtime(Runtime::Python312)
+        .handler("index.handler")
+        .role(CFG_ROLE)
+        .code(zip_code())
+        .tracing_config(TracingConfig::builder().mode(TracingMode::Active).build())
+        .publish(true)
+        .send()
+        .await
+        .expect("CreateFunction");
+    assert_eq!(created.version(), Some("1"));
+    assert_eq!(
+        created.function_arn(),
+        Some("arn:aws:lambda:us-east-1:123456789012:function:wb-publish:1")
+    );
+
+    let versions = client
+        .list_versions_by_function()
+        .function_name("wb-publish")
+        .send()
+        .await
+        .expect("ListVersionsByFunction");
+    let listed: Vec<_> = versions
+        .versions()
+        .iter()
+        .map(|v| v.version().unwrap_or_default().to_string())
+        .collect();
+    assert_eq!(listed, ["$LATEST", "1"]);
+    let one = &versions.versions()[1];
+    assert_eq!(
+        one.tracing_config()
+            .and_then(|t| t.mode())
+            .map(|m| m.as_str()),
+        Some("Active")
+    );
+
+    // Without Publish, only $LATEST exists.
+    create_test_function(&client, "wb-no-publish").await;
+    let versions = client
+        .list_versions_by_function()
+        .function_name("wb-no-publish")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(versions.versions().len(), 1);
+}
+
+/// `CodeSigningConfigArn` on CreateFunction attaches the configuration, and
+/// one that does not exist is rejected without creating the function.
+#[tokio::test]
+async fn test_create_function_with_code_signing_config() {
+    let client = make_lambda_client().await;
+    let csc = client
+        .create_code_signing_config()
+        .allowed_publishers(
+            aws_sdk_lambda::types::AllowedPublishers::builder()
+                .signing_profile_version_arns(
+                    "arn:aws:signer:us-east-1:123456789012:/signing-profiles/P1",
+                )
+                .build()
+                .unwrap(),
+        )
+        .send()
+        .await
+        .unwrap();
+    let csc_arn = csc
+        .code_signing_config()
+        .expect("CodeSigningConfig")
+        .code_signing_config_arn()
+        .to_string();
+
+    client
+        .create_function()
+        .function_name("wb-signed")
+        .runtime(Runtime::Python312)
+        .handler("index.handler")
+        .role(CFG_ROLE)
+        .code(zip_code())
+        .code_signing_config_arn(&csc_arn)
+        .send()
+        .await
+        .expect("CreateFunction");
+    let attached = client
+        .get_function_code_signing_config()
+        .function_name("wb-signed")
+        .send()
+        .await
+        .expect("GetFunctionCodeSigningConfig");
+    assert_eq!(attached.code_signing_config_arn(), csc_arn);
+    let linked = client
+        .list_functions_by_code_signing_config()
+        .code_signing_config_arn(&csc_arn)
+        .send()
+        .await
+        .expect("ListFunctionsByCodeSigningConfig");
+    assert_eq!(linked.function_arns().len(), 1);
+
+    let err = client
+        .create_function()
+        .function_name("wb-signed-missing")
+        .runtime(Runtime::Python312)
+        .handler("index.handler")
+        .role(CFG_ROLE)
+        .code(zip_code())
+        .code_signing_config_arn(
+            "arn:aws:lambda:us-east-1:123456789012:code-signing-config:csc-0000000000000dead",
+        )
+        .send()
+        .await
+        .expect_err("CreateFunction with an unknown code signing config");
+    assert!(err.into_service_error().is_resource_not_found_exception());
+    assert!(
+        client
+            .get_function()
+            .function_name("wb-signed-missing")
+            .send()
+            .await
+            .is_err(),
+        "the function must not have been created"
+    );
+}

@@ -3542,8 +3542,10 @@ impl Ec2Service {
             Some(v) => v.clone(),
             None => return MockResponse::error(400, "MissingParameter", "Missing 'GroupName'"),
         };
+        // The wire name of the `Description` member is `GroupDescription`.
         let description = params
-            .get("Description")
+            .get("GroupDescription")
+            .or_else(|| params.get("Description"))
             .cloned()
             .unwrap_or_else(|| "No description".to_string());
         let vpc_id = match params.get("VpcId") {
@@ -28397,20 +28399,13 @@ fn parse_dhcp_configurations(
     configs
 }
 
+/// Parse an `ec2Query` request: a form-encoded body or query string.
+///
+/// Form encoding writes a space as `+`, which the AWS SDK for Go ( and so the
+/// Terraform provider ) and botocore do; the Rust SDK sends `%20`. Both must
+/// decode to a space.
 fn parse_query_string(s: &str) -> HashMap<String, String> {
-    let mut map = HashMap::new();
-    for pair in s.split('&') {
-        if let Some((k, v)) = pair.split_once('=') {
-            let key = urlencoding::decode(k)
-                .unwrap_or(std::borrow::Cow::Borrowed(k))
-                .to_string();
-            let val = urlencoding::decode(v)
-                .unwrap_or(std::borrow::Cow::Borrowed(v))
-                .to_string();
-            map.insert(key, val);
-        }
-    }
-    map
+    winterbaume_core::parse_query_string(s)
 }
 
 fn parse_member_list(params: &HashMap<String, String>, prefix: &str) -> Vec<String> {
@@ -31575,5 +31570,22 @@ fn export_image_task_to_model(t: &crate::types::ExportImageTask) -> crate::model
         } else {
             Some(tags_to_model(&t.tags))
         },
+    }
+}
+
+#[cfg(test)]
+mod form_decoding_tests {
+    use super::parse_query_string;
+
+    /// A space arrives as `+` from the Go SDK and as `%20` from the Rust SDK;
+    /// a literal plus is always `%2B`.
+    #[test]
+    fn plus_and_percent_20_are_both_spaces() {
+        let params = parse_query_string(
+            "Action=CreateSecurityGroup&GroupDescription=two+words%20and+a%2Bplus&Tag.1.Key=%E5%90%8D+%E5%89%8D",
+        );
+        assert_eq!(params["Action"], "CreateSecurityGroup");
+        assert_eq!(params["GroupDescription"], "two words and a+plus");
+        assert_eq!(params["Tag.1.Key"], "名 前");
     }
 }

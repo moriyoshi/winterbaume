@@ -20,7 +20,7 @@ use crate::types::{AttributeValue, Item};
 // AST
 // ---------------------------------------------------------------------------
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Expr {
     And(Box<Expr>, Box<Expr>),
     Or(Box<Expr>, Box<Expr>),
@@ -33,6 +33,12 @@ pub enum Expr {
     AttributeType(Vec<PathSegment>, Operand),
     Contains(Vec<PathSegment>, Operand),
     BeginsWith(Vec<PathSegment>, Operand),
+    /// The item is exactly this snapshot; an empty snapshot stands for "the
+    /// item does not exist". No expression string parses to this: it is the
+    /// optimistic-concurrency guard of a caller that read the item, computed
+    /// a write from it, and needs that write applied only if the item has not
+    /// changed in between ( see `partiql_exec` ).
+    ItemEquals(Item),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -45,7 +51,7 @@ pub enum CompOp {
     Ge,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Operand {
     Path(Vec<PathSegment>),
     Value(AttributeValue),
@@ -630,6 +636,8 @@ pub fn evaluate(expr: &Expr, item: &Item) -> bool {
                     .unwrap_or(false)
             })
         }
+
+        Expr::ItemEquals(snapshot) => snapshot == item,
 
         Expr::AttributeExists(name) => get_attr(item, name).is_some(),
 

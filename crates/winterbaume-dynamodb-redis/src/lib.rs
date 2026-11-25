@@ -28,6 +28,7 @@
 use std::collections::{HashMap, HashSet};
 use std::future::Future;
 use std::pin::Pin;
+use std::sync::LazyLock;
 
 use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
 use chrono::Utc;
@@ -35,6 +36,7 @@ use redis::AsyncCommands;
 use redis::aio::ConnectionManager;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use winterbaume_dynamodb::expr::Expr;
 use winterbaume_dynamodb::state::{DynamoDbError, QueryResult, deletion_protected_error};
 use winterbaume_dynamodb::types::{StreamChangeRecord, StreamSummary, *};
 use winterbaume_dynamodb::views::{
@@ -969,6 +971,243 @@ async fn load_all_items(
 }
 
 // ---------------------------------------------------------------------------
+// Atomic item writes
+// ---------------------------------------------------------------------------
+
+/// Compare-and-swap over any number of items, possibly in different tables.
+///
+/// `KEYS` holds two keys per item: the table's metadata key and its items
+/// hash. `ARGV` holds five values per item: the hash field, whether the item
+/// is expected to exist ( `1` / `0` ), the exact JSON it is expected to hold,
+/// the write ( `set` / `del` / `none` ) and the JSON to store.
+///
+/// Redis runs a script as one indivisible step, so the comparison of every
+/// expected value and the application of every write cannot interleave with
+/// another client's command. Returns `1` when the writes were applied, `0`
+/// when an item no longer matches ( nothing is written; the caller re-reads
+/// and retries ), and `-i` when the table of the `i`-th item is gone.
+const CAS_SCRIPT: &str = r#"
+local n = #KEYS / 2
+for i = 1, n do
+  if redis.call('EXISTS', KEYS[2 * i - 1]) == 0 then
+    return -i
+  end
+  local base = (i - 1) * 5
+  local current = redis.call('HGET', KEYS[2 * i], ARGV[base + 1])
+  if ARGV[base + 2] == '0' then
+    if current then
+      return 0
+    end
+  elseif current ~= ARGV[base + 3] then
+    return 0
+  end
+end
+for i = 1, n do
+  local base = (i - 1) * 5
+  local write = ARGV[base + 4]
+  if write == 'set' then
+    redis.call('HSET', KEYS[2 * i], ARGV[base + 1], ARGV[base + 5])
+  elseif write == 'del' then
+    redis.call('HDEL', KEYS[2 * i], ARGV[base + 1])
+  end
+end
+return 1
+"#;
+
+static CAS: LazyLock<redis::Script> = LazyLock::new(|| redis::Script::new(CAS_SCRIPT));
+
+/// What [`write_atomically`] did.
+struct AtomicWrite {
+    outcome: TransactWriteOutcome,
+    /// The `( old, new )` images of each action, in the caller's order. For
+    /// a cancelled transaction both are the item the conditions saw.
+    images: Vec<(Option<Item>, Option<Item>)>,
+}
+
+impl AtomicWrite {
+    /// The `( old, new )` images of a one-action write.
+    fn into_single(self) -> (Option<Item>, Option<Item>) {
+        self.images.into_iter().next().unwrap_or((None, None))
+    }
+
+    /// A one-action write as a [`ConditionalWrite`].
+    fn into_conditional_write(self) -> ConditionalWrite {
+        let cancelled = matches!(self.outcome, TransactWriteOutcome::Cancelled(_));
+        let (old_item, new_item) = self.into_single();
+        if cancelled {
+            ConditionalWrite::ConditionFailed { item: old_item }
+        } else {
+            ConditionalWrite::Applied { old_item, new_item }
+        }
+    }
+}
+
+/// Evaluate the conditions of `actions` and apply their writes as one atomic
+/// step. Every item write of this backend goes through here, a single
+/// `PutItem` / `UpdateItem` / `DeleteItem` being a transaction of one action.
+///
+/// The condition and the update actions are evaluated in Rust, so the read
+/// and the write are separate round trips. They are tied together
+/// optimistically: the items are read, the outcome is computed from that
+/// snapshot, and [`CAS_SCRIPT`] applies it only if every item still holds
+/// exactly the JSON that was read; otherwise the whole computation is
+/// repeated. A retry happens only because another write was applied in the
+/// meantime, so some writer always makes progress.
+///
+/// `WATCH` / `MULTI` / `EXEC` would not do here: `WATCH` is state of a
+/// connection and [`ConnectionManager`] multiplexes all requests over one,
+/// and it watches a whole key where the items of a table share one hash.
+async fn write_atomically(
+    conn: &mut ConnectionManager,
+    acct: &str,
+    rgn: &str,
+    actions: Vec<TransactWriteAction>,
+) -> Result<AtomicWrite, DynamoDbError> {
+    // Resolve every action's storage field up front: it doubles as the
+    // item's identity, so two actions on one item are caught before anything
+    // is evaluated or written.
+    let mut fields: Vec<String> = Vec::with_capacity(actions.len());
+    let mut seen: HashSet<(&str, String)> = HashSet::new();
+    for action in &actions {
+        let stored = load_table(conn, acct, rgn, action.table_name()).await?;
+        let field = item_field(
+            action.target(),
+            &stored.hash_key_attr,
+            stored.range_key_attr.as_deref(),
+        );
+        if !seen.insert((action.table_name(), field.clone())) {
+            return Err(DynamoDbError::TransactionConflict);
+        }
+        fields.push(field);
+    }
+
+    loop {
+        // Snapshot: the raw JSON is kept because it is what the script
+        // compares against.
+        let mut raws: Vec<Option<String>> = Vec::with_capacity(actions.len());
+        let mut currents: Vec<Option<Item>> = Vec::with_capacity(actions.len());
+        for (action, field) in actions.iter().zip(&fields) {
+            let raw: Option<String> = conn
+                .hget(k_items(acct, rgn, action.table_name()), field)
+                .await
+                .map_err(redis_err)?;
+            currents.push(
+                raw.as_deref()
+                    .map(|s| serde_json::from_str(s).map_err(json_err))
+                    .transpose()?,
+            );
+            raws.push(raw);
+        }
+
+        // Conditions, all against the snapshot.
+        let empty = Item::new();
+        let reasons: Vec<TransactCancellationReason> = actions
+            .iter()
+            .zip(&currents)
+            .map(|(action, current)| match action.condition() {
+                Some(condition)
+                    if !winterbaume_dynamodb::expr::evaluate(
+                        condition,
+                        current.as_ref().unwrap_or(&empty),
+                    ) =>
+                {
+                    TransactCancellationReason::ConditionalCheckFailed {
+                        item: current.clone(),
+                    }
+                }
+                _ => TransactCancellationReason::None,
+            })
+            .collect();
+        let cancelled = reasons
+            .iter()
+            .any(|r| *r != TransactCancellationReason::None);
+
+        // Writes ( none when cancelled ) and the images to report.
+        let mut writes: Vec<(&'static str, String)> = Vec::with_capacity(actions.len());
+        let mut images: Vec<(Option<Item>, Option<Item>)> = Vec::with_capacity(actions.len());
+        for (action, current) in actions.iter().zip(currents) {
+            let keep = ("none", String::new());
+            if cancelled {
+                writes.push(keep);
+                images.push((current.clone(), current));
+                continue;
+            }
+            match action {
+                TransactWriteAction::Put { item, .. } => {
+                    writes.push(("set", serde_json::to_string(item).map_err(json_err)?));
+                    images.push((current, Some(item.clone())));
+                }
+                TransactWriteAction::Delete { .. } => {
+                    writes.push(if current.is_some() {
+                        ("del", String::new())
+                    } else {
+                        keep
+                    });
+                    images.push((current, None));
+                }
+                TransactWriteAction::Update {
+                    key,
+                    actions: update_actions,
+                    ..
+                } => {
+                    let mut item = current.clone().unwrap_or_else(|| key.clone());
+                    winterbaume_dynamodb::expr::apply_update_actions(&mut item, update_actions)
+                        .map_err(DynamoDbError::ValidationError)?;
+                    writes.push(("set", serde_json::to_string(&item).map_err(json_err)?));
+                    images.push((current, Some(item)));
+                }
+                TransactWriteAction::ConditionCheck { .. } => {
+                    writes.push(keep);
+                    images.push((current.clone(), current));
+                }
+            }
+        }
+
+        // A verdict reached on a single read needs no confirmation when it
+        // writes nothing; one over several items does, because they were
+        // read one after another.
+        if cancelled && actions.len() == 1 {
+            return Ok(AtomicWrite {
+                outcome: TransactWriteOutcome::Cancelled(reasons),
+                images,
+            });
+        }
+
+        let mut invocation = CAS.prepare_invoke();
+        for (((action, field), raw), (write, json)) in
+            actions.iter().zip(&fields).zip(&raws).zip(&writes)
+        {
+            invocation
+                .key(k_table(acct, rgn, action.table_name()))
+                .key(k_items(acct, rgn, action.table_name()))
+                .arg(field)
+                .arg(if raw.is_some() { "1" } else { "0" })
+                .arg(raw.as_deref().unwrap_or(""))
+                .arg(*write)
+                .arg(json);
+        }
+        let verdict: i64 = invocation.invoke_async(conn).await.map_err(redis_err)?;
+        match verdict {
+            1 => {
+                let outcome = if cancelled {
+                    TransactWriteOutcome::Cancelled(reasons)
+                } else {
+                    TransactWriteOutcome::Committed
+                };
+                return Ok(AtomicWrite { outcome, images });
+            }
+            // An item changed after it was read: start over.
+            0 => continue,
+            gone => {
+                let index = usize::try_from(-gone).unwrap_or(1).saturating_sub(1);
+                let name = actions.get(index).map_or("", |a| a.table_name());
+                return Err(table_not_found(name));
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
 // RedisDynamoDbBackend
 // ---------------------------------------------------------------------------
 
@@ -1242,30 +1481,33 @@ impl DynamoDbBackend for RedisDynamoDbBackend {
     ) -> Pin<Box<dyn Future<Output = Result<Option<Item>, DynamoDbError>> + Send>> {
         let mut conn = self.conn.clone();
         Box::pin(async move {
-            let acct = &account_id;
-            let rgn = &region;
-            let stored = load_table(&mut conn, acct, rgn, &table_name).await?;
-            let field = item_field(
-                &item,
-                &stored.hash_key_attr,
-                stored.range_key_attr.as_deref(),
-            );
+            let action = TransactWriteAction::Put {
+                table_name,
+                item,
+                condition: None,
+            };
+            let done = write_atomically(&mut conn, &account_id, &region, vec![action]).await?;
+            Ok(done.into_single().0)
+        })
+    }
 
-            // Get old item
-            let old_raw: Option<String> = conn
-                .hget(k_items(acct, rgn, &table_name), &field)
-                .await
-                .map_err(redis_err)?;
-            let old_item: Option<Item> = old_raw
-                .as_deref()
-                .map(|s| serde_json::from_str(s).map_err(json_err))
-                .transpose()?;
-
-            let json = serde_json::to_string(&item).map_err(json_err)?;
-            conn.hset::<_, _, _, ()>(k_items(acct, rgn, &table_name), &field, json)
-                .await
-                .map_err(redis_err)?;
-            Ok(old_item)
+    fn put_item_conditional(
+        &self,
+        account_id: String,
+        region: String,
+        table_name: String,
+        item: Item,
+        condition: Option<Expr>,
+    ) -> Pin<Box<dyn Future<Output = Result<ConditionalWrite, DynamoDbError>> + Send>> {
+        let mut conn = self.conn.clone();
+        Box::pin(async move {
+            let action = TransactWriteAction::Put {
+                table_name,
+                item,
+                condition,
+            };
+            let done = write_atomically(&mut conn, &account_id, &region, vec![action]).await?;
+            Ok(done.into_conditional_write())
         })
     }
 
@@ -1307,30 +1549,33 @@ impl DynamoDbBackend for RedisDynamoDbBackend {
     ) -> Pin<Box<dyn Future<Output = Result<Option<Item>, DynamoDbError>> + Send>> {
         let mut conn = self.conn.clone();
         Box::pin(async move {
-            let acct = &account_id;
-            let rgn = &region;
-            let stored = load_table(&mut conn, acct, rgn, &table_name).await?;
-            let field = item_field(
-                &key,
-                &stored.hash_key_attr,
-                stored.range_key_attr.as_deref(),
-            );
+            let action = TransactWriteAction::Delete {
+                table_name,
+                key,
+                condition: None,
+            };
+            let done = write_atomically(&mut conn, &account_id, &region, vec![action]).await?;
+            Ok(done.into_single().0)
+        })
+    }
 
-            let raw: Option<String> = conn
-                .hget(k_items(acct, rgn, &table_name), &field)
-                .await
-                .map_err(redis_err)?;
-            let old_item: Option<Item> = raw
-                .as_deref()
-                .map(|s| serde_json::from_str(s).map_err(json_err))
-                .transpose()?;
-
-            if old_item.is_some() {
-                conn.hdel::<_, _, ()>(k_items(acct, rgn, &table_name), &field)
-                    .await
-                    .map_err(redis_err)?;
-            }
-            Ok(old_item)
+    fn delete_item_conditional(
+        &self,
+        account_id: String,
+        region: String,
+        table_name: String,
+        key: Item,
+        condition: Option<Expr>,
+    ) -> Pin<Box<dyn Future<Output = Result<ConditionalWrite, DynamoDbError>> + Send>> {
+        let mut conn = self.conn.clone();
+        Box::pin(async move {
+            let action = TransactWriteAction::Delete {
+                table_name,
+                key,
+                condition,
+            };
+            let done = write_atomically(&mut conn, &account_id, &region, vec![action]).await?;
+            Ok(done.into_conditional_write())
         })
     }
 
@@ -1344,32 +1589,36 @@ impl DynamoDbBackend for RedisDynamoDbBackend {
     ) -> Pin<Box<dyn Future<Output = Result<Option<Item>, DynamoDbError>> + Send>> {
         let mut conn = self.conn.clone();
         Box::pin(async move {
-            let acct = &account_id;
-            let rgn = &region;
-            let stored = load_table(&mut conn, acct, rgn, &table_name).await?;
-            let field = item_field(
-                &key,
-                &stored.hash_key_attr,
-                stored.range_key_attr.as_deref(),
-            );
-
-            let raw: Option<String> = conn
-                .hget(k_items(acct, rgn, &table_name), &field)
-                .await
-                .map_err(redis_err)?;
-            let mut item: Item = match raw {
-                None => key.clone(),
-                Some(s) => serde_json::from_str(&s).map_err(json_err)?,
+            let action = TransactWriteAction::Update {
+                table_name,
+                key,
+                actions,
+                condition: None,
             };
+            let done = write_atomically(&mut conn, &account_id, &region, vec![action]).await?;
+            Ok(done.into_single().1)
+        })
+    }
 
-            winterbaume_dynamodb::expr::apply_update_actions(&mut item, &actions)
-                .map_err(DynamoDbError::ValidationError)?;
-
-            let json = serde_json::to_string(&item).map_err(json_err)?;
-            conn.hset::<_, _, _, ()>(k_items(acct, rgn, &table_name), &field, json)
-                .await
-                .map_err(redis_err)?;
-            Ok(Some(item))
+    fn update_item_conditional(
+        &self,
+        account_id: String,
+        region: String,
+        table_name: String,
+        key: Item,
+        actions: Vec<UpdateAction>,
+        condition: Option<Expr>,
+    ) -> Pin<Box<dyn Future<Output = Result<ConditionalWrite, DynamoDbError>> + Send>> {
+        let mut conn = self.conn.clone();
+        Box::pin(async move {
+            let action = TransactWriteAction::Update {
+                table_name,
+                key,
+                actions,
+                condition,
+            };
+            let done = write_atomically(&mut conn, &account_id, &region, vec![action]).await?;
+            Ok(done.into_conditional_write())
         })
     }
 
@@ -1606,60 +1855,23 @@ impl DynamoDbBackend for RedisDynamoDbBackend {
     ) -> Pin<Box<dyn Future<Output = Result<(), DynamoDbError>> + Send>> {
         let mut conn = self.conn.clone();
         Box::pin(async move {
-            let acct = &account_id;
-            let rgn = &region;
-
-            // Resolve every action's storage field up front: it doubles as the
-            // item's identity, so two actions on one item are caught before
-            // anything is written.
-            let mut resolved: Vec<(&TransactOp, String)> = Vec::with_capacity(ops.len());
-            let mut seen: HashSet<(&str, String)> = HashSet::new();
-            for op in &ops {
-                let stored = load_table(&mut conn, acct, rgn, op.table_name()).await?;
-                let field = item_field(
-                    op.target(),
-                    &stored.hash_key_attr,
-                    stored.range_key_attr.as_deref(),
-                );
-                if !seen.insert((op.table_name(), field.clone())) {
-                    return Err(DynamoDbError::TransactionConflict);
-                }
-                resolved.push((op, field));
-            }
-
-            // Then apply in the caller's order.
-            for (op, field) in resolved {
-                let table_name = op.table_name();
-                let items_key = k_items(acct, rgn, table_name);
-                match op {
-                    TransactOp::Put { item, .. } => {
-                        let json = serde_json::to_string(item).map_err(json_err)?;
-                        conn.hset::<_, _, _, ()>(items_key, &field, json)
-                            .await
-                            .map_err(redis_err)?;
-                    }
-                    TransactOp::Delete { .. } => {
-                        conn.hdel::<_, _, ()>(items_key, &field)
-                            .await
-                            .map_err(redis_err)?;
-                    }
-                    TransactOp::Update { key, actions, .. } => {
-                        let raw: Option<String> =
-                            conn.hget(&items_key, &field).await.map_err(redis_err)?;
-                        let mut item: Item = match raw {
-                            None => key.clone(),
-                            Some(s) => serde_json::from_str(&s).map_err(json_err)?,
-                        };
-                        winterbaume_dynamodb::expr::apply_update_actions(&mut item, actions)
-                            .map_err(DynamoDbError::ValidationError)?;
-                        let json = serde_json::to_string(&item).map_err(json_err)?;
-                        conn.hset::<_, _, _, ()>(items_key, &field, json)
-                            .await
-                            .map_err(redis_err)?;
-                    }
-                }
-            }
+            let actions = ops.into_iter().map(TransactWriteAction::from).collect();
+            // Without conditions nothing can cancel the transaction.
+            write_atomically(&mut conn, &account_id, &region, actions).await?;
             Ok(())
+        })
+    }
+
+    fn transact_write_items_conditional(
+        &self,
+        account_id: String,
+        region: String,
+        actions: Vec<TransactWriteAction>,
+    ) -> Pin<Box<dyn Future<Output = Result<TransactWriteOutcome, DynamoDbError>> + Send>> {
+        let mut conn = self.conn.clone();
+        Box::pin(async move {
+            let done = write_atomically(&mut conn, &account_id, &region, actions).await?;
+            Ok(done.outcome)
         })
     }
 

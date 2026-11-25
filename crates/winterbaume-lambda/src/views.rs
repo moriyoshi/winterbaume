@@ -11,9 +11,9 @@ use crate::state::LambdaState;
 use crate::types::{
     Alias, CapacityProviderEntry, CodeSigningConfigEntry, CorsConfig, DurableExecution,
     EventSourceMapping, EventSourceMappingSettings, FunctionEventInvokeConfig,
-    FunctionRecursionConfig, FunctionScalingConfig, FunctionUrlConfig, FunctionVersion,
-    LambdaFunction, LayerPermission, LayerVersion, Permission, ProvisionedConcurrencyConfig,
-    RuntimeManagementConfig,
+    FunctionRecursionConfig, FunctionScalingConfig, FunctionSettings, FunctionUrlConfig,
+    FunctionVersion, LambdaFunction, LayerPermission, LayerVersion, Permission,
+    ProvisionedConcurrencyConfig, RuntimeManagementConfig,
 };
 
 /// Serializable view of the entire Lambda state for one account/region.
@@ -101,23 +101,13 @@ pub struct LambdaFunctionView {
     pub versions: Vec<FunctionVersionView>,
     pub reserved_concurrent_executions: Option<i32>,
     pub code_signing_config_arn: Option<String>,
-    /// Round-trip storage for nested Terraform blocks not otherwise tracked.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub dead_letter_config: Option<serde_json::Value>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub ephemeral_storage: Option<serde_json::Value>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub file_system_config: Option<serde_json::Value>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub image_config: Option<serde_json::Value>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub logging_config: Option<serde_json::Value>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub snap_start: Option<serde_json::Value>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub tracing_config: Option<serde_json::Value>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub vpc_config: Option<serde_json::Value>,
+    /// Store-and-echo configuration ( `VpcConfig`, `Architectures`,
+    /// `LoggingConfig`, ... ) in the shape of the Lambda API.  Absent in
+    /// snapshots taken before these were tracked.  Those snapshots may instead
+    /// carry Terraform-shaped `vpc_config`, `tracing_config`, ... members
+    /// that no API ever read; they are ignored on load.
+    #[serde(default)]
+    pub settings: FunctionSettings,
 }
 
 /// Serializable view of a function version.
@@ -128,6 +118,9 @@ pub struct FunctionVersionView {
     pub code_sha256: String,
     pub code_size: i64,
     pub created_at: String,
+    /// Settings frozen at publish time.  Absent in older snapshots.
+    #[serde(default)]
+    pub settings: FunctionSettings,
 }
 
 /// Serializable view of a Lambda alias.
@@ -340,14 +333,7 @@ impl From<&LambdaFunction> for LambdaFunctionView {
             versions: f.versions.iter().map(FunctionVersionView::from).collect(),
             reserved_concurrent_executions: f.reserved_concurrent_executions,
             code_signing_config_arn: f.code_signing_config_arn.clone(),
-            dead_letter_config: f.dead_letter_config.clone(),
-            ephemeral_storage: f.ephemeral_storage.clone(),
-            file_system_config: f.file_system_config.clone(),
-            image_config: f.image_config.clone(),
-            logging_config: f.logging_config.clone(),
-            snap_start: f.snap_start.clone(),
-            tracing_config: f.tracing_config.clone(),
-            vpc_config: f.vpc_config.clone(),
+            settings: f.settings.clone(),
         }
     }
 }
@@ -360,6 +346,7 @@ impl From<&FunctionVersion> for FunctionVersionView {
             code_sha256: v.code_sha256.clone(),
             code_size: v.code_size,
             created_at: v.created_at.to_rfc3339(),
+            settings: v.settings.clone(),
         }
     }
 }
@@ -587,14 +574,7 @@ impl From<LambdaFunctionView> for LambdaFunction {
             versions: v.versions.into_iter().map(FunctionVersion::from).collect(),
             reserved_concurrent_executions: v.reserved_concurrent_executions,
             code_signing_config_arn: v.code_signing_config_arn,
-            dead_letter_config: v.dead_letter_config,
-            ephemeral_storage: v.ephemeral_storage,
-            file_system_config: v.file_system_config,
-            image_config: v.image_config,
-            logging_config: v.logging_config,
-            snap_start: v.snap_start,
-            tracing_config: v.tracing_config,
-            vpc_config: v.vpc_config,
+            settings: v.settings,
         }
     }
 }
@@ -610,6 +590,7 @@ impl From<FunctionVersionView> for FunctionVersion {
             code_sha256: v.code_sha256,
             code_size: v.code_size,
             created_at,
+            settings: v.settings,
         }
     }
 }
@@ -1081,5 +1062,156 @@ mod tests {
         assert_eq!(json["tags"], serde_json::json!({"app": "demo"}));
         let back: EventSourceMappingSettings = serde_json::from_value(json).unwrap();
         assert_eq!(back, settings);
+    }
+
+    /// Snapshots written before issue #62 carry no `settings` on functions
+    /// or versions, and may carry the Terraform-shaped blocks the converter
+    /// used to park on the function ( `vpc_config = [{...}]`, ... ).  They
+    /// must still load: the legacy blocks are ignored and every setting
+    /// reads as its documented default.
+    #[test]
+    fn legacy_snapshot_with_terraform_shaped_function_blocks_still_deserializes() {
+        let view: LambdaStateView = serde_json::from_value(serde_json::json!({
+            "functions": {
+                "f": {
+                    "function_name": "f",
+                    "function_arn": "arn:aws:lambda:eu-west-1:111111111111:function:f",
+                    "runtime": "python3.12",
+                    "handler": "index.handler",
+                    "role": "arn:aws:iam::111111111111:role/r",
+                    "code_sha256": "abc",
+                    "code_size": 10,
+                    "memory_size": 128,
+                    "timeout": 3,
+                    "description": "",
+                    "last_modified": "2026-01-01T00:00:00+00:00",
+                    "state": "Active",
+                    "version": "$LATEST",
+                    "versions": [{
+                        "version": "1",
+                        "description": "",
+                        "code_sha256": "abc",
+                        "code_size": 10,
+                        "created_at": "2026-01-01T00:00:00+00:00"
+                    }],
+                    "reserved_concurrent_executions": null,
+                    "code_signing_config_arn": null,
+                    "vpc_config": [{
+                        "subnet_ids": ["subnet-1"],
+                        "security_group_ids": ["sg-1"],
+                        "vpc_id": "vpc-1",
+                        "ipv6_allowed_for_dual_stack": false
+                    }],
+                    "tracing_config": [{"mode": "Active"}],
+                    "ephemeral_storage": [{"size": 1024}],
+                    "logging_config": [{"log_format": "JSON", "log_group": "/x"}],
+                    "dead_letter_config": [{"target_arn": "arn:aws:sqs:eu-west-1:1:q"}],
+                    "file_system_config": [],
+                    "image_config": [],
+                    "snap_start": []
+                }
+            }
+        }))
+        .expect("legacy snapshot must deserialize");
+
+        let func = &view.functions["f"];
+        assert_eq!(func.settings, FunctionSettings::default());
+        assert_eq!(func.versions[0].settings, FunctionSettings::default());
+
+        let state = view.into_state_for_scope("111111111111", "eu-west-1");
+        let settings = &state.functions["f"].settings;
+        assert_eq!(settings.vpc_config, None);
+        assert_eq!(settings.effective_architectures(), ["x86_64"]);
+        assert_eq!(settings.effective_ephemeral_storage_size(), 512);
+        assert_eq!(settings.effective_tracing_mode(), "PassThrough");
+        assert_eq!(settings.effective_package_type(), "Zip");
+        let logging = settings.effective_logging_config("f");
+        assert_eq!(logging.log_format.as_deref(), Some("Text"));
+        assert_eq!(logging.log_group.as_deref(), Some("/aws/lambda/f"));
+    }
+
+    /// Function settings, on `$LATEST` and on a published version, survive a
+    /// snapshot -> JSON -> restore round trip, and a function without any
+    /// serializes an empty `settings` object.
+    #[tokio::test]
+    async fn function_settings_round_trip_through_snapshot() {
+        use crate::types::{FunctionLayer, FunctionLoggingConfig, FunctionVpcConfig};
+
+        let settings = FunctionSettings {
+            architectures: Some(vec!["arm64".to_string()]),
+            dead_letter_target_arn: Some("arn:aws:sqs:us-east-1:123456789012:q".to_string()),
+            ephemeral_storage_size: Some(2048),
+            kms_key_arn: Some("arn:aws:kms:us-east-1:123456789012:key/k".to_string()),
+            layers: vec![FunctionLayer {
+                arn: "arn:aws:lambda:us-east-1:123456789012:layer:l:1".to_string(),
+                code_size: 42,
+            }],
+            logging_config: Some(FunctionLoggingConfig {
+                log_format: Some("JSON".to_string()),
+                ..Default::default()
+            }),
+            tracing_mode: Some("Active".to_string()),
+            vpc_config: Some(FunctionVpcConfig {
+                subnet_ids: vec!["subnet-1".to_string()],
+                security_group_ids: vec!["sg-1".to_string()],
+                ipv6_allowed_for_dual_stack: true,
+                vpc_id: Some("vpc-1".to_string()),
+            }),
+            ..Default::default()
+        };
+        let function = |name: &str, settings: FunctionSettings| LambdaFunctionView {
+            function_name: name.to_string(),
+            function_arn: format!("arn:aws:lambda:us-east-1:123456789012:function:{name}"),
+            runtime: "python3.12".to_string(),
+            handler: "index.handler".to_string(),
+            role: "arn:aws:iam::123456789012:role/r".to_string(),
+            code_sha256: "abc".to_string(),
+            code_size: 10,
+            memory_size: 128,
+            timeout: 3,
+            environment: HashMap::new(),
+            description: String::new(),
+            last_modified: "2026-01-01T00:00:00+00:00".to_string(),
+            state: "Active".to_string(),
+            version: "$LATEST".to_string(),
+            revision_id: "r-1".to_string(),
+            tags: HashMap::new(),
+            versions: vec![FunctionVersionView {
+                version: "1".to_string(),
+                description: String::new(),
+                code_sha256: "abc".to_string(),
+                code_size: 10,
+                created_at: "2026-01-01T00:00:00+00:00".to_string(),
+                settings: settings.clone(),
+            }],
+            reserved_concurrent_executions: None,
+            code_signing_config_arn: None,
+            settings,
+        };
+
+        let service = LambdaService::new();
+        let mut view = LambdaStateView::default();
+        view.functions
+            .insert("f".to_string(), function("f", settings.clone()));
+        view.functions.insert(
+            "bare".to_string(),
+            function("bare", FunctionSettings::default()),
+        );
+        service
+            .restore("123456789012", "us-east-1", view)
+            .await
+            .unwrap();
+
+        let json = serde_json::to_value(service.snapshot("123456789012", "us-east-1").await)
+            .expect("snapshot must serialize");
+        assert_eq!(
+            json["functions"]["bare"]["settings"],
+            serde_json::json!({}),
+            "unset members are not written"
+        );
+        assert!(json["functions"]["f"].get("vpc_config").is_none());
+        let back: LambdaStateView = serde_json::from_value(json).unwrap();
+        assert_eq!(back.functions["f"].settings, settings);
+        assert_eq!(back.functions["f"].versions[0].settings, settings);
     }
 }
