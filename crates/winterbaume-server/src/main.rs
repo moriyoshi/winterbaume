@@ -69,6 +69,7 @@ use regex::Regex;
 use serde::Deserialize;
 use tokio::net::TcpListener;
 use winterbaume_core::service::{MockRequest, MockResponse, MockService};
+use winterbaume_core::{Relaxation, Relaxations};
 
 // ---------------------------------------------------------------------------
 // Config file schema
@@ -83,6 +84,8 @@ struct ConfigFile {
     tfstate: Option<String>,
     backends: Option<BackendsConfig>,
     s3: Option<S3Config>,
+    /// Relaxations to enable, by name ( see [`known_relaxations`] ).
+    relax: Option<Vec<String>>,
 }
 
 /// `[s3]` section of the config file.
@@ -127,6 +130,14 @@ struct ServerOptions {
 struct BehaviourOptions {
     /// Enforce explicit `Deny` statements of S3 bucket policies.
     s3_enforce_bucket_policies: bool,
+    /// Requests AWS refuses that services should accept anyway.
+    relaxations: Relaxations,
+}
+
+/// Every relaxation a service registered by this server knows, in the order
+/// `--help` lists them.
+fn known_relaxations() -> Vec<Relaxation> {
+    [winterbaume_sts::RELAXATIONS].concat()
 }
 
 /// Backend selection options.  Fields are always present; features gate whether
@@ -504,6 +515,13 @@ async fn register_all_services(
     );
     if behaviours.s3_enforce_bucket_policies {
         tracing::info!("S3 bucket policy enforcement is enabled (explicit Deny only)");
+    }
+    for relaxation in behaviours.relaxations.iter() {
+        tracing::info!(
+            "Relaxation enabled: {} ({})",
+            relaxation.name,
+            relaxation.summary
+        );
     }
 
     // --- IAM ----------------------------------------------------------------
@@ -948,7 +966,7 @@ async fn register_all_services(
     // --- Full service list --------------------------------------------------
 
     let mut services: Vec<Arc<dyn MockService>> = vec![
-        Arc::new(winterbaume_sts::StsService::new()),
+        Arc::new(winterbaume_sts::StsService::new().with_relaxations(&behaviours.relaxations)),
         iam,
         s3,
         sqs,
@@ -4978,6 +4996,40 @@ struct CliArgs {
         default_missing_value = "true"
     )]
     s3_enforce_bucket_policies: Option<bool>,
+
+    /// Accept a request that AWS refuses, by rule name. Repeat the flag or
+    /// separate names with commas. Off by default; the rules are listed
+    /// below.
+    #[arg(
+        long,
+        value_name = "RULE",
+        env = "WB_RELAX",
+        value_delimiter = ',',
+        action = clap::ArgAction::Append
+    )]
+    relax: Option<Vec<String>>,
+}
+
+/// Builds the "Relaxations" block shown after `--help`.
+fn relaxations_summary() -> String {
+    let mut out = String::from("Relaxations (--relax RULE, all off by default):\n");
+    for relaxation in known_relaxations() {
+        out.push_str(&format!(
+            "  {}\n      {}\n",
+            relaxation.name, relaxation.summary
+        ));
+    }
+    out
+}
+
+/// Resolves relaxation names against [`known_relaxations`]. An unknown name
+/// is an error naming the known ones.
+fn resolve_relaxations(names: &[String]) -> Result<Relaxations, String> {
+    let known = known_relaxations();
+    Relaxations::from_names(names.iter().map(String::as_str), &known).map_err(|e| {
+        let names: Vec<&str> = known.iter().map(|r| r.name).collect();
+        format!("{e}; known relaxations: {}", names.join(", "))
+    })
 }
 
 /// Builds the "Compiled-in backend features" block shown after `--help`.
@@ -5014,7 +5066,11 @@ fn compiled_features_summary() -> String {
 /// [`ServerOptions`] struct using the precedence:
 ///   CLI flags > env vars > config file > built-in defaults.
 fn parse_options() -> ServerOptions {
-    let cmd = CliArgs::command().after_help(compiled_features_summary());
+    let cmd = CliArgs::command().after_help(format!(
+        "{}\n{}",
+        relaxations_summary(),
+        compiled_features_summary()
+    ));
     let matches = cmd.get_matches();
     let cli = CliArgs::from_arg_matches(&matches).unwrap_or_else(|e| e.exit());
 
@@ -5068,6 +5124,14 @@ fn parse_options() -> ServerOptions {
         .or(file_s3.enforce_bucket_policies)
         .unwrap_or(false);
 
+    // A list given on the command line or in `WB_RELAX` replaces the config
+    // file's list rather than adding to it, like every other option.
+    let relax_names = cli.relax.or(file_cfg.relax).unwrap_or_default();
+    let relaxations = resolve_relaxations(&relax_names).unwrap_or_else(|e| {
+        eprintln!("error: --relax: {e}");
+        std::process::exit(1);
+    });
+
     ServerOptions {
         host,
         port,
@@ -5082,6 +5146,7 @@ fn parse_options() -> ServerOptions {
         },
         behaviours: BehaviourOptions {
             s3_enforce_bucket_policies,
+            relaxations,
         },
     }
 }
@@ -5175,5 +5240,58 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                 tracing::debug!("Connection error from {}: {}", remote_addr, err);
             }
         });
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn resolve_relaxations_accepts_known_names() {
+        let set = resolve_relaxations(&["sts-assume-role-without-role-arn".to_string()]).unwrap();
+        assert!(set.is_enabled(winterbaume_sts::ASSUME_ROLE_WITHOUT_ROLE_ARN));
+        assert!(resolve_relaxations(&[]).unwrap().is_empty());
+    }
+
+    #[test]
+    fn resolve_relaxations_rejects_unknown_names_and_lists_known_ones() {
+        let err = resolve_relaxations(&["sts-no-such-rule".to_string()]).unwrap_err();
+        assert!(
+            err.contains("unknown relaxation 'sts-no-such-rule'"),
+            "{err}"
+        );
+        assert!(err.contains("sts-assume-role-without-role-arn"), "{err}");
+    }
+
+    #[test]
+    fn relax_flag_takes_repeats_and_comma_lists() {
+        let cli = CliArgs::try_parse_from(["winterbaume-server", "--relax", "a,b", "--relax", "c"])
+            .unwrap();
+        assert_eq!(
+            cli.relax,
+            Some(vec!["a".to_string(), "b".to_string(), "c".to_string()])
+        );
+    }
+
+    #[test]
+    fn relax_is_read_from_the_config_file() {
+        let cfg: ConfigFile =
+            toml::from_str(r#"relax = ["sts-assume-role-without-role-arn"]"#).unwrap();
+        assert_eq!(
+            cfg.relax,
+            Some(vec!["sts-assume-role-without-role-arn".to_string()])
+        );
+    }
+
+    #[test]
+    fn every_known_relaxation_name_is_unique_and_prefixed() {
+        let known = known_relaxations();
+        let mut names: Vec<&str> = known.iter().map(|r| r.name).collect();
+        names.sort_unstable();
+        names.dedup();
+        assert_eq!(names.len(), known.len(), "duplicate relaxation names");
+        assert!(known.iter().all(|r| r.name.contains('-')));
+        assert!(relaxations_summary().contains("sts-assume-role-without-role-arn"));
     }
 }

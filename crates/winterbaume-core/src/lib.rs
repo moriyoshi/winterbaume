@@ -3,6 +3,7 @@ pub mod blob_store;
 pub mod mock_aws;
 pub mod mock_client;
 pub mod protocol;
+pub mod relax;
 pub mod service;
 pub mod state;
 pub mod vfs;
@@ -18,6 +19,7 @@ pub use protocol::{
     json_error_response, parse_query_string, percent_decode, percent_decode_path, rest_json_error,
     urldecode, xml_escape,
 };
+pub use relax::{Relaxation, Relaxations, UnknownRelaxation};
 pub use service::{MockRequest, MockResponse, MockService, StubService};
 pub use state::{BackendState, DEFAULT_ACCOUNT_ID, default_account_id, set_default_account_id};
 pub use vfs::{FsVfs, MemVfs, Vfs, VfsEntry, VfsError, VfsStat};

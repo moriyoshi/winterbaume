@@ -105,6 +105,15 @@ When external callers build `StateView` fragments directly, the stable pattern i
 
 Blob-backed services such as S3, EBS, and Glacier use this layer to keep large object data out of heap-backed runtime state while preserving snapshot and restore workflows.
 
+### `Relaxation` and `Relaxations` (winterbaume-core/src/relax.rs)
+
+Services refuse what AWS refuses by default. A `Relaxation` names one request that AWS rejects but that a service accepts when it is enabled, typically for clients written against another AWS-compatible server ( e.g. MinIO's `AssumeRole` without `RoleArn` ).
+
+- A service crate declares each relaxation as a `const Relaxation { name, summary }`, with the name in the form `<service>-<what is accepted>`, and lists them in a `pub const RELAXATIONS: &[Relaxation]`.
+- The service takes the enabled set through `with_relaxations(&Relaxations)` and keeps only its own rules; a set naming other services' rules leaves it unchanged.
+- `winterbaume-server` concatenates the crates' `RELAXATIONS` in `known_relaxations()`, resolves `--relax` / `WB_RELAX` / `relax = [...]` against it ( an unknown name is a startup error ), lists the rules in `--help`, and logs each enabled one.
+- There is deliberately no bundle that enables several rules at once: each relaxation is opted into by name.
+
 ### `BackendState<B>` (winterbaume-core/src/state.rs)
 
 Per-(account_id, region) state management. Uses `RwLock<HashMap<..., Arc<RwLock<B>>>>` for thread-safe lazy initialisation. Mirrors moto's `BackendDict` pattern.
