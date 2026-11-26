@@ -1,3 +1,4 @@
+mod aws_chunked;
 mod bucket_policy;
 pub mod handlers;
 pub mod model;

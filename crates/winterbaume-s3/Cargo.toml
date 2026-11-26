@@ -11,6 +11,7 @@ description = "S3 service implementation for winterbaume"
 [dependencies]
 winterbaume-core = { workspace = true }
 winterbaume-iam-rule-eval = { workspace = true }
+aws-smithy-checksums = { workspace = true }
 tokio = { workspace = true }
 bytes = { workspace = true }
 http = { workspace = true }
