@@ -291,13 +291,29 @@ jobs:
           PRERELEASE_FLAG: "${{ fromJson(steps.host.outputs.manifest).announcement_is_prerelease && '--prerelease' || '' }}"
           ANNOUNCEMENT_TITLE: "${{ fromJson(steps.host.outputs.manifest).announcement_title }}"
           ANNOUNCEMENT_BODY: "${{ fromJson(steps.host.outputs.manifest).announcement_github_body }}"
+          RELEASE_TAG: ${{ needs.plan.outputs.tag }}
         run: |
+          set -euo pipefail
           # The tagged commit, not github.sha: a manual run executes on the
           # default branch.
           RELEASE_COMMIT="$(git rev-parse HEAD)"
           echo "$ANNOUNCEMENT_BODY" > $RUNNER_TEMP/notes.txt
 
-          gh release create "${{ needs.plan.outputs.tag }}" --target "$RELEASE_COMMIT" $PRERELEASE_FLAG --title "$ANNOUNCEMENT_TITLE" --notes-file "$RUNNER_TEMP/notes.txt" artifacts/*
+          # GitHub refuses to create a release with GITHUB_TOKEN ( HTTP 403
+          # "Resource not accessible by integration" ) when the tagged commit
+          # is not the tip of any branch, which it stops being as soon as
+          # another PR merges into main. Hold a branch at the commit while the
+          # release is created, unless one already points there.
+          HOLD_BRANCH="release/$RELEASE_TAG"
+          BRANCH_TIPS="$(gh api "repos/$GITHUB_REPOSITORY/branches?per_page=100" --paginate --jq '.[].commit.sha')"
+          if grep -qx "$RELEASE_COMMIT" <<< "$BRANCH_TIPS"; then
+            echo "a branch already points at $RELEASE_COMMIT"
+          else
+            gh api "repos/$GITHUB_REPOSITORY/git/refs" -f "ref=refs/heads/$HOLD_BRANCH" -f "sha=$RELEASE_COMMIT" > /dev/null
+            trap 'gh api -X DELETE "repos/$GITHUB_REPOSITORY/git/refs/heads/$HOLD_BRANCH" || echo "::warning::could not delete branch $HOLD_BRANCH"' EXIT
+          fi
+
+          gh release create "$RELEASE_TAG" --target "$RELEASE_COMMIT" $PRERELEASE_FLAG --title "$ANNOUNCEMENT_TITLE" --notes-file "$RUNNER_TEMP/notes.txt" artifacts/*
 
   announce:
     needs:

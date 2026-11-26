@@ -287,7 +287,7 @@ The crates are already on crates.io at that point ( `release-harness publish` ru
 
 1. The CI workflow runs first: fmt, clippy, test, examples, and E2E.
 2. If CI passes, cargo-dist builds `winterbaume-server` for all target platforms.
-3. A GitHub Release is created with:
+3. A GitHub Release is created on the tagged commit. GitHub refuses the workflow token ( HTTP 403 `Resource not accessible by integration` ) when that commit is not the tip of any branch, as happens once another PR has merged into `main`, so the step first creates a branch `release/<tag>` at the commit if no branch points there, and deletes it once the release exists. If a run dies before deleting it, delete the branch by hand. The release holds:
    - Platform archives (`.tar.xz` for Unix, `.zip` for Windows)
    - SHA-256 checksums, per asset and as a combined `sha256.sum`
    - `LICENSE`, `README.md`, and `CHANGELOG.md` bundled in each archive
