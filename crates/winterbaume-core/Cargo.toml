@@ -29,6 +29,7 @@ tracing = { workspace = true }
 
 [dev-dependencies]
 tempfile = "3"
+aws-smithy-types = { workspace = true, features = ["rt-tokio"] }
 
 [lints]
 workspace = true

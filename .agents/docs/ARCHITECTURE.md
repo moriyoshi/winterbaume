@@ -61,6 +61,8 @@ Implements two aws-smithy-runtime-api traits:
 Uses regex-based URL routing to dispatch to registered `MockService` implementations.
 Falls back to URI-based service name extraction (from host) when no URL pattern matches.
 
+`MockRequest::body` is always the whole body. An in-memory `SdkBody` is copied; a streaming one ( `ByteStream::from_path`, or any body without bytes up front ) is taken from the request and collected inside the returned future before the service is called. Before 2026-11-26 only `request.body().bytes()` was copied, so streaming uploads reached services empty.
+
 ### Protocol helpers (winterbaume-core/src/protocol/)
 
 `winterbaume-core` centralises shared protocol mechanics under `src/protocol/` so service crates can stay focused on service semantics rather than low-level wire formatting.
