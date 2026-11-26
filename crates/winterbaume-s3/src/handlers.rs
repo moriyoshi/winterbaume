@@ -34,6 +34,8 @@ pub struct S3Service {
     pub(crate) blobs: Arc<BlobStoreMap>,
     /// See [`S3Service::with_bucket_policy_enforcement`].
     pub(crate) bucket_policy_enforcement: bool,
+    /// See [`S3Service::with_session_policy_enforcement`].
+    pub(crate) session_policies: Option<Arc<dyn crate::SessionPolicyLookup>>,
 }
 
 impl S3Service {
@@ -43,6 +45,7 @@ impl S3Service {
             notifier: StateChangeNotifier::new(),
             blobs: Arc::new(BlobStoreMap::mem("s3")),
             bucket_policy_enforcement: false,
+            session_policies: None,
         }
     }
 
@@ -132,6 +135,66 @@ impl S3Service {
         self.bucket_policy_enforcement
     }
 
+    /// Enforce STS session policies ( default: off ).
+    ///
+    /// Temporary credentials issued with a session policy ( the `Policy`
+    /// parameter of `AssumeRole`, `AssumeRoleWithSAML` or
+    /// `AssumeRoleWithWebIdentity` ) are limited on AWS to what that policy
+    /// allows. With enforcement on, `lookup` is asked for the session policy
+    /// of the access key that signed each S3 data-plane request ( the SigV4
+    /// `Authorization` header, or `X-Amz-Credential` of a presigned URL ), and
+    /// when there is one the request needs every permission it maps to be
+    /// allowed by it: an `Allow` statement must match the action and resource
+    /// and no `Deny` may. Otherwise the request fails with HTTP 403 and S3's
+    /// XML `AccessDenied` error ( no body for `HEAD` ).
+    ///
+    /// * **Only the session policy is evaluated.** The role's own policies
+    ///   are not, so a request the session policy allows proceeds. Requests
+    ///   signed with credentials that carry no session policy, or that
+    ///   `lookup` does not know, are not checked at all.
+    /// * **Same operations as bucket policy enforcement.** The data-plane
+    ///   operations listed under
+    ///   [`S3Service::with_bucket_policy_enforcement`] are checked, with the
+    ///   same actions, resources and condition keys ( `s3:prefix` for
+    ///   listings among them ); `DeleteObjects` is checked per key. Bucket
+    ///   creation, deletion and configuration operations, `ListBuckets` and
+    ///   `GetBucketLocation` are not.
+    /// * **Conditions** are evaluated as for bucket policies. An `Allow`
+    ///   statement conditioned on a key describing the caller's identity
+    ///   ( `aws:PrincipalArn` and its relatives ) cannot be decided and is
+    ///   skipped, so it allows nothing.
+    /// * A session policy that is not a parseable policy document allows
+    ///   nothing and is logged.
+    ///
+    /// The two enforcements are independent; with both on, an explicit
+    /// `Deny` in the bucket policy is checked first.
+    pub fn with_session_policy_enforcement(
+        mut self,
+        lookup: Arc<dyn crate::SessionPolicyLookup>,
+    ) -> Self {
+        self.session_policies = Some(lookup);
+        self
+    }
+
+    /// Whether STS session policies are enforced. See
+    /// [`S3Service::with_session_policy_enforcement`].
+    pub fn session_policy_enforcement(&self) -> bool {
+        self.session_policies.is_some()
+    }
+
+    /// The session policy guarding this request, when session policy
+    /// enforcement is on and the signing credentials carry one.
+    async fn session_guard(
+        &self,
+        request: &MockRequest,
+        query: &std::collections::HashMap<String, String>,
+    ) -> Option<crate::session_policy::SessionGuard> {
+        let lookup = self.session_policies.as_ref()?;
+        let access_key = crate::session_policy::caller_access_key(request, query)?;
+        let policy = lookup.session_policy(&access_key).await?;
+        Some(crate::session_policy::SessionGuard::new(&policy))
+    }
+
     /// Create an S3 service backed by the given VFS for blob storage.
     pub fn with_vfs(vfs: Arc<dyn Vfs>) -> Self {
         Self {
@@ -139,6 +202,7 @@ impl S3Service {
             notifier: StateChangeNotifier::new(),
             blobs: Arc::new(BlobStoreMap::new(vfs, "s3")),
             bucket_policy_enforcement: false,
+            session_policies: None,
         }
     }
 
@@ -174,6 +238,7 @@ impl S3Service {
             notifier: StateChangeNotifier::new(),
             blobs: Arc::new(blobs),
             bucket_policy_enforcement: false,
+            session_policies: None,
         })
     }
 
@@ -540,7 +605,7 @@ impl S3Service {
         // Parse query string for list-type, etc.
         let query = parse_query_from_uri(&request.uri);
 
-        if self.bucket_policy_enforcement {
+        if self.bucket_policy_enforcement || self.session_policies.is_some() {
             if let Some(bucket) = &target.bucket {
                 let permissions = crate::bucket_policy::required_permissions(
                     method,
@@ -549,11 +614,34 @@ impl S3Service {
                     &query,
                     &request.headers,
                 );
-                if let Some(denied) = self
-                    .first_denied_permission(&state, &permissions, &request, &query)
-                    .await
-                {
-                    return access_denied_response(&denied, method == "HEAD");
+                if self.bucket_policy_enforcement {
+                    if let Some(denied) = self
+                        .first_denied_permission(&state, &permissions, &request, &query)
+                        .await
+                    {
+                        return access_denied_response(
+                            &denied,
+                            DenialReason::BucketPolicyDeny,
+                            method == "HEAD",
+                        );
+                    }
+                }
+                if !permissions.is_empty() {
+                    if let Some(guard) = self.session_guard(&request, &query).await {
+                        let context = crate::bucket_policy::request_context(&request, &query);
+                        for permission in &permissions {
+                            let reason = match guard.decide(permission, &context) {
+                                winterbaume_iam_rule_eval::EvalDecision::Allowed => continue,
+                                winterbaume_iam_rule_eval::EvalDecision::ExplicitDenied => {
+                                    DenialReason::SessionPolicyDeny
+                                }
+                                winterbaume_iam_rule_eval::EvalDecision::ImplicitDenied => {
+                                    DenialReason::NoSessionPolicyAllow
+                                }
+                            };
+                            return access_denied_response(permission, reason, method == "HEAD");
+                        }
+                    }
                 }
             }
         }
@@ -2678,6 +2766,12 @@ impl S3Service {
             Ok(input) => input,
             Err(response) => return response,
         };
+        // A session policy is checked per key too; it is looked up before the
+        // state lock is taken.
+        let session_guard = self
+            .session_guard(request, query)
+            .await
+            .map(|guard| (guard, crate::bucket_policy::request_context(request, query)));
         let (deleted, errors, blobs_to_delete, dm_stored) = {
             let mut state = state.write().await;
 
@@ -2719,6 +2813,26 @@ impl S3Service {
                         version_id_ref,
                     );
                     if guard.denies(&permission, context) {
+                        errors.push(wire::Error {
+                            code: Some("AccessDenied".to_string()),
+                            key: Some(object.key),
+                            message: Some("Access Denied".to_string()),
+                            version_id: object.version_id,
+                        });
+                        continue;
+                    }
+                }
+                if let Some((guard, context)) = &session_guard {
+                    let permission = crate::bucket_policy::Permission::object_version(
+                        "s3:DeleteObject",
+                        "s3:DeleteObjectVersion",
+                        bucket_name,
+                        &object.key,
+                        version_id_ref,
+                    );
+                    if guard.decide(&permission, context)
+                        != winterbaume_iam_rule_eval::EvalDecision::Allowed
+                    {
                         errors.push(wire::Error {
                             code: Some("AccessDenied".to_string()),
                             key: Some(object.key),
@@ -5326,9 +5440,24 @@ fn s3_error_response(err: &S3Error) -> MockResponse {
     MockResponse::xml(status, body)
 }
 
-/// S3's `AccessDenied` for a request an explicit `Deny` in the bucket policy
-/// covers. `HEAD` responses carry no body, like every other S3 HEAD error.
-fn access_denied_response(denied: &crate::bucket_policy::Permission, head: bool) -> MockResponse {
+/// Why a request was refused with `AccessDenied`.
+#[derive(Debug, Clone, Copy)]
+enum DenialReason {
+    /// An explicit `Deny` in the bucket policy.
+    BucketPolicyDeny,
+    /// An explicit `Deny` in the session policy.
+    SessionPolicyDeny,
+    /// The session policy has no `Allow` for the request.
+    NoSessionPolicyAllow,
+}
+
+/// S3's `AccessDenied` for a permission a policy refuses. `HEAD` responses
+/// carry no body, like every other S3 HEAD error.
+fn access_denied_response(
+    denied: &crate::bucket_policy::Permission,
+    reason: DenialReason,
+    head: bool,
+) -> MockResponse {
     if head {
         return MockResponse {
             status: 403,
@@ -5339,8 +5468,20 @@ fn access_denied_response(denied: &crate::bucket_policy::Permission, head: bool)
     let resource = denied.resource_arn();
     // AWS prefixes this with `User: <caller ARN> is`; the emulator does not
     // know the caller.
+    let why = match reason {
+        DenialReason::BucketPolicyDeny => {
+            "with an explicit deny in a resource-based policy".to_string()
+        }
+        DenialReason::SessionPolicyDeny => "with an explicit deny in a session policy".to_string(),
+        DenialReason::NoSessionPolicyAllow => {
+            format!(
+                "because no session policy allows the {} action",
+                denied.action
+            )
+        }
+    };
     let message = format!(
-        "Access Denied: not authorized to perform: {} on resource: \"{}\" with an explicit deny in a resource-based policy",
+        "Access Denied: not authorized to perform: {} on resource: \"{}\" {why}",
         denied.action, resource
     );
     let body = format!(

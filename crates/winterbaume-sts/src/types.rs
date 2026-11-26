@@ -11,6 +11,10 @@ pub struct AssumedRole {
     pub session_token: String,
     pub expiration: DateTime<Utc>,
     pub assumed_role_id: String,
+    /// The session policy ( the `Policy` parameter, a JSON policy document )
+    /// the credentials were issued with. On AWS it limits them to the
+    /// intersection of the role's policies and this document.
+    pub session_policy: Option<String>,
 }
 
 impl AssumedRole {
@@ -61,4 +65,7 @@ pub struct CallerSession {
     pub expiration: DateTime<Utc>,
     /// The identity of the caller that requested the credentials.
     pub identity: CallerIdentity,
+    /// The session policy ( the `Policy` parameter ) the credentials were
+    /// issued with.
+    pub session_policy: Option<String>,
 }

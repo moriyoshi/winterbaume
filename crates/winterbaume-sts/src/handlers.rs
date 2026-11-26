@@ -65,6 +65,28 @@ impl StsService {
         self
     }
 
+    /// The session policy of temporary credentials this service issued,
+    /// looked up by access key ID across every account and region.
+    ///
+    /// `None` when no credentials with this key were issued here, `Some(None)`
+    /// when they were issued without a session policy, and `Some(Some(doc))`
+    /// with the `Policy` document passed to `AssumeRole`,
+    /// `AssumeRoleWithSAML` or `AssumeRoleWithWebIdentity`, including the
+    /// credentials of the `sts-assume-role-without-role-arn` relaxation.
+    /// Another service uses this to restrict requests signed with the
+    /// credentials, as `winterbaume-server --s3-enforce-session-policies`
+    /// does for S3.
+    pub async fn session_policy(&self, access_key_id: &str) -> Option<Option<String>> {
+        for (account_id, region) in self.state.scopes_with_state() {
+            let state = self.state.get(&account_id, &region);
+            let state = state.read().await;
+            if let Some(policy) = state.session_policy(access_key_id) {
+                return Some(policy.map(str::to_string));
+            }
+        }
+        None
+    }
+
     /// The STS relaxations this service has enabled.
     pub fn relaxations(&self) -> Relaxations {
         let mut enabled = Relaxations::new();
@@ -197,7 +219,12 @@ impl StsService {
 
         if input.role_arn.is_empty() {
             return self
-                .assume_role_for_caller(state, caller_access_key, duration_seconds)
+                .assume_role_for_caller(
+                    state,
+                    caller_access_key,
+                    duration_seconds,
+                    input.policy.clone(),
+                )
                 .await;
         }
 
@@ -221,6 +248,7 @@ impl StsService {
             session_token: session_token.clone(),
             expiration,
             assumed_role_id: assumed_role_id.clone(),
+            session_policy: input.policy.clone(),
         };
 
         let arn = assumed_role.arn();
@@ -284,6 +312,7 @@ impl StsService {
             session_token: session_token.clone(),
             expiration,
             assumed_role_id: assumed_role_id.clone(),
+            session_policy: input.policy.clone(),
         };
 
         let arn = assumed_role.arn();
@@ -347,6 +376,7 @@ impl StsService {
             session_token: session_token.clone(),
             expiration,
             assumed_role_id: assumed_role_id.clone(),
+            session_policy: input.policy.clone(),
         };
 
         let arn = assumed_role.arn();
@@ -537,6 +567,7 @@ impl StsService {
         state: &std::sync::Arc<tokio::sync::RwLock<StsState>>,
         caller_access_key: Option<&str>,
         duration_seconds: i64,
+        session_policy: Option<String>,
     ) -> MockResponse {
         let access_key_id = format!("ASIA{}", random_alphanumeric(16));
         let secret_access_key = random_alphanumeric(40);
@@ -552,6 +583,7 @@ impl StsService {
                 session_token: session_token.clone(),
                 expiration,
                 identity,
+                session_policy,
             });
         }
 

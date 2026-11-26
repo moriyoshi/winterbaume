@@ -94,6 +94,9 @@ struct S3Config {
     /// Evaluate bucket policies on S3 data-plane requests and answer
     /// `AccessDenied` for explicit denies. Off by default.
     enforce_bucket_policies: Option<bool>,
+    /// Limit S3 data-plane requests signed with STS credentials that carry a
+    /// session policy to what that policy allows. Off by default.
+    enforce_session_policies: Option<bool>,
 }
 
 #[derive(Debug, Default, Deserialize)]
@@ -130,8 +133,23 @@ struct ServerOptions {
 struct BehaviourOptions {
     /// Enforce explicit `Deny` statements of S3 bucket policies.
     s3_enforce_bucket_policies: bool,
+    /// Enforce STS session policies on S3 data-plane requests.
+    s3_enforce_session_policies: bool,
     /// Requests AWS refuses that services should accept anyway.
     relaxations: Relaxations,
+}
+
+/// Backs S3 session policy enforcement with the credentials this server's
+/// STS issued.
+struct StsSessionPolicies(Arc<winterbaume_sts::StsService>);
+
+impl winterbaume_s3::SessionPolicyLookup for StsSessionPolicies {
+    fn session_policy<'a>(
+        &'a self,
+        access_key_id: &'a str,
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = Option<String>> + Send + 'a>> {
+        Box::pin(async move { self.0.session_policy(access_key_id).await.flatten() })
+    }
 }
 
 /// Every relaxation a service registered by this server knows, in the order
@@ -504,17 +522,28 @@ async fn register_all_services(
         }
     };
 
+    // --- STS ----------------------------------------------------------------
+
+    let sts =
+        Arc::new(winterbaume_sts::StsService::new().with_relaxations(&behaviours.relaxations));
+
     // --- S3 -----------------------------------------------------------------
 
-    let s3: Arc<winterbaume_s3::S3Service> = Arc::new(
-        match &shared_vfs {
-            Some(vfs) => winterbaume_s3::S3Service::recover_with_vfs(Arc::clone(vfs)).await?,
-            None => winterbaume_s3::S3Service::new(),
-        }
-        .with_bucket_policy_enforcement(behaviours.s3_enforce_bucket_policies),
-    );
+    let mut s3_service = match &shared_vfs {
+        Some(vfs) => winterbaume_s3::S3Service::recover_with_vfs(Arc::clone(vfs)).await?,
+        None => winterbaume_s3::S3Service::new(),
+    }
+    .with_bucket_policy_enforcement(behaviours.s3_enforce_bucket_policies);
+    if behaviours.s3_enforce_session_policies {
+        s3_service = s3_service
+            .with_session_policy_enforcement(Arc::new(StsSessionPolicies(Arc::clone(&sts))));
+    }
+    let s3: Arc<winterbaume_s3::S3Service> = Arc::new(s3_service);
     if behaviours.s3_enforce_bucket_policies {
         tracing::info!("S3 bucket policy enforcement is enabled (explicit Deny only)");
+    }
+    if behaviours.s3_enforce_session_policies {
+        tracing::info!("S3 session policy enforcement is enabled (STS session policies)");
     }
     for relaxation in behaviours.relaxations.iter() {
         tracing::info!(
@@ -966,7 +995,7 @@ async fn register_all_services(
     // --- Full service list --------------------------------------------------
 
     let mut services: Vec<Arc<dyn MockService>> = vec![
-        Arc::new(winterbaume_sts::StsService::new().with_relaxations(&behaviours.relaxations)),
+        sts,
         iam,
         s3,
         sqs,
@@ -4997,6 +5026,19 @@ struct CliArgs {
     )]
     s3_enforce_bucket_policies: Option<bool>,
 
+    /// Enforce STS session policies on S3: a data-plane request signed with
+    /// temporary credentials issued with a `Policy` is answered with 403
+    /// `AccessDenied` unless that session policy allows it. Off by default;
+    /// the role's own policies are not evaluated.
+    #[arg(
+        long,
+        value_name = "BOOL",
+        env = "WB_S3_ENFORCE_SESSION_POLICIES",
+        num_args = 0..=1,
+        default_missing_value = "true"
+    )]
+    s3_enforce_session_policies: Option<bool>,
+
     /// Accept a request that AWS refuses, by rule name. Repeat the flag or
     /// separate names with commas. Off by default; the rules are listed
     /// below.
@@ -5123,6 +5165,10 @@ fn parse_options() -> ServerOptions {
         .s3_enforce_bucket_policies
         .or(file_s3.enforce_bucket_policies)
         .unwrap_or(false);
+    let s3_enforce_session_policies = cli
+        .s3_enforce_session_policies
+        .or(file_s3.enforce_session_policies)
+        .unwrap_or(false);
 
     // A list given on the command line or in `WB_RELAX` replaces the config
     // file's list rather than adding to it, like every other option.
@@ -5146,6 +5192,7 @@ fn parse_options() -> ServerOptions {
         },
         behaviours: BehaviourOptions {
             s3_enforce_bucket_policies,
+            s3_enforce_session_policies,
             relaxations,
         },
     }

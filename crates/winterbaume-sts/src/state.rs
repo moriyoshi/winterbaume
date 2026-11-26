@@ -32,6 +32,19 @@ impl StsState {
             .find(|r| r.access_key_id == access_key_id)
     }
 
+    /// The session policy of the temporary credentials with this access key
+    /// ID: `None` when the key is unknown here, `Some(None)` when the
+    /// credentials were issued without a session policy.
+    pub fn session_policy(&self, access_key_id: &str) -> Option<Option<&str>> {
+        if let Some(role) = self.find_assumed_role_by_access_key(access_key_id) {
+            return Some(role.session_policy.as_deref());
+        }
+        self.caller_sessions
+            .iter()
+            .find(|s| s.access_key_id == access_key_id)
+            .map(|s| s.session_policy.as_deref())
+    }
+
     /// Get the caller identity for a given access key.
     ///
     /// If the access key belongs to an assumed role, returns that role's identity;

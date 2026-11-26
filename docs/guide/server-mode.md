@@ -50,6 +50,9 @@ Behaviour options (all off by default):
       --s3-enforce-bucket-policies
                              Answer 403 AccessDenied for S3 requests matched by an
                              explicit Deny in the bucket policy
+      --s3-enforce-session-policies
+                             Answer 403 AccessDenied for S3 requests signed with
+                             STS credentials whose session policy does not allow them
 
 Relaxations (all off by default):
       --relax RULE           Accept a request AWS refuses, by rule name; repeat
@@ -72,6 +75,7 @@ Every option has a corresponding environment variable. Variables are applied aft
 | `WB_DYNAMODB_BACKEND` | `--dynamodb-backend` |
 | `WB_VFS_DIR` | `--vfs-dir` |
 | `WB_S3_ENFORCE_BUCKET_POLICIES` | `--s3-enforce-bucket-policies` |
+| `WB_S3_ENFORCE_SESSION_POLICIES` | `--s3-enforce-session-policies` |
 | `WB_RELAX` | `--relax` (comma-separated) |
 
 **Configuration precedence:** CLI flags > environment variables > config file > built-in defaults.
@@ -106,6 +110,8 @@ vfs_dir = "/var/lib/winterbaume/blobs"
 [s3]
 # Optional: enforce explicit Deny statements of bucket policies
 enforce_bucket_policies = true
+# Optional: limit STS credentials to their session policy
+enforce_session_policies = true
 ```
 
 ```sh
@@ -275,6 +281,22 @@ Enables `--s3-enforce-bucket-policies` / `WB_S3_ENFORCE_BUCKET_POLICIES` / `[s3]
 - Bucket configuration requests, including `PutBucketPolicy` and `DeleteBucketPolicy`, are never denied, so a test can always repair a policy that locks it out.
 - The server does not authenticate callers. A `Deny` statement applies when its `Principal` is a wildcard (`"*"` or `{"AWS": "*"}`); statements naming a specific principal, using `NotPrincipal`, or conditioned on caller identity keys such as `aws:PrincipalArn` or `aws:userid` are skipped.
 - The server listens on plain HTTP, so `aws:SecureTransport` is `false` unless a TLS-terminating proxy in front sets `X-Forwarded-Proto: https`. A TLS-only policy therefore denies direct requests, as it would deny plain HTTP on AWS. `aws:SourceIp` is the client address, or `X-Forwarded-For` when a proxy supplies it.
+
+### `--s3-enforce-session-policies` — STS session policy enforcement
+
+Enables `--s3-enforce-session-policies` / `WB_S3_ENFORCE_SESSION_POLICIES` / `[s3] enforce_session_policies`. Temporary credentials issued by `AssumeRole`, `AssumeRoleWithSAML` or `AssumeRoleWithWebIdentity` with a `Policy` ( a session policy ) are limited to what that policy allows: an S3 object or listing request signed with them is answered with HTTP 403 `AccessDenied` unless an `Allow` statement of the session policy matches it and no `Deny` does. Catalogs that vend downscoped credentials, such as Lakekeeper, check that a write outside the granted prefix fails.
+
+```sh
+./winterbaume-server --s3-enforce-session-policies
+```
+
+- Only the session policy is evaluated, not the role's own policies, so whatever the session policy allows proceeds. Requests signed with credentials that have no session policy, including every request signed with long-term keys, are not checked.
+- The same requests are checked as for bucket policy enforcement, with the same actions, resources and condition keys; `s3:prefix` makes a `ListBucket` grant for one prefix work. Bucket creation, deletion and configuration requests, `ListBuckets` and `GetBucketLocation` are not checked. `DeleteObjects` is checked key by key: a refused key is reported as `AccessDenied` in the result and the others are deleted.
+- The access key is read from the request's SigV4 `Authorization` header, or from `X-Amz-Credential` of a presigned URL. Signatures are not verified.
+- The credentials of the `sts-assume-role-without-role-arn` relaxation carry their session policy too, as on MinIO.
+- An `Allow` conditioned on caller identity keys such as `aws:PrincipalArn` cannot be decided by the server and allows nothing. A session policy that does not parse allows nothing.
+
+In library mode, give the S3 service a `winterbaume_s3::SessionPolicyLookup`: `S3Service::new().with_session_policy_enforcement(lookup)`. `StsService::session_policy` answers the lookup for credentials an `StsService` issued.
 
 ## Relaxations
 
