@@ -168,6 +168,15 @@ pub enum S3Error {
     #[error("{message}")]
     MalformedXML { message: String, resource: String },
 
+    #[error("You did not provide the number of bytes specified by the Content-Length HTTP header.")]
+    IncompleteBody { resource: String },
+
+    #[error("The {algorithm} you specified did not match the calculated checksum.")]
+    BadDigest { algorithm: String, resource: String },
+
+    #[error("Invalid aws-chunked request body: {message}")]
+    InvalidChunkedBody { message: String, resource: String },
+
     #[error("Missing inventory configuration id.")]
     MissingInventoryConfigurationId { resource: String },
 
@@ -278,7 +287,10 @@ impl S3Error {
             | S3Error::InvalidTransitionDefaultMinimumObjectSize { resource, .. }
             | S3Error::MethodNotAllowed { resource, .. }
             | S3Error::InternalError { resource, .. }
-            | S3Error::MalformedXML { resource, .. } => resource.as_str(),
+            | S3Error::MalformedXML { resource, .. }
+            | S3Error::IncompleteBody { resource }
+            | S3Error::BadDigest { resource, .. }
+            | S3Error::InvalidChunkedBody { resource, .. } => resource.as_str(),
         }
     }
 }

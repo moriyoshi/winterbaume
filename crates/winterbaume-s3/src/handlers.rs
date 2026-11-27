@@ -500,7 +500,7 @@ struct S3Target {
 }
 
 impl S3Service {
-    async fn dispatch(&self, request: MockRequest) -> MockResponse {
+    async fn dispatch(&self, mut request: MockRequest) -> MockResponse {
         // FIX(terraform-e2e): s3control (account-level S3 Control API) requests arrive here
         //   because s3control signs with service name "s3" in the credential scope, so the
         //   router dispatches them to S3Service. S3 Control paths use the /v20180820/ prefix.
@@ -556,6 +556,29 @@ impl S3Service {
                     return access_denied_response(&denied, method == "HEAD");
                 }
             }
+        }
+
+        // Streaming uploads ( `PutObject`, `UploadPart` ) frame their body as
+        // `aws-chunked`; S3 stores only the decoded data ( issue #84 ).
+        if let Err(e) = crate::aws_chunked::decode_request(&mut request.headers, &mut request.body)
+        {
+            let resource = match (&target.bucket, &target.key) {
+                (Some(bucket), Some(key)) => format!("/{bucket}/{key}"),
+                (Some(bucket), None) => format!("/{bucket}"),
+                _ => "/".to_string(),
+            };
+            return s3_error_response(&match e {
+                crate::aws_chunked::ChunkedBodyError::Malformed(message) => {
+                    S3Error::InvalidChunkedBody { message, resource }
+                }
+                crate::aws_chunked::ChunkedBodyError::Incomplete => {
+                    S3Error::IncompleteBody { resource }
+                }
+                crate::aws_chunked::ChunkedBodyError::BadDigest(algorithm) => S3Error::BadDigest {
+                    algorithm,
+                    resource,
+                },
+            });
         }
 
         let response = match (&target.bucket, &target.key, method) {
@@ -5254,6 +5277,9 @@ fn s3_error_response(err: &S3Error) -> MockResponse {
         S3Error::MethodNotAllowed { .. } => (405, "MethodNotAllowed"),
         S3Error::InternalError { .. } => (500, "InternalError"),
         S3Error::MalformedXML { .. } => (400, "MalformedXML"),
+        S3Error::IncompleteBody { .. } => (400, "IncompleteBody"),
+        S3Error::BadDigest { .. } => (400, "BadDigest"),
+        S3Error::InvalidChunkedBody { .. } => (400, "InvalidRequest"),
         S3Error::MissingInventoryConfigurationId { .. } => (400, "InvalidArgument"),
         S3Error::NoSuchInventoryConfiguration { .. } => (404, "NoSuchConfiguration"),
         S3Error::NoSuchLifecycleConfiguration { .. } => (404, "NoSuchLifecycleConfiguration"),

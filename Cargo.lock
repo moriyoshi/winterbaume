@@ -14373,6 +14373,7 @@ dependencies = [
  "aws-credential-types",
  "aws-sdk-s3",
  "aws-sdk-s3control",
+ "aws-smithy-checksums",
  "aws-smithy-mocks",
  "aws-smithy-runtime-api",
  "aws-smithy-types",
