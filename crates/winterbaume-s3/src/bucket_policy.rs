@@ -29,7 +29,7 @@ pub(crate) const FORWARDED_FOR_HEADER: &str = "x-forwarded-for";
 /// authenticate callers, so these are undecidable rather than absent: a
 /// statement conditioned on one is skipped, for the same reason a statement
 /// naming a specific `Principal` is.
-const UNKNOWABLE_CONTEXT_KEYS: &[&str] = &[
+pub(crate) const UNKNOWABLE_CONTEXT_KEYS: &[&str] = &[
     "aws:principalarn",
     "aws:principalaccount",
     "aws:principalorgid",

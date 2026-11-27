@@ -27,6 +27,8 @@ pub struct CallerSessionView {
     pub user_id: String,
     pub account: String,
     pub arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub session_policy: Option<String>,
 }
 
 impl From<&CallerSession> for CallerSessionView {
@@ -39,6 +41,7 @@ impl From<&CallerSession> for CallerSessionView {
             user_id: s.identity.user_id.clone(),
             account: s.identity.account.clone(),
             arn: s.identity.arn.clone(),
+            session_policy: s.session_policy.clone(),
         }
     }
 }
@@ -55,6 +58,7 @@ impl From<CallerSessionView> for CallerSession {
                 account: v.account,
                 arn: v.arn,
             },
+            session_policy: v.session_policy,
         }
     }
 }
@@ -69,6 +73,8 @@ pub struct AssumedRoleView {
     pub session_token: String,
     pub expiration: DateTime<Utc>,
     pub assumed_role_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub session_policy: Option<String>,
 }
 
 impl From<&StsState> for StsStateView {
@@ -86,6 +92,7 @@ impl From<&StsState> for StsStateView {
                     session_token: r.session_token.clone(),
                     expiration: r.expiration,
                     assumed_role_id: r.assumed_role_id.clone(),
+                    session_policy: r.session_policy.clone(),
                 })
                 .collect(),
             caller_sessions: state
@@ -112,6 +119,7 @@ impl From<StsStateView> for StsState {
                     session_token: r.session_token,
                     expiration: r.expiration,
                     assumed_role_id: r.assumed_role_id,
+                    session_policy: r.session_policy,
                 })
                 .collect(),
             caller_sessions: view
@@ -166,6 +174,7 @@ impl StatefulService for StsService {
                     session_token: r.session_token,
                     expiration: r.expiration,
                     assumed_role_id: r.assumed_role_id,
+                    session_policy: r.session_policy,
                 });
             }
             guard
