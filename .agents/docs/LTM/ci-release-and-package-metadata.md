@@ -130,6 +130,7 @@ For workflow changes, the real verification is hosted GitHub Actions:
 - Do not use `success()` when skipped upstream jobs should allow downstream cache-hit skips to continue; use `!failure() && !cancelled()`.
 - Do not assume pass markers capture runner-image drift. Rust and Terraform releases are in the key; anything else floating is not.
 - Do not move the markers back to `actions/cache`: its branch scoping hides a PR's markers from `main`.
+- Do not drop the `release/<tag>` holding branch from the `Create GitHub Release` step. `GITHUB_TOKEN` gets HTTP 403 `Resource not accessible by integration` from `POST /releases` when the tagged commit is not a branch tip, which is the normal case once another PR merges before the server tag is pushed ( 2026-11-26, `winterbaume-server-v0.2.10` ).
 - Do not re-add musl or Windows ARM cargo-dist targets without testing the current cargo-dist, DuckDB, cargo-xwin, clang, and AWS SDK MSRV combination.
 - Do not rely on `musl.cc` availability from GitHub-hosted runners without a mirror or fallback.
 - Do not leave `messense/cargo-xwin` unpinned if a container target returns; its `latest` tag moves on its own cadence.
