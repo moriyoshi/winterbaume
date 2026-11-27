@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.3.2 - 2026-11-27
+
+### Fixed
+- The in-process client ( `MockAws::http_client` ) delivers streaming request bodies. It copied only bodies already in memory, so a Rust SDK upload from `ByteStream::from_path` reached the service with no data; S3 stored it as an empty object without an error. A streaming body is now read to the end before the service is called, and a read error is returned as a connector I/O error (#88).
+
 ## v0.3.1 - 2026-11-25
 
 ### Added

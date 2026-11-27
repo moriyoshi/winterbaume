@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.2.11 - 2026-11-27
+
+### Added
+- `--s3-enforce-session-policies`, `WB_S3_ENFORCE_SESSION_POLICIES` or `enforce_session_policies = true` under `[s3]` in the config file limits temporary credentials from STS to their session policy in S3. Catalogs that vend downscoped credentials, such as Lakekeeper, rely on a write outside the granted prefix failing. Off by default (#85, #87).
+
+### Changed
+- Picks up `winterbaume-s3` v2.0.0: `aws-chunked` uploads, as pyarrow and pyiceberg send them, are stored decoded (#84, #86).
+
 ## v0.2.10 - 2026-11-25
 
 ### Added

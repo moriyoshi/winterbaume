@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.4.0 - 2026-11-27
+
+### Internal
+- Dependency-only release for `winterbaume-s3` v2.0.0, `winterbaume-s3control` v0.4.0, `winterbaume-core` v0.3.2 and the other service crates in this release; no change to this crate's own code. The S3 converters' constructors take an `Arc<S3Service>`, so the new `winterbaume-s3` makes this a breaking release.
+
 ## v0.3.0 - 2026-11-25
 
 ### Terraform
