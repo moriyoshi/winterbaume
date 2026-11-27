@@ -6,14 +6,22 @@ use std::sync::Arc;
 use aws_smithy_runtime_api::client::http::{
     HttpClient, HttpConnector, HttpConnectorFuture, HttpConnectorSettings, SharedHttpConnector,
 };
+use aws_smithy_runtime_api::client::result::ConnectorError;
 use aws_smithy_runtime_api::client::runtime_components::RuntimeComponents;
 use aws_smithy_runtime_api::http::StatusCode;
 use aws_smithy_types::body::SdkBody;
+use aws_smithy_types::byte_stream::ByteStream;
 use bytes::Bytes;
 use regex::Regex;
 
 use crate::auth;
 use crate::service::{MockRequest, MockResponse, MockService};
+
+/// A request body as the connector received it.
+enum RequestBody {
+    Buffered(Bytes),
+    Streaming(SdkBody),
+}
 
 struct ServiceRoute {
     pattern: Regex,
@@ -72,7 +80,7 @@ impl MockAwsClient {
 impl HttpConnector for MockAwsClient {
     fn call(
         &self,
-        request: aws_smithy_runtime_api::client::orchestrator::HttpRequest,
+        mut request: aws_smithy_runtime_api::client::orchestrator::HttpRequest,
     ) -> HttpConnectorFuture {
         let uri_string = request.uri().to_string();
         let routes = Arc::clone(&self.routes);
@@ -102,20 +110,30 @@ impl HttpConnector for MockAwsClient {
                 headers.insert(hn, hv);
             }
         }
-        let body_bytes = request
-            .body()
-            .bytes()
-            .map(Bytes::copy_from_slice)
-            .unwrap_or_default();
-
-        let mock_request = MockRequest {
-            method,
-            uri,
-            headers,
-            body: body_bytes,
+        // An in-memory body is copied as is. A streaming one ( for example
+        // `ByteStream::from_path` ) has no bytes to copy yet, so it is taken
+        // from the request and read to the end before the service sees it;
+        // copying `bytes()` alone would hand the service an empty body.
+        let body = match request.body().bytes() {
+            Some(bytes) => RequestBody::Buffered(Bytes::copy_from_slice(bytes)),
+            None => RequestBody::Streaming(request.take_body()),
         };
 
         HttpConnectorFuture::new(async move {
+            let body = match body {
+                RequestBody::Buffered(bytes) => bytes,
+                RequestBody::Streaming(body) => ByteStream::new(body)
+                    .collect()
+                    .await
+                    .map_err(|e| ConnectorError::io(Box::new(e)))?
+                    .into_bytes(),
+            };
+            let mock_request = MockRequest {
+                method,
+                uri,
+                headers,
+                body,
+            };
             let mock_response = service.handle(mock_request).await;
             Ok(mock_response_to_http(mock_response))
         })
@@ -166,4 +184,75 @@ fn not_implemented_response(
         StatusCode::try_from(501).unwrap(),
         SdkBody::from(body),
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use std::future::Future;
+    use std::pin::Pin;
+
+    use aws_smithy_runtime_api::client::orchestrator::HttpRequest;
+
+    use super::*;
+
+    /// Answers with the body it received.
+    struct Echo;
+
+    impl MockService for Echo {
+        fn service_name(&self) -> &str {
+            "echo"
+        }
+
+        fn url_patterns(&self) -> Vec<&str> {
+            vec![r"https?://echo\.example\.com"]
+        }
+
+        fn handle(
+            &self,
+            request: MockRequest,
+        ) -> Pin<Box<dyn Future<Output = MockResponse> + Send + '_>> {
+            Box::pin(async move {
+                MockResponse {
+                    status: 200,
+                    headers: http::HeaderMap::new(),
+                    body: request.body,
+                }
+            })
+        }
+    }
+
+    async fn echo(body: SdkBody) -> Bytes {
+        let client = MockAwsClient::new(vec![Arc::new(Echo)]);
+        let mut request = HttpRequest::new(body);
+        request.set_uri("https://echo.example.com/upload").unwrap();
+        let response = client.call(request).await.unwrap();
+        Bytes::copy_from_slice(response.body().bytes().unwrap())
+    }
+
+    #[tokio::test]
+    async fn buffered_body_reaches_the_service() {
+        assert_eq!(
+            echo(SdkBody::from("hello")).await,
+            Bytes::from_static(b"hello")
+        );
+    }
+
+    /// A streaming body ( here `ByteStream::from_path` ) has no bytes up
+    /// front; it used to reach the service empty.
+    #[tokio::test]
+    async fn streaming_body_reaches_the_service() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("payload");
+        let data: Vec<u8> = (0..200_000u32).map(|i| (i % 251) as u8).collect();
+        std::fs::write(&path, &data).unwrap();
+
+        let body = ByteStream::from_path(&path).await.unwrap().into_inner();
+        assert!(body.bytes().is_none(), "the body must be streaming");
+        assert_eq!(echo(body).await, Bytes::from(data));
+    }
+
+    #[tokio::test]
+    async fn empty_body_stays_empty() {
+        assert_eq!(echo(SdkBody::empty()).await, Bytes::new());
+    }
 }
