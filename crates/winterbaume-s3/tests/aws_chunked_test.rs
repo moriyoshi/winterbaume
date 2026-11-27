@@ -366,11 +366,8 @@ async fn plain_body_is_stored_unchanged() {
 
 /// The Rust SDK with a requested checksum, through the in-process client.
 /// With an in-memory body it sends the checksum as a header rather than
-/// `aws-chunked`; this guards that path against the decoder.
-///
-/// A streaming body cannot be used here: `MockAwsClient` copies only bodies
-/// whose bytes are already available, so a `ByteStream::from_path` upload
-/// reaches the service empty ( `mock-client-streaming-bodies` in `TODO.md` ).
+/// `aws-chunked`; this guards that path against the decoder. The streaming
+/// path, which the SDK frames, is covered in `streaming_upload_test.rs`.
 #[tokio::test]
 async fn sdk_upload_with_checksum_round_trips() {
     let mock = MockAws::builder().with_service(S3Service::new()).build();
