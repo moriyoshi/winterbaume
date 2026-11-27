@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.4.0 - 2026-11-27
+
+### Internal
+- Dependency-only release for `winterbaume-s3` v2.0.0 and `winterbaume-core` v0.3.2; no change to this crate's own code. `S3ControlService::with_s3_service` takes an `Arc<S3Service>`, so the new `winterbaume-s3` makes this a breaking release.
+
 ## v0.3.1 - 2026-11-25
 
 ### Internal

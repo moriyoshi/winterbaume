@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.4.0 - 2026-11-27
+
+### Added
+- `StsService::session_policy` and `StsState::session_policy`: the session policy of temporary credentials this service issued, looked up by access key ID. The service-level lookup searches every account and region (#85, #87).
+
+### Changed
+- `AssumeRole`, `AssumeRoleWithSAML` and `AssumeRoleWithWebIdentity` keep their `Policy` parameter with the issued credentials; it used to be dropped. STS itself enforces nothing, and the policy is not validated (#87).
+- Breaking: `AssumedRole` and `CallerSession` gain `session_policy`. The state-view field defaults to none and is omitted when absent, so existing snapshots still load (#87).
+
 ## v0.3.0 - 2026-11-25
 
 ### Added

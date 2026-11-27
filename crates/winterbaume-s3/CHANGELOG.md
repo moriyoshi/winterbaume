@@ -1,5 +1,20 @@
 # Changelog
 
+## v2.0.0 - 2026-11-27
+
+### Added
+- Opt-in enforcement of STS session policies: `S3Service::with_session_policy_enforcement` takes a `SessionPolicyLookup` that answers the session policy of the signing access key, and `S3Service::session_policy_enforcement` reports whether it is set. Object and listing requests signed with temporary credentials are then answered `403 AccessDenied` unless their session policy allows them, with AWS's wording for an explicit `Deny` and for a missing `Allow`. `DeleteObjects` is checked per key. Credentials without a session policy, and control-plane operations, are not checked. Off by default; `winterbaume-server --s3-enforce-session-policies` wires it to STS (#85, #87).
+
+### Fixed
+- `aws-chunked` request bodies are decoded before any handler runs, so `PutObject` and `UploadPart` store the data rather than the chunk framing and trailer. A 5000-byte upload from pyarrow used to read back as 5052 bytes. Unsigned and signed chunks are accepted, the decoded size is checked against `x-amz-decoded-content-length`, and trailing CRC32, CRC32C, CRC64NVME, SHA-1 and SHA-256 checksums are verified. A short body answers `400 IncompleteBody`, a checksum mismatch `400 BadDigest`, and unparseable framing `400 InvalidRequest` (#84, #86).
+
+### Changed
+- Breaking: `S3Error` gains `IncompleteBody`, `BadDigest` and `InvalidChunkedBody`. It has no `#[non_exhaustive]`, so exhaustive matches on it must handle them (#86).
+- New dependency: `aws-smithy-checksums`, for the trailing checksums (#86).
+
+### Tests
+- Rust SDK uploads from a file go through the in-process client, both unframed and `aws-chunked` with a checksum trailer (#88).
+
 ## v1.1.1 - 2026-11-25
 
 ### Internal
