@@ -2887,6 +2887,16 @@ Lakekeeper vends credentials with a session policy scoped to a table or warehous
 - **Fix.** An in-memory body is still copied; otherwise the body is taken from the request and collected with `ByteStream::collect` inside the connector future, so every service sees the full upload. A read error surfaces as a `ConnectorError::io`. `aws-smithy-types` gains `rt-tokio` as a core dev-dependency only, for `ByteStream::from_path` in tests.
 - **Verification.** Connector tests ( buffered, streaming from a 200 000-byte file, empty ) and an S3 test that uploads a 300 000-byte file with `ByteStream::from_path` and reads it back; both the streaming connector test and the S3 test fail on the old code ( the S3 object had `ContentLength` 0 ). The suites of core, S3, Glacier, EBS, Lambda and MediaStore Data pass.
 - **Interaction with #84.** The S3 test asks for `RequestChecksumCalculation::WhenRequired` so that the SDK sends the file unframed; with a checksum it uses `aws-chunked`, which only the #84 decoder handles. After #86 merged, a second S3 test uploads the same file with a CRC32 and a CRC64NVME checksum; the SDK then sends it `aws-chunked` ( recorded by a wrapping service ) and the decoder restores it byte for byte, so the decoder is now exercised end to end through the SDK. Both S3 tests fail on the old client. The `mock-client-streaming-bodies` item in `TODO.md` is marked done, and the S3 dossier and `aws_chunked_test.rs` no longer say the in-process client cannot stream.
+- **#48 Lambda execution, first slice.** `LambdaService::with_code_execution(LambdaExecutionConfig)`; server `--lambda-execute` / `WB_LAMBDA_EXECUTE` / `[lambda] execute`, plus `--lambda-node`. The crate previously kept no code at all; packages are now stored content-addressed by `CodeSha256` ( real digest and size ), travel in the snapshot, and `PublishVersion` freezes runtime, handler, timeout and environment with the version. `Invoke` on a `nodejs*` ZIP function runs one `node` process per invocation: the event goes in by file, the outcome comes back through `result.json`, stdout / stderr are log output only. The state lock is not held while the child runs; the child is killed on timeout and when the request is dropped; its environment is cleared of host credentials. The server passes its own address as `AWS_ENDPOINT_URL`. Every `Invoke` response carries `x-winterbaume-lambda-execution: executed | stub`, and a stub adds `x-winterbaume-lambda-stub-reason`. The code runs unsandboxed, which is why it is opt-in.
+
+### Verification
+
+- Each issue's own reproduction was run with the AWS CLI against a built `winterbaume-server` with both options on, and gave the expected output.
+- `fmt --check` and `clippy --all-targets --all-features -- -D warnings` are clean on `winterbaume-dynamodb`, `-dynamodb-redis`, `-eventbridge`, `-iam-rule-eval`, `-lambda`, `-s3`, `-server`, `-terraform`, `-tfstate-resource-models` and `-e2e-tests`; tests pass on those plus `winterbaume-iam` and `winterbaume-dynamodbstreams`.
+- Not run: the 28 ignored `terraform_cli_test` cases and the E2E suite other than the two new S3 lifecycle cases. The Lambda execution tests need a `node` binary ( `WINTERBAUME_TEST_NODE` or `PATH` ) and skip visibly without one; they ran on Node 26 only.
+- Shared-target-dir hazard seen by three agents: a doc-test step failed with `extern location for serde does not exist` while sibling agents were building into the same per-session target directory, and passed on rerun.
+
+Follow-ups are in `TODO.md` under Service-Specific Follow-Ups ( source tag "open-issue sweep" ).
 
 ## 2026-11-28 — Release harness checks the git identity before tagging
 
@@ -2895,3 +2905,109 @@ The 2026-11-27 `tag --execute` ran from a private clone ( `cargo release` refuse
 - **Fix.** `tag::verify_identity` runs whenever there are tags to create, in the dry run as well as `--execute`. It probes `git var GIT_COMMITTER_IDENT`, which applies the same strict ident lookup as `git tag` and reproduces its error text. For signed ssh tags it also requires `user.signingkey` ( a literal `ssh-…` / `key::` value, or a path that exists ) or `gpg.ssh.defaultKeyCommand`. Problems are reported together, with the keys to copy. `publish --tag`, `publish --all-in-one` and `batch` call it before the first upload, since their git writes follow an irreversible publish.
 - **Not checked.** It does not test-sign: that would write an object, and the dry run promises not to touch the repository. A key that exists but is not loaded in the agent, or a broken `gpg` program, still fails at `git tag -s`. That failure is harmless because tags are created before any push.
 - **Verification.** Ten unit tests on the pure `identity_problems` policy and `fatal_line`. An end-to-end dry run of the real binary in a fresh clone with `GIT_CONFIG_GLOBAL=/dev/null` covered no identity, ssh without a key, a missing key file, `--no-sign` and a literal key. `--execute` with no identity exited 1 and created no tags.
+
+## 2026-11-28 — Issue #48 / PR #57 reworked: Lambda execution in libkrun microVMs on the stock base images
+
+PR #57 ran Node.js ZIP functions in an unsandboxed host `node` process, through a home-made bootstrap. It is reworked on the same branch, rebased onto `main` as one commit with the rework on top.
+
+**Design.**
+- **`winterbaume-lambda`** defines the `LambdaExecutor` trait ( `prepare`, `invoke`, `retire` ), the stub reasons, `FunctionTarget`, `InvokeRequest` and `InvocationOutcome`, plus the shared pieces: the reserved environment, the START / END / REPORT framing and the ZIP unpacker. It refuses image functions and functions with layers itself.
+- **Code packages** moved from inline snapshot bytes to the service `BlobStore` ( `code/<hex sha256>` ), with `BlobBackedService`.
+- **The new crate `winterbaume-lambda-vm`** contains:
+  - `KrunExecutor`
+  - a per-environment Runtime API ( hyper )
+  - an OCI registry client ( reqwest, anonymous bearer flow ) and an OCI layout reader
+  - a layer unpacker with whiteouts and chroot-style path resolution
+  - the image cache and hard-link roots
+  - the VM helper, which loads libkrun with `libloading`
+  - the warm pool
+  - a fake helper for tests
+- **The server** gets a `lambda-vm` feature, a hidden `__lambda-vm-helper` first argument ( checked before the tokio runtime starts ), `--lambda-*` options and the `lambda-run-on-host-architecture` relaxation.
+
+**Spike findings** ( libkrun 1.19.8 built from source, libkrunfw 5.6.4, aarch64 Ubuntu 24.04 host with KVM ):
+- **libkrunfw version.** libkrun 1.19 loads `libkrunfw.so.5`, so libkrunfw 6.x does not fit it. Ubuntu packages neither; libkrun builds with plain `make` in a `rust:bookworm` container.
+- **TSI loopback works.** A guest `connect(127.0.0.1:P)` reaches a host listener. The Runtime API can therefore listen on host loopback, and `AWS_ENDPOINT_URL=http://127.0.0.1:<port>` works from inside the guest.
+- **Read-only root.** `krun_add_virtiofs3(KRUN_FS_ROOT_TAG, root, 0, true)` gives a read-only root: writes under `/var/task` fail with `EROFS`. The init mounts a tmpfs at `/dev/shm`, so `/tmp -> /dev/shm` is writable.
+- **No extra mounts.** The init mounts devtmpfs, proc, sysfs, cgroup2, devpts and `/dev/shm`, and nothing else; the images have no `mount` binary. `/var/task` therefore has to be part of the root, which is why each function gets a hard-link copy of the image. For `nodejs:22` that is about 14 700 entries, linked in about 0.1 s.
+- **Launch script.** `krun_fs_add_overlay_file` injects it into the root from memory, so concurrent VMs can share one root with different scripts.
+- **Exit status.** The helper process exits with the guest's exit status.
+- **Cold start.** Boot, Node.js runtime init and one invoke take about 0.9 s. Through the server and the AWS CLI a cold invoke takes about 1.1 s.
+- **`/next` Content-Type.** The Node.js native runtime client ( `rapid-client.node` ) segfaults when the `/next` response has no `Content-Type: application/json`. Docker shows the same, so it is the image's behaviour, not libkrun's.
+- **Never-settling promises.** A Node.js handler whose promise never settles on an idle event loop answers `null`, as on AWS. A timeout test needs a pending timer.
+- **Orphaned VMs.** `PR_SET_PDEATHSIG` is unsuitable for the helper, because it fires when the spawning *thread* exits. The helper instead watches `getppid()` from a thread that keeps running after `krun_start_enter`. A SIGKILLed server takes its VMs with it within about 0.5 s.
+
+**Verification.**
+- **`winterbaume-lambda` tests.** 17 handler-level execution tests run against a scripted in-process executor.
+- **`winterbaume-lambda-vm` tests.**
+  - 29 unit tests: Runtime API, OCI unpack / layout / fake registry, cache, launch script, runtime mapping.
+  - 12 end-to-end tests through `LambdaService` with the fake helper.
+  - 5 real-VM tests against images pulled from `public.ecr.aws` arm64: Node.js ESM / CommonJS / errors, a timeout, Python 3.13, and `provided.al2023` with a shell bootstrap.
+- **Server.** The server binary ran issue #48's repro through the AWS CLI, including an `sts:GetCallerIdentity` call from inside the function back to the emulator. Running an x86_64 function on the arm64 host gave the stub by default and ran with the relaxation.
+- **Gate.** clippy `-D warnings` and `fmt --check` are clean for `-lambda`, `-lambda-vm` and `-server`.
+
+**Not done.**
+- macOS arm64 is implemented but untested: helper entitlement signing, and libkrun / libkrunfw discovery under Homebrew.
+- There is no CI job with `/dev/kvm` and libkrun yet, so `vm_test.rs` skips in CI.
+- The remaining follow-ups are in `TODO.md` under `lambda-execution-follow-ups`.
+
+## 2026-11-28 — Lambda VM: libc-free guest agent, vsock transport, AWS endpoint, runtime matrix
+
+A follow-up to the libkrun rework entry above.
+
+**Transport.**
+- **No host TCP listener for functions any more.** The guest agent, new crate `crates/winterbaume-lambda-vm-agent`, listens on guest `127.0.0.1:9001` ( the Runtime API ) and `127.0.0.1:4566` ( `AWS_ENDPOINT_URL` ). It relays each connection to a vsock port; `krun_add_vsock_port` connects those ports to Unix sockets in a per-VM `0700` temporary directory.
+- **Building the agent.** It uses `no_std`, rustix 1.1.4 ( the `linux_raw` backend ) and origin 0.26 ( `origin-start` ), on stable Rust, and is about 6 KB, static, with no libc.
+  - **Version pin.** origin 0.26.2 does not build against rustix 1.1.5 or later, which made rustix's `runtime` module private. The agent therefore pins `rustix = "=1.1.4"`. It lives outside the main workspace, with its own lockfile and `.cargo/config.toml`.
+  - **Targets.** `*-unknown-none` cannot be used, because rustix needs `target_os = "linux"`. The agent targets `*-unknown-linux-gnu` and links with `rust-lld`.
+  - **Linker setting.** The linker must be set through `rustflags` ( `-C linker=rust-lld -C linker-flavor=ld.lld` ), not `linker =`. With `--target`, rustflags do not reach build scripts, which keep linking with the host's cc. With the native-arch `linker` key, rustix's build script fails to link.
+- **Start-up.** The launch script starts the agent as `ready=$(agent 9001:1000 4566:1001 &)`. The agent closes its stdout once every listener is bound, which ends the command substitution, so the agent never needs to `fork` or `exec`.
+- **TSI and guest listeners.** A guest listener on `127.0.0.1:P` is reached by guest connections even while TSI is on and a host process listens on the same port. The agent therefore works in both network modes.
+
+**Isolation.**
+- **Guest network.** Off by default: `krun_disable_implicit_vsock` + `krun_add_vsock(ctx, 0)` create the vsock device without TSI. `with_network(true)` / `--lambda-network` pass `KRUN_TSI_HIJACK_INET` instead.
+- **Verified in a VM:** the guest cannot reach `1.1.1.1:443` or the host's sshd on `127.0.0.1:22`, and the Runtime API stays reachable.
+
+**AWS endpoint.**
+- **`winterbaume_core::RequestDispatcher`.** `MockAws::dispatcher()` implements it. `MockAwsClient` now falls back to routing by the SigV4 credential scope of the `Authorization` header, as the server's router already did.
+- **`winterbaume_lambda_vm::AwsEndpoint`.** A handle connected after the mock environment or the server's router exists, because the executor is built first.
+- **Host rewriting.** The bridge rebuilds `https://<service>.<region>.amazonaws.com` from the credential scope. Before this, server mode read every function's call as `us-east-1`, because the host was `127.0.0.1`.
+- **Verified in a VM:** both the bundled JS SDK v3 ( `nodejs22.x` ) and boto3 ( `python3.13` ) call STS, S3 and DynamoDB in the test's own mock environment, and the test sees the function's writes. Neither needs a path-style setting for the IP endpoint.
+
+**Runtime matrix** ( `tests/vm_test.rs`, aarch64 host ): 24 runtimes.
+- Node.js 18–26
+- Python 3.9–3.14
+- Ruby 3.2–4.0
+- Java 8.al2, 11, 17, 21, 25
+- .NET 8 and 10
+- `provided.al2` and `provided.al2023`
+
+Java and .NET handlers are committed fixtures. `tests/fixtures/build.sh` rebuilds them in containers.
+
+The first run found three faults:
+- **Layer mtimes.** The unpacker dropped file modification times. The JVM's class data sharing archive ( `runtime.jsa` ) checks jar times, so Java 8.al2 to 21 died with "Unable to use shared archive". Java 25 happened not to check. mtimes are now kept. The cache layout carries a format version ( `cache::CACHE_FORMAT`, `<cache>/v2/` ), so images unpacked by an earlier build are not reused.
+- **.NET fixtures.**
+  - The managed .NET runtime loads `Amazon.Lambda.Core` even for a `Stream` handler, so the package must ship it.
+  - The runtime starts with the function's own `runtimeconfig.json`, so a net8.0 build exits 150 ( framework not found ) on the dotnet10 image. This is the same on AWS, so the fixtures are now per framework.
+- **Registry throttling.** Anonymous pulls from `public.ecr.aws` were throttled when three tests pulled at once, and four runtimes got the `image-unavailable` stub. The registry client now retries 429, 5xx and connection failures, with backoff that honours `Retry-After`.
+
+**Region of requests sent to a local address.** Through `winterbaume-server`, every request arrives at `127.0.0.1`. The Lambda crate read its region only from the URL host, so functions created with `--region eu-west-1` landed in `us-east-1`; their AWS calls then went to the wrong region as well.
+- **New helper.** `winterbaume_core::auth::extract_region` falls back to the SigV4 credential scope when the host is not an AWS endpoint, and Lambda uses it.
+- **Regression test.** `tests/local_endpoint_region_test.rs` in `winterbaume-lambda`.
+- **End to end.** Verified through the server: a function in `eu-west-1` wrote a DynamoDB item in `eu-west-1` through the vsock endpoint, and the CLI read it back.
+- **Still open.** About 218 service crates still call `extract_region_from_uri` alone, so the same fallback is missing across the server; tracked in `TODO.md`.
+
+**Executor in server builds.** `winterbaume-server` gets `lambda-vm` as a default feature. The dependency exists only for `cfg(any(target_os = "linux", all(target_os = "macos", target_arch = "aarch64")))`, and the server's `build.rs` derives `cfg(lambda_vm)` from feature plus target. x86_64 macOS and Windows release builds therefore compile without it, unchanged.
+
+**Embedded guest agent.** The guest agent is built into the binary:
+- **How it is built.** `winterbaume-lambda-vm`'s `build.rs` builds the agent crate with a nested `cargo build`, for `<host arch>-unknown-linux-gnu`, into `OUT_DIR`, then embeds it with `include_bytes!`. `WINTERBAUME_LAMBDA_VM_AGENT` names a prebuilt agent instead.
+- **Isolating the nested build.** It must clear the outer build's `RUSTFLAGS`, `CARGO_ENCODED_RUSTFLAGS`, `CARGO_TARGET_*_RUSTFLAGS` and `CARGO_PROFILE_*`. Otherwise they replace the agent's own `.cargo/config.toml` rustflags ( static, rust-lld ). `setup-rust-toolchain` in CI sets `RUSTFLAGS=-D warnings`.
+- **When it cannot be built.** A missing guest Rust target is a build warning, so plain source builds keep working. `WINTERBAUME_LAMBDA_VM_REQUIRE_AGENT=1` turns it into an error; the release workflow and CI set it.
+- **Run time.** The executor writes the embedded copy once to `<cache>/v2/agent/` when no agent is configured or found on disk. That covers stand-alone helpers, which do not carry it.
+- **Verified.** A default-feature server binary alone, with no agent file, ran a VM function.
+
+**macOS CI.** A new job, `lambda-vm-macos`, runs the fake-helper tests on `macos-15` and cross-builds the agent for aarch64 Linux. Before this, nothing compiled the crate on macOS before a release.
+
+## 2026-11-28: Lambda VM CI on macOS and the agent's rustflags
+
+- The image cache refuses case-insensitive file systems, and the macOS runner's default volume is one: every fake-helper test that opens a cache in a `tempfile` directory got `image-cache-unusable`. The `lambda-vm-macos` job now attaches a case-sensitive APFS sparse image at `/Volumes/wbcs` and sets `TMPDIR` to it. Keep the mount point short: the per-VM Unix sockets live directly under `temp_dir()`, and macOS caps socket paths at 104 bytes.
+- `RUSTFLAGS` in the environment replaces every `rustflags` key of `.cargo/config.toml` ( it is not merged ), so the agent's `-C linker=rust-lld -C linker-flavor=ld.lld` is lost and `cc` links in the C start-up files ( `duplicate symbol: _start` with origin ). The nested build in `winterbaume-lambda-vm`'s `build.rs` already strips it; the CI step that builds the agent directly now unsets it.

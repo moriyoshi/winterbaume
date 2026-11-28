@@ -53,6 +53,23 @@ Behaviour options (all off by default):
       --s3-enforce-session-policies
                              Answer 403 AccessDenied for S3 requests signed with
                              STS credentials whose session policy does not allow them
+      --lambda-execute       Run deployed function code on Invoke, in microVMs
+                             (requires: lambda-vm feature, libkrun)
+      --lambda-libkrun PATH  libkrun library, when the loader does not find it
+      --lambda-vm-helper PATH
+                             VM helper program; default: this binary
+      --lambda-agent PATH    Guest agent; default: next to this binary
+      --lambda-network       Give functions this server's network access
+      --lambda-image-cache-dir DIR
+                             Cache of pulled Lambda base images
+      --lambda-image-dir DIR Base images to use instead of pulling them
+      --lambda-offline       Never pull Lambda base images
+      --lambda-registry URL  Registry to pull base images from
+                             default: https://public.ecr.aws
+      --lambda-warm-ttl SECS Keep idle execution environments; default: 300
+      --lambda-max-vms N     Most microVMs at once; default: number of CPUs
+      --lambda-max-vms-per-function N
+                             Most microVMs at once for one function
 
 Relaxations (all off by default):
       --relax RULE           Accept a request AWS refuses, by rule name; repeat
@@ -77,6 +94,18 @@ Every option has a corresponding environment variable. Variables are applied aft
 | `WB_S3_ENFORCE_BUCKET_POLICIES` | `--s3-enforce-bucket-policies` |
 | `WB_S3_ENFORCE_SESSION_POLICIES` | `--s3-enforce-session-policies` |
 | `WB_RELAX` | `--relax` (comma-separated) |
+| `WB_LAMBDA_EXECUTE` | `--lambda-execute` |
+| `WB_LAMBDA_LIBKRUN` | `--lambda-libkrun` |
+| `WB_LAMBDA_VM_HELPER` | `--lambda-vm-helper` |
+| `WB_LAMBDA_VM_AGENT` | `--lambda-agent` |
+| `WB_LAMBDA_NETWORK` | `--lambda-network` |
+| `WB_LAMBDA_IMAGE_CACHE_DIR` | `--lambda-image-cache-dir` |
+| `WB_LAMBDA_IMAGE_DIR` | `--lambda-image-dir` |
+| `WB_LAMBDA_OFFLINE` | `--lambda-offline` |
+| `WB_LAMBDA_REGISTRY` | `--lambda-registry` |
+| `WB_LAMBDA_WARM_TTL` | `--lambda-warm-ttl` |
+| `WB_LAMBDA_MAX_VMS` | `--lambda-max-vms` |
+| `WB_LAMBDA_MAX_VMS_PER_FUNCTION` | `--lambda-max-vms-per-function` |
 
 **Configuration precedence:** CLI flags > environment variables > config file > built-in defaults.
 
@@ -112,6 +141,20 @@ vfs_dir = "/var/lib/winterbaume/blobs"
 enforce_bucket_policies = true
 # Optional: limit STS credentials to their session policy
 enforce_session_policies = true
+
+[lambda]
+# Optional: run deployed function code on Invoke, in microVMs
+execute         = true
+libkrun         = "/usr/local/lib64/libkrun.so.1"
+image_cache_dir = "/var/cache/winterbaume/lambda"
+# agent                = "/usr/local/libexec/winterbaume-lambda-vm-agent"
+# network              = false
+# image_dir            = "/srv/lambda-images"
+# offline              = false
+# registry             = "https://public.ecr.aws"
+# warm_ttl_secs        = 300
+# max_vms              = 8
+# max_vms_per_function = 4
 ```
 
 ```sh
@@ -267,7 +310,7 @@ When a backend option is set but the corresponding feature was not compiled in, 
 
 ## Opt-in behaviours
 
-By default the server authorises nothing: every request is allowed. An option makes it behave more like AWS when a test needs that.
+By default the server authorises nothing and executes nothing: every request is allowed, and `Invoke` answers with a placeholder. Two options make it behave more like AWS when a test needs that.
 
 ### `--s3-enforce-bucket-policies` — bucket policy enforcement
 
@@ -298,6 +341,75 @@ Enables `--s3-enforce-session-policies` / `WB_S3_ENFORCE_SESSION_POLICIES` / `[s
 
 In library mode, give the S3 service a `winterbaume_s3::SessionPolicyLookup`: `S3Service::new().with_session_policy_enforcement(lookup)`. `StsService::session_policy` answers the lookup for credentials an `StsService` issued.
 
+### `--lambda-execute` — Lambda function execution
+
+Enables `--lambda-execute` / `WB_LAMBDA_EXECUTE` / `[lambda] execute`. `Invoke` runs the deployed package in a [libkrun](https://github.com/containers/libkrun) microVM booted from the stock AWS Lambda base image of the function's runtime (`public.ecr.aws/lambda/nodejs:22`, `.../python:3.13`, `.../provided:al2023`, ...), and returns its result. The image's own runtime interface client runs the handler, so handler loading, the `context` object and the error documents (`Runtime.ImportModuleError`, `Runtime.HandlerNotFound`, ...) are those of AWS. The function's environment variables, `MemorySize` and `Timeout` apply, and errors are reported as AWS does (`X-Amz-Function-Error`, `LogType: Tail`).
+
+```sh
+./winterbaume-server --lambda-execute --lambda-libkrun /usr/local/lib64/libkrun.so.1
+```
+
+Requirements:
+
+- A server built for Linux (x86_64 or aarch64) or macOS on arm64. Release builds for these platforms include the executor, and so does `cargo build -p winterbaume-server` there (the default `lambda-vm` feature). libkrun is loaded at run time, so the build needs no system libraries.
+- libkrun 1.x and libkrunfw. Ubuntu does not package them. Install the [prebuilt libkrunfw](https://github.com/libkrun/libkrunfw/releases) and build libkrun with `make && sudo make install`. On macOS, libkrun is available from the `slp/krun` Homebrew tap. If the loader does not find the libraries, point `--lambda-libkrun` (and `LD_LIBRARY_PATH`) at them.
+- Hardware virtualisation:
+  - On Linux (x86_64 or aarch64), read and write access to `/dev/kvm`, for example through membership of the `kvm` group.
+  - On macOS (arm64 only), the server binary must carry the `com.apple.security.hypervisor` entitlement: `codesign -s - --entitlements hv.plist ./winterbaume-server`.
+- The guest agent, a static Linux binary of about 6 KB without libc, which relays the guest's ports to the host. It is built into the server binary:
+  - Release builds include it.
+  - A source build includes it when the Rust target for the guest is installed. On Linux that is the host's own target. On macOS it is `aarch64-unknown-linux-gnu` (`rustup target add aarch64-unknown-linux-gnu`). Without it, the build warns and the server looks for `winterbaume-lambda-vm-agent` next to itself.
+  - `--lambda-agent` uses another agent binary instead.
+- Network access to `public.ecr.aws` for the first invocation of each runtime, or images supplied through `--lambda-image-dir`. Pulled images are unpacked into `--lambda-image-cache-dir` (default `~/.cache/winterbaume/lambda`, or `~/Library/Caches/winterbaume/lambda` on macOS). The cache must be on a case-sensitive file system; on macOS that means a case-sensitive APFS volume.
+
+How functions run:
+
+- **Supported functions.** Any runtime AWS publishes a base image for, with a ZIP package uploaded inline (`ZipFile`).
+- **Root file system.** The function sees the base image, read-only, with its package at `/var/task`. `/tmp` is writable but not executable, and its size is half the VM's memory rather than `EphemeralStorage`.
+- **Memory and CPU.** The VM gets `MemorySize` plus 64 MB for the guest kernel, and one vCPU per 1769 MB, as Lambda allocates CPU.
+- **Warm reuse.** Execution environments are kept for `--lambda-warm-ttl` seconds and reused, so module-level state survives between invocations, as on AWS. An environment that failed or timed out is discarded, and so are all environments of a function that was updated or deleted.
+- **Calls back to the emulator.** Functions get `AWS_ENDPOINT_URL=http://127.0.0.1:4566` and placeholder credentials. The guest agent relays that port over vsock to a Unix socket on the host, where the server's own services answer. AWS SDK calls made inside a function therefore reach this server's state without the server's TCP port being involved. The SDKs use path-style S3 requests for an IP endpoint.
+- **Isolation.** The guest cannot see the host's files. By default it has no network either: the Lambda Runtime API and the AWS endpoint, both relayed by the guest agent to Unix sockets in a private directory, are all it can reach. `--lambda-network` gives functions the server's network instead; libkrun then proxies the guest's sockets through the server's process, with the server user's access.
+- **Invocation types.** `InvocationType: Event` returns 202 and runs the function once in the background, without retries or destinations. `DryRun` returns 204.
+- **Architecture.** A function whose `Architectures` differs from the host's is not run: libkrun cannot emulate another instruction set. The `lambda-run-on-host-architecture` relaxation runs such functions on the host's architecture instead.
+- **Not run.** Container image functions (`PackageType: Image`), functions with layers, packages referenced by `S3Bucket` / `S3Key`, and `InvokeWithResponseStream`. Function URLs and event source mappings do not invoke functions yet.
+
+Every `Invoke` response says whether the code ran, in the `x-winterbaume-lambda-execution` header: `executed`, or `stub` for the placeholder `{}` payload. The header is present whether or not execution is enabled, so a test can tell a placeholder from a handler that returned an empty object.
+
+A stub also carries `x-winterbaume-lambda-stub-reason`, one of:
+
+| Reason | Meaning |
+|---|---|
+| `execution-disabled` | `--lambda-execute` is off |
+| `no-code` | no stored package (S3 source, or state restored without its blobs) |
+| `invalid-package` | the ZIP cannot be unpacked |
+| `unsupported-runtime` | an unknown runtime |
+| `deprecated-runtime` | a runtime without a published image |
+| `image-function-unsupported` | a container image function |
+| `layers-unsupported` | a function with layers |
+| `architecture-unsupported` | another architecture than the host's |
+| `image-unavailable` | the base image cannot be pulled or found |
+| `image-cache-unusable` | the cache directory cannot be used |
+| `vm-helper-not-found` | the VM helper program is missing |
+| `vm-agent-not-found` | the guest agent is missing |
+| `libkrun-unavailable` | libkrun cannot be loaded |
+| `vm-unavailable` | no usable hypervisor |
+| `response-stream-unsupported` | `InvokeWithResponseStream` |
+
+In library mode, give the Lambda service an executor: `LambdaService::new().with_code_execution(Arc::new(KrunExecutor::new(KrunExecutorConfig::new())))`, from the `winterbaume-lambda-vm` crate. A test program then needs a VM helper: either the `winterbaume-lambda-vm-helper` binary, found next to the executable, on `PATH` or through `WB_LAMBDA_VM_HELPER`, or its own binary calling `winterbaume_lambda_vm::helper::helper_main()`. It also needs the guest agent, given with `KrunExecutorConfig::with_agent` or `WB_LAMBDA_VM_AGENT`.
+
+For functions' AWS calls to reach the services of the same mock environment, connect an endpoint once the environment exists:
+
+```rust
+let endpoint = AwsEndpoint::new();
+let executor = KrunExecutor::new(KrunExecutorConfig::new().with_aws_endpoint(endpoint.clone()));
+let mock = MockAws::builder()
+    .with_service(LambdaService::new().with_code_execution(Arc::new(executor)))
+    .with_service(S3Service::new())
+    .build();
+endpoint.connect(mock.dispatcher());
+```
+
 ## Relaxations
 
 By default a service refuses what AWS refuses. A relaxation names one request that AWS rejects but that the server accepts when you enable it, usually because a client was written against another AWS-compatible server. Each relaxation is enabled on its own, by name:
@@ -313,6 +425,7 @@ WB_RELAX=sts-assume-role-without-role-arn ./winterbaume-server
 
 | Rule | What it accepts | AWS behaviour |
 |---|---|---|
+| `lambda-run-on-host-architecture` | Running a function whose `Architectures` differs from the host's (`x86_64` on an arm64 host, or the reverse) on the host's architecture, with that architecture's base image. Interpreted code usually runs unchanged; native modules built for the configured architecture fail to load. The response carries `x-winterbaume-lambda-architecture-substituted: <configured>-><used>`. | (runs on the configured architecture) |
 | `sts-assume-role-without-role-arn` | `AssumeRole` without `RoleArn`, as MinIO accepts it. The server issues temporary credentials that keep the caller's own identity: `GetCallerIdentity` with them answers the caller's ARN. `RoleSessionName` is still required, and the response has no `AssumedRoleUser`. Clients such as Lakekeeper send this for `"flavor": "minio"` storage profiles. | `400 MissingParameter` |
 
 In library mode, pass the same set to the service: `StsService::new().with_relaxations(&Relaxations::new().with(winterbaume_sts::ASSUME_ROLE_WITHOUT_ROLE_ARN))`.

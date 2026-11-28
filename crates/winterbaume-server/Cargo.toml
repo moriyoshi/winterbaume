@@ -31,7 +31,7 @@ path = "src/main.rs"
 #       Links against a prebuilt libduckdb located via DUCKDB_LIB_DIR /
 #       DUCKDB_INCLUDE_DIR. Much faster to compile; used by CI.
 [features]
-default = ["backend-sqs-redis", "backend-dynamodb-redis", "backend-vfs-fs"]
+default = ["backend-sqs-redis", "backend-dynamodb-redis", "backend-vfs-fs", "lambda-vm"]
 # Redis-backed SQS queue storage (via winterbaume-sqs-redis).
 backend-sqs-redis = ["dep:winterbaume-sqs-redis"]
 # Redis-backed DynamoDB table/item storage (via winterbaume-dynamodb-redis).
@@ -50,6 +50,14 @@ backend-sqlengine-duckdb-bundled = [
     "backend-sqlengine-duckdb",
     "winterbaume-sqlengine-duckdb/bundled",
 ]
+# Run Lambda functions on `Invoke` ( `--lambda-execute` ) in libkrun
+# microVMs booted from the stock AWS Lambda base images. libkrun is loaded at
+# run time, so building needs no system libraries. Only Linux and macOS on
+# arm64 have it ( libkrun's platforms ); elsewhere the feature does nothing.
+lambda-vm = ["dep:winterbaume-lambda-vm"]
+
+[target.'cfg(any(target_os = "linux", all(target_os = "macos", target_arch = "aarch64")))'.dependencies]
+winterbaume-lambda-vm = { workspace = true, optional = true }
 
 [dependencies]
 winterbaume-accessanalyzer = { workspace = true }

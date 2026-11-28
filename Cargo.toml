@@ -159,6 +159,7 @@ members = [
     "crates/winterbaume-kms",
     "crates/winterbaume-lakeformation",
     "crates/winterbaume-lambda",
+    "crates/winterbaume-lambda-vm",
     "crates/winterbaume-lexmodelsv2",
     "crates/winterbaume-macie2",
     "crates/winterbaume-managedblockchain",
@@ -627,6 +628,7 @@ winterbaume-secretsmanager = { version = "0.2.3", path = "crates/winterbaume-sec
 winterbaume-cloudwatchlogs = { version = "0.2.3", path = "crates/winterbaume-cloudwatchlogs" }
 winterbaume-sns = { version = "0.2.3", path = "crates/winterbaume-sns" }
 winterbaume-lambda = { version = "3.0.1", path = "crates/winterbaume-lambda" }
+winterbaume-lambda-vm = { version = "0.1.0", path = "crates/winterbaume-lambda-vm" }
 winterbaume-ecr = { version = "0.2.3", path = "crates/winterbaume-ecr" }
 winterbaume-eventbridge = { version = "0.3.1", path = "crates/winterbaume-eventbridge" }
 winterbaume-sfn = { version = "0.2.3", path = "crates/winterbaume-sfn" }
@@ -1075,6 +1077,8 @@ x509-parser = "0.16"
 rand = "0.9"
 aes-gcm = "0.10"
 ciborium = "0.2"
+tempfile = "3"
+zip = { version = "6", default-features = false, features = ["deflate"] }
 redis = { version = "0.27", features = ["tokio-comp", "aio", "connection-manager"] }
 
 # ---------------------------------------------------------------------------

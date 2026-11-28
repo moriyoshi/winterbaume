@@ -1,0 +1,31 @@
+[package]
+name = "winterbaume-lambda-vm-agent"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+repository = "https://github.com/moriyoshi/winterbaume"
+description = "Guest agent of winterbaume-lambda-vm: relays guest TCP ports to host vsock ports, without libc"
+publish = false
+
+# Built for the guest only, apart from the main workspace: it is `no_std`,
+# brings its own program start-up and links statically with rust-lld.
+#
+#   cd crates/winterbaume-lambda-vm-agent
+#   cargo build --release --target aarch64-unknown-linux-gnu   # or x86_64-unknown-linux-gnu
+[workspace]
+
+[dependencies]
+# rustix's linux_raw backend makes the system calls directly. origin 0.26
+# uses rustix's runtime module, which rustix made private after 1.1.4.
+rustix = { version = "=1.1.4", default-features = false, features = ["net", "event", "stdio"] }
+origin = { version = "0.26", default-features = false, features = ["origin-start"] }
+
+[profile.release]
+panic = "abort"
+opt-level = "s"
+lto = true
+codegen-units = 1
+strip = true
+
+[profile.dev]
+panic = "abort"

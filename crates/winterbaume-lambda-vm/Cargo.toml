@@ -1,0 +1,70 @@
+[package]
+name = "winterbaume-lambda-vm"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords = ["aws", "mock", "testing", "lambda", "microvm"]
+readme = "README.md"
+description = "Runs Lambda functions for winterbaume in libkrun microVMs booted from the stock AWS Lambda base images"
+
+[features]
+# Builds `winterbaume-lambda-vm-fake-helper`, a stand-in for the VM helper
+# that plays a Lambda runtime on the host, for tests without a hypervisor.
+fake-helper = []
+
+[dependencies]
+winterbaume-lambda = { workspace = true }
+winterbaume-core = { workspace = true }
+tempfile = { workspace = true }
+tokio = { workspace = true }
+bytes = { workspace = true }
+http = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+sha2 = { workspace = true }
+base64 = { workspace = true }
+thiserror = { workspace = true }
+hyper = { version = "1", features = ["server", "http1"] }
+hyper-util = { version = "0.1", features = ["tokio"] }
+http-body-util = "0.1"
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "stream"] }
+futures-util = { version = "0.3", default-features = false, features = ["std"] }
+tar = "0.4"
+flate2 = "1"
+libloading = "0.8"
+libc = "0.2"
+
+[dev-dependencies]
+tempfile = { workspace = true }
+zip = { workspace = true }
+aws-config = { workspace = true }
+aws-sdk-lambda = { workspace = true }
+winterbaume-sts = { workspace = true }
+winterbaume-s3 = { workspace = true }
+winterbaume-dynamodb = { workspace = true }
+aws-sdk-s3 = { workspace = true }
+aws-sdk-dynamodb = { workspace = true }
+aws-smithy-runtime-api = { workspace = true }
+aws-smithy-types = { workspace = true }
+hyper = { version = "1", features = ["server", "http1"] }
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[[bin]]
+name = "winterbaume-lambda-vm-helper"
+path = "src/bin/helper.rs"
+
+[[bin]]
+name = "winterbaume-lambda-vm-fake-helper"
+path = "src/bin/fake_helper.rs"
+required-features = ["fake-helper"]
+
+[[test]]
+name = "fake_vm_test"
+required-features = ["fake-helper"]
+
+[lints]
+workspace = true

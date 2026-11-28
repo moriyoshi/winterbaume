@@ -28,6 +28,15 @@ impl MockAws {
         SharedHttpClient::new(self.client.clone())
     }
 
+    /// A [`RequestDispatcher`](crate::RequestDispatcher) over this
+    /// environment's services, for serving requests that do not come through
+    /// [`Self::http_client`].  Requests addressed to something other than an
+    /// AWS endpoint are routed by the SigV4 credential scope of their
+    /// `Authorization` header.
+    pub fn dispatcher(&self) -> Arc<dyn crate::RequestDispatcher> {
+        Arc::new(self.client.clone())
+    }
+
     /// Returns a mock credentials provider.
     pub fn credentials_provider(&self) -> SharedCredentialsProvider {
         SharedCredentialsProvider::new(Credentials::new(

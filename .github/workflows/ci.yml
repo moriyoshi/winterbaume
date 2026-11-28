@@ -245,6 +245,24 @@ jobs:
       - uses: ./.github/actions/setup-duckdb
       - run: cargo test --workspace --exclude winterbaume-sqlengine-duckdb --no-fail-fast
       - run: cargo test -p winterbaume-sqlengine-duckdb --no-default-features --no-fail-fast
+      # The Lambda microVM executor end to end, with the fake VM helper in
+      # place of libkrun ( the real-VM tests skip without WB_LAMBDA_VM_TEST ).
+      - run: cargo test -p winterbaume-lambda-vm --features fake-helper --no-fail-fast
+        env:
+          # The guest agent must get embedded ( built by the crate's build script ).
+          WINTERBAUME_LAMBDA_VM_REQUIRE_AGENT: "1"
+      # The guest agent is a separate, libc-free crate outside the workspace.
+      - name: Build and lint the Lambda VM guest agent
+        working-directory: crates/winterbaume-lambda-vm-agent
+        # RUSTFLAGS would replace the rustflags of the agent's own
+        # configuration, which link it without C start-up files; clippy
+        # denies warnings itself.
+        run: |
+          unset RUSTFLAGS
+          rustup target add x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu
+          cargo clippy --release --target x86_64-unknown-linux-gnu -- -D warnings
+          cargo build --release --target x86_64-unknown-linux-gnu
+          cargo build --release --target aarch64-unknown-linux-gnu
       - run: echo "${{ needs.fingerprint.outputs.hash }}" > "$RUNNER_TEMP/ci-pass-marker"
       - name: Record the pass marker
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
@@ -253,6 +271,39 @@ jobs:
           path: ${{ runner.temp }}/ci-pass-marker
           retention-days: 30
           overwrite: true
+
+  # The Lambda microVM executor is built into macOS arm64 server releases,
+  # and nothing else compiles it on macOS. The fake VM helper needs no
+  # hypervisor; the guest agent is cross-built for aarch64 Linux and embedded.
+  lambda-vm-macos:
+    name: Lambda VM (macOS arm64)
+    runs-on: macos-15
+    needs:
+      - changes
+    if: |
+      !failure() && !cancelled() && (
+        github.event_name != 'push' ||
+        needs.changes.outputs.code == 'true'
+      )
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: actions-rust-lang/setup-rust-toolchain@150fca883cd4034361b621bd4e6a9d34e5143606
+      - uses: mozilla-actions/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad  # v0.0.9
+      - run: rustup target add aarch64-unknown-linux-gnu
+      # The image cache refuses case-insensitive file systems, which the
+      # runner's default volume is: the tests' temporary directories ( and so
+      # their caches ) go on a case-sensitive APFS volume.
+      - name: Mount a case-sensitive volume for temporary files
+        run: |
+          hdiutil create -size 4g -type SPARSE -fs "Case-sensitive APFS" \
+            -volname wbcs "$RUNNER_TEMP/wbcs.sparseimage"
+          hdiutil attach -nobrowse -mountpoint /Volumes/wbcs "$RUNNER_TEMP/wbcs.sparseimage"
+      - run: cargo test -p winterbaume-lambda-vm --features fake-helper --no-fail-fast
+        env:
+          WINTERBAUME_LAMBDA_VM_REQUIRE_AGENT: "1"
+          TMPDIR: /Volumes/wbcs
 
   examples:
     name: Examples

@@ -75,6 +75,40 @@ impl MockAwsClient {
             .find(|r| r.service.service_name() == name)
             .map(|r| Arc::clone(&r.service))
     }
+
+    /// The service for a request: by URL pattern, then by the service name
+    /// in the host, then by the SigV4 credential scope of the
+    /// `Authorization` header ( for requests sent to an address that is not
+    /// an AWS endpoint ).
+    fn find_service(
+        routes: &[ServiceRoute],
+        uri: &str,
+        headers: &http::HeaderMap,
+    ) -> Option<Arc<dyn MockService>> {
+        Self::find_service_by_url(routes, uri)
+            .or_else(|| {
+                let service_name = auth::extract_service_from_uri(uri)?;
+                Self::find_service_by_name(routes, &service_name)
+            })
+            .or_else(|| {
+                let service_name = auth::extract_service_from_headers(headers)?;
+                Self::find_service_by_name(routes, &service_name)
+            })
+    }
+}
+
+impl crate::dispatch::RequestDispatcher for MockAwsClient {
+    fn dispatch(
+        &self,
+        request: MockRequest,
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = MockResponse> + Send + '_>> {
+        Box::pin(async move {
+            match Self::find_service(&self.routes, &request.uri, &request.headers) {
+                Some(service) => service.handle(request).await,
+                None => crate::dispatch::unknown_service_response(&request.uri),
+            }
+        })
+    }
 }
 
 impl HttpConnector for MockAwsClient {
@@ -84,19 +118,6 @@ impl HttpConnector for MockAwsClient {
     ) -> HttpConnectorFuture {
         let uri_string = request.uri().to_string();
         let routes = Arc::clone(&self.routes);
-
-        // Try URL pattern routing first, then fall back to URI-based service extraction
-        let service = Self::find_service_by_url(&routes, &uri_string).or_else(|| {
-            let service_name = auth::extract_service_from_uri(&uri_string)?;
-            Self::find_service_by_name(&routes, &service_name)
-        });
-
-        let service = match service {
-            Some(s) => s,
-            None => {
-                return HttpConnectorFuture::ready(Ok(not_implemented_response(&uri_string)));
-            }
-        };
 
         // Extract request parts into MockRequest
         let method = request.method().to_string();
@@ -110,6 +131,13 @@ impl HttpConnector for MockAwsClient {
                 headers.insert(hn, hv);
             }
         }
+
+        let service = match Self::find_service(&routes, &uri, &headers) {
+            Some(s) => s,
+            None => {
+                return HttpConnectorFuture::ready(Ok(not_implemented_response(&uri)));
+            }
+        };
         // An in-memory body is copied as is. A streaming one ( for example
         // `ByteStream::from_path` ) has no bytes to copy yet, so it is taken
         // from the request and read to the end before the service sees it;
