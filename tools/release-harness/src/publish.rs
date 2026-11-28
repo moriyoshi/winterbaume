@@ -187,6 +187,13 @@ pub fn run(cargo: &CargoExe, args: &PublishArgs) -> Result<ExitCode, Error> {
         assert_manifests_match_plan(&groups, &all_publishable)?;
         warn_if_not_on_release_branch(&root, args)?;
     }
+    // Both modes write commits or tags once the crates are on crates.io for
+    // good. Without a git identity that half fails after the irreversible
+    // one, so find out now. `--tag` always signs; `--all-in-one` follows
+    // `--sign`.
+    if args.tag || args.all_in_one {
+        crate::tag::verify_identity(&root, args.tag || args.sign).map_err(Box::new)?;
+    }
     println!();
 
     for (version, entries) in &groups {
@@ -406,6 +413,8 @@ pub fn run_batch(cargo: &CargoExe, args: &crate::BatchArgs) -> Result<ExitCode, 
     let order = topo_sort(&meta, &members)?;
     eprintln!("workspace root: {}", root.display());
     eprintln!("publishable crates: {}", order.len());
+    // `batch` commits and tags every chunk after publishing it; check git can.
+    crate::tag::verify_identity(&root, args.sign).map_err(Box::new)?;
 
     let outcome = batch::run_chunked(BatchOptions {
         cargo,
