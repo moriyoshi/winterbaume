@@ -35,6 +35,33 @@ pub struct LambdaState {
     pub empty_tags: HashMap<String, String>,
     /// Durable executions keyed by execution ARN.
     pub durable_executions: HashMap<String, DurableExecution>,
+    /// Base64 SHA-256s of the uploaded ZIP deployment packages, the same
+    /// value functions and published versions carry as `code_sha256`.  The
+    /// bytes live in the service's blob store; only packages still referenced
+    /// by a function or version are kept.
+    pub code_packages: std::collections::BTreeSet<String>,
+}
+
+/// Everything `Invoke` needs to run one function version locally, cloned out
+/// of the state so that no lock is held while the code runs.
+#[derive(Debug, Clone)]
+pub struct ExecutionTarget {
+    pub function_name: String,
+    /// Unqualified function ARN.
+    pub function_arn: String,
+    pub region: String,
+    pub runtime: String,
+    pub handler: String,
+    pub memory_size: i32,
+    pub timeout: i32,
+    pub environment: HashMap<String, String>,
+    pub code_sha256: String,
+    /// Whether a deployment package is stored under `code_sha256`.
+    pub has_code: bool,
+    pub package_type: String,
+    pub architecture: String,
+    pub layers: Vec<String>,
+    pub log_group: String,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -335,10 +362,17 @@ impl LambdaState {
         Ok(self.functions.get(&resolved).unwrap())
     }
 
+    /// Replace a function's code.
+    ///
+    /// `package` is the uploaded ZIP archive with its real base64 SHA-256
+    /// when the request carried `ZipFile`.  Without it ( S3 or image sources,
+    /// which are not fetched ) the function gets a fresh mock digest and no
+    /// stored code.
     pub fn update_function_code(
         &mut self,
         name: &str,
         expected_revision_id: Option<&str>,
+        package: Option<(String, i64)>,
     ) -> Result<&LambdaFunction, LambdaError> {
         let resolved = self.resolve_name(name);
         let func = self
@@ -352,11 +386,104 @@ impl LambdaState {
             return Err(LambdaError::PreconditionFailed);
         }
 
-        func.code_sha256 = mock_code_sha256(&uuid::Uuid::new_v4().to_string());
+        match package {
+            Some((sha256, size)) => {
+                func.code_sha256 = sha256.clone();
+                func.code_size = size;
+                self.code_packages.insert(sha256);
+            }
+            None => {
+                func.code_sha256 = mock_code_sha256(&uuid::Uuid::new_v4().to_string());
+            }
+        }
         func.last_modified = Utc::now();
         func.revision_id = uuid::Uuid::new_v4().to_string();
 
         Ok(self.functions.get(&resolved).unwrap())
+    }
+
+    /// Record that the package with base64 SHA-256 `sha256` is stored.
+    pub fn put_code_package(&mut self, sha256: &str) {
+        self.code_packages.insert(sha256.to_string());
+    }
+
+    /// Forget packages that no function or published version refers to any
+    /// more, and return their digests so that the caller can delete them
+    /// from the blob store.
+    pub fn prune_code_packages(&mut self) -> Vec<String> {
+        let functions = &self.functions;
+        let (keep, drop): (std::collections::BTreeSet<String>, _) =
+            std::mem::take(&mut self.code_packages)
+                .into_iter()
+                .partition(|sha256| {
+                    functions.values().any(|f| {
+                        f.code_sha256 == *sha256
+                            || f.versions.iter().any(|v| v.code_sha256 == *sha256)
+                    })
+                });
+        self.code_packages = keep;
+        drop.into_iter().collect()
+    }
+
+    /// Collect what is needed to run `version` of a function, as resolved by
+    /// [`Self::resolve_qualifier`].
+    ///
+    /// A published version runs the code and the configuration frozen by
+    /// `PublishVersion`; `$LATEST` runs the current ones.  Returns `None`
+    /// when the function or version is unknown; `has_code` says whether a
+    /// deployment package is stored for it ( not for S3 or image sources ).
+    pub fn execution_target(&self, function_name: &str, version: &str) -> Option<ExecutionTarget> {
+        let func = self.functions.get(&self.resolve_name(function_name))?;
+        let mut target = ExecutionTarget {
+            function_name: func.function_name.clone(),
+            function_arn: func.function_arn.clone(),
+            region: func
+                .function_arn
+                .split(':')
+                .nth(3)
+                .filter(|r| !r.is_empty())
+                .unwrap_or("us-east-1")
+                .to_string(),
+            runtime: func.runtime.clone(),
+            handler: func.handler.clone(),
+            memory_size: func.memory_size,
+            timeout: func.timeout,
+            environment: func.environment.clone(),
+            code_sha256: func.code_sha256.clone(),
+            has_code: false,
+            package_type: func.settings.effective_package_type().to_string(),
+            architecture: func
+                .settings
+                .effective_architectures()
+                .into_iter()
+                .next()
+                .unwrap_or_else(|| crate::types::DEFAULT_ARCHITECTURE.to_string()),
+            layers: func.settings.layers.iter().map(|l| l.arn.clone()).collect(),
+            log_group: func
+                .settings
+                .effective_logging_config(&func.function_name)
+                .log_group
+                .unwrap_or_else(|| format!("/aws/lambda/{}", func.function_name)),
+        };
+        if version != "$LATEST" {
+            let published = func.versions.iter().find(|v| v.version == version)?;
+            target.code_sha256 = published.code_sha256.clone();
+            let settings = &published.settings;
+            target.package_type = settings.effective_package_type().to_string();
+            if let Some(arch) = settings.effective_architectures().into_iter().next() {
+                target.architecture = arch;
+            }
+            target.layers = settings.layers.iter().map(|l| l.arn.clone()).collect();
+            if let Some(config) = &published.config {
+                target.runtime = config.runtime.clone();
+                target.handler = config.handler.clone();
+                target.memory_size = config.memory_size;
+                target.timeout = config.timeout;
+                target.environment = config.environment.clone();
+            }
+        }
+        target.has_code = self.code_packages.contains(&target.code_sha256);
+        Some(target)
     }
 
     // ========== Alias operations ==========
@@ -1278,6 +1405,13 @@ impl LambdaState {
             code_size: func.code_size,
             created_at: Utc::now(),
             settings: func.settings.clone(),
+            config: Some(FunctionVersionConfig {
+                runtime: func.runtime.clone(),
+                handler: func.handler.clone(),
+                memory_size: func.memory_size,
+                timeout: func.timeout,
+                environment: func.environment.clone(),
+            }),
         };
         func.versions.push(fv);
 

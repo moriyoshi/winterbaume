@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- Overridden by build.sh: net8.0 for dotnet8, net10.0 for dotnet10. -->
+    <TargetFramework>net8.0</TargetFramework>
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <AssemblyName>Hello</AssemblyName>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- The managed runtime loads it even for a Stream handler. -->
+    <PackageReference Include="Amazon.Lambda.Core" Version="2.5.0" />
+  </ItemGroup>
+</Project>

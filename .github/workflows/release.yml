@@ -170,6 +170,18 @@ jobs:
       - name: Install dependencies
         run: |
           ${{ matrix.packages_install }}
+      # Linux and Apple-silicon server builds embed the Lambda VM guest agent,
+      # a static Linux binary built by winterbaume-lambda-vm's build script
+      # for the host's architecture. macOS builds it for aarch64 Linux, which
+      # needs that Rust target; a release must not ship without the agent.
+      - name: Prepare the Lambda VM guest agent build
+        if: ${{ contains(join(matrix.targets, ','), 'linux') || contains(join(matrix.targets, ','), 'aarch64-apple-darwin') }}
+        shell: bash
+        run: |
+          if [[ "${{ join(matrix.targets, ',') }}" == *aarch64-apple-darwin* ]]; then
+            rustup target add aarch64-unknown-linux-gnu
+          fi
+          echo "WINTERBAUME_LAMBDA_VM_REQUIRE_AGENT=1" >> "$GITHUB_ENV"
       - name: Build artifacts
         run: |
           dist build ${{ needs.plan.outputs.tag-flag }} --print=linkage --allow-dirty --output-format=json ${{ matrix.dist_args }} > dist-manifest.json

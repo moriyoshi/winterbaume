@@ -57,6 +57,23 @@ Blob `@httpPayload` members in Lambda:
 Parity rule for winterbaume: a blob `@httpPayload` member must be modelled as raw bytes (`bytes::Bytes`) and **must never be run through `std::str::from_utf8`**. UTF-8-validating the body rejects any non-UTF-8 invocation payload (protobuf, msgpack, gzip, an image, …) with a spurious `400` before the handler runs — the same defect class as S3 `UploadPart`. The fix is in the shared generator (`tools/smithy-codegen/src/gen_serializers.rs`), guarded by the `payload_semantics_tests::http_payload_blobs_are_not_utf8_validated` backstop. Winterbaume's `Invoke` handler currently ignores the payload, so this was latent rather than reported, but the contract still holds. See [GitHub issue #12](https://github.com/moriyoshi/winterbaume/issues/12) for the S3 report that surfaced the shared root cause.
 
 
+### Code execution (`Invoke`)
+
+Opt-in: `LambdaService::with_code_execution(Arc<dyn LambdaExecutor>)`. The executor that ships is `winterbaume_lambda_vm::KrunExecutor`, which the server enables with `--lambda-execute` when built with the `lambda-vm` feature.
+
+- **Split.** The service validates the request and refuses what no executor can run. That covers `PackageType: Image`, layers, and a version with no stored package; each gets a stub with its reason. It then releases the state lock and calls `prepare` / `invoke`. Everything about running the code lives behind the trait.
+- **Packages.** ZIP packages live in the service's `BlobStore`, under `code/<hex sha256>`. State keeps only the set of stored digests. Snapshots carry the digests; `BlobBackedService` exports the archives. A plain `restore` drops digests whose blob is missing.
+- **Base images.** `KrunExecutor` boots the stock `public.ecr.aws/lambda/<runtime>` base image. winterbaume serves the Lambda Runtime API itself, on one loopback listener per execution environment, so the image's own runtime interface client produces AWS's handler loading and error documents.
+- **`/next` responses need `Content-Type: application/json`.** Without it the Node.js native runtime client segfaults, under Docker too.
+- **Timing.** `Lambda-Runtime-Deadline-Ms` is epoch milliseconds. The function timeout starts when the runtime picks the invocation up; until then the environment is initialising.
+- **Node.js and settled promises.** A handler whose promise never settles on an idle event loop makes the Node.js runtime answer `null` (HTTP 200, no function error), as on AWS. Only a busy event loop reaches `Sandbox.Timedout`.
+- **Read-only root.** The guest root is a hard-link copy of the image with the package at `/var/task`, mounted read-only through virtio-fs; `/tmp` is a symlink to the guest's `/dev/shm` tmpfs. libkrun's init mounts no extra virtio-fs tags, and the images have no `mount`, so `/var/task` cannot be a second device.
+- **Transport.** No host TCP listener. A libc-free guest agent ( `crates/winterbaume-lambda-vm-agent`, rustix + origin, about 6 KB ) listens on guest `127.0.0.1:9001`, the Runtime API, and `127.0.0.1:4566`, the AWS endpoint. It relays both over vsock; libkrun connects the vsock ports to Unix sockets in a per-VM `0700` directory.
+- **Guest network.** Off by default: the vsock device is created without TSI ( `krun_disable_implicit_vsock` + `krun_add_vsock(ctx, 0)` ). `with_network(true)` adds `KRUN_TSI_HIJACK_INET`. Under TSI, guest-local listeners still win over host ones for `127.0.0.1`, so the agent works in both modes.
+- **AWS endpoint.** It uses a `winterbaume_core::RequestDispatcher`: `MockAws::dispatcher()` in library mode, the server's router in server mode. The bridge rebuilds the AWS endpoint host from the SigV4 credential scope, so services see the right region. The bundled JS SDK v3 and boto3 use path-style S3 requests for the IP endpoint without any setting.
+- **Environment.** It travels in a launch script, which libkrun overlays in memory (`krun_fs_add_overlay_file`), not on the kernel command line, which is limited to about 2 KB.
+- **Architecture.** Functions whose `Architectures` differs from the host's get `architecture-unsupported`, unless the `lambda-run-on-host-architecture` relaxation is enabled.
+
 ## Resource Model
 
 | Resource | Identifiers | Lifecycle operations | Other operations | Documentation cue |

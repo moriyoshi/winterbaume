@@ -1,5 +1,6 @@
 pub mod auth;
 pub mod blob_store;
+pub mod dispatch;
 pub mod mock_aws;
 pub mod mock_client;
 pub mod protocol;
@@ -12,6 +13,7 @@ pub mod views;
 #[cfg(feature = "smithy-mocks")]
 pub use aws_smithy_mocks;
 pub use blob_store::{BlobStore, BlobStoreMap};
+pub use dispatch::RequestDispatcher;
 pub use mock_aws::MockAws;
 pub use mock_client::MockAwsClient;
 pub use protocol::{

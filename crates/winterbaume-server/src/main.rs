@@ -86,6 +86,53 @@ struct ConfigFile {
     s3: Option<S3Config>,
     /// Relaxations to enable, by name ( see [`known_relaxations`] ).
     relax: Option<Vec<String>>,
+    lambda: Option<LambdaConfig>,
+}
+
+/// `[lambda]` section of the config file.
+#[derive(Debug, Default, Deserialize)]
+struct LambdaConfig {
+    /// Run deployed function code on `Invoke`, in microVMs. Off by default.
+    execute: Option<bool>,
+    /// VM helper program. Defaults to this server binary.
+    vm_helper: Option<String>,
+    /// Path of libkrun, when the dynamic loader does not find it.
+    libkrun: Option<String>,
+    /// Cache directory for pulled base images.
+    image_cache_dir: Option<String>,
+    /// Directory of base images to use instead of pulling them.
+    image_dir: Option<String>,
+    /// Never pull base images.
+    offline: Option<bool>,
+    /// Registry to pull base images from ( a `public.ecr.aws` mirror ).
+    registry: Option<String>,
+    /// Seconds an idle execution environment is kept for reuse.
+    warm_ttl_secs: Option<u64>,
+    /// Most microVMs running at once.
+    max_vms: Option<usize>,
+    /// Most microVMs running at once for one function.
+    max_vms_per_function: Option<usize>,
+    /// Give functions this server's network. Off by default.
+    network: Option<bool>,
+    /// Guest agent binary.
+    agent: Option<String>,
+}
+
+/// Resolved Lambda execution options.
+#[derive(Debug, Clone, Default)]
+struct LambdaOptions {
+    execute: bool,
+    vm_helper: Option<String>,
+    libkrun: Option<String>,
+    image_cache_dir: Option<String>,
+    image_dir: Option<String>,
+    offline: bool,
+    registry: Option<String>,
+    warm_ttl_secs: Option<u64>,
+    max_vms: Option<usize>,
+    max_vms_per_function: Option<usize>,
+    network: bool,
+    agent: Option<String>,
 }
 
 /// `[s3]` section of the config file.
@@ -137,6 +184,28 @@ struct BehaviourOptions {
     s3_enforce_session_policies: bool,
     /// Requests AWS refuses that services should accept anyway.
     relaxations: Relaxations,
+    /// Running deployed Lambda function code on `Invoke`.
+    lambda: LambdaOptions,
+    /// Where executed functions' AWS SDK calls go: this server's services,
+    /// connected once the router exists.
+    #[cfg(lambda_vm)]
+    lambda_endpoint: winterbaume_lambda_vm::AwsEndpoint,
+}
+
+/// Executed Lambda functions' AWS calls are routed like this server's own
+/// requests.
+impl winterbaume_core::RequestDispatcher for Router {
+    fn dispatch(
+        &self,
+        request: MockRequest,
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = MockResponse> + Send + '_>> {
+        Box::pin(async move {
+            match self.find_service(&request.uri, &request.headers) {
+                Some(service) => service.handle(request).await,
+                None => winterbaume_core::dispatch::unknown_service_response(&request.uri),
+            }
+        })
+    }
 }
 
 /// Backs S3 session policy enforcement with the credentials this server's
@@ -155,7 +224,11 @@ impl winterbaume_s3::SessionPolicyLookup for StsSessionPolicies {
 /// Every relaxation a service registered by this server knows, in the order
 /// `--help` lists them.
 fn known_relaxations() -> Vec<Relaxation> {
-    [winterbaume_sts::RELAXATIONS].concat()
+    [
+        winterbaume_sts::RELAXATIONS,
+        winterbaume_lambda::RELAXATIONS,
+    ]
+    .concat()
 }
 
 /// Backend selection options.  Fields are always present; features gate whether
@@ -734,7 +807,15 @@ async fn register_all_services(
     let kafka = Arc::new(winterbaume_kafka::KafkaService::new());
     let kinesis = Arc::new(winterbaume_kinesis::KinesisService::new());
     let kms = Arc::new(winterbaume_kms::KmsService::new());
-    let lambda = Arc::new(winterbaume_lambda::LambdaService::new());
+    let lambda = match &shared_vfs {
+        Some(vfs) => winterbaume_lambda::LambdaService::with_vfs(Arc::clone(vfs)),
+        None => winterbaume_lambda::LambdaService::new(),
+    };
+    let lambda = Arc::new(if behaviours.lambda.execute {
+        lambda.with_code_execution(lambda_executor(behaviours)?)
+    } else {
+        lambda
+    });
     let logs = Arc::new(winterbaume_cloudwatchlogs::CloudWatchLogsService::new());
     let opensearch = Arc::new(winterbaume_opensearch::OpenSearchService::new());
     let opensearchserverless =
@@ -5050,6 +5131,83 @@ struct CliArgs {
         action = clap::ArgAction::Append
     )]
     relax: Option<Vec<String>>,
+
+    /// Execute deployed Lambda function code on `Invoke`, in libkrun
+    /// microVMs booted from the stock AWS Lambda base images (ZIP packages
+    /// uploaded inline). Off by default; needs a build for Linux or macOS
+    /// on arm64 ( the `lambda-vm` feature, on by default ), libkrun and
+    /// hardware virtualisation.
+    #[arg(
+        long,
+        value_name = "BOOL",
+        env = "WB_LAMBDA_EXECUTE",
+        num_args = 0..=1,
+        default_missing_value = "true"
+    )]
+    lambda_execute: Option<bool>,
+
+    /// VM helper program for `--lambda-execute`. Defaults to this binary.
+    #[arg(long, value_name = "PATH", env = "WB_LAMBDA_VM_HELPER")]
+    lambda_vm_helper: Option<String>,
+
+    /// Path of libkrun, when the dynamic loader does not find it.
+    #[arg(long, value_name = "PATH", env = "WB_LAMBDA_LIBKRUN")]
+    lambda_libkrun: Option<String>,
+
+    /// Cache directory for pulled Lambda base images (on a case-sensitive
+    /// file system). Defaults to the user cache directory.
+    #[arg(long, value_name = "DIR", env = "WB_LAMBDA_IMAGE_CACHE_DIR")]
+    lambda_image_cache_dir: Option<String>,
+
+    /// Directory of Lambda base images to use instead of pulling them:
+    /// `<DIR>/<runtime>/<arch>/` with `rootfs/` or an OCI image layout.
+    #[arg(long, value_name = "DIR", env = "WB_LAMBDA_IMAGE_DIR")]
+    lambda_image_dir: Option<String>,
+
+    /// Never pull Lambda base images; use cached and `--lambda-image-dir`
+    /// ones only.
+    #[arg(
+        long,
+        value_name = "BOOL",
+        env = "WB_LAMBDA_OFFLINE",
+        num_args = 0..=1,
+        default_missing_value = "true"
+    )]
+    lambda_offline: Option<bool>,
+
+    /// Registry to pull Lambda base images from (default
+    /// https://public.ecr.aws).
+    #[arg(long, value_name = "URL", env = "WB_LAMBDA_REGISTRY")]
+    lambda_registry: Option<String>,
+
+    /// Seconds an idle Lambda execution environment is kept for reuse
+    /// (default 300).
+    #[arg(long, value_name = "SECS", env = "WB_LAMBDA_WARM_TTL")]
+    lambda_warm_ttl: Option<u64>,
+
+    /// Most Lambda microVMs running at once (default: the number of CPUs).
+    #[arg(long, value_name = "N", env = "WB_LAMBDA_MAX_VMS")]
+    lambda_max_vms: Option<usize>,
+
+    /// Most Lambda microVMs running at once for one function.
+    #[arg(long, value_name = "N", env = "WB_LAMBDA_MAX_VMS_PER_FUNCTION")]
+    lambda_max_vms_per_function: Option<usize>,
+
+    /// Give Lambda functions this server's network access. Off by default:
+    /// functions reach only this server's services.
+    #[arg(
+        long,
+        value_name = "BOOL",
+        env = "WB_LAMBDA_NETWORK",
+        num_args = 0..=1,
+        default_missing_value = "true"
+    )]
+    lambda_network: Option<bool>,
+
+    /// Guest agent for `--lambda-execute`. Defaults to
+    /// `winterbaume-lambda-vm-agent` next to this binary.
+    #[arg(long, value_name = "PATH", env = "WB_LAMBDA_VM_AGENT")]
+    lambda_agent: Option<String>,
 }
 
 /// Builds the "Relaxations" block shown after `--help`.
@@ -5178,6 +5336,24 @@ fn parse_options() -> ServerOptions {
         std::process::exit(1);
     });
 
+    let file_lambda = file_cfg.lambda.unwrap_or_default();
+    let lambda = LambdaOptions {
+        execute: cli.lambda_execute.or(file_lambda.execute).unwrap_or(false),
+        vm_helper: cli.lambda_vm_helper.or(file_lambda.vm_helper),
+        libkrun: cli.lambda_libkrun.or(file_lambda.libkrun),
+        image_cache_dir: cli.lambda_image_cache_dir.or(file_lambda.image_cache_dir),
+        image_dir: cli.lambda_image_dir.or(file_lambda.image_dir),
+        offline: cli.lambda_offline.or(file_lambda.offline).unwrap_or(false),
+        registry: cli.lambda_registry.or(file_lambda.registry),
+        warm_ttl_secs: cli.lambda_warm_ttl.or(file_lambda.warm_ttl_secs),
+        max_vms: cli.lambda_max_vms.or(file_lambda.max_vms),
+        max_vms_per_function: cli
+            .lambda_max_vms_per_function
+            .or(file_lambda.max_vms_per_function),
+        network: cli.lambda_network.or(file_lambda.network).unwrap_or(false),
+        agent: cli.lambda_agent.or(file_lambda.agent),
+    };
+
     ServerOptions {
         host,
         port,
@@ -5194,6 +5370,9 @@ fn parse_options() -> ServerOptions {
             s3_enforce_bucket_policies,
             s3_enforce_session_policies,
             relaxations,
+            lambda,
+            #[cfg(lambda_vm)]
+            lambda_endpoint: winterbaume_lambda_vm::AwsEndpoint::new(),
         },
     }
 }
@@ -5202,8 +5381,89 @@ fn parse_options() -> ServerOptions {
 // Entry point
 // ---------------------------------------------------------------------------
 
+/// Hidden first argument that makes this binary the Lambda VM helper: the
+/// process that becomes one microVM ( see `winterbaume_lambda_vm::helper` ).
+#[cfg(lambda_vm)]
+const LAMBDA_VM_HELPER_ARG: &str = "__lambda-vm-helper";
+
+fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    // Checked before anything else starts: the helper must not carry a
+    // runtime or a server into the VM it turns into.
+    #[cfg(lambda_vm)]
+    if std::env::args_os().nth(1).as_deref() == Some(std::ffi::OsStr::new(LAMBDA_VM_HELPER_ARG)) {
+        winterbaume_lambda_vm::helper::helper_main();
+    }
+    serve()
+}
+
+/// The executor that runs Lambda functions for `--lambda-execute`.
+#[cfg(lambda_vm)]
+fn lambda_executor(
+    behaviours: &BehaviourOptions,
+) -> Result<Arc<dyn winterbaume_lambda::LambdaExecutor>, Box<dyn std::error::Error + Send + Sync>> {
+    use winterbaume_lambda_vm::{HelperCommand, KrunExecutorConfig};
+    let options = &behaviours.lambda;
+    let helper = match &options.vm_helper {
+        Some(path) => HelperCommand::program(path),
+        None => HelperCommand::with_args(std::env::current_exe()?, [LAMBDA_VM_HELPER_ARG]),
+    };
+    let mut config = KrunExecutorConfig::new()
+        .with_helper(helper)
+        .offline(options.offline)
+        .with_relaxations(&behaviours.relaxations)
+        .with_network(options.network)
+        .with_aws_endpoint(behaviours.lambda_endpoint.clone());
+    if let Some(path) = &options.agent {
+        config = config.with_agent(path);
+    }
+    if let Some(path) = &options.libkrun {
+        config = config.with_libkrun(path);
+    }
+    if let Some(dir) = &options.image_cache_dir {
+        config = config.with_cache_dir(dir);
+    }
+    if let Some(dir) = &options.image_dir {
+        config = config.with_image_dir(dir);
+    }
+    if let Some(registry) = &options.registry {
+        config = config.with_registry(registry.as_str());
+    }
+    if let Some(secs) = options.warm_ttl_secs {
+        config = config.with_warm_ttl(std::time::Duration::from_secs(secs));
+    }
+    if let Some(n) = options.max_vms {
+        config = config.with_max_vms(n);
+    }
+    if let Some(n) = options.max_vms_per_function {
+        config = config.with_max_vms_per_function(n);
+    }
+    if options.network {
+        tracing::warn!(
+            "Lambda code execution is enabled with --lambda-network: functions run in microVMs \
+             with this server's network access"
+        );
+    } else {
+        tracing::info!(
+            "Lambda code execution is enabled: functions run in microVMs without network access, \
+             reaching this server's services only"
+        );
+    }
+    Ok(Arc::new(winterbaume_lambda_vm::KrunExecutor::new(config)))
+}
+
+#[cfg(not(lambda_vm))]
+fn lambda_executor(
+    _behaviours: &BehaviourOptions,
+) -> Result<Arc<dyn winterbaume_lambda::LambdaExecutor>, Box<dyn std::error::Error + Send + Sync>> {
+    eprintln!(
+        "error: --lambda-execute needs a winterbaume-server built with the `lambda-vm` feature, \
+         on Linux or on macOS for arm64"
+    );
+    std::process::exit(1);
+}
+
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+async fn serve() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // Initialize tracing
     tracing_subscriber::fmt()
         .with_env_filter(
@@ -5259,6 +5519,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     }
 
     let router = Arc::new(Router::new(services));
+    #[cfg(lambda_vm)]
+    opts.behaviours
+        .lambda_endpoint
+        .connect(Arc::clone(&router) as Arc<dyn winterbaume_core::RequestDispatcher>);
 
     let service_names: Vec<&str> = router
         .routes

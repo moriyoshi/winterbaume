@@ -30,6 +30,23 @@ pub fn extract_region_from_uri(uri: &str) -> String {
     "us-east-1".to_string()
 }
 
+/// The AWS region of a request: from the endpoint host when it is an AWS
+/// endpoint, otherwise from the SigV4 credential scope ( requests sent to
+/// `winterbaume-server` at a local address ), otherwise `us-east-1`.
+pub fn extract_region(uri: &str, headers: &http::HeaderMap) -> String {
+    let from_host = extract_host(uri).and_then(|host| {
+        let parts: Vec<&str> = host.split('.').collect();
+        (parts.len() >= 4 && parts[parts.len() - 2] == "amazonaws").then(|| parts[1].to_string())
+    });
+    from_host
+        .or_else(|| {
+            extract_region_from_headers(headers).filter(|r| {
+                !r.is_empty() && r.chars().all(|c| c.is_ascii_alphanumeric() || c == '-')
+            })
+        })
+        .unwrap_or_else(|| "us-east-1".to_string())
+}
+
 /// Extract the AWS service name from the Authorization header's SigV4 credential scope.
 ///
 /// Parses headers like:
@@ -198,6 +215,34 @@ mod tests {
         assert_eq!(
             extract_access_key_from_headers(&http::HeaderMap::new()),
             None
+        );
+    }
+}
+
+#[cfg(test)]
+mod region_tests {
+    use super::*;
+
+    #[test]
+    fn region_comes_from_the_host_then_the_credential_scope() {
+        let mut headers = http::HeaderMap::new();
+        headers.insert(
+            "authorization",
+            "AWS4-HMAC-SHA256 Credential=AKID/20260101/eu-west-1/lambda/aws4_request, SignedHeaders=host, Signature=0"
+                .parse()
+                .unwrap(),
+        );
+        assert_eq!(
+            extract_region("https://lambda.ap-south-1.amazonaws.com/x", &headers),
+            "ap-south-1"
+        );
+        assert_eq!(
+            extract_region("https://127.0.0.1:5555/x", &headers),
+            "eu-west-1"
+        );
+        assert_eq!(
+            extract_region("https://127.0.0.1:5555/x", &http::HeaderMap::new()),
+            "us-east-1"
         );
     }
 }

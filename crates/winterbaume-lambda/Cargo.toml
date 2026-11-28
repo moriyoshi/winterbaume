@@ -22,6 +22,8 @@ regex = { workspace = true }
 sha2 = { workspace = true }
 base64 = { workspace = true }
 thiserror = { workspace = true }
+tempfile = { workspace = true }
+zip = { workspace = true }
 
 [dev-dependencies]
 aws-config = { workspace = true }
@@ -33,6 +35,8 @@ tokio = { workspace = true }
 sha2 = { workspace = true }
 base64 = { workspace = true }
 serde_json = { workspace = true }
+tempfile = { workspace = true }
+zip = { workspace = true }
 
 [lints]
 workspace = true

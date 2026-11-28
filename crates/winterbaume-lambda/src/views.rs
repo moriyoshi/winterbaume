@@ -1,10 +1,17 @@
 //! Serde-compatible view types for Lambda state snapshots.
 
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap};
+#[cfg(test)]
+use std::future::Future;
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use winterbaume_core::{StateChangeNotifier, StateViewError, StatefulService};
+use winterbaume_core::{
+    BlobBackedService, BlobExportEntry, BlobSource, BlobVisitor, StateChangeNotifier,
+    StateViewError, StatefulService,
+};
+
+use crate::execution::code_blob_key;
 
 use crate::handlers::LambdaService;
 use crate::state::LambdaState;
@@ -12,8 +19,8 @@ use crate::types::{
     Alias, CapacityProviderEntry, CodeSigningConfigEntry, CorsConfig, DurableExecution,
     EventSourceMapping, EventSourceMappingSettings, FunctionEventInvokeConfig,
     FunctionRecursionConfig, FunctionScalingConfig, FunctionSettings, FunctionUrlConfig,
-    FunctionVersion, LambdaFunction, LayerPermission, LayerVersion, Permission,
-    ProvisionedConcurrencyConfig, RuntimeManagementConfig,
+    FunctionVersion, FunctionVersionConfig, LambdaFunction, LayerPermission, LayerVersion,
+    Permission, ProvisionedConcurrencyConfig, RuntimeManagementConfig,
 };
 
 /// Serializable view of the entire Lambda state for one account/region.
@@ -73,6 +80,14 @@ pub struct LambdaStateView {
     /// Durable executions keyed by execution ARN.
     #[serde(default)]
     pub durable_executions: HashMap<String, DurableExecution>,
+    /// Base64 SHA-256s of the stored ZIP deployment packages ( the
+    /// `code_sha256` of the functions and versions that use them ).
+    ///
+    /// Only the digests travel in the view; the archives are blobs, exported
+    /// and imported through [`BlobBackedService`].  On `restore` / `merge`,
+    /// digests whose archive is not in the blob store are dropped.
+    #[serde(default, skip_serializing_if = "BTreeSet::is_empty")]
+    pub code_packages: BTreeSet<String>,
 }
 
 /// Serializable view of a Lambda function.
@@ -121,6 +136,9 @@ pub struct FunctionVersionView {
     /// Settings frozen at publish time.  Absent in older snapshots.
     #[serde(default)]
     pub settings: FunctionSettings,
+    /// Execution configuration frozen by `PublishVersion`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub config: Option<FunctionVersionConfig>,
 }
 
 /// Serializable view of a Lambda alias.
@@ -307,6 +325,7 @@ impl From<&LambdaState> for LambdaStateView {
             csc_id_counter: state.csc_id_counter,
             cp_id_counter: state.cp_id_counter,
             durable_executions: state.durable_executions.clone(),
+            code_packages: state.code_packages.clone(),
         }
     }
 }
@@ -347,6 +366,7 @@ impl From<&FunctionVersion> for FunctionVersionView {
             code_size: v.code_size,
             created_at: v.created_at.to_rfc3339(),
             settings: v.settings.clone(),
+            config: v.config.clone(),
         }
     }
 }
@@ -541,6 +561,7 @@ impl LambdaStateView {
             cp_id_counter: self.cp_id_counter,
             empty_tags: HashMap::new(),
             durable_executions: self.durable_executions,
+            code_packages: self.code_packages,
         }
     }
 }
@@ -591,6 +612,7 @@ impl From<FunctionVersionView> for FunctionVersion {
             code_size: v.code_size,
             created_at,
             settings: v.settings,
+            config: v.config,
         }
     }
 }
@@ -750,10 +772,14 @@ impl StatefulService for LambdaService {
         region: &str,
         view: Self::StateView,
     ) -> Result<(), StateViewError> {
+        let mut restored = view.into_state_for_scope(account_id, region);
+        restored.code_packages = self
+            .stored_code_packages(account_id, region, restored.code_packages)
+            .await;
         let state = self.state.get(account_id, region);
         {
             let mut guard = state.write().await;
-            *guard = view.into_state_for_scope(account_id, region);
+            *guard = restored;
         }
         self.notify_state_changed(account_id, region).await;
         Ok(())
@@ -765,6 +791,9 @@ impl StatefulService for LambdaService {
         region: &str,
         view: Self::StateView,
     ) -> Result<(), StateViewError> {
+        let code_packages = self
+            .stored_code_packages(account_id, region, view.code_packages)
+            .await;
         let state = self.state.get(account_id, region);
         {
             let mut guard = state.write().await;
@@ -826,6 +855,7 @@ impl StatefulService for LambdaService {
             guard.csc_id_counter = guard.csc_id_counter.max(view.csc_id_counter);
             guard.cp_id_counter = guard.cp_id_counter.max(view.cp_id_counter);
             guard.durable_executions.extend(view.durable_executions);
+            guard.code_packages.extend(code_packages);
         }
         self.notify_state_changed(account_id, region).await;
         Ok(())
@@ -833,6 +863,87 @@ impl StatefulService for LambdaService {
 
     fn notifier(&self) -> &StateChangeNotifier<Self::StateView> {
         &self.notifier
+    }
+}
+
+impl LambdaService {
+    /// The subset of `digests` whose archive is in the blob store.
+    async fn stored_code_packages(
+        &self,
+        account_id: &str,
+        region: &str,
+        digests: BTreeSet<String>,
+    ) -> BTreeSet<String> {
+        let blobs = self.blobs.get(account_id, region);
+        let mut stored = BTreeSet::new();
+        for sha256 in digests {
+            if blobs.exists(&code_blob_key(&sha256)).await {
+                stored.insert(sha256);
+            } else {
+                tracing::warn!(
+                    code_sha256 = %sha256,
+                    "dropping Lambda code package whose archive is not in the blob store"
+                );
+            }
+        }
+        stored
+    }
+}
+
+/// Deployment packages are exported as blobs keyed `code/<hex sha256>`.
+impl BlobBackedService for LambdaService {
+    async fn snapshot_with_blobs(
+        &self,
+        account_id: &str,
+        region: &str,
+        visitor: &mut dyn BlobVisitor,
+    ) -> Result<LambdaStateView, StateViewError> {
+        let blobs = self.blobs.get(account_id, region);
+        let state = self.state.get(account_id, region);
+        let guard = state.read().await;
+        let view = LambdaStateView::from(&*guard);
+        let keys: Vec<String> = view
+            .code_packages
+            .iter()
+            .map(|s| code_blob_key(s))
+            .collect();
+        for chunk in keys.chunks(winterbaume_core::DEFAULT_BLOB_BATCH_SIZE) {
+            let mut entries = Vec::with_capacity(chunk.len());
+            for key in chunk {
+                let size = blobs
+                    .stat(key)
+                    .await
+                    .map_err(StateViewError::Blob)?
+                    .map(|s| s.size);
+                let reader = blobs.get_reader(key).await.map_err(StateViewError::Blob)?;
+                entries.push(BlobExportEntry {
+                    key: key.clone(),
+                    reader,
+                    size,
+                });
+            }
+            visitor.visit(entries).await.map_err(StateViewError::Blob)?;
+        }
+        Ok(view)
+    }
+
+    async fn restore_with_blobs(
+        &self,
+        account_id: &str,
+        region: &str,
+        view: LambdaStateView,
+        source: &mut dyn BlobSource,
+    ) -> Result<(), StateViewError> {
+        let blobs = self.blobs.get(account_id, region);
+        for sha256 in &view.code_packages {
+            let key = code_blob_key(sha256);
+            let mut reader = source.fetch(key.clone()).await?;
+            blobs
+                .put_from(&key, &mut reader)
+                .await
+                .map_err(StateViewError::Blob)?;
+        }
+        self.restore(account_id, region, view).await
     }
 }
 
@@ -1183,6 +1294,7 @@ mod tests {
                 code_size: 10,
                 created_at: "2026-01-01T00:00:00+00:00".to_string(),
                 settings: settings.clone(),
+                config: None,
             }],
             reserved_concurrent_executions: None,
             code_signing_config_arn: None,
@@ -1213,5 +1325,163 @@ mod tests {
         let back: LambdaStateView = serde_json::from_value(json).unwrap();
         assert_eq!(back.functions["f"].settings, settings);
         assert_eq!(back.functions["f"].versions[0].settings, settings);
+    }
+
+    /// Stored deployment packages and the configuration frozen with a
+    /// published version survive a snapshot -> JSON -> restore round trip
+    /// through the blob export, and a digest whose archive is missing is
+    /// dropped.
+    #[tokio::test]
+    async fn code_packages_round_trip_through_blob_snapshot() {
+        use base64::Engine as _;
+        use sha2::{Digest, Sha256};
+        use winterbaume_core::VfsError;
+
+        struct Collect(HashMap<String, Vec<u8>>);
+        impl BlobVisitor for Collect {
+            fn visit(
+                &mut self,
+                batch: Vec<BlobExportEntry>,
+            ) -> std::pin::Pin<Box<dyn Future<Output = Result<(), VfsError>> + Send + '_>>
+            {
+                Box::pin(async move {
+                    for mut entry in batch {
+                        let mut bytes = Vec::new();
+                        tokio::io::AsyncReadExt::read_to_end(&mut entry.reader, &mut bytes)
+                            .await
+                            .unwrap();
+                        self.0.insert(entry.key, bytes);
+                    }
+                    Ok(())
+                })
+            }
+        }
+        impl BlobSource for Collect {
+            fn fetch(
+                &mut self,
+                key: String,
+            ) -> std::pin::Pin<
+                Box<
+                    dyn Future<
+                            Output = Result<Box<dyn tokio::io::AsyncRead + Send + Unpin>, VfsError>,
+                        > + Send
+                        + '_,
+                >,
+            > {
+                Box::pin(async move {
+                    let bytes = self.0.get(&key).cloned().unwrap_or_default();
+                    Ok(Box::new(std::io::Cursor::new(bytes))
+                        as Box<dyn tokio::io::AsyncRead + Send + Unpin>)
+                })
+            }
+        }
+
+        let service = LambdaService::new();
+        let zip = bytes::Bytes::from_static(b"not really a zip");
+        let sha256 = base64::engine::general_purpose::STANDARD.encode(Sha256::digest(&zip));
+        service
+            .blobs
+            .get("123456789012", "us-east-1")
+            .put(&code_blob_key(&sha256), zip.clone())
+            .await
+            .unwrap();
+        {
+            let state = service.state.get("123456789012", "us-east-1");
+            let mut guard = state.write().await;
+            guard
+                .create_function(
+                    "f",
+                    "nodejs22.x",
+                    "index.handler",
+                    "arn:aws:iam::123456789012:role/r",
+                    "",
+                    None,
+                    Some(7),
+                    HashMap::from([("K".to_string(), "v".to_string())]),
+                    "123456789012",
+                    "us-east-1",
+                    HashMap::new(),
+                    &sha256,
+                    zip.len() as i64,
+                )
+                .unwrap();
+            guard.put_code_package(&sha256);
+            guard.publish_version("f", None, None).unwrap();
+        }
+
+        let mut blobs = Collect(HashMap::new());
+        let view = service
+            .snapshot_with_blobs("123456789012", "us-east-1", &mut blobs)
+            .await
+            .unwrap();
+        assert_eq!(blobs.0[&code_blob_key(&sha256)], zip.to_vec());
+        let mut json = serde_json::to_value(&view).expect("snapshot must serialize");
+        assert_eq!(json["code_packages"], serde_json::json!([sha256]));
+        json["code_packages"] = serde_json::json!([sha256, "bWlzc2luZw=="]);
+
+        let restored = LambdaService::new();
+        restored
+            .restore_with_blobs(
+                "123456789012",
+                "us-east-1",
+                serde_json::from_value(json).unwrap(),
+                &mut blobs,
+            )
+            .await
+            .unwrap();
+        // The missing digest was fetched as an empty blob by this source;
+        // a plain `restore` of a view without its blobs drops it instead.
+        let plain = LambdaService::new();
+        plain
+            .restore("123456789012", "us-east-1", view.clone())
+            .await
+            .unwrap();
+        assert!(
+            plain
+                .state
+                .get("123456789012", "us-east-1")
+                .read()
+                .await
+                .code_packages
+                .is_empty()
+        );
+
+        let state = restored.state.get("123456789012", "us-east-1");
+        let guard = state.read().await;
+        assert!(guard.code_packages.contains(&sha256));
+        let target = guard.execution_target("f", "1").expect("version 1 exists");
+        assert!(target.has_code);
+        assert_eq!(target.timeout, 7);
+        assert_eq!(target.environment["K"], "v");
+        assert_eq!(
+            restored
+                .blobs
+                .get("123456789012", "us-east-1")
+                .get(&code_blob_key(&sha256))
+                .await
+                .unwrap(),
+            zip
+        );
+    }
+
+    /// A snapshot written before code was stored has neither `code_packages`
+    /// nor a per-version `config`; it must still load.
+    #[test]
+    fn legacy_snapshot_without_code_still_deserializes() {
+        let view: LambdaStateView = serde_json::from_value(serde_json::json!({
+            "functions": {},
+        }))
+        .expect("legacy snapshot must deserialize");
+        assert!(view.code_packages.is_empty());
+
+        let version: FunctionVersionView = serde_json::from_value(serde_json::json!({
+            "version": "1",
+            "description": "",
+            "code_sha256": "abc",
+            "code_size": 1,
+            "created_at": "2026-01-01T00:00:00+00:00"
+        }))
+        .expect("legacy version must deserialize");
+        assert_eq!(version.config, None);
     }
 }

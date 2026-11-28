@@ -329,6 +329,23 @@ pub struct FunctionVersion {
     /// immutable: later `UpdateFunctionConfiguration` calls change `$LATEST`
     /// only.
     pub settings: FunctionSettings,
+    /// The execution-relevant configuration frozen when the version was
+    /// published.  `None` for versions restored from snapshots that predate
+    /// this member; such versions run with the `$LATEST` configuration.
+    pub config: Option<FunctionVersionConfig>,
+}
+
+/// The part of a function's configuration that decides how its code runs,
+/// captured by `PublishVersion` so that invoking a version ( or an alias
+/// pointing at it ) keeps running with the settings it was published with.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct FunctionVersionConfig {
+    pub runtime: String,
+    pub handler: String,
+    pub memory_size: i32,
+    pub timeout: i32,
+    #[serde(default)]
+    pub environment: HashMap<String, String>,
 }
 
 #[derive(Debug, Clone)]

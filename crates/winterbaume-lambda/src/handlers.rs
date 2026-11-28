@@ -9,10 +9,15 @@ use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use winterbaume_core::percent_decode_path;
 use winterbaume_core::{
-    BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, default_account_id,
-    urldecode,
+    BackendState, BlobStore, BlobStoreMap, MockRequest, MockResponse, MockService,
+    StateChangeNotifier, Vfs, default_account_id, urldecode,
 };
 
+use crate::execution::{
+    ARCHITECTURE_SUBSTITUTED_HEADER, CodeSource, EXECUTION_EXECUTED, EXECUTION_HEADER,
+    EXECUTION_STUB, FunctionTarget, InvokeRequest, LambdaExecutor, STUB_REASON_HEADER, StubReason,
+    code_blob_key,
+};
 use crate::model;
 use crate::state::{LambdaError, LambdaState};
 use crate::types::{
@@ -26,17 +31,120 @@ use crate::wire;
 
 const X_AMZN_ERRORTYPE: HeaderName = HeaderName::from_static("x-amzn-errortype");
 const X_AMZ_EXECUTED_VERSION: HeaderName = HeaderName::from_static("x-amz-executed-version");
+const X_AMZ_FUNCTION_ERROR: HeaderName = HeaderName::from_static("x-amz-function-error");
+const X_AMZ_LOG_RESULT: HeaderName = HeaderName::from_static("x-amz-log-result");
+const X_WINTERBAUME_LAMBDA_EXECUTION: HeaderName = HeaderName::from_static(EXECUTION_HEADER);
+const X_WINTERBAUME_LAMBDA_STUB_REASON: HeaderName = HeaderName::from_static(STUB_REASON_HEADER);
+const X_WINTERBAUME_LAMBDA_ARCHITECTURE_SUBSTITUTED: HeaderName =
+    HeaderName::from_static(ARCHITECTURE_SUBSTITUTED_HEADER);
 
 pub struct LambdaService {
     pub(crate) state: Arc<BackendState<LambdaState>>,
     pub(crate) notifier: StateChangeNotifier<LambdaStateView>,
+    /// Uploaded ZIP deployment packages, keyed `code/<hex sha256>`.
+    pub(crate) blobs: Arc<BlobStoreMap>,
+    /// Present only when code execution was switched on.
+    executor: Option<Arc<dyn LambdaExecutor>>,
+    /// `InvocationType: Event` runs.  Dropping the set, with the service,
+    /// aborts them, which stops whatever runs them.
+    background: std::sync::Mutex<tokio::task::JoinSet<()>>,
 }
 
 impl LambdaService {
+    /// A Lambda service that never runs function code: `Invoke` answers with
+    /// a fixed `{}` payload, marked by the
+    /// [`x-winterbaume-lambda-execution: stub`](crate::execution::EXECUTION_HEADER)
+    /// response header.  Deployment packages are kept in memory.
     pub fn new() -> Self {
+        Self::with_blobs(BlobStoreMap::mem("lambda"))
+    }
+
+    /// Like [`Self::new`], with deployment packages kept in `vfs`.
+    pub fn with_vfs(vfs: Arc<dyn Vfs>) -> Self {
+        Self::with_blobs(BlobStoreMap::new(vfs, "lambda"))
+    }
+
+    fn with_blobs(blobs: BlobStoreMap) -> Self {
         Self {
             state: Arc::new(BackendState::new()),
             notifier: StateChangeNotifier::new(),
+            blobs: Arc::new(blobs),
+            executor: None,
+            background: std::sync::Mutex::new(tokio::task::JoinSet::new()),
+        }
+    }
+
+    /// Switch on execution of deployed function code on `Invoke`, by
+    /// `executor`.
+    ///
+    /// With this, invoking a function that was deployed as a ZIP package (
+    /// `ZipFile` on `CreateFunction` / `UpdateFunctionCode` ) asks the
+    /// executor to run it, and answers with its result, or its error with
+    /// `X-Amz-Function-Error: Unhandled`; `LogType: Tail` returns the end of
+    /// the execution log.  A published version or alias runs the code and
+    /// the configuration it was published with.  Such responses carry
+    /// `x-winterbaume-lambda-execution: executed`.
+    ///
+    /// Functions that cannot be run ( a container image, layers, code given
+    /// as an S3 location, or whatever the executor refuses ) keep getting the
+    /// `{}` stub, marked with `x-winterbaume-lambda-execution: stub` and the
+    /// reason in `x-winterbaume-lambda-stub-reason`.
+    ///
+    /// With execution on, `InvocationType: Event` answers 202 at once and
+    /// runs the function in the background ( once, without retries or
+    /// destinations ), and `DryRun` answers 204 without running anything.
+    ///
+    /// The `winterbaume-lambda-vm` crate provides an executor that runs the
+    /// stock AWS Lambda base images in microVMs.
+    pub fn with_code_execution(mut self, executor: Arc<dyn LambdaExecutor>) -> Self {
+        self.executor = Some(executor);
+        self
+    }
+
+    /// Whether [`Self::with_code_execution`] was applied.
+    pub fn code_execution_enabled(&self) -> bool {
+        self.executor.is_some()
+    }
+
+    fn blobs_for(&self, request: &MockRequest) -> Arc<BlobStore> {
+        let region = winterbaume_core::auth::extract_region(&request.uri, &request.headers);
+        self.blobs.get(default_account_id(), &region)
+    }
+
+    /// Store an uploaded package, keyed by its base64 SHA-256.
+    async fn store_code(
+        blobs: &BlobStore,
+        sha256: &str,
+        content: Vec<u8>,
+    ) -> Result<(), MockResponse> {
+        blobs
+            .put(&code_blob_key(sha256), content.into())
+            .await
+            .map_err(|e| {
+                tracing::error!(error = %e, "cannot store Lambda deployment package");
+                rest_json_error(
+                    500,
+                    "ServiceException",
+                    "Cannot store the deployment package",
+                )
+            })
+    }
+
+    /// Drop packages nothing refers to any more, and warm state of
+    /// `function_arn` in the executor.
+    async fn after_code_change(
+        &self,
+        state: &mut LambdaState,
+        blobs: &BlobStore,
+        function_arn: Option<&str>,
+    ) {
+        for sha256 in state.prune_code_packages() {
+            if let Err(e) = blobs.delete(&code_blob_key(&sha256)).await {
+                tracing::debug!(error = %e, code_sha256 = %sha256, "cannot delete Lambda deployment package");
+            }
+        }
+        if let (Some(executor), Some(arn)) = (&self.executor, function_arn) {
+            executor.retire(arn).await;
         }
     }
 
@@ -90,7 +198,7 @@ impl MockService for LambdaService {
 
 impl LambdaService {
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
-        let region = winterbaume_core::auth::extract_region_from_uri(&request.uri);
+        let region = winterbaume_core::auth::extract_region(&request.uri, &request.headers);
         let account_id = default_account_id();
         let state = self.state.get(account_id, &region);
 
@@ -1356,16 +1464,28 @@ impl LambdaService {
             &code_sha256,
             code_size,
         ) {
-            Ok(_) => match complete_create_function(
-                &mut state,
-                name,
-                settings,
-                code_signing_config_arn.as_deref(),
-                publish,
-            ) {
-                Ok(resp) => wire::serialize_create_function_response(&resp),
-                Err(e) => lambda_error_response(&e),
-            },
+            Ok(_) => {
+                // Keep the uploaded archive so that the function can be run
+                // when code execution is enabled.
+                if let Some(content) = zip_content {
+                    if let Err(response) =
+                        Self::store_code(&self.blobs_for(request), &code_sha256, content).await
+                    {
+                        return response;
+                    }
+                    state.put_code_package(&code_sha256);
+                }
+                match complete_create_function(
+                    &mut state,
+                    name,
+                    settings,
+                    code_signing_config_arn.as_deref(),
+                    publish,
+                ) {
+                    Ok(resp) => wire::serialize_create_function_response(&resp),
+                    Err(e) => lambda_error_response(&e),
+                }
+            }
             Err(e) => lambda_error_response(&e),
         }
     }
@@ -1409,9 +1529,18 @@ impl LambdaService {
             Ok(v) => v,
             Err(e) => return rest_json_error(400, "ValidationException", &e),
         };
+        let blobs = self.blobs_for(request);
         let mut state = state.write().await;
+        let function_arn = state
+            .get_function(&input.function_name)
+            .map(|f| f.function_arn.clone())
+            .ok();
         match state.delete_function(&input.function_name) {
-            Ok(()) => MockResponse::rest_json(204, "".to_string()),
+            Ok(()) => {
+                self.after_code_change(&mut state, &blobs, function_arn.as_deref())
+                    .await;
+                MockResponse::rest_json(204, "".to_string())
+            }
             Err(e) => lambda_error_response(&e),
         }
     }
@@ -1434,6 +1563,15 @@ impl LambdaService {
         wire::serialize_list_functions_response(&resp)
     }
 
+    /// `Invoke`.
+    ///
+    /// Without [`Self::with_code_execution`] this is a stub: it validates the
+    /// function and qualifier and answers 200 with `{}`, whatever the
+    /// invocation type, marked `x-winterbaume-lambda-execution: stub`.
+    ///
+    /// With it, the deployed code is run when it can be ( see
+    /// [`Self::with_code_execution`] ).  The state lock is released before
+    /// anything is unpacked or run.
     async fn handle_invoke(
         &self,
         state: &Arc<tokio::sync::RwLock<LambdaState>>,
@@ -1445,17 +1583,141 @@ impl LambdaService {
             Ok(v) => v,
             Err(e) => return rest_json_error(400, "ValidationException", &e),
         };
-        let state = state.read().await;
-        match state.resolve_qualifier(&input.function_name, input.qualifier.as_deref()) {
-            Ok(resolved_version) => {
-                let mut response = MockResponse::rest_json(200, "{}".to_string());
-                response
-                    .headers
-                    .insert(X_AMZ_EXECUTED_VERSION, resolved_version.parse().unwrap());
-                response
-            }
-            Err(e) => lambda_error_response(&e),
+        let qualifier = input.qualifier.as_deref();
+
+        let Some(executor) = self.executor.as_ref() else {
+            let state = state.read().await;
+            return match state.resolve_qualifier(&input.function_name, qualifier) {
+                Ok(version) => invoke_stub_response(200, &version, StubReason::ExecutionDisabled),
+                Err(e) => lambda_error_response(&e),
+            };
+        };
+
+        // Clone what the run needs and let go of the lock.
+        let (version, target) = {
+            let state = state.read().await;
+            let version = match state.resolve_qualifier(&input.function_name, qualifier) {
+                Ok(v) => v,
+                Err(e) => return lambda_error_response(&e),
+            };
+            let target = state.execution_target(&input.function_name, &version);
+            (version, target)
+        };
+
+        let invocation_type = input
+            .invocation_type
+            .as_deref()
+            .unwrap_or("RequestResponse");
+        if invocation_type == "DryRun" {
+            // Validates the request only; nothing runs, in AWS either.
+            let mut response = MockResponse::rest_json(204, "");
+            response
+                .headers
+                .insert(X_AMZ_EXECUTED_VERSION, version.parse().unwrap());
+            return response;
         }
+        let asynchronous = invocation_type == "Event";
+        let stub_status = if asynchronous { 202 } else { 200 };
+
+        let Some(target) = target else {
+            return invoke_stub_response(stub_status, &version, StubReason::NoCode);
+        };
+        if target.package_type == "Image" {
+            return invoke_stub_response(
+                stub_status,
+                &version,
+                StubReason::ImageFunctionUnsupported,
+            );
+        }
+        if !target.layers.is_empty() {
+            return invoke_stub_response(stub_status, &version, StubReason::LayersUnsupported);
+        }
+        if !target.has_code {
+            return invoke_stub_response(stub_status, &version, StubReason::NoCode);
+        }
+        let payload = input.payload.unwrap_or_default();
+        if !payload.is_empty()
+            && let Err(e) = serde_json::from_slice::<serde::de::IgnoredAny>(&payload)
+        {
+            return rest_json_error(
+                400,
+                "InvalidRequestContentException",
+                &format!("Could not parse request body into json: {e}"),
+            );
+        }
+
+        let account_id = default_account_id().to_string();
+        let blobs = self.blobs_for(request);
+        let target = FunctionTarget {
+            function_name: target.function_name,
+            function_arn: target.function_arn,
+            function_version: version.clone(),
+            account_id,
+            region: target.region,
+            runtime: target.runtime,
+            handler: target.handler,
+            memory_size: target.memory_size.max(128) as u32,
+            timeout: std::time::Duration::from_secs(target.timeout.max(1) as u64),
+            environment: crate::execution::ordered(&target.environment),
+            architecture: target.architecture,
+            log_group: target.log_group,
+            code: CodeSource::new(blobs, &target.code_sha256),
+        };
+        if let Err(reason) = executor.prepare(&target).await {
+            return invoke_stub_response(stub_status, &version, reason);
+        }
+        let request = InvokeRequest::new(target.qualified_arn(qualifier), payload)
+            // Lambda passes the client context for synchronous invocations only.
+            .with_client_context(input.client_context.filter(|_| !asynchronous))
+            .asynchronous(asynchronous);
+
+        if asynchronous {
+            // Answer at once; the function runs in the background, once.
+            // Retries, dead-letter queues and destinations are not modelled.
+            let executor = executor.clone();
+            let mut background = self.background.lock().unwrap_or_else(|e| e.into_inner());
+            while background.try_join_next().is_some() {}
+            background.spawn(async move {
+                if let Err(reason) = executor.invoke(target, request).await {
+                    tracing::debug!(%reason, "asynchronous Lambda invocation was not run");
+                }
+            });
+            let mut response = MockResponse::rest_json(202, "");
+            mark_invoke_response(&mut response, &version, EXECUTION_EXECUTED);
+            return response;
+        }
+
+        let outcome = match executor.invoke(target, request).await {
+            Ok(outcome) => outcome,
+            Err(reason) => return invoke_stub_response(stub_status, &version, reason),
+        };
+        let mut response = MockResponse::rest_json(200, outcome.payload);
+        mark_invoke_response(&mut response, &version, EXECUTION_EXECUTED);
+        if let Some(function_error) = outcome
+            .function_error
+            .as_deref()
+            .and_then(|e| http::HeaderValue::from_str(e).ok())
+        {
+            response
+                .headers
+                .insert(X_AMZ_FUNCTION_ERROR, function_error);
+        }
+        if let Some(substituted) = outcome
+            .architecture_substituted
+            .as_deref()
+            .and_then(|e| http::HeaderValue::from_str(e).ok())
+        {
+            response
+                .headers
+                .insert(X_WINTERBAUME_LAMBDA_ARCHITECTURE_SUBSTITUTED, substituted);
+        }
+        if input.log_type.as_deref() == Some("Tail") {
+            let tail = base64::engine::general_purpose::STANDARD.encode(&outcome.log_tail);
+            response
+                .headers
+                .insert(X_AMZ_LOG_RESULT, tail.parse().unwrap());
+        }
+        response
     }
 
     async fn handle_update_function_code(
@@ -1476,16 +1738,49 @@ impl LambdaService {
             image_uri: input.image_uri.clone(),
             ..Default::default()
         };
+        // With `ZipFile` the archive is stored and its real digest and size
+        // are reported.  `S3Bucket` / `S3Key` and `ImageUri` sources are not
+        // fetched: the function gets a fresh mock digest and no stored code.
+        let package = input
+            .zip_file
+            .as_ref()
+            .and_then(|s| base64::engine::general_purpose::STANDARD.decode(s).ok())
+            .map(|content| {
+                let sha256 =
+                    base64::engine::general_purpose::STANDARD.encode(Sha256::digest(&content));
+                (sha256, content)
+            });
+        let blobs = self.blobs_for(request);
         let mut state = state.write().await;
-        match state
-            .update_function_code(&input.function_name, input.revision_id.as_deref())
+        // Fail before touching the function when the function does not exist.
+        let function_arn = match state.get_function(&input.function_name) {
+            Ok(f) => f.function_arn.clone(),
+            Err(e) => return lambda_error_response(&e),
+        };
+        let package = match package {
+            Some((sha256, content)) => {
+                let size = content.len() as i64;
+                if let Err(response) = Self::store_code(&blobs, &sha256, content).await {
+                    return response;
+                }
+                Some((sha256, size))
+            }
+            None => None,
+        };
+        let uploaded = package.as_ref().map(|(sha256, _)| sha256.clone());
+        let result = state
+            .update_function_code(&input.function_name, input.revision_id.as_deref(), package)
             .map(|_| ())
             .and_then(|()| state.apply_function_settings(&input.function_name, settings))
-        {
-            Ok(func) => {
-                let resp = function_configuration_from(func);
-                wire::serialize_update_function_code_response(&resp)
-            }
+            .map(function_configuration_from);
+        if let Some(sha256) = uploaded.filter(|sha256| !state.code_packages.contains(sha256)) {
+            // The update was refused; nothing refers to the upload.
+            let _ = blobs.delete(&code_blob_key(&sha256)).await;
+        }
+        self.after_code_change(&mut state, &blobs, Some(&function_arn))
+            .await;
+        match result {
+            Ok(resp) => wire::serialize_update_function_code_response(&resp),
             Err(e) => lambda_error_response(&e),
         }
     }
@@ -1568,6 +1863,12 @@ impl LambdaService {
         {
             Ok(func) => {
                 let resp = function_configuration_from(func);
+                let function_arn = func.function_arn.clone();
+                drop(state);
+                // Warm execution environments run the old configuration.
+                if let Some(executor) = &self.executor {
+                    executor.retire(&function_arn).await;
+                }
                 wire::serialize_update_function_configuration_response(&resp)
             }
             Err(e) => lambda_error_response(&e),
@@ -2893,6 +3194,15 @@ impl LambdaService {
                 response
                     .headers
                     .insert(X_AMZ_EXECUTED_VERSION, resolved_version.parse().unwrap());
+                // Response streaming is not routed through code execution:
+                // the event-stream framing it needs is not implemented, so
+                // the response stays an ( empty ) stub and says so.
+                let reason = if self.executor.is_some() {
+                    StubReason::ResponseStreamUnsupported
+                } else {
+                    StubReason::ExecutionDisabled
+                };
+                mark_invoke_stub(&mut response, reason);
                 response
             }
             Err(e) => lambda_error_response(&e),
@@ -4404,6 +4714,43 @@ fn csc_entry_to_model(entry: &crate::types::CodeSigningConfigEntry) -> model::Co
         }),
         last_modified: Some(entry.last_modified.clone()),
     }
+}
+
+/// Set the headers every `Invoke` response carries: the executed version and
+/// whether the function's code was really run.
+fn mark_invoke_response(response: &mut MockResponse, version: &str, execution: &'static str) {
+    response
+        .headers
+        .insert(X_AMZ_EXECUTED_VERSION, version.parse().unwrap());
+    response.headers.insert(
+        X_WINTERBAUME_LAMBDA_EXECUTION,
+        http::HeaderValue::from_static(execution),
+    );
+}
+
+/// Mark a response as a stub that ran no code, with the reason.
+fn mark_invoke_stub(response: &mut MockResponse, reason: StubReason) {
+    response.headers.insert(
+        X_WINTERBAUME_LAMBDA_EXECUTION,
+        http::HeaderValue::from_static(EXECUTION_STUB),
+    );
+    response.headers.insert(
+        X_WINTERBAUME_LAMBDA_STUB_REASON,
+        http::HeaderValue::from_static(reason.as_str()),
+    );
+}
+
+/// The placeholder `Invoke` response for a function whose code was not run:
+/// `{}` for a synchronous invocation, an empty body for an accepted
+/// asynchronous one.
+fn invoke_stub_response(status: u16, version: &str, reason: StubReason) -> MockResponse {
+    let body = if status == 202 { "" } else { "{}" };
+    let mut response = MockResponse::rest_json(status, body);
+    response
+        .headers
+        .insert(X_AMZ_EXECUTED_VERSION, version.parse().unwrap());
+    mark_invoke_stub(&mut response, reason);
+    response
 }
 
 fn rest_json_error(status: u16, code: &str, message: &str) -> MockResponse {
