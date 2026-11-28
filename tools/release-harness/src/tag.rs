@@ -12,11 +12,13 @@
 //! Everything here is a state probe first and an action second, so the command
 //! is safe to re-run: tags already at the requested commit are left alone,
 //! tags already on `origin` are not re-pushed, and a tag pointing anywhere
-//! else aborts the run rather than being moved.
+//! else aborts the run rather than being moved. Before the first tag is
+//! written, `verify_identity` confirms git has a committer identity and, for
+//! signed tags, a signing key to make them with.
 
 use std::collections::BTreeMap;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 use crate::TagArgs;
@@ -78,6 +80,22 @@ pub enum Error {
         .conflicts.join(", "),
     )]
     TagConflict { conflicts: Vec<String> },
+    #[error(
+        "git cannot create {} in {}:\n{}\n\
+         A fresh clone does not inherit the original checkout's local `git config`. \
+         Copy user.name, user.email and, for signed tags, gpg.format and \
+         user.signingkey across ( `git config --local --get <key>` there, \
+         `git config <key> <value>` here ){}.",
+        if *.sign { "signed tags" } else { "tags" },
+        .root.display(),
+        .problems.iter().map(|p| format!("  - {p}")).collect::<Vec<_>>().join("\n"),
+        if *.sign { ", or pass `tag --no-sign` for unsigned tags" } else { "" },
+    )]
+    Identity {
+        root: PathBuf,
+        sign: bool,
+        problems: Vec<String>,
+    },
 }
 
 /// What the repository already knows about one crate's tag.
@@ -245,6 +263,9 @@ pub fn run(cargo: &CargoExe, args: &TagArgs) -> Result<ExitCode, Error> {
     }
 
     let sign = !args.no_sign;
+    if !to_create.is_empty() {
+        verify_identity(&root, sign)?;
+    }
     println!(
         "{} tag(s) to create, {} to push{}",
         to_create.len(),
@@ -405,6 +426,140 @@ fn verify_published(planned: &[(String, String)]) -> Result<(), Error> {
     Ok(())
 }
 
+/// The signing settings `git tag -s` consults, as resolved for the repository.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+struct SigningConfig {
+    /// `gpg.format`; unset means `openpgp`.
+    format: Option<String>,
+    /// `user.signingkey`.
+    key: Option<String>,
+    /// `gpg.ssh.defaultKeyCommand`.
+    default_key_command: Option<String>,
+}
+
+/// `user.signingkey` holds the key itself rather than a path to it — git's
+/// own test ( `is_literal_ssh_key` ) is these two prefixes.
+fn is_literal_ssh_key(key: &str) -> bool {
+    key.starts_with("key::") || key.starts_with("ssh-")
+}
+
+/// Where a path-valued `user.signingkey` points, with `~/` expanded the way
+/// git's `--type=path` does and a relative path taken from the repository.
+fn resolve_key_path(key: &str, root: &Path, home: Option<&Path>) -> PathBuf {
+    match (key.strip_prefix("~/"), home) {
+        (Some(rest), Some(h)) => h.join(rest),
+        _ => root.join(key),
+    }
+}
+
+/// Everything that would make `git tag -a` / `git tag -s` fail before it
+/// writes a tag, as one human-readable line per problem.
+///
+/// `ident_failure` is the error `git var GIT_COMMITTER_IDENT` gave, if any.
+/// `signing` is `None` for unsigned tags. Only the ssh format is checked in
+/// depth: openpgp and x509 fall back to the committer identity to choose a
+/// key, so the identity check already covers their configuration.
+fn identity_problems(
+    ident_failure: Option<&str>,
+    signing: Option<&SigningConfig>,
+    root: &Path,
+    home: Option<&Path>,
+    exists: impl Fn(&Path) -> bool,
+) -> Vec<String> {
+    let mut problems = Vec::new();
+    if let Some(why) = ident_failure {
+        problems.push(format!("no committer identity: {why}"));
+    }
+    let Some(cfg) = signing else {
+        return problems;
+    };
+    if cfg.format.as_deref() != Some("ssh") {
+        return problems;
+    }
+    match cfg.key.as_deref() {
+        None if cfg.default_key_command.is_none() => problems.push(
+            "gpg.format is ssh, but neither user.signingkey nor gpg.ssh.defaultKeyCommand is set"
+                .to_string(),
+        ),
+        None => {}
+        Some(k) if is_literal_ssh_key(k) => {}
+        Some(k) => {
+            let path = resolve_key_path(k, root, home);
+            if !exists(&path) {
+                problems.push(format!(
+                    "user.signingkey names {}, which does not exist",
+                    path.display()
+                ));
+            }
+        }
+    }
+    problems
+}
+
+/// The last `fatal:` line of a git failure, which is the one that says what
+/// was actually wrong; the advice block above it is the same every time.
+fn fatal_line(stderr: &str) -> String {
+    stderr
+        .lines()
+        .rev()
+        .find(|l| l.starts_with("fatal:"))
+        .or_else(|| stderr.lines().rev().find(|l| !l.trim().is_empty()))
+        .unwrap_or("git var GIT_COMMITTER_IDENT failed")
+        .trim()
+        .to_string()
+}
+
+/// Refuse to start when git could not create the tags here: no committer
+/// identity, or ( for signed tags ) no usable ssh signing key. A fresh clone
+/// has neither when the original checkout keeps them in its local config,
+/// which is how the 2026-11-27 tag run died on its first `git tag -s`.
+///
+/// Probes only: `git var` and `git config --get` write nothing, so the dry
+/// run makes the same check and fails the same way `--execute` would.
+pub(crate) fn verify_identity(root: &Path, sign: bool) -> Result<(), Error> {
+    let ident = match git::committer_ident(root) {
+        Ok(ident) => Ok(ident),
+        Err(git::Error::GitFailed { stderr, .. }) => Err(fatal_line(&stderr)),
+        Err(e) => return Err(e.into()),
+    };
+    let signing = if sign {
+        Some(SigningConfig {
+            format: git::config_get(root, "gpg.format")?,
+            key: git::config_get(root, "user.signingkey")?,
+            default_key_command: git::config_get(root, "gpg.ssh.defaultKeyCommand")?,
+        })
+    } else {
+        None
+    };
+    let home = std::env::var_os("HOME").map(PathBuf::from);
+    let problems = identity_problems(
+        ident.as_ref().err().map(String::as_str),
+        signing.as_ref(),
+        root,
+        home.as_deref(),
+        Path::exists,
+    );
+    if !problems.is_empty() {
+        return Err(Error::Identity {
+            root: root.to_path_buf(),
+            sign,
+            problems,
+        });
+    }
+    let ident = ident.unwrap_or_default();
+    // Name only: the address is the operator's business, not the log's.
+    let name = ident.split(" <").next().unwrap_or(&ident);
+    println!(
+        "git identity: {name}{}",
+        match signing.as_ref().and_then(|c| c.format.as_deref()) {
+            _ if !sign => ", unsigned".to_string(),
+            Some(f) => format!(", signing with {f}"),
+            None => ", signing with openpgp".to_string(),
+        }
+    );
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -474,6 +629,111 @@ mod tests {
     fn package_version_declines_a_manifest_without_a_package_section() {
         let manifest = "[workspace]\nmembers = [\"crates/*\"]\n";
         assert_eq!(package_version(manifest), None);
+    }
+
+    fn ssh(key: Option<&str>, command: Option<&str>) -> SigningConfig {
+        SigningConfig {
+            format: Some("ssh".to_string()),
+            key: key.map(str::to_string),
+            default_key_command: command.map(str::to_string),
+        }
+    }
+
+    fn problems(ident: Option<&str>, signing: Option<&SigningConfig>) -> Vec<String> {
+        identity_problems(
+            ident,
+            signing,
+            Path::new("/repo"),
+            Some(Path::new("/home/op")),
+            |p| p == Path::new("/home/op/.ssh/id_ed25519.pub"),
+        )
+    }
+
+    #[test]
+    fn a_configured_checkout_has_no_problems() {
+        let cfg = ssh(Some("~/.ssh/id_ed25519.pub"), None);
+        assert!(problems(None, Some(&cfg)).is_empty());
+    }
+
+    #[test]
+    fn a_missing_identity_is_reported_even_unsigned() {
+        // The 2026-11-27 failure: a fresh clone with no user.email.
+        let why = "fatal: unable to auto-detect email address (got 'op@host.(none)')";
+        let found = problems(Some(why), None);
+        assert_eq!(found.len(), 1);
+        assert!(found[0].contains("unable to auto-detect email address"));
+    }
+
+    #[test]
+    fn ssh_signing_without_any_key_is_reported() {
+        let found = problems(None, Some(&ssh(None, None)));
+        assert_eq!(found.len(), 1);
+        assert!(found[0].contains("user.signingkey"));
+    }
+
+    #[test]
+    fn a_default_key_command_stands_in_for_the_key() {
+        let cfg = ssh(None, Some("ssh-add -L"));
+        assert!(problems(None, Some(&cfg)).is_empty());
+    }
+
+    #[test]
+    fn a_literal_ssh_key_is_not_treated_as_a_path() {
+        for key in [
+            "ssh-ed25519 AAAAC3Nza op@host",
+            "key::ssh-ed25519 AAAAC3Nza",
+        ] {
+            assert!(
+                problems(None, Some(&ssh(Some(key), None))).is_empty(),
+                "{key}"
+            );
+        }
+    }
+
+    #[test]
+    fn a_key_path_that_does_not_exist_is_reported() {
+        let found = problems(None, Some(&ssh(Some("~/.ssh/missing.pub"), None)));
+        assert_eq!(found.len(), 1);
+        assert!(
+            found[0].contains("/home/op/.ssh/missing.pub"),
+            "{}",
+            found[0]
+        );
+    }
+
+    #[test]
+    fn a_relative_key_path_resolves_against_the_repository() {
+        assert_eq!(
+            resolve_key_path(
+                "keys/k.pub",
+                Path::new("/repo"),
+                Some(Path::new("/home/op"))
+            ),
+            PathBuf::from("/repo/keys/k.pub")
+        );
+    }
+
+    #[test]
+    fn openpgp_signing_relies_on_the_identity_check() {
+        let cfg = SigningConfig::default();
+        assert!(problems(None, Some(&cfg)).is_empty());
+    }
+
+    #[test]
+    fn both_problems_are_reported_together() {
+        let found = problems(Some("fatal: empty ident name"), Some(&ssh(None, None)));
+        assert_eq!(found.len(), 2);
+    }
+
+    #[test]
+    fn fatal_line_drops_the_advice_block() {
+        let stderr = "Committer identity unknown\n\n*** Please tell me who you are.\n\n\
+                      Run\n\n  git config --global user.email \"you@example.com\"\n\n\
+                      fatal: unable to auto-detect email address (got 'op@host.(none)')\n";
+        assert_eq!(
+            fatal_line(stderr),
+            "fatal: unable to auto-detect email address (got 'op@host.(none)')"
+        );
     }
 
     #[test]

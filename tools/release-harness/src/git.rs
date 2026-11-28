@@ -207,6 +207,35 @@ pub fn rev_exists(root: &Path, rev: &str) -> Result<bool, Error> {
     Ok(out.status.success())
 }
 
+/// The identity git would stamp on a tag or commit made here, from
+/// `git var GIT_COMMITTER_IDENT`. That uses the same strict lookup as
+/// `git tag -a` / `git commit`, so it fails exactly when they would, with the
+/// same "Committer identity unknown" text, and writes nothing.
+pub fn committer_ident(root: &Path) -> Result<String, Error> {
+    Ok(run_git(root, &["var", "GIT_COMMITTER_IDENT"])?
+        .trim()
+        .to_string())
+}
+
+/// `git config --get <key>` as the repository at `root` resolves it ( local,
+/// then global, then system ). `None` when the key is unset; status 1 is that
+/// answer, not a failure.
+pub fn config_get(root: &Path, key: &str) -> Result<Option<String>, Error> {
+    let out = Command::new("git")
+        .args(["config", "--get", key])
+        .current_dir(root)
+        .output()?;
+    match out.status.code() {
+        Some(0) => Ok(Some(String::from_utf8(out.stdout)?.trim().to_string())),
+        Some(1) => Ok(None),
+        _ => Err(Error::GitFailed {
+            cmd: format!("git config --get {key}"),
+            status: out.status.to_string(),
+            stderr: String::from_utf8_lossy(&out.stderr).into_owned(),
+        }),
+    }
+}
+
 /// `git merge-base --is-ancestor`. Returns true when `ancestor` is reachable
 /// from `descendant` (i.e. `ancestor` was made first), false otherwise.
 /// Distinct from the generic `GitFailed` branch: a clean status 1 is the "no"
